@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QS-DMSS Run Config",
+  "type": "object",
+  "required": ["run", "engine", "initial"],
+  "additionalProperties": false,
+  "properties": {
+    "run": {
+      "type": "object",
+      "required": ["name", "seed"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "output_root": {
+          "type": "string",
+          "default": "runs"
+        }
+      }
+    },
+    "engine": {
+      "type": "object",
+      "required": [
+        "backend",
+        "grid_shape",
+        "box_size",
+        "mass",
+        "g_int",
+        "time_step",
+        "num_steps"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "backend": {
+          "type": "string",
+          "enum": ["numpy"]
+        },
+        "grid_shape": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "items": {
+            "type": "integer",
+            "minimum": 2
+          }
+        },
+        "box_size": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "mass": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "g_int": {
+          "type": "number"
+        },
+        "time_step": {
+          "type": "number",
+          "exclusiveMinimum": 0
+        },
+        "num_steps": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "log_every": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        }
+      }
+    },
+    "initial": {
+      "type": "object",
+      "required": ["kind"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["gaussian", "uniform"]
+        },
+        "amplitude": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "default": 1.0
+        },
+        "width": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "default": 0.2
+        },
+        "random_phase": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    }
+  }
+}
