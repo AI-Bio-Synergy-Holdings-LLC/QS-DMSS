@@ -5,12 +5,14 @@ Dark Matter Simulation Suite. This repository now ships the productization spine
 needed to move from prototype scripts into a reproducible package:
 
 - Installable Python package
+- Bundled demo assets for installed-package smoke testing
 - Config-driven simulation CLI
 - Local-first run cockpit and JSON API
 - Parameter sweeps and multi-run comparison in the cockpit
 - Run ledger with stable run IDs and config digests
 - Evidence bundle with artifacts, metrics, manifest, and HTML report
 - Replay and verification commands for reproducibility checks
+- GitHub Actions CI and containerized runtime
 
 ## What This Build Includes
 
@@ -54,6 +56,12 @@ Run the checked-in demo config:
 qs-dmss run configs/demo.yaml
 ```
 
+Run the bundled demo config from any installed build:
+
+```powershell
+qs-dmss run-demo
+```
+
 Start the local cockpit:
 
 ```powershell
@@ -80,6 +88,23 @@ Replay a prior run using the captured config:
 qs-dmss replay runs\<run_id>
 ```
 
+## Container Runtime
+
+Build the container image:
+
+```powershell
+docker build -t qs-dmss .
+```
+
+Run the cockpit in Docker:
+
+```powershell
+docker run --rm -p 8001:8001 qs-dmss
+```
+
+The image installs the built wheel, starts `qs-dmss cockpit --host 0.0.0.0 --port 8001`,
+and exposes the health endpoint at `http://127.0.0.1:8001/api/health`.
+
 ## Project Layout
 
 ```text
@@ -96,6 +121,13 @@ Run the smoke tests:
 ```powershell
 pytest
 ```
+
+CI lives in [ci.yml](/C:/Users/chuck/Documents/New project/QS-DMSS-git/.github/workflows/ci.yml:1) and validates:
+
+- the editable install and test suite across Python 3.10 through 3.13
+- static cockpit JavaScript syntax
+- wheel build and installed-wheel `run-demo` smoke test
+- Docker build plus live `/api/health` and `/api/configs` probes
 
 ## Current Scope
 

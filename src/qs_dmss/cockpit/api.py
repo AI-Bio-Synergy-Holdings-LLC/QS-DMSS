@@ -71,11 +71,15 @@ class CockpitService:
         items: list[dict] = []
         for path in sorted(self.config_root.glob("*.y*ml")):
             config = load_config(path)
+            try:
+                relative_path = path.relative_to(self.repo_root).as_posix()
+            except ValueError:
+                relative_path = f"configs/{path.name}"
             items.append(
                 {
                     "label": path.stem.replace("_", " "),
                     "name": path.name,
-                    "path": path.relative_to(self.repo_root).as_posix(),
+                    "path": relative_path,
                     "config": config.to_dict(),
                 }
             )

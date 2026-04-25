@@ -51,6 +51,17 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert replay_run["run_record"]["replayed_from"] == run_id
 
 
+def test_cockpit_api_uses_bundled_configs_when_repo_has_none(tmp_path: Path) -> None:
+    app = create_app(repo_root=tmp_path, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    config_payload = client.get("/api/configs")
+    assert config_payload.status_code == 200
+    body = config_payload.json()
+    assert body["default_name"] == "demo.yaml"
+    assert body["items"][0]["path"] == "configs/demo.yaml"
+
+
 def test_cockpit_api_launch_sweep_and_compare(tmp_path: Path) -> None:
     repo_root = Path(__file__).resolve().parents[1]
     app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")

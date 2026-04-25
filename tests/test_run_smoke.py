@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import json
+import os
 from pathlib import Path
 
 import numpy as np
 
 from qs_dmss.app import execute_run_from_path, replay_run
+from qs_dmss.cli import main
 from qs_dmss.evidence.verify import verify_run_path
+from qs_dmss.paths import demo_config_path
 
 
 def test_run_bundle_and_replay_are_reproducible(tmp_path: Path) -> None:
@@ -40,3 +43,22 @@ def test_run_bundle_and_replay_are_reproducible(tmp_path: Path) -> None:
     first_record = json.loads((first_run.run_dir / "run.json").read_text(encoding="utf-8"))
     replay_record = json.loads((replayed_run.run_dir / "run.json").read_text(encoding="utf-8"))
     assert replay_record["replayed_from"] == first_record["run_id"]
+
+
+def test_bundled_demo_config_and_cli_entrypoint(tmp_path: Path) -> None:
+    demo_path = demo_config_path(tmp_path)
+    assert demo_path.exists()
+    assert "assets" in str(demo_path)
+
+    previous_cwd = Path.cwd()
+    try:
+        os.chdir(tmp_path)
+        exit_code = main(["run-demo", "--output-root", str(tmp_path / "runs")])
+    finally:
+        os.chdir(previous_cwd)
+    assert exit_code == 0
+
+    run_dirs = [path for path in (tmp_path / "runs").iterdir() if path.is_dir()]
+    assert len(run_dirs) == 1
+    verification = verify_run_path(run_dirs[0])
+    assert verification.success, verification.errors

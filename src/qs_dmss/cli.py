@@ -5,6 +5,7 @@ from pathlib import Path
 
 from qs_dmss.app import execute_run_from_path, replay_run
 from qs_dmss.evidence.verify import verify_run_path
+from qs_dmss.paths import demo_config_path
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -17,6 +18,15 @@ def _build_parser() -> argparse.ArgumentParser:
     run_parser = subparsers.add_parser("run", help="Run a config and emit an evidence bundle.")
     run_parser.add_argument("config", help="Path to a YAML config file.")
     run_parser.add_argument(
+        "--output-root",
+        help="Optional output directory override for generated runs.",
+    )
+
+    demo_parser = subparsers.add_parser(
+        "run-demo",
+        help="Run the bundled demo config from the installed package or repo checkout.",
+    )
+    demo_parser.add_argument(
         "--output-root",
         help="Optional output directory override for generated runs.",
     )
@@ -82,6 +92,17 @@ def main(argv: list[str] | None = None) -> int:
             config_path=args.config,
             output_root=args.output_root,
         )
+        print(f"Run complete: {outputs.run_dir}")
+        print(f"Evidence bundle: {outputs.bundle_path}")
+        return _print_verification_result(outputs.run_dir)
+
+    if args.command == "run-demo":
+        demo_path = demo_config_path()
+        outputs = execute_run_from_path(
+            config_path=demo_path,
+            output_root=args.output_root,
+        )
+        print(f"Demo config: {demo_path}")
         print(f"Run complete: {outputs.run_dir}")
         print(f"Evidence bundle: {outputs.bundle_path}")
         return _print_verification_result(outputs.run_dir)

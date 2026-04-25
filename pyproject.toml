@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Evidence-first reference package for the QuantumScalar Dark Matter Simulation Suite."
 readme = "README.md"
 requires-python = ">=3.10"
-license = { file = "LICENSE" }
+license = "Apache-2.0"
 authors = [
   { name = "AI Bio Synergy Holdings LLC" }
 ]
@@ -35,6 +35,7 @@ package-dir = { "" = "src" }
 where = ["src"]
 
 [tool.setuptools.package-data]
+"qs_dmss.assets" = ["configs/*.yaml", "schemas/*.json"]
 "qs_dmss.cockpit" = ["static/*.css", "static/*.html", "static/*.js"]
 
 [tool.pytest.ini_options]
