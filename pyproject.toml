@@ -13,12 +13,15 @@ authors = [
   { name = "AI Bio Synergy Holdings LLC" }
 ]
 dependencies = [
+  "fastapi>=0.116",
   "numpy>=1.26",
   "PyYAML>=6.0",
+  "uvicorn>=0.35",
 ]
 
 [project.optional-dependencies]
 dev = [
+  "httpx>=0.28",
   "pytest>=8.0",
 ]
 
@@ -30,6 +33,9 @@ package-dir = { "" = "src" }
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+"qs_dmss.cockpit" = ["static/*.css", "static/*.html", "static/*.js"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]

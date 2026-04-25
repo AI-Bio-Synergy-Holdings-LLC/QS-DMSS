@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from qs_dmss.io.config import SimulationConfig, config_digest
+from qs_dmss.paths import discover_repo_root
 
 
 @dataclass(frozen=True)
@@ -27,13 +28,6 @@ def _utc_timestamp() -> str:
 def _sanitize_name(name: str) -> str:
     sanitized = re.sub(r"[^A-Za-z0-9_-]+", "-", name).strip("-")
     return sanitized or "run"
-
-
-def _discover_repo_root(start_path: Path) -> Path:
-    for candidate in [start_path, *start_path.parents]:
-        if (candidate / ".git").exists() or (candidate / "pyproject.toml").exists():
-            return candidate
-    return start_path
 
 
 def _resolve_output_root(
@@ -59,7 +53,7 @@ def prepare_run_workspace(
     output_root_override: Path | None = None,
     replayed_from: str | None = None,
 ) -> RunWorkspace:
-    repo_root = _discover_repo_root(source_config_path.resolve().parent)
+    repo_root = discover_repo_root(source_config_path.resolve().parent)
     output_root = _resolve_output_root(
         config,
         source_config_path,

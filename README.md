@@ -6,6 +6,7 @@ needed to move from prototype scripts into a reproducible package:
 
 - Installable Python package
 - Config-driven simulation CLI
+- Local-first run cockpit and JSON API
 - Run ledger with stable run IDs and config digests
 - Evidence bundle with artifacts, metrics, manifest, and HTML report
 - Replay and verification commands for reproducibility checks
@@ -18,6 +19,7 @@ productization:
 - A NumPy-based split-step Schrodinger-Poisson solver
 - YAML configuration loading with explicit validation
 - Structured run outputs under `runs/<run_id>/`
+- A local cockpit for launch, inspection, verification, replay, and bundle download
 - Evidence artifacts:
   - `config.yaml`
   - `run.json`
@@ -48,6 +50,14 @@ Run the checked-in demo config:
 ```powershell
 qs-dmss run configs/demo.yaml
 ```
+
+Start the local cockpit:
+
+```powershell
+qs-dmss cockpit --host 127.0.0.1 --port 8001
+```
+
+Then open [http://127.0.0.1:8001](http://127.0.0.1:8001) in a browser.
 
 Verify the generated evidence bundle:
 
@@ -85,3 +95,7 @@ first. Optional accelerator backends, UI layers, plugin expansion, and broader
 enterprise modules can now build on a stable execution loop:
 
 `configure -> run -> measure -> bundle -> verify -> replay`
+
+The cockpit adds the first browser-native product layer on top of that loop:
+
+`configure -> launch -> inspect -> verify -> replay -> download`

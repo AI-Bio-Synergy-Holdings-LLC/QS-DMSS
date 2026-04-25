@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QS-DMSS Run Cockpit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="rail">
+        <div class="brand-mark" aria-hidden="true">
+          <div class="brand-ring"></div>
+          <div class="brand-core"></div>
+        </div>
+        <nav class="rail-nav" aria-label="Primary">
+          <a class="rail-item active" href="#cockpit">Cockpit</a>
+          <a class="rail-item" href="#runs">Runs</a>
+          <a class="rail-item" href="#evidence">Evidence</a>
+          <a class="rail-item" href="#artifacts">Artifacts</a>
+          <a class="rail-item" href="#config">Config</a>
+        </nav>
+        <div class="rail-footer">
+          <span class="rail-status-dot"></span>
+          <span>Local-first</span>
+        </div>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">Deterministic simulation and evidence operations</p>
+            <h1>QS-DMSS Run Cockpit</h1>
+          </div>
+          <div class="topbar-meta">
+            <div class="meta-pill">
+              <span class="pill-dot"></span>
+              <span>Deterministic</span>
+            </div>
+            <div class="meta-pill subtle">Local API</div>
+            <div class="meta-avatar">QS</div>
+          </div>
+        </header>
+
+        <section class="board-grid">
+          <section class="panel launch-panel reveal" id="cockpit">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Launch</p>
+                <h2>Launch Run</h2>
+              </div>
+              <button class="ghost-button" id="loadTemplateButton" type="button">
+                Load Template
+              </button>
+            </div>
+
+            <form id="launchForm" class="launch-grid">
+              <label class="field">
+                <span>Config</span>
+                <select id="configTemplate" name="configTemplate"></select>
+              </label>
+
+              <label class="field">
+                <span>Seed</span>
+                <input id="seedInput" name="seed" type="number" min="0" step="1" />
+              </label>
+
+              <label class="field field-grid">
+                <span>Grid</span>
+                <div class="triple-input">
+                  <input id="gridX" type="number" min="2" step="1" />
+                  <input id="gridY" type="number" min="2" step="1" />
+                  <input id="gridZ" type="number" min="2" step="1" />
+                </div>
+              </label>
+
+              <label class="field">
+                <span>Steps</span>
+                <input id="stepsInput" name="steps" type="number" min="1" step="1" />
+              </label>
+
+              <details class="advanced" id="config">
+                <summary>Advanced tuning</summary>
+                <div class="advanced-grid">
+                  <label class="field">
+                    <span>Run Name</span>
+                    <input id="runNameInput" type="text" />
+                  </label>
+                  <label class="field">
+                    <span>Box Size</span>
+                    <input id="boxSizeInput" type="number" min="0.0001" step="0.01" />
+                  </label>
+                  <label class="field">
+                    <span>Mass</span>
+                    <input id="massInput" type="number" min="0.0001" step="0.01" />
+                  </label>
+                  <label class="field">
+                    <span>Interaction</span>
+                    <input id="gIntInput" type="number" step="0.001" />
+                  </label>
+                  <label class="field">
+                    <span>Time Step</span>
+                    <input id="dtInput" type="number" min="0.0001" step="0.001" />
+                  </label>
+                  <label class="field">
+                    <span>Initial Profile</span>
+                    <select id="initialKindInput">
+                      <option value="gaussian">Gaussian</option>
+                      <option value="uniform">Uniform</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    <span>Amplitude</span>
+                    <input id="amplitudeInput" type="number" min="0.0001" step="0.1" />
+                  </label>
+                  <label class="field">
+                    <span>Width</span>
+                    <input id="widthInput" type="number" min="0.0001" step="0.01" />
+                  </label>
+                  <label class="toggle-field">
+                    <span>Random phase</span>
+                    <input id="randomPhaseInput" type="checkbox" />
+                  </label>
+                </div>
+              </details>
+
+              <div class="launch-actions">
+                <button class="primary-button" id="launchButton" type="submit">
+                  Launch Run
+                </button>
+                <p class="form-note">
+                  Launches a deterministic run, writes a run ledger, and emits a fresh evidence bundle.
+                </p>
+              </div>
+            </form>
+          </section>
+
+          <section class="panel status-panel reveal">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Status</p>
+                <h2 id="statusHeading">Awaiting Run</h2>
+              </div>
+              <span class="status-badge" id="statusBadge">Idle</span>
+            </div>
+            <dl class="metric-list" id="statusMetrics">
+              <div>
+                <dt>Run ID</dt>
+                <dd id="statusRunId">No run selected</dd>
+              </div>
+              <div>
+                <dt>Config Digest</dt>
+                <dd id="statusDigest">-</dd>
+              </div>
+              <div>
+                <dt>Completed</dt>
+                <dd id="statusFinished">-</dd>
+              </div>
+              <div>
+                <dt>Wall Time</dt>
+                <dd id="statusElapsed">-</dd>
+              </div>
+              <div>
+                <dt>Steps</dt>
+                <dd id="statusSteps">-</dd>
+              </div>
+              <div>
+                <dt>Verified</dt>
+                <dd id="statusVerified">Pending</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="panel detail-panel reveal" id="artifacts">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Run Detail</p>
+                <h2 id="detailTitle">Select a run</h2>
+              </div>
+              <span class="detail-chip" id="detailChip">No run selected</span>
+            </div>
+
+            <div class="detail-digest">
+              <span>Config Digest</span>
+              <code id="detailDigest">-</code>
+            </div>
+
+            <div class="chart-stack">
+              <article class="metric-card">
+                <div class="metric-copy">
+                  <p>Energy Drift</p>
+                  <strong id="energyDriftValue">-</strong>
+                </div>
+                <div class="trace-wrap">
+                  <svg id="energyChart" class="trace" viewBox="0 0 280 110" preserveAspectRatio="none"></svg>
+                  <div class="trace-axis">
+                    <span>0</span>
+                    <span id="energyAxisMid">mid</span>
+                    <span id="energyAxisEnd">end</span>
+                  </div>
+                </div>
+              </article>
+
+              <article class="metric-card">
+                <div class="metric-copy">
+                  <p>Norm Drift</p>
+                  <strong id="normDriftValue">-</strong>
+                </div>
+                <div class="trace-wrap">
+                  <svg id="normChart" class="trace" viewBox="0 0 280 110" preserveAspectRatio="none"></svg>
+                  <div class="trace-axis">
+                    <span>0</span>
+                    <span id="normAxisMid">mid</span>
+                    <span id="normAxisEnd">end</span>
+                  </div>
+                </div>
+              </article>
+            </div>
+
+            <div class="detail-actions">
+              <button class="secondary-button" id="verifyButton" type="button">Verify</button>
+              <button class="secondary-button teal" id="replayButton" type="button">Replay</button>
+              <a class="primary-button inline-button" id="bundleLink" href="#" download>
+                Download Bundle
+              </a>
+            </div>
+          </section>
+
+          <section class="panel runs-panel reveal" id="runs">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Ledger</p>
+                <h2>Recent Runs</h2>
+              </div>
+              <button class="ghost-button" id="refreshRunsButton" type="button">Refresh</button>
+            </div>
+
+            <div class="table-shell">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Run ID</th>
+                    <th>Config</th>
+                    <th>Seed</th>
+                    <th>Grid</th>
+                    <th>Steps</th>
+                    <th>Status</th>
+                    <th>Completed</th>
+                  </tr>
+                </thead>
+                <tbody id="runsTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel evidence-panel reveal" id="evidence">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Evidence</p>
+                <h2>Bundle Overview</h2>
+              </div>
+              <button class="ghost-button" id="openReportButton" type="button">Open Report</button>
+            </div>
+
+            <div class="evidence-grid">
+              <div class="donut-wrap">
+                <div class="donut" id="evidenceDonut">
+                  <div class="donut-center">
+                    <strong id="evidenceCount">0</strong>
+                    <span>files</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="evidence-meta">
+                <ul class="legend" id="evidenceLegend"></ul>
+                <dl class="evidence-stats">
+                  <div>
+                    <dt>Bundle Size</dt>
+                    <dd id="bundleSizeValue">-</dd>
+                  </div>
+                  <div>
+                    <dt>Verification</dt>
+                    <dd id="verificationStatusValue">Pending</dd>
+                  </div>
+                  <div>
+                    <dt>Artifacts</dt>
+                    <dd id="artifactCountValue">-</dd>
+                  </div>
+                </dl>
+              </div>
+            </div>
+
+            <div class="artifact-list-shell">
+              <p class="artifact-list-title">Artifact Inventory</p>
+              <ul class="artifact-list" id="artifactList"></ul>
+            </div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <div class="toast-region" id="toastRegion" aria-live="polite"></div>
+
+    <dialog class="report-modal" id="reportDialog">
+      <form method="dialog" class="report-frame-shell">
+        <header class="report-head">
+          <div>
+            <p class="panel-kicker">Report</p>
+            <h2 id="reportHeading">Evidence Report</h2>
+          </div>
+          <button class="ghost-button" value="close" type="submit">Close</button>
+        </header>
+        <iframe id="reportFrame" title="QS-DMSS run report"></iframe>
+      </form>
+    </dialog>
+
+    <script type="module" src="/static/app.js"></script>
+  </body>
+</html>

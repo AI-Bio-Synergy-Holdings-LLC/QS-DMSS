@@ -37,6 +37,26 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Optional output directory override for replayed runs.",
     )
 
+    cockpit_parser = subparsers.add_parser(
+        "cockpit",
+        help="Start the local QS-DMSS browser cockpit.",
+    )
+    cockpit_parser.add_argument(
+        "--host",
+        default="127.0.0.1",
+        help="Host interface to bind the cockpit server to.",
+    )
+    cockpit_parser.add_argument(
+        "--port",
+        type=int,
+        default=8001,
+        help="Port to bind the cockpit server to.",
+    )
+    cockpit_parser.add_argument(
+        "--output-root",
+        help="Optional run output directory override for the cockpit.",
+    )
+
     return parser
 
 
@@ -77,6 +97,16 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Replay complete: {outputs.run_dir}")
         print(f"Evidence bundle: {outputs.bundle_path}")
         return _print_verification_result(outputs.run_dir)
+
+    if args.command == "cockpit":
+        from qs_dmss.cockpit.server import run_cockpit_server
+
+        print(f"Starting QS-DMSS cockpit at http://{args.host}:{args.port}")
+        return run_cockpit_server(
+            host=args.host,
+            port=args.port,
+            output_root=args.output_root,
+        )
 
     parser.error(f"Unsupported command: {args.command}")
     return 2
