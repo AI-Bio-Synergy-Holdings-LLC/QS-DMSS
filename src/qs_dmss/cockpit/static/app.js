@@ -1,17 +1,28 @@
 const state = {
   configs: [],
   runs: [],
+  sweepParameters: [],
   selectedRunId: null,
   selectedRun: null,
   selectedTemplateName: null,
+  selectedRunIds: [],
+  comparison: null,
 };
 
 const els = {
   configTemplate: document.querySelector("#configTemplate"),
   loadTemplateButton: document.querySelector("#loadTemplateButton"),
   refreshRunsButton: document.querySelector("#refreshRunsButton"),
+  compareButton: document.querySelector("#compareButton"),
+  clearCompareButton: document.querySelector("#clearCompareButton"),
+  selectedRunCount: document.querySelector("#selectedRunCount"),
   launchForm: document.querySelector("#launchForm"),
   launchButton: document.querySelector("#launchButton"),
+  sweepForm: document.querySelector("#sweepForm"),
+  sweepParameter: document.querySelector("#sweepParameter"),
+  sweepValues: document.querySelector("#sweepValues"),
+  experimentNameInput: document.querySelector("#experimentNameInput"),
+  launchSweepButton: document.querySelector("#launchSweepButton"),
   verifyButton: document.querySelector("#verifyButton"),
   replayButton: document.querySelector("#replayButton"),
   bundleLink: document.querySelector("#bundleLink"),
@@ -20,6 +31,13 @@ const els = {
   reportFrame: document.querySelector("#reportFrame"),
   reportHeading: document.querySelector("#reportHeading"),
   runsTableBody: document.querySelector("#runsTableBody"),
+  comparisonTableBody: document.querySelector("#comparisonTableBody"),
+  compareTitle: document.querySelector("#compareTitle"),
+  compareContext: document.querySelector("#compareContext"),
+  compareEnergySpan: document.querySelector("#compareEnergySpan"),
+  compareNormSpan: document.querySelector("#compareNormSpan"),
+  compareDensitySpan: document.querySelector("#compareDensitySpan"),
+  compareFastestRun: document.querySelector("#compareFastestRun"),
   toastRegion: document.querySelector("#toastRegion"),
   fields: {
     runName: document.querySelector("#runNameInput"),
@@ -110,6 +128,17 @@ function formatScientific(value) {
   return numeric.toExponential(2);
 }
 
+function formatSignedScientific(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "-";
+  return `${numeric >= 0 ? "+" : ""}${numeric.toExponential(2)}`;
+}
+
+function shortRunId(value) {
+  if (!value) return "-";
+  return String(value).slice(-8);
+}
+
 function toast(title, body, tone = "neutral") {
   const node = document.createElement("div");
   node.className = "toast";
@@ -140,6 +169,10 @@ async function fetchJson(url, options) {
 
 function configByName(name) {
   return state.configs.find((item) => item.name === name) || null;
+}
+
+function sweepParameterByPath(path) {
+  return state.sweepParameters.find((item) => item.path === path) || null;
 }
 
 function fillForm(config) {
@@ -200,13 +233,28 @@ function renderConfigOptions() {
     .join("");
 }
 
+function renderSweepParameterOptions() {
+  els.sweepParameter.innerHTML = state.sweepParameters
+    .map(
+      (item) =>
+        `<option value="${item.path}">${item.label} - ${item.path}</option>`,
+    )
+    .join("");
+}
+
+function updateSelectionChip() {
+  const count = state.selectedRunIds.length;
+  els.selectedRunCount.textContent = `${count} selected`;
+}
+
 function renderRunsTable() {
   if (!state.runs.length) {
     els.runsTableBody.innerHTML = `
       <tr>
-        <td colspan="7">No runs yet. Launch the first deterministic run from the cockpit.</td>
+        <td colspan="8">No runs yet. Launch the first deterministic run from the cockpit.</td>
       </tr>
     `;
+    updateSelectionChip();
     return;
   }
 
@@ -214,10 +262,22 @@ function renderRunsTable() {
     .map((run) => {
       const selected = run.run_id === state.selectedRunId ? "is-selected" : "";
       const tone = statusTone(run.status);
+      const checked = state.selectedRunIds.includes(run.run_id) ? "checked" : "";
+      const experimentLabel = run.experiment?.parameter_value_label
+        ? `<div class="compare-parameter"><strong>${run.experiment.parameter_value_label}</strong><span>${run.experiment.parameter_label}</span></div>`
+        : "";
       return `
         <tr class="${selected}" data-run-id="${run.run_id}">
+          <td class="run-select-cell">
+            <input class="run-select" type="checkbox" data-run-check="${run.run_id}" ${checked} />
+          </td>
           <td>${run.run_id}</td>
-          <td>${run.config_name}</td>
+          <td>
+            <div class="compare-run">
+              <strong>${run.config_name}</strong>
+              ${experimentLabel || `<span>${run.name}</span>`}
+            </div>
+          </td>
           <td>${run.seed}</td>
           <td>${run.grid_label}</td>
           <td>${run.steps.toLocaleString()}</td>
@@ -229,8 +289,22 @@ function renderRunsTable() {
     .join("");
 
   els.runsTableBody.querySelectorAll("tr[data-run-id]").forEach((row) => {
-    row.addEventListener("click", () => selectRun(row.dataset.runId));
+    row.addEventListener("click", (event) => {
+      if (event.target.closest('input[type="checkbox"]')) {
+        return;
+      }
+      selectRun(row.dataset.runId);
+    });
   });
+
+  els.runsTableBody.querySelectorAll("input[data-run-check]").forEach((checkbox) => {
+    checkbox.addEventListener("click", (event) => event.stopPropagation());
+    checkbox.addEventListener("change", (event) => {
+      toggleRunSelection(event.target.dataset.runCheck, event.target.checked);
+    });
+  });
+
+  updateSelectionChip();
 }
 
 function renderTrace(svg, values, color) {
@@ -329,7 +403,9 @@ function renderSelectedRun(detail) {
     : "Pending";
 
   els.detailTitle.textContent = detail.summary.name;
-  els.detailChip.textContent = detail.summary.run_id;
+  els.detailChip.textContent = detail.run_record.experiment?.parameter_value_label
+    ? `${detail.summary.run_id} - ${detail.run_record.experiment.parameter_value_label}`
+    : detail.summary.run_id;
   els.detailDigest.textContent = detail.summary.config_digest;
   els.energyDriftValue.textContent = formatScientific(detail.metrics.energy_drift);
   els.normDriftValue.textContent = formatScientific(detail.metrics.norm_drift);
@@ -352,20 +428,81 @@ function renderSelectedRun(detail) {
   els.bundleLink.href = detail.urls.bundle;
   els.bundleLink.setAttribute("download", "");
   els.reportFrame.src = detail.urls.report;
-  els.reportHeading.textContent = `Evidence Report · ${detail.summary.run_id}`;
+  els.reportHeading.textContent = `Evidence Report - ${detail.summary.run_id}`;
 
   renderEvidence(detail);
   renderRunsTable();
 }
 
+function renderComparison(comparison) {
+  state.comparison = comparison;
+
+  if (!comparison) {
+    els.compareTitle.textContent = "Run Comparison";
+    els.compareContext.textContent = "Select two or more runs";
+    els.compareEnergySpan.textContent = "-";
+    els.compareNormSpan.textContent = "-";
+    els.compareDensitySpan.textContent = "-";
+    els.compareFastestRun.textContent = "-";
+    els.comparisonTableBody.innerHTML = `
+      <tr>
+        <td colspan="6">Select at least two runs to compare.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  const shared = comparison.shared_experiment;
+  els.compareTitle.textContent = shared ? shared.label : "Run Comparison";
+  els.compareContext.textContent = shared
+    ? `${shared.parameter_label} sweep`
+    : `${comparison.rows.length} runs selected`;
+  els.compareEnergySpan.textContent = formatScientific(comparison.ranges.energy_drift.span);
+  els.compareNormSpan.textContent = formatScientific(comparison.ranges.norm_drift.span);
+  els.compareDensitySpan.textContent = formatScientific(comparison.ranges.max_density.span);
+  els.compareFastestRun.textContent = shortRunId(comparison.ranges.elapsed_seconds.min_run_id);
+
+  els.comparisonTableBody.innerHTML = comparison.rows
+    .map((row, index) => `
+      <tr>
+        <td>
+          <div class="compare-run">
+            <strong>${row.run_id}</strong>
+            <span>${index === 0 ? "Baseline" : row.config_name}</span>
+          </div>
+        </td>
+        <td>
+          <div class="compare-parameter">
+            <strong>${row.parameter_value_label || "-"}</strong>
+            <span>${row.parameter_label || "Manual selection"}</span>
+          </div>
+        </td>
+        <td>${formatScientific(row.energy_drift)}</td>
+        <td>${formatScientific(row.norm_drift)}</td>
+        <td>${formatScientific(row.max_density)}</td>
+        <td>
+          <div class="compare-delta">
+            <strong>${formatSignedScientific(row.delta_from_baseline.energy_drift)}</strong>
+            <span>energy vs baseline</span>
+          </div>
+        </td>
+      </tr>
+    `)
+    .join("");
+}
+
 async function refreshRuns() {
   const payload = await fetchJson("/api/runs");
   state.runs = payload.items;
-  renderRunsTable();
+  const availableRunIds = new Set(state.runs.map((item) => item.run_id));
+  state.selectedRunIds = state.selectedRunIds.filter((runId) => availableRunIds.has(runId));
 
-  if (!state.selectedRunId && state.runs[0]) {
-    await selectRun(state.runs[0].run_id);
+  if (state.selectedRunId && !availableRunIds.has(state.selectedRunId)) {
+    state.selectedRunId = null;
+    state.selectedRun = null;
   }
+
+  renderRunsTable();
 }
 
 async function selectRun(runId) {
@@ -373,16 +510,51 @@ async function selectRun(runId) {
   renderSelectedRun(detail);
 }
 
+function toggleRunSelection(runId, checked) {
+  if (checked) {
+    if (!state.selectedRunIds.includes(runId)) {
+      state.selectedRunIds = [...state.selectedRunIds, runId];
+    }
+  } else {
+    state.selectedRunIds = state.selectedRunIds.filter((value) => value !== runId);
+  }
+
+  renderRunsTable();
+  if (state.comparison) {
+    renderComparison(null);
+  }
+}
+
+function parseSweepValues(text) {
+  return text
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
 async function hydrate() {
-  const [configPayload] = await Promise.all([fetchJson("/api/configs"), refreshRuns()]);
+  const [configPayload, sweepPayload] = await Promise.all([
+    fetchJson("/api/configs"),
+    fetchJson("/api/sweeps/parameters"),
+  ]);
   state.configs = configPayload.items;
+  state.sweepParameters = sweepPayload.items;
   state.selectedTemplateName = configPayload.default_name || state.configs[0]?.name || null;
   renderConfigOptions();
+  renderSweepParameterOptions();
 
   const selectedConfig = configByName(state.selectedTemplateName);
   if (selectedConfig) {
     fillForm(selectedConfig.config);
   }
+
+  const defaultSweepParameter = state.sweepParameters[0];
+  if (defaultSweepParameter) {
+    els.sweepParameter.value = defaultSweepParameter.path;
+  }
+
+  await refreshRuns();
+  renderComparison(null);
 
   if (state.runs[0]) {
     await selectRun(state.runs[0].run_id);
@@ -410,6 +582,44 @@ async function handleLaunch(event) {
   } finally {
     els.launchButton.disabled = false;
     els.launchButton.textContent = "Launch Run";
+  }
+}
+
+async function handleLaunchSweep(event) {
+  event.preventDefault();
+  const selectedParameter = sweepParameterByPath(els.sweepParameter.value);
+  const values = parseSweepValues(els.sweepValues.value);
+  if (!selectedParameter || !values.length) {
+    toast("Sweep needs values", "Enter one or more comma-separated values.", "danger");
+    return;
+  }
+
+  els.launchSweepButton.disabled = true;
+  els.launchSweepButton.textContent = "Launching...";
+
+  try {
+    const payload = await fetchJson("/api/sweeps", {
+      method: "POST",
+      body: JSON.stringify({
+        config: currentConfig(),
+        parameter_path: selectedParameter.path,
+        values,
+        source_name: els.configTemplate.value || "sweep.yaml",
+        experiment_name: els.experimentNameInput.value.trim() || null,
+      }),
+    });
+    toast("Sweep complete", `Created ${payload.runs.length} runs`, "success");
+    state.selectedRunIds = payload.experiment.run_ids;
+    await refreshRuns();
+    renderComparison(payload.comparison);
+    if (payload.runs[0]) {
+      await selectRun(payload.runs[0].run_id);
+    }
+  } catch (error) {
+    toast("Sweep failed", error.message, "danger");
+  } finally {
+    els.launchSweepButton.disabled = false;
+    els.launchSweepButton.textContent = "Launch Sweep";
   }
 }
 
@@ -445,6 +655,30 @@ async function handleReplay() {
   }
 }
 
+async function handleCompare() {
+  if (state.selectedRunIds.length < 2) {
+    toast("Pick more runs", "Select at least two runs to compare.", "danger");
+    return;
+  }
+
+  try {
+    const comparison = await fetchJson("/api/compare", {
+      method: "POST",
+      body: JSON.stringify({ run_ids: state.selectedRunIds }),
+    });
+    renderComparison(comparison);
+    toast("Comparison ready", `Compared ${comparison.rows.length} runs`, "success");
+  } catch (error) {
+    toast("Compare failed", error.message, "danger");
+  }
+}
+
+function clearComparison() {
+  state.selectedRunIds = [];
+  renderRunsTable();
+  renderComparison(null);
+}
+
 function openReport() {
   if (!state.selectedRun) return;
   els.reportDialog.showModal();
@@ -476,7 +710,10 @@ function bindEvents() {
     }
   });
 
+  els.compareButton.addEventListener("click", handleCompare);
+  els.clearCompareButton.addEventListener("click", clearComparison);
   els.launchForm.addEventListener("submit", handleLaunch);
+  els.sweepForm.addEventListener("submit", handleLaunchSweep);
   els.verifyButton.addEventListener("click", handleVerify);
   els.replayButton.addEventListener("click", handleReplay);
   els.openReportButton.addEventListener("click", openReport);

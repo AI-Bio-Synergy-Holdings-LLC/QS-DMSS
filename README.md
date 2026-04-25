@@ -7,6 +7,7 @@ needed to move from prototype scripts into a reproducible package:
 - Installable Python package
 - Config-driven simulation CLI
 - Local-first run cockpit and JSON API
+- Parameter sweeps and multi-run comparison in the cockpit
 - Run ledger with stable run IDs and config digests
 - Evidence bundle with artifacts, metrics, manifest, and HTML report
 - Replay and verification commands for reproducibility checks
@@ -20,6 +21,8 @@ productization:
 - YAML configuration loading with explicit validation
 - Structured run outputs under `runs/<run_id>/`
 - A local cockpit for launch, inspection, verification, replay, and bundle download
+- Sweep support for exploring one parameter across multiple deterministic runs
+- Comparison tooling for energy drift, norm drift, density, and runtime deltas
 - Evidence artifacts:
   - `config.yaml`
   - `run.json`
@@ -58,6 +61,12 @@ qs-dmss cockpit --host 127.0.0.1 --port 8001
 ```
 
 Then open [http://127.0.0.1:8001](http://127.0.0.1:8001) in a browser.
+
+Inside the cockpit you can:
+
+- Launch a single run from a checked-in or edited config
+- Launch a parameter sweep across interaction strength, timestep, step count, amplitude, width, or seed
+- Compare multiple runs side by side with shared experiment metadata
 
 Verify the generated evidence bundle:
 

@@ -12,6 +12,15 @@ from pydantic import BaseModel
 
 from qs_dmss.app import execute_run_from_path, replay_run as replay_existing_run
 from qs_dmss.evidence.verify import verify_run_path
+from qs_dmss.experiment import (
+    apply_sweep_value,
+    build_experiment_context,
+    build_run_comparison,
+    coerce_sweep_values,
+    create_experiment_id,
+    get_sweep_parameter,
+    list_sweep_parameters,
+)
 from qs_dmss.io.config import load_config, parse_config, write_config
 from qs_dmss.paths import configs_root, discover_repo_root, runs_root
 
@@ -19,6 +28,18 @@ from qs_dmss.paths import configs_root, discover_repo_root, runs_root
 class LaunchRunRequest(BaseModel):
     config: dict
     source_name: str = "cockpit.yaml"
+
+
+class CompareRunsRequest(BaseModel):
+    run_ids: list[str]
+
+
+class SweepRequest(BaseModel):
+    config: dict
+    parameter_path: str
+    values: list[int | float | str]
+    source_name: str = "sweep.yaml"
+    experiment_name: str | None = None
 
 
 @dataclass(frozen=True)
@@ -66,6 +87,9 @@ class CockpitService:
             items.append(self._build_run_summary(run_dir))
         return items
 
+    def list_sweep_parameters(self) -> list[dict]:
+        return list_sweep_parameters()
+
     def get_run_detail(self, run_id: str) -> dict:
         run_dir = self._get_run_dir(run_id)
         return self._build_run_detail(run_dir)
@@ -93,6 +117,68 @@ class CockpitService:
         run_dir = self._get_run_dir(run_id)
         outputs = replay_existing_run(run_dir, output_root=self.output_root)
         return self._build_run_detail(outputs.run_dir)
+
+    def compare_runs(self, payload: CompareRunsRequest) -> dict:
+        run_ids = [run_id for run_id in payload.run_ids if run_id]
+        if len(run_ids) < 2:
+            raise HTTPException(status_code=400, detail="Select at least two runs to compare")
+
+        try:
+            details = [self._build_run_detail(self._get_run_dir(run_id)) for run_id in run_ids]
+            return build_run_comparison(details)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    def launch_sweep(self, payload: SweepRequest) -> dict:
+        try:
+            base_config = parse_config(payload.config).to_dict()
+            parameter = get_sweep_parameter(payload.parameter_path)
+            values = coerce_sweep_values(parameter.path, payload.values)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+        experiment_id = create_experiment_id()
+        experiment_label = payload.experiment_name or f"{base_config['run']['name']} {parameter.label} sweep"
+        source_name = self._safe_source_name(payload.source_name)
+
+        summaries: list[dict] = []
+        details: list[dict] = []
+        with TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            for index, value in enumerate(values, start=1):
+                varied_config = apply_sweep_value(base_config, parameter.path, value)
+                temp_config_dir = temp_root / f"run-{index:02d}"
+                temp_config_dir.mkdir(parents=True, exist_ok=True)
+                temp_path = temp_config_dir / source_name
+                write_config(parse_config(varied_config), temp_path)
+                outputs = execute_run_from_path(
+                    temp_path,
+                    output_root=self.output_root,
+                    experiment=build_experiment_context(
+                        experiment_id=experiment_id,
+                        label=experiment_label,
+                        parameter=parameter,
+                        value=value,
+                        ordinal=index,
+                        total_runs=len(values),
+                    ),
+                )
+                detail = self._build_run_detail(outputs.run_dir)
+                details.append(detail)
+                summaries.append(detail["summary"])
+
+        return {
+            "experiment": {
+                "id": experiment_id,
+                "label": experiment_label,
+                "parameter_path": parameter.path,
+                "parameter_label": parameter.label,
+                "values": values,
+                "run_ids": [summary["run_id"] for summary in summaries],
+            },
+            "runs": summaries,
+            "comparison": build_run_comparison(details),
+        }
 
     def bundle_path(self, run_id: str) -> Path:
         run_dir = self._get_run_dir(run_id)
@@ -185,6 +271,7 @@ class CockpitService:
         run_record = self._read_json(run_dir / "run.json")
         metrics = self._read_json(run_dir / "metrics.json")
         config = load_config(run_dir / "config.yaml")
+        experiment = run_record.get("experiment")
         return {
             "run_id": run_record["run_id"],
             "name": run_record["name"],
@@ -200,6 +287,7 @@ class CockpitService:
             "norm_drift": metrics["norm_drift"],
             "bundle_size_bytes": (run_dir / "evidence_bundle.zip").stat().st_size,
             "bundle_size_label": self._format_bytes((run_dir / "evidence_bundle.zip").stat().st_size),
+            "experiment": experiment,
         }
 
     def _build_run_detail(self, run_dir: Path) -> dict:
@@ -263,6 +351,10 @@ def create_app(
             "default_name": items[0]["name"] if items else None,
         }
 
+    @app.get("/api/sweeps/parameters")
+    def sweep_parameters() -> dict:
+        return {"items": service.list_sweep_parameters()}
+
     @app.get("/api/runs")
     def runs() -> dict:
         return {"items": service.list_runs()}
@@ -274,6 +366,14 @@ def create_app(
     @app.post("/api/runs")
     def launch_run(payload: LaunchRunRequest) -> dict:
         return service.launch_run(payload)
+
+    @app.post("/api/compare")
+    def compare_runs(payload: CompareRunsRequest) -> dict:
+        return service.compare_runs(payload)
+
+    @app.post("/api/sweeps")
+    def launch_sweep(payload: SweepRequest) -> dict:
+        return service.launch_sweep(payload)
 
     @app.post("/api/runs/{run_id}/verify")
     def verify_run(run_id: str) -> dict:

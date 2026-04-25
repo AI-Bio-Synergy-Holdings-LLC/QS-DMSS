@@ -57,6 +57,19 @@ def write_report(run_dir: Path, run_record: dict, metrics: dict) -> None:
         "</tr>"
         for snapshot in metrics["history"]
     )
+    experiment = run_record.get("experiment")
+    experiment_markup = ""
+    if experiment:
+        experiment_markup = f"""
+    <h2>Experiment Context</h2>
+    <ul>
+      <li>Experiment ID: <code>{html.escape(str(experiment['id']))}</code></li>
+      <li>Label: {html.escape(str(experiment['label']))}</li>
+      <li>Parameter: {html.escape(str(experiment['parameter_label']))} (<code>{html.escape(str(experiment['parameter_path']))}</code>)</li>
+      <li>Value: {html.escape(str(experiment['parameter_value_label']))}</li>
+      <li>Ordinal: {experiment['ordinal']} of {experiment['total_runs']}</li>
+    </ul>
+"""
 
     html_body = f"""<!doctype html>
 <html lang="en">
@@ -88,6 +101,7 @@ def write_report(run_dir: Path, run_record: dict, metrics: dict) -> None:
       <li>Final energy: {metrics['final_energy']}</li>
       <li>Energy drift: {metrics['energy_drift']}</li>
     </ul>
+    {experiment_markup}
     <h2>Step History</h2>
     <table>
       <thead>

@@ -139,6 +139,43 @@
                 </p>
               </div>
             </form>
+
+            <div class="subpanel-divider"></div>
+
+            <section class="sweep-shell">
+              <div class="panel-head compact">
+                <div>
+                  <p class="panel-kicker">Sweep</p>
+                  <h2>Launch Parameter Sweep</h2>
+                </div>
+              </div>
+              <form id="sweepForm" class="sweep-grid">
+                <label class="field">
+                  <span>Parameter</span>
+                  <select id="sweepParameter"></select>
+                </label>
+                <label class="field">
+                  <span>Experiment Name</span>
+                  <input id="experimentNameInput" type="text" placeholder="Optional sweep label" />
+                </label>
+                <label class="field field-span">
+                  <span>Values</span>
+                  <input
+                    id="sweepValues"
+                    type="text"
+                    placeholder="Example: 0.02, 0.05, 0.08"
+                  />
+                </label>
+                <div class="launch-actions">
+                  <button class="secondary-button teal" id="launchSweepButton" type="submit">
+                    Launch Sweep
+                  </button>
+                  <p class="form-note">
+                    Runs the current config across a chosen parameter range and records experiment metadata in each run.
+                  </p>
+                </div>
+              </form>
+            </section>
           </section>
 
           <section class="panel status-panel reveal">
@@ -238,13 +275,19 @@
                 <p class="panel-kicker">Ledger</p>
                 <h2>Recent Runs</h2>
               </div>
-              <button class="ghost-button" id="refreshRunsButton" type="button">Refresh</button>
+              <div class="panel-actions">
+                <span class="selection-chip" id="selectedRunCount">0 selected</span>
+                <button class="ghost-button" id="compareButton" type="button">Compare</button>
+                <button class="ghost-button" id="clearCompareButton" type="button">Clear</button>
+                <button class="ghost-button" id="refreshRunsButton" type="button">Refresh</button>
+              </div>
             </div>
 
             <div class="table-shell">
               <table>
                 <thead>
                   <tr>
+                    <th>Select</th>
                     <th>Run ID</th>
                     <th>Config</th>
                     <th>Seed</th>
@@ -255,6 +298,55 @@
                   </tr>
                 </thead>
                 <tbody id="runsTableBody"></tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel compare-panel reveal">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Compare</p>
+                <h2 id="compareTitle">Run Comparison</h2>
+              </div>
+              <span class="detail-chip" id="compareContext">Select two or more runs</span>
+            </div>
+
+            <div class="compare-metrics" id="compareMetrics">
+              <article class="compare-card">
+                <span>Energy Drift Span</span>
+                <strong id="compareEnergySpan">-</strong>
+              </article>
+              <article class="compare-card">
+                <span>Norm Drift Span</span>
+                <strong id="compareNormSpan">-</strong>
+              </article>
+              <article class="compare-card">
+                <span>Max Density Span</span>
+                <strong id="compareDensitySpan">-</strong>
+              </article>
+              <article class="compare-card">
+                <span>Fastest Run</span>
+                <strong id="compareFastestRun">-</strong>
+              </article>
+            </div>
+
+            <div class="table-shell compact">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Run</th>
+                    <th>Parameter</th>
+                    <th>Energy Drift</th>
+                    <th>Norm Drift</th>
+                    <th>Max Density</th>
+                    <th>Delta vs Baseline</th>
+                  </tr>
+                </thead>
+                <tbody id="comparisonTableBody">
+                  <tr>
+                    <td colspan="6">Select at least two runs to compare.</td>
+                  </tr>
+                </tbody>
               </table>
             </div>
           </section>

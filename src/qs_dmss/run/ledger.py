@@ -98,8 +98,9 @@ def create_run_record(
     finished_at: datetime,
     elapsed_seconds: float,
     metrics: dict,
+    experiment: dict | None = None,
 ) -> dict:
-    return {
+    run_record = {
         "schema_version": 1,
         "run_id": workspace.run_id,
         "name": config.run.name,
@@ -136,6 +137,9 @@ def create_run_record(
             "replay": f"qs-dmss replay {workspace.run_dir}",
         },
     }
+    if experiment is not None:
+        run_record["experiment"] = experiment
+    return run_record
 
 
 def write_energy_csv(path: Path, history: list[dict]) -> None:

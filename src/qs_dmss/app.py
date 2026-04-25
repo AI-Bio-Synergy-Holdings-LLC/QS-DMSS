@@ -61,6 +61,7 @@ def execute_run(
     source_config_path: Path,
     output_root: Path | None = None,
     replayed_from: str | None = None,
+    experiment: dict | None = None,
 ) -> RunOutputs:
     workspace = prepare_run_workspace(
         config=config,
@@ -111,6 +112,7 @@ def execute_run(
         finished_at=finished_at,
         elapsed_seconds=elapsed_seconds,
         metrics=metrics,
+        experiment=experiment,
     )
     _write_json(workspace.run_dir / "run.json", run_record)
 
@@ -134,6 +136,7 @@ def execute_run_from_path(
     config_path: str | Path,
     output_root: str | Path | None = None,
     replayed_from: str | None = None,
+    experiment: dict | None = None,
 ) -> RunOutputs:
     source_config_path = Path(config_path).resolve()
     config = load_config(source_config_path)
@@ -143,12 +146,14 @@ def execute_run_from_path(
         source_config_path=source_config_path,
         output_root=resolved_output,
         replayed_from=replayed_from,
+        experiment=experiment,
     )
 
 
 def replay_run(
     run_dir: str | Path,
     output_root: str | Path | None = None,
+    experiment: dict | None = None,
 ) -> RunOutputs:
     source_run_dir = Path(run_dir).resolve()
     run_record_path = source_run_dir / "run.json"
@@ -161,4 +166,5 @@ def replay_run(
         config_path=config_path,
         output_root=output_root,
         replayed_from=run_record.get("run_id"),
+        experiment=experiment,
     )
