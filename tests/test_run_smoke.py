@@ -43,6 +43,11 @@ def test_run_bundle_and_replay_are_reproducible(tmp_path: Path) -> None:
     first_record = json.loads((first_run.run_dir / "run.json").read_text(encoding="utf-8"))
     replay_record = json.loads((replayed_run.run_dir / "run.json").read_text(encoding="utf-8"))
     assert replay_record["replayed_from"] == first_record["run_id"]
+    assert first_record["decision_profile"]["objective"]["name"] == "Stability-first recommendation"
+
+    report_html = (first_run.run_dir / "report.html").read_text(encoding="utf-8")
+    assert "Decision Profile" in report_html
+    assert "Stability-first recommendation" in report_html
 
 
 def test_bundled_demo_config_and_cli_entrypoint(tmp_path: Path) -> None:
@@ -62,3 +67,6 @@ def test_bundled_demo_config_and_cli_entrypoint(tmp_path: Path) -> None:
     assert len(run_dirs) == 1
     verification = verify_run_path(run_dirs[0])
     assert verification.success, verification.errors
+
+    run_record = json.loads((run_dirs[0] / "run.json").read_text(encoding="utf-8"))
+    assert run_record["decision_profile"]["objective"]["primary_metric"] == "energy_drift"

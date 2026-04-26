@@ -31,6 +31,8 @@ def test_cli_experiments_export_and_list(tmp_path: Path, capsys) -> None:
     export_output = capsys.readouterr().out
     assert "Experiment saved:" in export_output
     assert "cli comparison" in export_output
+    assert "Recommended run:" in export_output
+    assert "Decision status:" in export_output
 
     exit_code = main(
         [
@@ -43,3 +45,4 @@ def test_cli_experiments_export_and_list(tmp_path: Path, capsys) -> None:
     assert exit_code == 0
     list_output = capsys.readouterr().out
     assert "cli comparison" in list_output
+    assert "recommended" in list_output

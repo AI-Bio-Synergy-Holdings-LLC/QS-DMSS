@@ -180,9 +180,15 @@ def main(argv: list[str] | None = None) -> int:
 
             print(f"Experiment artifacts under {service.experiments_root}:")
             for item in items:
+                recommendation = ""
+                if item.get("decision_available"):
+                    recommendation = (
+                        f" | recommended {item.get('recommended_run_id')} "
+                        f"({item.get('decision_status')})"
+                    )
                 print(
                     f"- {item['experiment_id']} | {item['label']} | "
-                    f"{item['run_count']} runs | {item['bundle_size_label']}"
+                    f"{item['run_count']} runs | {item['bundle_size_label']}{recommendation}"
                 )
             return 0
 
@@ -200,6 +206,10 @@ def main(argv: list[str] | None = None) -> int:
 
             print(f"Experiment saved: {detail['summary']['experiment_id']}")
             print(f"Label: {detail['summary']['label']}")
+            if detail.get("decision", {}).get("available"):
+                print(f"Recommended run: {detail['decision']['recommended_run_id']}")
+                print(f"Decision status: {detail['decision']['status']}")
+                print(f"Reason: {detail['decision']['reason']}")
             print(f"Bundle: {service.experiments_root / detail['summary']['experiment_id'] / 'evidence_bundle.zip'}")
             return 0
 

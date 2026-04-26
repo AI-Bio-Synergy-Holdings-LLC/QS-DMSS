@@ -45,13 +45,25 @@ const els = {
   compareNormSpan: document.querySelector("#compareNormSpan"),
   compareDensitySpan: document.querySelector("#compareDensitySpan"),
   compareFastestRun: document.querySelector("#compareFastestRun"),
+  recommendationLabel: document.querySelector("#recommendationLabel"),
+  recommendationRun: document.querySelector("#recommendationRun"),
+  recommendationReason: document.querySelector("#recommendationReason"),
+  recommendationStatus: document.querySelector("#recommendationStatus"),
+  recommendationScore: document.querySelector("#recommendationScore"),
+  profileTitle: document.querySelector("#profileTitle"),
+  profileMetric: document.querySelector("#profileMetric"),
+  profileSummary: document.querySelector("#profileSummary"),
+  profileGoalBadge: document.querySelector("#profileGoalBadge"),
+  profileTargetChip: document.querySelector("#profileTargetChip"),
+  profileConstraints: document.querySelector("#profileConstraints"),
   experimentTitle: document.querySelector("#experimentTitle"),
   experimentContext: document.querySelector("#experimentContext"),
   experimentKind: document.querySelector("#experimentKind"),
   experimentRunCount: document.querySelector("#experimentRunCount"),
   experimentCreated: document.querySelector("#experimentCreated"),
+  experimentRecommended: document.querySelector("#experimentRecommended"),
+  experimentDecisionStatus: document.querySelector("#experimentDecisionStatus"),
   experimentBundleSize: document.querySelector("#experimentBundleSize"),
-  experimentBaseline: document.querySelector("#experimentBaseline"),
   experimentRegistryBody: document.querySelector("#experimentRegistryBody"),
   toastRegion: document.querySelector("#toastRegion"),
   fields: {
@@ -100,8 +112,14 @@ const els = {
 
 const toneClassByStatus = {
   completed: "is-success",
+  qualified: "is-success",
+  ranked: "is-success",
   running: "is-warning",
+  fallback: "is-warning",
   failed: "is-danger",
+  out_of_bounds: "is-danger",
+  unconfigured: "is-idle",
+  idle: "is-idle",
 };
 
 const toneColorByEvidence = {
@@ -111,7 +129,11 @@ const toneColorByEvidence = {
   stone: "rgba(217, 209, 193, 1)",
 };
 
-function statusTone(status) {
+function cloneJson(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function toneForStatus(status) {
   const normalized = String(status || "idle").toLowerCase();
   return toneClassByStatus[normalized] || "is-idle";
 }
@@ -147,6 +169,12 @@ function formatSignedScientific(value) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return "-";
   return `${numeric >= 0 ? "+" : ""}${numeric.toExponential(2)}`;
+}
+
+function formatScore(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "-";
+  return numeric.toFixed(3);
 }
 
 function shortRunId(value) {
@@ -210,13 +238,16 @@ function fillForm(config) {
 
 function currentConfig() {
   const template = configByName(els.configTemplate.value);
+  const base = cloneJson(template?.config || {});
   return {
     run: {
-      name: els.fields.runName.value.trim() || template?.config?.run?.name || "cockpit",
+      ...(base.run || {}),
+      name: els.fields.runName.value.trim() || base?.run?.name || "cockpit",
       seed: Number(els.fields.seed.value),
       output_root: "runs",
     },
     engine: {
+      ...(base.engine || {}),
       backend: "numpy",
       grid_shape: [
         Number(els.fields.gridX.value),
@@ -231,12 +262,75 @@ function currentConfig() {
       log_every: 1,
     },
     initial: {
+      ...(base.initial || {}),
       kind: els.fields.initialKind.value,
       amplitude: Number(els.fields.amplitude.value),
       width: Number(els.fields.width.value),
       random_phase: els.fields.randomPhase.checked,
     },
+    ...(base.objective ? { objective: base.objective } : {}),
+    ...(base.constraints ? { constraints: base.constraints } : {}),
+    ...(base.ranking ? { ranking: base.ranking } : {}),
   };
+}
+
+function describeConstraint(key, value) {
+  const labels = {
+    max_abs_energy_drift: "Absolute energy drift cap",
+    max_abs_norm_drift: "Absolute norm drift cap",
+    min_max_density: "Minimum max density",
+    max_elapsed_seconds: "Elapsed time cap",
+    require_verification: "Verification required",
+  };
+  return `${labels[key] || key}: ${value}`;
+}
+
+function renderDecisionProfile(config) {
+  const objective = config?.objective;
+  if (!objective) {
+    els.profileTitle.textContent = "No decision profile";
+    els.profileMetric.textContent = "Select a study template";
+    els.profileSummary.textContent =
+      "Load a config template with objective, constraints, and ranking fields to launch a scored campaign.";
+    els.profileGoalBadge.textContent = "No objective";
+    els.profileGoalBadge.className = "status-badge is-idle";
+    els.profileTargetChip.textContent = "No target";
+    els.profileConstraints.innerHTML = `
+      <li><strong>Template note</strong>This template only captures execution parameters, so QS-DMSS will compare runs but not recommend a winner.</li>
+    `;
+    return;
+  }
+
+  const constraints = config.constraints || {};
+  const ranking = config.ranking || {};
+  const weights = ranking.weights || {};
+  const targetValue = objective.target_value === undefined ? null : objective.target_value;
+  els.profileTitle.textContent = objective.name;
+  els.profileMetric.textContent = `${objective.primary_metric} · ${objective.goal}`;
+  els.profileSummary.textContent = objective.summary || "No objective summary provided.";
+  els.profileGoalBadge.textContent = objective.goal;
+  els.profileGoalBadge.className = `status-badge ${toneForStatus("qualified")}`;
+  els.profileTargetChip.textContent =
+    targetValue === null ? "No target value" : `Target ${targetValue}`;
+
+  const constraintEntries = Object.entries(constraints);
+  const weightEntries = Object.entries(weights);
+  const items = [];
+  if (constraintEntries.length) {
+    items.push(
+      `<li><strong>Constraints</strong>${constraintEntries
+        .map(([key, value]) => describeConstraint(key, value))
+        .join(" · ")}</li>`,
+    );
+  }
+  if (weightEntries.length) {
+    items.push(
+      `<li><strong>Ranking</strong>Primary boost ${ranking.primary_metric_weight ?? "-"} · ${weightEntries
+        .map(([metric, value]) => `${metric} ${value}`)
+        .join(" · ")}</li>`,
+    );
+  }
+  els.profileConstraints.innerHTML = items.join("");
 }
 
 function renderConfigOptions() {
@@ -281,7 +375,7 @@ function renderRunsTable() {
   els.runsTableBody.innerHTML = state.runs
     .map((run) => {
       const selected = run.run_id === state.selectedRunId ? "is-selected" : "";
-      const tone = statusTone(run.status);
+      const tone = toneForStatus(run.status);
       const checked = state.selectedRunIds.includes(run.run_id) ? "checked" : "";
       const experimentLabel = run.experiment?.parameter_value_label
         ? `<div class="compare-parameter"><strong>${run.experiment.parameter_value_label}</strong><span>${run.experiment.parameter_label}</span></div>`
@@ -331,7 +425,7 @@ function renderExperimentRegistry() {
   if (!state.experiments.length) {
     els.experimentRegistryBody.innerHTML = `
       <tr>
-        <td colspan="5">No experiments saved yet.</td>
+        <td colspan="6">No experiments saved yet.</td>
       </tr>
     `;
     return;
@@ -348,6 +442,7 @@ function renderExperimentRegistry() {
         <tr class="${selected}" data-experiment-id="${experiment.experiment_id}">
           <td>${label}</td>
           <td>${experiment.kind}</td>
+          <td>${shortRunId(experiment.recommended_run_id)}</td>
           <td>${experiment.run_count}</td>
           <td>${formatTimestamp(experiment.created_at)}</td>
           <td>${experiment.bundle_size_label}</td>
@@ -448,7 +543,7 @@ function renderSelectedRun(detail) {
 
   els.statusHeading.textContent = detail.run_record.status;
   els.statusBadge.textContent = detail.run_record.status;
-  els.statusBadge.className = `status-badge ${statusTone(detail.run_record.status)}`;
+  els.statusBadge.className = `status-badge ${toneForStatus(detail.run_record.status)}`;
   els.statusRunId.textContent = detail.summary.run_id;
   els.statusDigest.textContent = detail.summary.config_digest.slice(0, 16);
   els.statusFinished.textContent = formatTimestamp(detail.summary.finished_at);
@@ -490,43 +585,39 @@ function renderSelectedRun(detail) {
   renderRunsTable();
 }
 
-function renderSelectedExperiment(detail) {
-  state.selectedExperiment = detail;
-  state.selectedExperimentId = detail.summary.experiment_id;
+function renderRecommendation(decision) {
+  if (!decision) {
+    els.recommendationLabel.textContent = "Recommendation";
+    els.recommendationRun.textContent = "No recommendation yet";
+    els.recommendationReason.textContent =
+      "Launch a sweep or compare runs from the same objective-driven template to get a ranked winner.";
+    els.recommendationStatus.textContent = "Idle";
+    els.recommendationStatus.className = "status-badge is-idle";
+    els.recommendationScore.textContent = "Score -";
+    return;
+  }
 
-  els.experimentTitle.textContent = detail.summary.label;
-  els.experimentContext.textContent = detail.summary.shared_experiment?.parameter_label
-    ? `${detail.summary.shared_experiment.parameter_label} sweep`
-    : detail.summary.experiment_id;
-  els.experimentKind.textContent = detail.summary.kind;
-  els.experimentRunCount.textContent = String(detail.summary.run_count);
-  els.experimentCreated.textContent = formatTimestamp(detail.summary.created_at);
-  els.experimentBundleSize.textContent = detail.summary.bundle_size_label;
-  els.experimentBaseline.textContent = shortRunId(detail.summary.baseline_run_id);
-  els.experimentBundleLink.href = detail.urls.bundle;
-  els.experimentBundleLink.setAttribute("download", "");
-  setExperimentActionsEnabled(true);
+  if (!decision.available) {
+    els.recommendationLabel.textContent = "Recommendation unavailable";
+    els.recommendationRun.textContent = "No ranked winner";
+    els.recommendationReason.textContent = decision.reason;
+    els.recommendationStatus.textContent = decision.status || "Idle";
+    els.recommendationStatus.className = `status-badge ${toneForStatus(decision.status)}`;
+    els.recommendationScore.textContent = "Score -";
+    return;
+  }
 
-  renderExperimentRegistry();
-}
-
-function renderExperimentPlaceholder() {
-  state.selectedExperiment = null;
-  state.selectedExperimentId = null;
-  els.experimentTitle.textContent = "Experiment Registry";
-  els.experimentContext.textContent = "No experiment saved";
-  els.experimentKind.textContent = "-";
-  els.experimentRunCount.textContent = "-";
-  els.experimentCreated.textContent = "-";
-  els.experimentBundleSize.textContent = "-";
-  els.experimentBaseline.textContent = "-";
-  els.experimentBundleLink.href = "#";
-  setExperimentActionsEnabled(false);
-  renderExperimentRegistry();
+  els.recommendationLabel.textContent = decision.profile.objective.name;
+  els.recommendationRun.textContent = decision.recommended_run_id;
+  els.recommendationReason.textContent = decision.reason;
+  els.recommendationStatus.textContent = decision.status;
+  els.recommendationStatus.className = `status-badge ${toneForStatus(decision.status)}`;
+  els.recommendationScore.textContent = `Score ${formatScore(decision.recommended_score)}`;
 }
 
 function renderComparison(comparison) {
   state.comparison = comparison;
+  renderRecommendation(comparison?.decision || null);
 
   if (!comparison) {
     els.compareTitle.textContent = "Run Comparison";
@@ -537,7 +628,7 @@ function renderComparison(comparison) {
     els.compareFastestRun.textContent = "-";
     els.comparisonTableBody.innerHTML = `
       <tr>
-        <td colspan="6">Select at least two runs to compare.</td>
+        <td colspan="9">Select at least two runs to compare.</td>
       </tr>
     `;
     return;
@@ -568,6 +659,9 @@ function renderComparison(comparison) {
             <span>${row.parameter_label || "Manual selection"}</span>
           </div>
         </td>
+        <td>${row.decision_rank ?? "-"}</td>
+        <td>${formatScore(row.decision_score)}</td>
+        <td>${row.decision_qualified === undefined ? "-" : row.decision_qualified ? "yes" : "no"}</td>
         <td>${formatScientific(row.energy_drift)}</td>
         <td>${formatScientific(row.norm_drift)}</td>
         <td>${formatScientific(row.max_density)}</td>
@@ -599,9 +693,7 @@ async function refreshRuns() {
 async function refreshExperiments() {
   const payload = await fetchJson("/api/experiments");
   state.experiments = payload.items;
-  const availableExperimentIds = new Set(
-    state.experiments.map((item) => item.experiment_id),
-  );
+  const availableExperimentIds = new Set(state.experiments.map((item) => item.experiment_id));
   if (state.selectedExperimentId && !availableExperimentIds.has(state.selectedExperimentId)) {
     renderExperimentPlaceholder();
     return;
@@ -644,6 +736,43 @@ function parseSweepValues(text) {
     .filter(Boolean);
 }
 
+function renderSelectedExperiment(detail) {
+  state.selectedExperiment = detail;
+  state.selectedExperimentId = detail.summary.experiment_id;
+
+  els.experimentTitle.textContent = detail.summary.label;
+  els.experimentContext.textContent = detail.summary.shared_experiment?.parameter_label
+    ? `${detail.summary.shared_experiment.parameter_label} sweep`
+    : detail.summary.experiment_id;
+  els.experimentKind.textContent = detail.summary.kind;
+  els.experimentRunCount.textContent = String(detail.summary.run_count);
+  els.experimentCreated.textContent = formatTimestamp(detail.summary.created_at);
+  els.experimentRecommended.textContent = shortRunId(detail.summary.recommended_run_id);
+  els.experimentDecisionStatus.textContent = detail.summary.decision_status || "-";
+  els.experimentBundleSize.textContent = detail.summary.bundle_size_label;
+  els.experimentBundleLink.href = detail.urls.bundle;
+  els.experimentBundleLink.setAttribute("download", "");
+  setExperimentActionsEnabled(true);
+
+  renderExperimentRegistry();
+}
+
+function renderExperimentPlaceholder() {
+  state.selectedExperiment = null;
+  state.selectedExperimentId = null;
+  els.experimentTitle.textContent = "Experiment Registry";
+  els.experimentContext.textContent = "No experiment saved";
+  els.experimentKind.textContent = "-";
+  els.experimentRunCount.textContent = "-";
+  els.experimentCreated.textContent = "-";
+  els.experimentRecommended.textContent = "-";
+  els.experimentDecisionStatus.textContent = "-";
+  els.experimentBundleSize.textContent = "-";
+  els.experimentBundleLink.href = "#";
+  setExperimentActionsEnabled(false);
+  renderExperimentRegistry();
+}
+
 async function hydrate() {
   const [configPayload, sweepPayload, experimentPayload] = await Promise.all([
     fetchJson("/api/configs"),
@@ -662,6 +791,7 @@ async function hydrate() {
   const selectedConfig = configByName(state.selectedTemplateName);
   if (selectedConfig) {
     fillForm(selectedConfig.config);
+    renderDecisionProfile(selectedConfig.config);
   }
 
   const defaultSweepParameter = state.sweepParameters[0];
@@ -753,9 +883,7 @@ async function handleVerify() {
     const result = await fetchJson(`/api/runs/${state.selectedRunId}/verify`, { method: "POST" });
     toast(
       result.success ? "Verification passed" : "Verification failed",
-      result.success
-        ? `Checked ${result.checked_files} files`
-        : result.errors.join(" | "),
+      result.success ? `Checked ${result.checked_files} files` : result.errors.join(" | "),
       result.success ? "success" : "danger",
     );
     await selectRun(state.selectedRunId);
@@ -851,6 +979,7 @@ function bindEvents() {
     const selected = configByName(els.configTemplate.value);
     if (selected) {
       fillForm(selected.config);
+      renderDecisionProfile(selected.config);
       toast("Template loaded", `Using ${selected.name}`, "success");
     }
   });
@@ -860,6 +989,7 @@ function bindEvents() {
     const selected = configByName(state.selectedTemplateName);
     if (selected) {
       fillForm(selected.config);
+      renderDecisionProfile(selected.config);
     }
   });
 

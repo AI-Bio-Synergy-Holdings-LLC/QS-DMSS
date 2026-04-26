@@ -18,3 +18,24 @@ initial:
   amplitude: 1.0
   width: 0.2
   random_phase: true
+
+objective:
+  name: Stability-first recommendation
+  summary: Prefer low drift with verified evidence while keeping density high enough for a credible final state.
+  primary_metric: energy_drift
+  goal: minimize_abs
+
+constraints:
+  max_abs_energy_drift: 0.2
+  max_abs_norm_drift: 0.2
+  min_max_density: 0.5
+  max_elapsed_seconds: 5.0
+  require_verification: true
+
+ranking:
+  primary_metric_weight: 2.4
+  weights:
+    energy_drift: 1.0
+    norm_drift: 0.9
+    max_density: 0.7
+    elapsed_seconds: 0.3

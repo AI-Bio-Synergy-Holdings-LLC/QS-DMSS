@@ -8,6 +8,25 @@ from typing import Any
 
 import yaml
 
+SUPPORTED_DECISION_METRICS = (
+    "energy_drift",
+    "norm_drift",
+    "max_density",
+    "elapsed_seconds",
+)
+SUPPORTED_OBJECTIVE_GOALS = (
+    "minimize",
+    "minimize_abs",
+    "maximize",
+    "target",
+)
+DEFAULT_RANKING_WEIGHT_ITEMS: tuple[tuple[str, float], ...] = (
+    ("energy_drift", 1.0),
+    ("norm_drift", 0.9),
+    ("max_density", 0.6),
+    ("elapsed_seconds", 0.3),
+)
+
 
 @dataclass(frozen=True)
 class RunConfig:
@@ -37,13 +56,74 @@ class InitialConditionConfig:
 
 
 @dataclass(frozen=True)
+class ObjectiveConfig:
+    name: str
+    summary: str
+    primary_metric: str
+    goal: str
+    target_value: float | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        payload = {
+            "name": self.name,
+            "summary": self.summary,
+            "primary_metric": self.primary_metric,
+            "goal": self.goal,
+        }
+        if self.target_value is not None:
+            payload["target_value"] = self.target_value
+        return payload
+
+
+@dataclass(frozen=True)
+class ConstraintConfig:
+    max_abs_energy_drift: float | None = None
+    max_abs_norm_drift: float | None = None
+    min_max_density: float | None = None
+    max_elapsed_seconds: float | None = None
+    require_verification: bool = True
+
+    def to_dict(self) -> dict[str, Any]:
+        payload: dict[str, Any] = {}
+        if self.max_abs_energy_drift is not None:
+            payload["max_abs_energy_drift"] = self.max_abs_energy_drift
+        if self.max_abs_norm_drift is not None:
+            payload["max_abs_norm_drift"] = self.max_abs_norm_drift
+        if self.min_max_density is not None:
+            payload["min_max_density"] = self.min_max_density
+        if self.max_elapsed_seconds is not None:
+            payload["max_elapsed_seconds"] = self.max_elapsed_seconds
+        if self.require_verification is not True:
+            payload["require_verification"] = self.require_verification
+        return payload
+
+
+@dataclass(frozen=True)
+class RankingConfig:
+    primary_metric_weight: float = 2.0
+    weights: tuple[tuple[str, float], ...] = DEFAULT_RANKING_WEIGHT_ITEMS
+
+    def weights_dict(self) -> dict[str, float]:
+        return dict(self.weights)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "primary_metric_weight": self.primary_metric_weight,
+            "weights": self.weights_dict(),
+        }
+
+
+@dataclass(frozen=True)
 class SimulationConfig:
     run: RunConfig
     engine: EngineConfig
     initial: InitialConditionConfig
+    objective: ObjectiveConfig | None = None
+    constraints: ConstraintConfig | None = None
+    ranking: RankingConfig | None = None
 
     def to_dict(self) -> dict[str, Any]:
-        return {
+        payload = {
             "run": {
                 "name": self.run.name,
                 "seed": self.run.seed,
@@ -66,6 +146,11 @@ class SimulationConfig:
                 "random_phase": self.initial.random_phase,
             },
         }
+        if self.objective is not None:
+            payload["objective"] = self.objective.to_dict()
+            payload["constraints"] = (self.constraints or ConstraintConfig()).to_dict()
+            payload["ranking"] = (self.ranking or RankingConfig()).to_dict()
+        return payload
 
 
 def _require_mapping(data: Any, field_name: str) -> dict[str, Any]:
@@ -91,10 +176,129 @@ def _require_number(value: Any, field_name: str, positive: bool = False) -> floa
     return numeric_value
 
 
+def _require_non_negative_number(value: Any, field_name: str) -> float:
+    numeric_value = _require_number(value, field_name)
+    if numeric_value < 0:
+        raise ValueError(f"'{field_name}' must be >= 0")
+    return numeric_value
+
+
 def _require_bool(value: Any, field_name: str) -> bool:
     if not isinstance(value, bool):
         raise ValueError(f"'{field_name}' must be a boolean")
     return value
+
+
+def _require_string(value: Any, field_name: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"'{field_name}' must be a non-empty string")
+    return value.strip()
+
+
+def _parse_objective(data: Any) -> ObjectiveConfig:
+    objective_data = _require_mapping(data, "objective")
+    name = _require_string(objective_data.get("name"), "objective.name")
+    summary = str(objective_data.get("summary", "")).strip()
+    primary_metric = _require_string(
+        objective_data.get("primary_metric"),
+        "objective.primary_metric",
+    )
+    if primary_metric not in SUPPORTED_DECISION_METRICS:
+        supported = ", ".join(SUPPORTED_DECISION_METRICS)
+        raise ValueError(f"'objective.primary_metric' must be one of: {supported}")
+
+    goal = _require_string(objective_data.get("goal"), "objective.goal")
+    if goal not in SUPPORTED_OBJECTIVE_GOALS:
+        supported_goals = ", ".join(SUPPORTED_OBJECTIVE_GOALS)
+        raise ValueError(f"'objective.goal' must be one of: {supported_goals}")
+
+    target_raw = objective_data.get("target_value")
+    target_value = None
+    if target_raw is not None:
+        target_value = _require_number(target_raw, "objective.target_value")
+    if goal == "target" and target_value is None:
+        raise ValueError("'objective.target_value' is required when objective.goal is 'target'")
+
+    return ObjectiveConfig(
+        name=name,
+        summary=summary,
+        primary_metric=primary_metric,
+        goal=goal,
+        target_value=target_value,
+    )
+
+
+def _parse_constraints(data: Any) -> ConstraintConfig:
+    if data is None:
+        return ConstraintConfig()
+    constraint_data = _require_mapping(data, "constraints")
+    return ConstraintConfig(
+        max_abs_energy_drift=(
+            _require_non_negative_number(
+                constraint_data["max_abs_energy_drift"],
+                "constraints.max_abs_energy_drift",
+            )
+            if "max_abs_energy_drift" in constraint_data
+            else None
+        ),
+        max_abs_norm_drift=(
+            _require_non_negative_number(
+                constraint_data["max_abs_norm_drift"],
+                "constraints.max_abs_norm_drift",
+            )
+            if "max_abs_norm_drift" in constraint_data
+            else None
+        ),
+        min_max_density=(
+            _require_number(
+                constraint_data["min_max_density"],
+                "constraints.min_max_density",
+            )
+            if "min_max_density" in constraint_data
+            else None
+        ),
+        max_elapsed_seconds=(
+            _require_non_negative_number(
+                constraint_data["max_elapsed_seconds"],
+                "constraints.max_elapsed_seconds",
+            )
+            if "max_elapsed_seconds" in constraint_data
+            else None
+        ),
+        require_verification=_require_bool(
+            constraint_data.get("require_verification", True),
+            "constraints.require_verification",
+        ),
+    )
+
+
+def _parse_ranking(data: Any) -> RankingConfig:
+    if data is None:
+        return RankingConfig()
+    ranking_data = _require_mapping(data, "ranking")
+    weights_data = ranking_data.get("weights")
+    if weights_data is None:
+        weights = DEFAULT_RANKING_WEIGHT_ITEMS
+    else:
+        weights_mapping = _require_mapping(weights_data, "ranking.weights")
+        weights = tuple(
+            (
+                metric,
+                _require_non_negative_number(
+                    weights_mapping.get(metric, default_value),
+                    f"ranking.weights.{metric}",
+                ),
+            )
+            for metric, default_value in DEFAULT_RANKING_WEIGHT_ITEMS
+        )
+
+    return RankingConfig(
+        primary_metric_weight=_require_non_negative_number(
+            ranking_data.get("primary_metric_weight", 2.0),
+            "ranking.primary_metric_weight",
+        ),
+        weights=weights,
+    )
 
 
 def parse_config(data: dict[str, Any]) -> SimulationConfig:
@@ -103,10 +307,7 @@ def parse_config(data: dict[str, Any]) -> SimulationConfig:
     engine_data = _require_mapping(root.get("engine"), "engine")
     initial_data = _require_mapping(root.get("initial"), "initial")
 
-    name = run_data.get("name")
-    if not isinstance(name, str) or not name.strip():
-        raise ValueError("'run.name' must be a non-empty string")
-
+    name = _require_string(run_data.get("name"), "run.name")
     seed = _require_int(run_data.get("seed"), "run.seed", minimum=0)
     output_root = run_data.get("output_root", "runs")
     if not isinstance(output_root, str) or not output_root.strip():
@@ -128,9 +329,24 @@ def parse_config(data: dict[str, Any]) -> SimulationConfig:
     if initial_kind not in {"gaussian", "uniform"}:
         raise ValueError("'initial.kind' must be one of: gaussian, uniform")
 
-    config = SimulationConfig(
+    objective_data = root.get("objective")
+    constraints_data = root.get("constraints")
+    ranking_data = root.get("ranking")
+
+    if objective_data is None:
+        if constraints_data is not None or ranking_data is not None:
+            raise ValueError("'objective' is required when constraints or ranking are provided")
+        objective = None
+        constraints = None
+        ranking = None
+    else:
+        objective = _parse_objective(objective_data)
+        constraints = _parse_constraints(constraints_data)
+        ranking = _parse_ranking(ranking_data)
+
+    return SimulationConfig(
         run=RunConfig(
-            name=name.strip(),
+            name=name,
             seed=seed,
             output_root=output_root.strip(),
         ),
@@ -165,8 +381,10 @@ def parse_config(data: dict[str, Any]) -> SimulationConfig:
                 "initial.random_phase",
             ),
         ),
+        objective=objective,
+        constraints=constraints,
+        ranking=ranking,
     )
-    return config
 
 
 def canonicalize_config(config: SimulationConfig) -> str:

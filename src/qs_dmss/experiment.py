@@ -10,6 +10,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from qs_dmss.decision import apply_decision_profile
 from qs_dmss.evidence.bundle import (
     create_bundle_zip_for_directory,
     write_experiment_report,
@@ -295,21 +296,21 @@ def build_run_comparison(run_details: list[dict[str, Any]]) -> dict[str, Any]:
         )
 
     experiment_ids = {
-        row["run_id"]: detail["run_record"].get("experiment", {}).get("id")
+        row["run_id"]: (detail["run_record"].get("experiment") or {}).get("id")
         for row, detail in zip(rows, run_details)
     }
     labels = {
-        detail["run_record"].get("experiment", {}).get("label")
+        (detail["run_record"].get("experiment") or {}).get("label")
         for detail in run_details
         if detail["run_record"].get("experiment")
     }
     parameter_paths = {
-        detail["run_record"].get("experiment", {}).get("parameter_path")
+        (detail["run_record"].get("experiment") or {}).get("parameter_path")
         for detail in run_details
         if detail["run_record"].get("experiment")
     }
     parameter_labels = {
-        detail["run_record"].get("experiment", {}).get("parameter_label")
+        (detail["run_record"].get("experiment") or {}).get("parameter_label")
         for detail in run_details
         if detail["run_record"].get("experiment")
     }
@@ -324,7 +325,7 @@ def build_run_comparison(run_details: list[dict[str, Any]]) -> dict[str, Any]:
             "parameter_label": next(iter(parameter_labels)),
         }
 
-    return {
+    comparison = {
         "baseline_run_id": baseline["summary"]["run_id"],
         "shared_experiment": shared_experiment,
         "rows": rows,
@@ -340,6 +341,8 @@ def build_run_comparison(run_details: list[dict[str, Any]]) -> dict[str, Any]:
             "highest_max_density_run_id": max(rows, key=lambda row: row["max_density"])["run_id"],
         },
     }
+    comparison["decision"] = apply_decision_profile(comparison, run_details)
+    return comparison
 
 
 def _default_experiment_label(
@@ -430,6 +433,7 @@ def persist_experiment_artifact(
         "shared_experiment": comparison.get("shared_experiment"),
         "ranges": comparison["ranges"],
         "highlights": comparison["highlights"],
+        "decision": comparison.get("decision"),
         "runs": run_entries,
         "artifacts": {
             "experiment": "experiment.json",

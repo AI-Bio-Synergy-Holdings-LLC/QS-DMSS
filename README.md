@@ -10,6 +10,7 @@ needed to move from prototype scripts into a reproducible package:
 - Local-first run cockpit and JSON API
 - Parameter sweeps and multi-run comparison in the cockpit
 - Experiment registry with saved comparison reports and bundles
+- Objective-driven decision profiles with ranked recommendations
 - Run ledger with stable run IDs and config digests
 - Evidence bundle with artifacts, metrics, manifest, and HTML report
 - Replay and verification commands for reproducibility checks
@@ -27,6 +28,7 @@ productization:
 - A local cockpit for launch, inspection, verification, replay, and bundle download
 - Sweep support for exploring one parameter across multiple deterministic runs
 - Comparison tooling for energy drift, norm drift, density, and runtime deltas
+- Decision profiles that score runs against an explicit objective, constraint set, and ranking policy
 - Durable experiment exports with copied run evidence, comparison JSON, report HTML, manifest, and bundle ZIP
 - Evidence artifacts:
   - `config.yaml`
@@ -79,6 +81,7 @@ Inside the cockpit you can:
 - Launch a parameter sweep across interaction strength, timestep, step count, amplitude, width, or seed
 - Compare multiple runs side by side with shared experiment metadata
 - Save a comparison into the experiment registry and reopen it later with report and bundle downloads
+- Load an objective-driven template and see the recommended winner directly in the comparison view
 
 Verify the generated evidence bundle:
 
@@ -103,6 +106,14 @@ List saved experiment artifacts:
 ```powershell
 qs-dmss experiments list
 ```
+
+The checked-in demo template now includes a decision profile:
+
+- `objective`
+- `constraints`
+- `ranking`
+
+That means sweeps and experiment exports can now return a replayable recommendation instead of only raw metric tables.
 
 ## Container Runtime
 
@@ -162,3 +173,7 @@ The cockpit adds the first browser-native product layer on top of that loop:
 The experiment registry now makes comparison durable too:
 
 `select runs -> compare -> save -> report -> bundle -> reopen`
+
+The decision layer adds recommendation semantics to that flow:
+
+`select template -> launch campaign -> score runs -> recommend winner -> export evidence`

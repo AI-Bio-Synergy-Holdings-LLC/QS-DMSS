@@ -9,6 +9,7 @@ from pathlib import Path
 import numpy as np
 
 from qs_dmss.core.solver import QuantumScalarDarkMatterSolver
+from qs_dmss.decision import evaluate_run_decision
 from qs_dmss.evidence.bundle import (
     build_environment_lock,
     create_bundle_zip,
@@ -116,10 +117,16 @@ def execute_run(
     )
     _write_json(workspace.run_dir / "run.json", run_record)
 
+    run_decision = evaluate_run_decision(
+        config,
+        metrics,
+        verification_success=True,
+    )
     write_report(
         run_dir=workspace.run_dir,
         run_record=run_record,
         metrics=metrics,
+        decision=run_decision,
     )
 
     write_manifest(workspace.run_dir)

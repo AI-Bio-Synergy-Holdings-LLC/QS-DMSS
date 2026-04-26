@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 
+from qs_dmss.decision import decision_profile_from_config
 from qs_dmss.io.config import SimulationConfig, config_digest
 from qs_dmss.paths import discover_repo_root
 
@@ -100,6 +101,7 @@ def create_run_record(
     metrics: dict,
     experiment: dict | None = None,
 ) -> dict:
+    decision_profile = decision_profile_from_config(config)
     run_record = {
         "schema_version": 1,
         "run_id": workspace.run_id,
@@ -139,6 +141,8 @@ def create_run_record(
     }
     if experiment is not None:
         run_record["experiment"] = experiment
+    if decision_profile is not None:
+        run_record["decision_profile"] = decision_profile
     return run_record
 
 

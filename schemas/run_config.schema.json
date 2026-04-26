@@ -100,6 +100,89 @@
           "default": true
         }
       }
+    },
+    "objective": {
+      "type": "object",
+      "required": ["name", "primary_metric", "goal"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "summary": {
+          "type": "string"
+        },
+        "primary_metric": {
+          "type": "string",
+          "enum": ["energy_drift", "norm_drift", "max_density", "elapsed_seconds"]
+        },
+        "goal": {
+          "type": "string",
+          "enum": ["minimize", "minimize_abs", "maximize", "target"]
+        },
+        "target_value": {
+          "type": "number"
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_abs_energy_drift": {
+          "type": "number",
+          "minimum": 0
+        },
+        "max_abs_norm_drift": {
+          "type": "number",
+          "minimum": 0
+        },
+        "min_max_density": {
+          "type": "number"
+        },
+        "max_elapsed_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "require_verification": {
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "ranking": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "primary_metric_weight": {
+          "type": "number",
+          "minimum": 0,
+          "default": 2.0
+        },
+        "weights": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "energy_drift": {
+              "type": "number",
+              "minimum": 0
+            },
+            "norm_drift": {
+              "type": "number",
+              "minimum": 0
+            },
+            "max_density": {
+              "type": "number",
+              "minimum": 0
+            },
+            "elapsed_seconds": {
+              "type": "number",
+              "minimum": 0
+            }
+          }
+        }
+      }
     }
   }
 }

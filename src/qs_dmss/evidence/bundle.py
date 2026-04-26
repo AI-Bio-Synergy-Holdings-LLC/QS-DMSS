@@ -67,7 +67,12 @@ def build_environment_lock() -> dict:
     }
 
 
-def write_report(run_dir: Path, run_record: dict, metrics: dict) -> None:
+def write_report(
+    run_dir: Path,
+    run_record: dict,
+    metrics: dict,
+    decision: dict | None = None,
+) -> None:
     report_path = run_dir / "report.html"
     rows = "\n".join(
         "<tr>"
@@ -90,6 +95,61 @@ def write_report(run_dir: Path, run_record: dict, metrics: dict) -> None:
       <li>Value: {html.escape(str(experiment['parameter_value_label']))}</li>
       <li>Ordinal: {experiment['ordinal']} of {experiment['total_runs']}</li>
     </ul>
+"""
+
+    decision_markup = ""
+    decision_profile = run_record.get("decision_profile")
+    if decision_profile:
+        objective = decision_profile["objective"]
+        constraints = decision_profile["constraints"]
+        ranking = decision_profile["ranking"]
+        constraint_rows = "".join(
+            f"<li>{html.escape(str(label))}: <code>{html.escape(str(value))}</code></li>"
+            for label, value in constraints.items()
+        )
+        ranking_rows = "".join(
+            f"<li>{html.escape(str(metric))}: {weight}</li>"
+            for metric, weight in ranking["weights"].items()
+        )
+        evaluation_markup = ""
+        if decision:
+            checks = "".join(
+                f"<li>{'PASS' if check['passed'] else 'FAIL'} - {html.escape(check['label'])} ({html.escape(check['actual_display'])})</li>"
+                for check in decision["constraints"]["checks"]
+            )
+            primary = decision["primary_objective"]
+            evaluation_markup = f"""
+    <h3>Assessment</h3>
+    <ul>
+      <li>Status: {html.escape(decision['status'])}</li>
+      <li>Reason: {html.escape(decision['reason'])}</li>
+      <li>Primary metric: {html.escape(primary['label'])} = <code>{html.escape(primary['actual_display'])}</code></li>
+    </ul>
+    <h3>Constraint Checks</h3>
+    <ul>
+      {checks}
+    </ul>
+"""
+
+        decision_markup = f"""
+    <h2>Decision Profile</h2>
+    <ul>
+      <li>Objective: {html.escape(str(objective['name']))}</li>
+      <li>Summary: {html.escape(str(objective.get('summary', '')) or 'No summary provided.')}</li>
+      <li>Primary metric: {html.escape(str(objective['primary_metric']))}</li>
+      <li>Goal: {html.escape(str(objective['goal']))}</li>
+      <li>Target value: <code>{html.escape(str(objective.get('target_value', '-')))}</code></li>
+    </ul>
+    <h3>Constraints</h3>
+    <ul>
+      {constraint_rows}
+    </ul>
+    <h3>Ranking Weights</h3>
+    <ul>
+      <li>Primary metric boost: {ranking['primary_metric_weight']}</li>
+      {ranking_rows}
+    </ul>
+    {evaluation_markup}
 """
 
     html_body = f"""<!doctype html>
@@ -123,6 +183,7 @@ def write_report(run_dir: Path, run_record: dict, metrics: dict) -> None:
       <li>Energy drift: {metrics['energy_drift']}</li>
     </ul>
     {experiment_markup}
+    {decision_markup}
     <h2>Step History</h2>
     <table>
       <thead>
@@ -162,10 +223,35 @@ def write_experiment_report(
 """
 
     highlights = comparison["highlights"]
+    decision = comparison.get("decision") or {}
+    decision_markup = ""
+    if decision.get("available"):
+        profile = decision["profile"]
+        objective = profile["objective"]
+        decision_markup = f"""
+    <h2>Recommendation</h2>
+    <ul>
+      <li>Status: {html.escape(str(decision['status']))}</li>
+      <li>Recommended run: <code>{html.escape(str(decision['recommended_run_id']))}</code></li>
+      <li>Recommended score: {decision['recommended_score']}</li>
+      <li>Reason: {html.escape(str(decision['reason']))}</li>
+      <li>Primary metric: {html.escape(str(decision['primary_metric_label']))} ({html.escape(str(decision['primary_goal']))})</li>
+      <li>Objective: {html.escape(str(objective['name']))}</li>
+    </ul>
+"""
+    elif decision:
+        decision_markup = f"""
+    <h2>Recommendation</h2>
+    <p>{html.escape(str(decision.get('reason', 'No recommendation is available.')))}</p>
+"""
+
     rows = "\n".join(
         "<tr>"
         f"<td>{html.escape(row['run_id'])}</td>"
         f"<td>{html.escape(str(row['parameter_value_label'] or '-'))}</td>"
+        f"<td>{html.escape(str(row.get('decision_rank', '-')))}</td>"
+        f"<td>{html.escape(str(row.get('decision_score', '-')))}</td>"
+        f"<td>{'yes' if row.get('decision_qualified') else 'no'}</td>"
         f"<td>{row['energy_drift']}</td>"
         f"<td>{row['norm_drift']}</td>"
         f"<td>{row['max_density']}</td>"
@@ -210,12 +296,16 @@ def write_experiment_report(
       <li>Highest max density: {html.escape(highlights['highest_max_density_run_id'])}</li>
     </ul>
     {shared_markup}
+    {decision_markup}
     <h2>Runs</h2>
     <table>
       <thead>
         <tr>
           <th>Run ID</th>
           <th>Parameter</th>
+          <th>Rank</th>
+          <th>Score</th>
+          <th>Qualified</th>
           <th>Energy Drift</th>
           <th>Norm Drift</th>
           <th>Max Density</th>

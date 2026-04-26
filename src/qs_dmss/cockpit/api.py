@@ -11,6 +11,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
 from qs_dmss.app import execute_run_from_path, replay_run as replay_existing_run
+from qs_dmss.decision import evaluate_run_decision
 from qs_dmss.evidence.verify import verify_run_path
 from qs_dmss.experiment import (
     apply_sweep_value,
@@ -386,6 +387,11 @@ class CockpitService:
         config = load_config(run_dir / "config.yaml")
         verification = verify_run_path(run_dir)
         bundle_path = run_dir / "evidence_bundle.zip"
+        decision = evaluate_run_decision(
+            config,
+            metrics,
+            verification_success=verification.success,
+        )
 
         return {
             "summary": self._build_run_summary(run_dir),
@@ -393,6 +399,7 @@ class CockpitService:
             "run_record": run_record,
             "metrics": metrics,
             "latest_snapshot": metrics["history"][-1],
+            "decision": decision,
             "verification": {
                 "success": verification.success,
                 "checked_files": verification.checked_files,
@@ -423,6 +430,9 @@ class CockpitService:
             "run_count": experiment_record["run_count"],
             "run_ids": experiment_record["run_ids"],
             "shared_experiment": experiment_record.get("shared_experiment"),
+            "decision_available": bool((experiment_record.get("decision") or {}).get("available")),
+            "decision_status": (experiment_record.get("decision") or {}).get("status"),
+            "recommended_run_id": (experiment_record.get("decision") or {}).get("recommended_run_id"),
             "bundle_size_bytes": bundle_path.stat().st_size,
             "bundle_size_label": self._format_bytes(bundle_path.stat().st_size),
         }
@@ -435,6 +445,7 @@ class CockpitService:
             "summary": self._build_experiment_summary(experiment_dir),
             "experiment_record": experiment_record,
             "comparison": comparison,
+            "decision": comparison.get("decision"),
             "evidence": {
                 "file_count": len(manifest.get("files", [])),
                 "artifact_paths": [entry["path"] for entry in manifest.get("files", [])],

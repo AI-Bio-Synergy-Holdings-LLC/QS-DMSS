@@ -177,6 +177,31 @@
                 </div>
               </form>
             </section>
+
+            <div class="subpanel-divider"></div>
+
+            <section class="decision-profile-shell">
+              <div class="panel-head compact">
+                <div>
+                  <p class="panel-kicker">Objective</p>
+                  <h2>Decision Profile</h2>
+                </div>
+              </div>
+              <div class="recommendation-shell compact">
+                <div class="recommendation-copy">
+                  <p class="recommendation-label" id="profileTitle">No decision profile</p>
+                  <h3 id="profileMetric">Select a study template</h3>
+                  <p class="recommendation-note" id="profileSummary">
+                    Load a config template with objective, constraints, and ranking fields to launch a scored campaign.
+                  </p>
+                </div>
+                <div class="recommendation-meta">
+                  <span class="status-badge is-idle" id="profileGoalBadge">No objective</span>
+                  <span class="selection-chip" id="profileTargetChip">No target</span>
+                </div>
+              </div>
+              <ul class="decision-list" id="profileConstraints"></ul>
+            </section>
           </section>
 
           <section class="panel status-panel reveal">
@@ -312,6 +337,20 @@
               <span class="detail-chip" id="compareContext">Select two or more runs</span>
             </div>
 
+            <section class="recommendation-shell">
+              <div class="recommendation-copy">
+                <p class="recommendation-label" id="recommendationLabel">Recommendation</p>
+                <h3 id="recommendationRun">No recommendation yet</h3>
+                <p class="recommendation-note" id="recommendationReason">
+                  Launch a sweep or compare runs from the same objective-driven template to get a ranked winner.
+                </p>
+              </div>
+              <div class="recommendation-meta">
+                <span class="status-badge is-idle" id="recommendationStatus">Idle</span>
+                <span class="selection-chip" id="recommendationScore">Score -</span>
+              </div>
+            </section>
+
             <div class="compare-metrics" id="compareMetrics">
               <article class="compare-card">
                 <span>Energy Drift Span</span>
@@ -337,6 +376,9 @@
                   <tr>
                     <th>Run</th>
                     <th>Parameter</th>
+                    <th>Rank</th>
+                    <th>Score</th>
+                    <th>Qualified</th>
                     <th>Energy Drift</th>
                     <th>Norm Drift</th>
                     <th>Max Density</th>
@@ -345,7 +387,7 @@
                 </thead>
                 <tbody id="comparisonTableBody">
                   <tr>
-                    <td colspan="6">Select at least two runs to compare.</td>
+                    <td colspan="9">Select at least two runs to compare.</td>
                   </tr>
                 </tbody>
               </table>
@@ -390,12 +432,16 @@
                 <strong id="experimentCreated">-</strong>
               </article>
               <article class="compare-card">
-                <span>Bundle</span>
-                <strong id="experimentBundleSize">-</strong>
+                <span>Recommended</span>
+                <strong id="experimentRecommended">-</strong>
               </article>
               <article class="compare-card">
-                <span>Baseline</span>
-                <strong id="experimentBaseline">-</strong>
+                <span>Decision</span>
+                <strong id="experimentDecisionStatus">-</strong>
+              </article>
+              <article class="compare-card">
+                <span>Bundle</span>
+                <strong id="experimentBundleSize">-</strong>
               </article>
             </div>
 
@@ -405,6 +451,7 @@
                   <tr>
                     <th>Experiment</th>
                     <th>Kind</th>
+                    <th>Recommended</th>
                     <th>Runs</th>
                     <th>Created</th>
                     <th>Bundle</th>
@@ -412,7 +459,7 @@
                 </thead>
                 <tbody id="experimentRegistryBody">
                   <tr>
-                    <td colspan="5">No experiments saved yet.</td>
+                    <td colspan="6">No experiments saved yet.</td>
                   </tr>
                 </tbody>
               </table>
