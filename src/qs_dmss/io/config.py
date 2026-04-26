@@ -114,6 +114,40 @@ class RankingConfig:
 
 
 @dataclass(frozen=True)
+class CampaignDimensionConfig:
+    path: str
+    values: tuple[int | float, ...]
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "path": self.path,
+            "values": list(self.values),
+        }
+
+
+@dataclass(frozen=True)
+class CampaignConfig:
+    label: str
+    strategy: str = "grid"
+    max_runs: int = 16
+    dimensions: tuple[CampaignDimensionConfig, ...] = ()
+
+    def planned_run_count(self) -> int:
+        total = 1
+        for dimension in self.dimensions:
+            total *= len(dimension.values)
+        return total
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "label": self.label,
+            "strategy": self.strategy,
+            "max_runs": self.max_runs,
+            "dimensions": [dimension.to_dict() for dimension in self.dimensions],
+        }
+
+
+@dataclass(frozen=True)
 class SimulationConfig:
     run: RunConfig
     engine: EngineConfig
@@ -121,6 +155,7 @@ class SimulationConfig:
     objective: ObjectiveConfig | None = None
     constraints: ConstraintConfig | None = None
     ranking: RankingConfig | None = None
+    campaign: CampaignConfig | None = None
 
     def to_dict(self) -> dict[str, Any]:
         payload = {
@@ -150,6 +185,8 @@ class SimulationConfig:
             payload["objective"] = self.objective.to_dict()
             payload["constraints"] = (self.constraints or ConstraintConfig()).to_dict()
             payload["ranking"] = (self.ranking or RankingConfig()).to_dict()
+        if self.campaign is not None:
+            payload["campaign"] = self.campaign.to_dict()
         return payload
 
 
@@ -301,6 +338,53 @@ def _parse_ranking(data: Any) -> RankingConfig:
     )
 
 
+def _parse_campaign(data: Any) -> CampaignConfig:
+    from qs_dmss.experiment import coerce_parameter_values, get_sweep_parameter
+
+    campaign_data = _require_mapping(data, "campaign")
+    label = _require_string(campaign_data.get("label"), "campaign.label")
+    strategy = _require_string(campaign_data.get("strategy", "grid"), "campaign.strategy")
+    if strategy != "grid":
+        raise ValueError("'campaign.strategy' must be 'grid' in this reference build")
+
+    max_runs = _require_int(campaign_data.get("max_runs", 16), "campaign.max_runs", minimum=2)
+    dimensions_data = campaign_data.get("dimensions")
+    if not isinstance(dimensions_data, list) or not dimensions_data:
+        raise ValueError("'campaign.dimensions' must be a non-empty list")
+
+    dimensions: list[CampaignDimensionConfig] = []
+    seen_paths: set[str] = set()
+    for index, raw_dimension in enumerate(dimensions_data):
+        prefix = f"campaign.dimensions[{index}]"
+        dimension_data = _require_mapping(raw_dimension, prefix)
+        path = _require_string(dimension_data.get("path"), f"{prefix}.path")
+        if path in seen_paths:
+            raise ValueError(f"Duplicate campaign dimension path: {path}")
+        get_sweep_parameter(path)
+
+        raw_values = dimension_data.get("values")
+        if not isinstance(raw_values, list):
+            raise ValueError(f"'{prefix}.values' must be a list")
+        values = tuple(coerce_parameter_values(path, raw_values, minimum_count=1))
+        dimensions.append(CampaignDimensionConfig(path=path, values=values))
+        seen_paths.add(path)
+
+    campaign = CampaignConfig(
+        label=label,
+        strategy=strategy,
+        max_runs=max_runs,
+        dimensions=tuple(dimensions),
+    )
+    planned_runs = campaign.planned_run_count()
+    if planned_runs < 2:
+        raise ValueError("Campaign requires at least two planned runs")
+    if planned_runs > campaign.max_runs:
+        raise ValueError(
+            f"Campaign expands to {planned_runs} runs, which exceeds campaign.max_runs={campaign.max_runs}"
+        )
+    return campaign
+
+
 def parse_config(data: dict[str, Any]) -> SimulationConfig:
     root = _require_mapping(data, "config")
     run_data = _require_mapping(root.get("run"), "run")
@@ -332,17 +416,20 @@ def parse_config(data: dict[str, Any]) -> SimulationConfig:
     objective_data = root.get("objective")
     constraints_data = root.get("constraints")
     ranking_data = root.get("ranking")
+    campaign_data = root.get("campaign")
 
     if objective_data is None:
-        if constraints_data is not None or ranking_data is not None:
-            raise ValueError("'objective' is required when constraints or ranking are provided")
+        if constraints_data is not None or ranking_data is not None or campaign_data is not None:
+            raise ValueError("'objective' is required when constraints, ranking, or campaign are provided")
         objective = None
         constraints = None
         ranking = None
+        campaign = None
     else:
         objective = _parse_objective(objective_data)
         constraints = _parse_constraints(constraints_data)
         ranking = _parse_ranking(ranking_data)
+        campaign = _parse_campaign(campaign_data) if campaign_data is not None else None
 
     return SimulationConfig(
         run=RunConfig(
@@ -384,6 +471,7 @@ def parse_config(data: dict[str, Any]) -> SimulationConfig:
         objective=objective,
         constraints=constraints,
         ranking=ranking,
+        campaign=campaign,
     )
 
 

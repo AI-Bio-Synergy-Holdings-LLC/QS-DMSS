@@ -56,6 +56,13 @@ const els = {
   profileGoalBadge: document.querySelector("#profileGoalBadge"),
   profileTargetChip: document.querySelector("#profileTargetChip"),
   profileConstraints: document.querySelector("#profileConstraints"),
+  campaignTitle: document.querySelector("#campaignTitle"),
+  campaignRunCount: document.querySelector("#campaignRunCount"),
+  campaignSummary: document.querySelector("#campaignSummary"),
+  campaignStrategyBadge: document.querySelector("#campaignStrategyBadge"),
+  campaignMaxRunsChip: document.querySelector("#campaignMaxRunsChip"),
+  campaignDimensions: document.querySelector("#campaignDimensions"),
+  launchCampaignButton: document.querySelector("#launchCampaignButton"),
   experimentTitle: document.querySelector("#experimentTitle"),
   experimentContext: document.querySelector("#experimentContext"),
   experimentKind: document.querySelector("#experimentKind"),
@@ -218,6 +225,10 @@ function sweepParameterByPath(path) {
   return state.sweepParameters.find((item) => item.path === path) || null;
 }
 
+function parameterLabel(path) {
+  return sweepParameterByPath(path)?.label || path;
+}
+
 function fillForm(config) {
   const { run, engine, initial } = config;
   els.fields.runName.value = run.name;
@@ -271,6 +282,7 @@ function currentConfig() {
     ...(base.objective ? { objective: base.objective } : {}),
     ...(base.constraints ? { constraints: base.constraints } : {}),
     ...(base.ranking ? { ranking: base.ranking } : {}),
+    ...(base.campaign ? { campaign: base.campaign } : {}),
   };
 }
 
@@ -283,6 +295,29 @@ function describeConstraint(key, value) {
     require_verification: "Verification required",
   };
   return `${labels[key] || key}: ${value}`;
+}
+
+function campaignRunCount(campaign) {
+  if (!campaign?.dimensions?.length) return 0;
+  return campaign.dimensions.reduce((total, dimension) => {
+    const valueCount = Array.isArray(dimension.values) ? dimension.values.length : 0;
+    return total * valueCount;
+  }, 1);
+}
+
+function sharedExperimentContext(shared) {
+  if (!shared) return "No experiment saved";
+  if (shared.kind === "campaign") {
+    const labels = (shared.dimensions || [])
+      .map((dimension) => dimension.label || dimension.path)
+      .join(" | ");
+    const dimensionCount = shared.dimension_count || shared.dimensions?.length || 0;
+    return labels ? `${dimensionCount}-dim campaign | ${labels}` : `${dimensionCount}-dim campaign`;
+  }
+  if (shared.parameter_label) {
+    return `${shared.parameter_label} sweep`;
+  }
+  return shared.id || "Saved experiment";
 }
 
 function renderDecisionProfile(config) {
@@ -331,6 +366,46 @@ function renderDecisionProfile(config) {
     );
   }
   els.profileConstraints.innerHTML = items.join("");
+}
+
+function renderCampaignProfile(config) {
+  const campaign = config?.campaign;
+  if (!campaign) {
+    els.campaignTitle.textContent = "No campaign plan";
+    els.campaignRunCount.textContent = "Select a study template";
+    els.campaignSummary.textContent =
+      "Load a template with a campaign section to generate a multi-run search plan automatically.";
+    els.campaignStrategyBadge.textContent = "No plan";
+    els.campaignStrategyBadge.className = "status-badge is-idle";
+    els.campaignMaxRunsChip.textContent = "0 runs";
+    els.campaignDimensions.innerHTML = `
+      <li><strong>Template note</strong>This template can still launch a single run or manual sweep, but it does not define an automated campaign matrix.</li>
+    `;
+    els.launchCampaignButton.disabled = true;
+    return;
+  }
+
+  const plannedRuns = campaignRunCount(campaign);
+  const dimensions = Array.isArray(campaign.dimensions) ? campaign.dimensions : [];
+  els.campaignTitle.textContent = campaign.label || "Decision campaign";
+  els.campaignRunCount.textContent = `${plannedRuns} planned runs`;
+  els.campaignSummary.textContent =
+    "QS-DMSS will expand this study into a reproducible search matrix, score every run, and save one experiment bundle with the recommended winner.";
+  els.campaignStrategyBadge.textContent = campaign.strategy || "grid";
+  els.campaignStrategyBadge.className = `status-badge ${toneForStatus("qualified")}`;
+  els.campaignMaxRunsChip.textContent = `Max ${campaign.max_runs ?? plannedRuns} runs`;
+  els.campaignDimensions.innerHTML = dimensions
+    .map((dimension) => {
+      const values = Array.isArray(dimension.values) ? dimension.values.map(String).join(", ") : "-";
+      return `
+        <li>
+          <strong>${parameterLabel(dimension.path)}</strong>
+          ${dimension.path} | values: ${values}
+        </li>
+      `;
+    })
+    .join("");
+  els.launchCampaignButton.disabled = plannedRuns < 2;
 }
 
 function renderConfigOptions() {
@@ -435,8 +510,8 @@ function renderExperimentRegistry() {
     .map((experiment) => {
       const selected = experiment.experiment_id === state.selectedExperimentId ? "is-selected" : "";
       const shared = experiment.shared_experiment;
-      const label = shared?.parameter_label
-        ? `<div class="compare-run"><strong>${experiment.label}</strong><span>${shared.parameter_label}</span></div>`
+      const label = shared
+        ? `<div class="compare-run"><strong>${experiment.label}</strong><span>${sharedExperimentContext(shared)}</span></div>`
         : `<div class="compare-run"><strong>${experiment.label}</strong><span>${experiment.experiment_id}</span></div>`;
       return `
         <tr class="${selected}" data-experiment-id="${experiment.experiment_id}">
@@ -637,7 +712,7 @@ function renderComparison(comparison) {
   const shared = comparison.shared_experiment;
   els.compareTitle.textContent = shared ? shared.label : "Run Comparison";
   els.compareContext.textContent = shared
-    ? `${shared.parameter_label} sweep`
+    ? sharedExperimentContext(shared)
     : `${comparison.rows.length} runs selected`;
   els.compareEnergySpan.textContent = formatScientific(comparison.ranges.energy_drift.span);
   els.compareNormSpan.textContent = formatScientific(comparison.ranges.norm_drift.span);
@@ -741,8 +816,8 @@ function renderSelectedExperiment(detail) {
   state.selectedExperimentId = detail.summary.experiment_id;
 
   els.experimentTitle.textContent = detail.summary.label;
-  els.experimentContext.textContent = detail.summary.shared_experiment?.parameter_label
-    ? `${detail.summary.shared_experiment.parameter_label} sweep`
+  els.experimentContext.textContent = detail.summary.shared_experiment
+    ? sharedExperimentContext(detail.summary.shared_experiment)
     : detail.summary.experiment_id;
   els.experimentKind.textContent = detail.summary.kind;
   els.experimentRunCount.textContent = String(detail.summary.run_count);
@@ -792,6 +867,7 @@ async function hydrate() {
   if (selectedConfig) {
     fillForm(selectedConfig.config);
     renderDecisionProfile(selectedConfig.config);
+    renderCampaignProfile(selectedConfig.config);
   }
 
   const defaultSweepParameter = state.sweepParameters[0];
@@ -874,6 +950,41 @@ async function handleLaunchSweep(event) {
   } finally {
     els.launchSweepButton.disabled = false;
     els.launchSweepButton.textContent = "Launch Sweep";
+  }
+}
+
+async function handleLaunchCampaign() {
+  const config = currentConfig();
+  if (!config.campaign) {
+    toast("No campaign plan", "Select a template with a campaign section first.", "danger");
+    return;
+  }
+
+  els.launchCampaignButton.disabled = true;
+  els.launchCampaignButton.textContent = "Launching...";
+
+  try {
+    const payload = await fetchJson("/api/campaigns", {
+      method: "POST",
+      body: JSON.stringify({
+        config,
+        source_name: els.configTemplate.value || "campaign.yaml",
+      }),
+    });
+    toast("Campaign complete", `Created ${payload.runs.length} runs`, "success");
+    state.selectedRunIds = payload.campaign.run_ids;
+    await refreshRuns();
+    await refreshExperiments();
+    renderComparison(payload.comparison);
+    renderSelectedExperiment(payload.artifact);
+    if (payload.runs[0]) {
+      await selectRun(payload.runs[0].run_id);
+    }
+  } catch (error) {
+    toast("Campaign failed", error.message, "danger");
+  } finally {
+    renderCampaignProfile(configByName(state.selectedTemplateName)?.config || null);
+    els.launchCampaignButton.textContent = "Launch Campaign";
   }
 }
 
@@ -980,6 +1091,7 @@ function bindEvents() {
     if (selected) {
       fillForm(selected.config);
       renderDecisionProfile(selected.config);
+      renderCampaignProfile(selected.config);
       toast("Template loaded", `Using ${selected.name}`, "success");
     }
   });
@@ -990,6 +1102,7 @@ function bindEvents() {
     if (selected) {
       fillForm(selected.config);
       renderDecisionProfile(selected.config);
+      renderCampaignProfile(selected.config);
     }
   });
 
@@ -1014,6 +1127,7 @@ function bindEvents() {
   els.compareButton.addEventListener("click", handleCompare);
   els.clearCompareButton.addEventListener("click", clearComparison);
   els.saveExperimentButton.addEventListener("click", handleSaveExperiment);
+  els.launchCampaignButton.addEventListener("click", handleLaunchCampaign);
   els.launchForm.addEventListener("submit", handleLaunch);
   els.sweepForm.addEventListener("submit", handleLaunchSweep);
   els.verifyButton.addEventListener("click", handleVerify);

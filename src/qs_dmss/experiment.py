@@ -7,6 +7,7 @@ import shutil
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from itertools import product
 from pathlib import Path
 from typing import Any
 
@@ -158,12 +159,18 @@ def _coerce_float(value: Any, path: str) -> float:
     raise ValueError(f"Sweep value for '{path}' must be numeric")
 
 
-def coerce_sweep_values(path: str, values: list[Any]) -> list[int | float]:
+def coerce_parameter_values(
+    path: str,
+    values: list[Any],
+    *,
+    minimum_count: int = 2,
+) -> list[int | float]:
     parameter = get_sweep_parameter(path)
     if not values:
-        raise ValueError("Sweep values cannot be empty")
-    if len(values) < 2:
-        raise ValueError("Sweep requires at least two values")
+        raise ValueError("Parameter values cannot be empty")
+    if len(values) < minimum_count:
+        qualifier = "value" if minimum_count == 1 else "values"
+        raise ValueError(f"Parameter '{path}' requires at least {minimum_count} {qualifier}")
 
     coerced: list[int | float] = []
     for raw_value in values:
@@ -177,6 +184,10 @@ def coerce_sweep_values(path: str, values: list[Any]) -> list[int | float]:
     return coerced
 
 
+def coerce_sweep_values(path: str, values: list[Any]) -> list[int | float]:
+    return coerce_parameter_values(path, values, minimum_count=2)
+
+
 def format_parameter_value(value: int | float) -> str:
     if isinstance(value, int):
         return str(value)
@@ -188,28 +199,48 @@ def _slugify(text: str) -> str:
     return slug or "value"
 
 
+def apply_parameter_values(
+    config: dict[str, Any],
+    assignments: list[tuple[str, int | float]],
+) -> dict[str, Any]:
+    updated = copy.deepcopy(config)
+    suffix_parts: list[str] = []
+    for parameter_path, value in assignments:
+        keys = parameter_path.split(".")
+        target: dict[str, Any] = updated
+        for key in keys[:-1]:
+            target = target[key]
+        target[keys[-1]] = value
+
+        parameter_slug = keys[-1].replace("_", "-")
+        value_slug = _slugify(format_parameter_value(value))
+        suffix_parts.append(f"{parameter_slug}-{value_slug}")
+
+    base_name = str(updated["run"]["name"]).strip() or "experiment"
+    updated["run"]["name"] = f"{base_name}-{'-'.join(suffix_parts)}"
+    return updated
+
+
 def apply_sweep_value(
     config: dict[str, Any],
     parameter_path: str,
     value: int | float,
 ) -> dict[str, Any]:
-    updated = copy.deepcopy(config)
-    keys = parameter_path.split(".")
-    target: dict[str, Any] = updated
-    for key in keys[:-1]:
-        target = target[key]
-    target[keys[-1]] = value
-
-    parameter_slug = keys[-1].replace("_", "-")
-    value_slug = _slugify(format_parameter_value(value))
-    base_name = str(updated["run"]["name"]).strip() or "experiment"
-    updated["run"]["name"] = f"{base_name}-{parameter_slug}-{value_slug}"
-    return updated
+    return apply_parameter_values(config, [(parameter_path, value)])
 
 
 def create_experiment_id(kind: str = "sweep") -> str:
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     return f"{_slugify(kind)}-{timestamp}-{uuid.uuid4().hex[:8]}"
+
+
+def _variant_label(entries: list[dict[str, Any]]) -> str:
+    if not entries:
+        return "baseline"
+    return " | ".join(
+        f"{entry['label']}={entry['value_label']}"
+        for entry in entries
+    )
 
 
 def build_experiment_context(
@@ -220,17 +251,187 @@ def build_experiment_context(
     ordinal: int,
     total_runs: int,
 ) -> dict[str, Any]:
+    value_label = format_parameter_value(value)
+    variant = [
+        {
+            "path": parameter.path,
+            "label": parameter.label,
+            "value": value,
+            "value_label": value_label,
+        }
+    ]
     return {
         "id": experiment_id,
         "kind": "sweep",
         "label": label,
+        "strategy": "list",
+        "dimensions": [
+            {
+                "path": parameter.path,
+                "label": parameter.label,
+            }
+        ],
+        "dimension_count": 1,
         "parameter_path": parameter.path,
         "parameter_label": parameter.label,
         "parameter_value": value,
-        "parameter_value_label": format_parameter_value(value),
+        "parameter_value_label": value_label,
+        "variant": variant,
+        "variant_label": value_label,
         "ordinal": ordinal,
         "total_runs": total_runs,
     }
+
+
+def build_campaign_plan(
+    config: dict[str, Any],
+    *,
+    experiment_id: str | None = None,
+) -> dict[str, Any]:
+    campaign = config.get("campaign")
+    if not isinstance(campaign, dict):
+        raise ValueError("Selected config does not define a decision campaign")
+
+    strategy = str(campaign.get("strategy", "grid")).strip() or "grid"
+    if strategy != "grid":
+        raise ValueError(f"Unsupported campaign strategy '{strategy}'")
+
+    dimensions_data = campaign.get("dimensions")
+    if not isinstance(dimensions_data, list) or not dimensions_data:
+        raise ValueError("Campaign must define at least one search dimension")
+
+    dimensions: list[dict[str, Any]] = []
+    for raw_dimension in dimensions_data:
+        if not isinstance(raw_dimension, dict):
+            raise ValueError("Campaign dimensions must be mappings")
+        path = str(raw_dimension.get("path") or "").strip()
+        parameter = get_sweep_parameter(path)
+        raw_values = raw_dimension.get("values")
+        if not isinstance(raw_values, list):
+            raise ValueError(f"Campaign dimension '{path}' must include a value list")
+        values = coerce_parameter_values(path, raw_values, minimum_count=1)
+        dimensions.append(
+            {
+                "path": parameter.path,
+                "label": parameter.label,
+                "description": parameter.description,
+                "value_type": parameter.value_type,
+                "values": values,
+            }
+        )
+
+    planned_run_count = 1
+    for dimension in dimensions:
+        planned_run_count *= len(dimension["values"])
+    if planned_run_count < 2:
+        raise ValueError("Campaign requires at least two planned runs")
+
+    max_runs = int(campaign.get("max_runs", planned_run_count))
+    if planned_run_count > max_runs:
+        raise ValueError(
+            f"Campaign expands to {planned_run_count} runs, which exceeds campaign.max_runs={max_runs}"
+        )
+
+    label = str(campaign.get("label") or f"{config['run']['name']} decision campaign").strip()
+    resolved_id = experiment_id or create_experiment_id("campaign")
+    variants: list[dict[str, Any]] = []
+
+    for ordinal, value_tuple in enumerate(
+        product(*(dimension["values"] for dimension in dimensions)),
+        start=1,
+    ):
+        variant = [
+            {
+                "path": dimension["path"],
+                "label": dimension["label"],
+                "value": value,
+                "value_label": format_parameter_value(value),
+            }
+            for dimension, value in zip(dimensions, value_tuple)
+        ]
+        variants.append(
+            {
+                "ordinal": ordinal,
+                "variant": variant,
+                "variant_label": _variant_label(variant),
+                "config": apply_parameter_values(
+                    config,
+                    [(entry["path"], entry["value"]) for entry in variant],
+                ),
+            }
+        )
+
+    return {
+        "id": resolved_id,
+        "kind": "campaign",
+        "label": label,
+        "strategy": strategy,
+        "dimension_count": len(dimensions),
+        "planned_run_count": planned_run_count,
+        "dimensions": [
+            {
+                "path": dimension["path"],
+                "label": dimension["label"],
+                "description": dimension["description"],
+                "value_type": dimension["value_type"],
+                "values": dimension["values"],
+            }
+            for dimension in dimensions
+        ],
+        "variants": variants,
+    }
+
+
+def build_campaign_context(
+    experiment_id: str,
+    label: str,
+    strategy: str,
+    dimensions: list[dict[str, Any]],
+    variant: list[dict[str, Any]],
+    ordinal: int,
+    total_runs: int,
+) -> dict[str, Any]:
+    variant_label = _variant_label(variant)
+    context = {
+        "id": experiment_id,
+        "kind": "campaign",
+        "label": label,
+        "strategy": strategy,
+        "dimensions": [
+            {
+                "path": dimension["path"],
+                "label": dimension["label"],
+            }
+            for dimension in dimensions
+        ],
+        "dimension_count": len(dimensions),
+        "variant": variant,
+        "variant_label": variant_label,
+        "ordinal": ordinal,
+        "total_runs": total_runs,
+    }
+
+    if len(variant) == 1:
+        entry = variant[0]
+        context.update(
+            {
+                "parameter_path": entry["path"],
+                "parameter_label": entry["label"],
+                "parameter_value": entry["value"],
+                "parameter_value_label": entry["value_label"],
+            }
+        )
+    else:
+        context.update(
+            {
+                "parameter_path": None,
+                "parameter_label": "Campaign Variant",
+                "parameter_value": None,
+                "parameter_value_label": variant_label,
+            }
+        )
+
+    return context
 
 
 def _metric_range(rows: list[dict[str, Any]], key: str) -> dict[str, Any]:
@@ -269,6 +470,9 @@ def build_run_comparison(run_details: list[dict[str, Any]]) -> dict[str, Any]:
                 "parameter_label": experiment.get("parameter_label"),
                 "parameter_value": experiment.get("parameter_value"),
                 "parameter_value_label": experiment.get("parameter_value_label"),
+                "variant": experiment.get("variant"),
+                "variant_label": experiment.get("variant_label"),
+                "dimension_count": experiment.get("dimension_count"),
                 "energy_drift": metrics["energy_drift"],
                 "norm_drift": metrics["norm_drift"],
                 "max_density": metrics["max_density"],
@@ -295,34 +499,48 @@ def build_run_comparison(run_details: list[dict[str, Any]]) -> dict[str, Any]:
             }
         )
 
-    experiment_ids = {
-        row["run_id"]: (detail["run_record"].get("experiment") or {}).get("id")
-        for row, detail in zip(rows, run_details)
+    shared_experiment = None
+    experiment_contexts = [
+        detail["run_record"].get("experiment")
+        for detail in run_details
+        if detail["run_record"].get("experiment")
+    ]
+    unique_ids = {
+        experiment.get("id")
+        for experiment in experiment_contexts
+        if experiment and experiment.get("id")
     }
     labels = {
-        (detail["run_record"].get("experiment") or {}).get("label")
-        for detail in run_details
-        if detail["run_record"].get("experiment")
+        experiment.get("label")
+        for experiment in experiment_contexts
+        if experiment and experiment.get("label")
     }
-    parameter_paths = {
-        (detail["run_record"].get("experiment") or {}).get("parameter_path")
-        for detail in run_details
-        if detail["run_record"].get("experiment")
+    kinds = {
+        experiment.get("kind")
+        for experiment in experiment_contexts
+        if experiment and experiment.get("kind")
     }
-    parameter_labels = {
-        (detail["run_record"].get("experiment") or {}).get("parameter_label")
-        for detail in run_details
-        if detail["run_record"].get("experiment")
+    dimension_signatures = {
+        json.dumps(experiment.get("dimensions") or [], sort_keys=True)
+        for experiment in experiment_contexts
     }
-
-    shared_experiment = None
-    unique_ids = {value for value in experiment_ids.values() if value}
-    if len(unique_ids) == 1 and len(labels) == 1 and len(parameter_paths) == 1 and len(parameter_labels) == 1:
+    if (
+        len(experiment_contexts) == len(run_details)
+        and len(unique_ids) == 1
+        and len(labels) == 1
+        and len(kinds) == 1
+        and len(dimension_signatures) == 1
+    ):
+        template = experiment_contexts[0] or {}
         shared_experiment = {
             "id": next(iter(unique_ids)),
             "label": next(iter(labels)),
-            "parameter_path": next(iter(parameter_paths)),
-            "parameter_label": next(iter(parameter_labels)),
+            "kind": next(iter(kinds)),
+            "strategy": template.get("strategy"),
+            "dimension_count": template.get("dimension_count"),
+            "dimensions": template.get("dimensions") or [],
+            "parameter_path": template.get("parameter_path"),
+            "parameter_label": template.get("parameter_label"),
         }
 
     comparison = {

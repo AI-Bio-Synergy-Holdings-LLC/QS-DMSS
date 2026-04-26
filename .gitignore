@@ -175,3 +175,5 @@ cython_debug/
 
 # QS-DMSS runtime outputs
 runs/
+experiments/
+.codex-logs/

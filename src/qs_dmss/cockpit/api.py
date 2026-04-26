@@ -15,6 +15,8 @@ from qs_dmss.decision import evaluate_run_decision
 from qs_dmss.evidence.verify import verify_run_path
 from qs_dmss.experiment import (
     apply_sweep_value,
+    build_campaign_context,
+    build_campaign_plan,
     build_experiment_context,
     build_run_comparison,
     coerce_sweep_values,
@@ -47,6 +49,11 @@ class SweepRequest(BaseModel):
     values: list[int | float | str]
     source_name: str = "sweep.yaml"
     experiment_name: str | None = None
+
+
+class LaunchCampaignRequest(BaseModel):
+    config: dict
+    source_name: str = "campaign.yaml"
 
 
 @dataclass(frozen=True)
@@ -231,6 +238,68 @@ class CockpitService:
                 "parameter_label": parameter.label,
                 "values": values,
                 "run_ids": [summary["run_id"] for summary in summaries],
+            },
+            "runs": summaries,
+            "comparison": comparison,
+            "artifact": self._build_experiment_detail(artifact_outputs.experiment_dir),
+        }
+
+    def launch_campaign(self, payload: LaunchCampaignRequest) -> dict:
+        try:
+            base_config = parse_config(payload.config).to_dict()
+            campaign_plan = build_campaign_plan(base_config)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+        source_name = self._safe_source_name(payload.source_name)
+        run_dirs: list[Path] = []
+        summaries: list[dict] = []
+        details: list[dict] = []
+        with TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            for variant in campaign_plan["variants"]:
+                temp_config_dir = temp_root / f"run-{variant['ordinal']:02d}"
+                temp_config_dir.mkdir(parents=True, exist_ok=True)
+                temp_path = temp_config_dir / source_name
+                write_config(parse_config(variant["config"]), temp_path)
+                outputs = execute_run_from_path(
+                    temp_path,
+                    output_root=self.output_root,
+                    experiment=build_campaign_context(
+                        experiment_id=campaign_plan["id"],
+                        label=campaign_plan["label"],
+                        strategy=campaign_plan["strategy"],
+                        dimensions=campaign_plan["dimensions"],
+                        variant=variant["variant"],
+                        ordinal=variant["ordinal"],
+                        total_runs=campaign_plan["planned_run_count"],
+                    ),
+                )
+                run_dirs.append(outputs.run_dir)
+                detail = self._build_run_detail(outputs.run_dir)
+                details.append(detail)
+                summaries.append(detail["summary"])
+
+        comparison = build_run_comparison(details)
+        artifact_outputs = persist_experiment_artifact(
+            run_dirs=run_dirs,
+            run_details=details,
+            experiments_root=self.experiments_root,
+            label=campaign_plan["label"],
+            experiment_id=campaign_plan["id"],
+            kind="campaign",
+        )
+
+        return {
+            "campaign": {
+                "id": campaign_plan["id"],
+                "label": campaign_plan["label"],
+                "strategy": campaign_plan["strategy"],
+                "dimension_count": campaign_plan["dimension_count"],
+                "planned_run_count": campaign_plan["planned_run_count"],
+                "dimensions": campaign_plan["dimensions"],
+                "run_ids": [summary["run_id"] for summary in summaries],
+                "recommended_run_id": (comparison.get("decision") or {}).get("recommended_run_id"),
             },
             "runs": summaries,
             "comparison": comparison,
@@ -525,6 +594,10 @@ def create_app(
     @app.post("/api/sweeps")
     def launch_sweep(payload: SweepRequest) -> dict:
         return service.launch_sweep(payload)
+
+    @app.post("/api/campaigns")
+    def launch_campaign(payload: LaunchCampaignRequest) -> dict:
+        return service.launch_campaign(payload)
 
     @app.post("/api/runs/{run_id}/verify")
     def verify_run(run_id: str) -> dict:

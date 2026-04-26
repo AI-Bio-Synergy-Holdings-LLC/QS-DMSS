@@ -190,3 +190,44 @@ def test_cockpit_api_save_manual_experiment(tmp_path: Path) -> None:
     assert experiment_detail["experiment_record"]["runs"][0]["artifacts"]["bundle"].endswith(
         "evidence_bundle.zip"
     )
+
+
+def test_cockpit_api_launch_campaign(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    config_item = client.get("/api/configs").json()["items"][0]
+    campaign_payload = client.post(
+        "/api/campaigns",
+        json={"config": config_item["config"], "source_name": config_item["name"]},
+    )
+    assert campaign_payload.status_code == 200
+    campaign = campaign_payload.json()
+    assert campaign["campaign"]["label"] == "Stability frontier campaign"
+    assert campaign["campaign"]["strategy"] == "grid"
+    assert campaign["campaign"]["dimension_count"] == 2
+    assert campaign["campaign"]["planned_run_count"] == 6
+    assert len(campaign["runs"]) == 6
+    assert campaign["comparison"]["decision"]["available"] is True
+    assert campaign["artifact"]["summary"]["kind"] == "campaign"
+    assert campaign["artifact"]["summary"]["run_count"] == 6
+    assert campaign["artifact"]["summary"]["recommended_run_id"] == campaign["campaign"]["recommended_run_id"]
+    assert campaign["comparison"]["shared_experiment"]["kind"] == "campaign"
+    assert campaign["comparison"]["shared_experiment"]["dimension_count"] == 2
+
+    run_detail = client.get(f"/api/runs/{campaign['runs'][0]['run_id']}")
+    assert run_detail.status_code == 200
+    detail = run_detail.json()
+    assert detail["run_record"]["experiment"]["kind"] == "campaign"
+    assert detail["run_record"]["experiment"]["strategy"] == "grid"
+    assert len(detail["run_record"]["experiment"]["variant"]) == 2
+    assert "variant_label" in detail["run_record"]["experiment"]
+
+    experiment_detail = client.get(f"/api/experiments/{campaign['campaign']['id']}")
+    assert experiment_detail.status_code == 200
+    experiment = experiment_detail.json()
+    assert experiment["summary"]["kind"] == "campaign"
+    assert experiment["comparison"]["shared_experiment"]["kind"] == "campaign"
+    assert len(experiment["comparison"]["shared_experiment"]["dimensions"]) == 2
+    assert "QS-DMSS Experiment Report" in client.get(experiment["urls"]["report"]).text

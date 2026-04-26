@@ -105,6 +105,34 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Optional run output directory override used to locate sibling experiments.",
     )
 
+    campaigns_parser = subparsers.add_parser(
+        "campaigns",
+        help="Launch template-defined decision campaigns.",
+    )
+    campaigns_subparsers = campaigns_parser.add_subparsers(
+        dest="campaigns_command",
+        required=True,
+    )
+
+    campaigns_run_parser = campaigns_subparsers.add_parser(
+        "run",
+        help="Launch the campaign defined in a YAML config file.",
+    )
+    campaigns_run_parser.add_argument("config", help="Path to a YAML config file.")
+    campaigns_run_parser.add_argument(
+        "--output-root",
+        help="Optional run output directory override used for generated campaign runs.",
+    )
+
+    campaigns_demo_parser = campaigns_subparsers.add_parser(
+        "run-demo",
+        help="Launch the bundled demo decision campaign.",
+    )
+    campaigns_demo_parser.add_argument(
+        "--output-root",
+        help="Optional run output directory override used for generated campaign runs.",
+    )
+
     return parser
 
 
@@ -212,6 +240,41 @@ def main(argv: list[str] | None = None) -> int:
                 print(f"Reason: {detail['decision']['reason']}")
             print(f"Bundle: {service.experiments_root / detail['summary']['experiment_id'] / 'evidence_bundle.zip'}")
             return 0
+
+    if args.command == "campaigns":
+        from qs_dmss.cockpit.api import CockpitService, LaunchCampaignRequest
+        from qs_dmss.io.config import load_config
+
+        service = CockpitService.create(output_root=args.output_root)
+        if args.campaigns_command == "run":
+            config_path = Path(args.config).resolve()
+        elif args.campaigns_command == "run-demo":
+            config_path = demo_config_path()
+        else:
+            parser.error(f"Unsupported campaigns command: {args.campaigns_command}")
+            return 2
+
+        try:
+            payload = service.launch_campaign(
+                LaunchCampaignRequest(
+                    config=load_config(config_path).to_dict(),
+                    source_name=config_path.name,
+                )
+            )
+        except (HTTPException, ValueError, FileNotFoundError) as exc:
+            detail = exc.detail if isinstance(exc, HTTPException) else str(exc)
+            print(detail)
+            return 1
+
+        print(f"Campaign saved: {payload['campaign']['id']}")
+        print(f"Label: {payload['campaign']['label']}")
+        print(f"Planned runs: {payload['campaign']['planned_run_count']}")
+        if payload.get("comparison", {}).get("decision", {}).get("available"):
+            print(f"Recommended run: {payload['comparison']['decision']['recommended_run_id']}")
+            print(f"Decision status: {payload['comparison']['decision']['status']}")
+            print(f"Reason: {payload['comparison']['decision']['reason']}")
+        print(f"Bundle: {service.experiments_root / payload['campaign']['id'] / 'evidence_bundle.zip'}")
+        return 0
 
     parser.error(f"Unsupported command: {args.command}")
     return 2

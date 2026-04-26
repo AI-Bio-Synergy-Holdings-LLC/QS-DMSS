@@ -202,6 +202,39 @@
               </div>
               <ul class="decision-list" id="profileConstraints"></ul>
             </section>
+
+            <div class="subpanel-divider"></div>
+
+            <section class="campaign-shell">
+              <div class="panel-head compact">
+                <div>
+                  <p class="panel-kicker">Campaign</p>
+                  <h2>Launch Decision Campaign</h2>
+                </div>
+              </div>
+              <div class="recommendation-shell compact">
+                <div class="recommendation-copy">
+                  <p class="recommendation-label" id="campaignTitle">No campaign plan</p>
+                  <h3 id="campaignRunCount">Select a study template</h3>
+                  <p class="recommendation-note" id="campaignSummary">
+                    Load a template with a campaign section to generate a full search plan and return one recommendation bundle.
+                  </p>
+                </div>
+                <div class="recommendation-meta">
+                  <span class="status-badge is-idle" id="campaignStrategyBadge">No plan</span>
+                  <span class="selection-chip" id="campaignMaxRunsChip">0 runs</span>
+                </div>
+              </div>
+              <ul class="decision-list" id="campaignDimensions"></ul>
+              <div class="launch-actions">
+                <button class="secondary-button teal" id="launchCampaignButton" type="button">
+                  Launch Campaign
+                </button>
+                <p class="form-note">
+                  Generates the full search matrix from the template, runs every variant, and saves a replayable recommendation bundle.
+                </p>
+              </div>
+            </section>
           </section>
 
           <section class="panel status-panel reveal">
@@ -375,7 +408,7 @@
                 <thead>
                   <tr>
                     <th>Run</th>
-                    <th>Parameter</th>
+                    <th>Variant</th>
                     <th>Rank</th>
                     <th>Score</th>
                     <th>Qualified</th>

@@ -86,14 +86,42 @@ def write_report(
     experiment = run_record.get("experiment")
     experiment_markup = ""
     if experiment:
+        kind = str(experiment.get("kind", "sweep"))
+        dimensions = experiment.get("dimensions") or []
+        variant = experiment.get("variant") or []
+        dimension_rows = "".join(
+            f"<li>{html.escape(str(item.get('label') or item.get('path')))} (<code>{html.escape(str(item.get('path')))}</code>)</li>"
+            for item in dimensions
+        )
+        variant_rows = "".join(
+            f"<li>{html.escape(str(item.get('label') or item.get('path')))}: <code>{html.escape(str(item.get('value_label', '-')))}</code></li>"
+            for item in variant
+        )
+        context_rows = f"""
+      <li>Experiment ID: <code>{html.escape(str(experiment['id']))}</code></li>
+      <li>Label: {html.escape(str(experiment['label']))}</li>
+      <li>Kind: {html.escape(kind)}</li>
+      <li>Ordinal: {experiment['ordinal']} of {experiment['total_runs']}</li>
+"""
+        if experiment.get("strategy"):
+            context_rows += (
+                f"      <li>Strategy: {html.escape(str(experiment['strategy']))}</li>\n"
+            )
+        if experiment.get("variant_label"):
+            context_rows += (
+                f"      <li>Variant: {html.escape(str(experiment['variant_label']))}</li>\n"
+            )
         experiment_markup = f"""
     <h2>Experiment Context</h2>
     <ul>
-      <li>Experiment ID: <code>{html.escape(str(experiment['id']))}</code></li>
-      <li>Label: {html.escape(str(experiment['label']))}</li>
-      <li>Parameter: {html.escape(str(experiment['parameter_label']))} (<code>{html.escape(str(experiment['parameter_path']))}</code>)</li>
-      <li>Value: {html.escape(str(experiment['parameter_value_label']))}</li>
-      <li>Ordinal: {experiment['ordinal']} of {experiment['total_runs']}</li>
+{context_rows}    </ul>
+    <h3>Search Dimensions</h3>
+    <ul>
+      {dimension_rows}
+    </ul>
+    <h3>Variant Values</h3>
+    <ul>
+      {variant_rows}
     </ul>
 """
 
@@ -213,12 +241,34 @@ def write_experiment_report(
     shared = experiment_record.get("shared_experiment")
     shared_markup = ""
     if shared:
-        shared_markup = f"""
-    <h2>Shared Sweep Context</h2>
-    <ul>
+        kind = str(shared.get("kind", "comparison"))
+        dimensions = shared.get("dimensions") or []
+        dimension_rows = "".join(
+            f"<li>{html.escape(str(item.get('label') or item.get('path')))} (<code>{html.escape(str(item.get('path')))}</code>)</li>"
+            for item in dimensions
+        )
+        shared_rows = f"""
       <li>Experiment ID: <code>{html.escape(str(shared["id"]))}</code></li>
       <li>Label: {html.escape(str(shared["label"]))}</li>
-      <li>Parameter: {html.escape(str(shared["parameter_label"]))} (<code>{html.escape(str(shared["parameter_path"]))}</code>)</li>
+      <li>Kind: {html.escape(kind)}</li>
+"""
+        if shared.get("strategy"):
+            shared_rows += f"      <li>Strategy: {html.escape(str(shared['strategy']))}</li>\n"
+        if shared.get("dimension_count") is not None:
+            shared_rows += f"      <li>Dimension count: {html.escape(str(shared['dimension_count']))}</li>\n"
+        if shared.get("parameter_label") and shared.get("parameter_path"):
+            shared_rows += (
+                f"      <li>Primary parameter: {html.escape(str(shared['parameter_label']))} "
+                f"(<code>{html.escape(str(shared['parameter_path']))}</code>)</li>\n"
+            )
+        shared_heading = "Shared Campaign Context" if kind == "campaign" else "Shared Sweep Context"
+        shared_markup = f"""
+    <h2>{shared_heading}</h2>
+    <ul>
+{shared_rows}    </ul>
+    <h3>Dimensions</h3>
+    <ul>
+      {dimension_rows}
     </ul>
 """
 
@@ -302,7 +352,7 @@ def write_experiment_report(
       <thead>
         <tr>
           <th>Run ID</th>
-          <th>Parameter</th>
+          <th>Variant</th>
           <th>Rank</th>
           <th>Score</th>
           <th>Qualified</th>

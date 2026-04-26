@@ -11,6 +11,7 @@ needed to move from prototype scripts into a reproducible package:
 - Parameter sweeps and multi-run comparison in the cockpit
 - Experiment registry with saved comparison reports and bundles
 - Objective-driven decision profiles with ranked recommendations
+- Template-defined decision campaigns across multi-parameter search grids
 - Run ledger with stable run IDs and config digests
 - Evidence bundle with artifacts, metrics, manifest, and HTML report
 - Replay and verification commands for reproducibility checks
@@ -27,6 +28,7 @@ productization:
 - Structured experiment outputs under `experiments/<experiment_id>/`
 - A local cockpit for launch, inspection, verification, replay, and bundle download
 - Sweep support for exploring one parameter across multiple deterministic runs
+- Decision campaign support for expanding a template into a multi-parameter grid automatically
 - Comparison tooling for energy drift, norm drift, density, and runtime deltas
 - Decision profiles that score runs against an explicit objective, constraint set, and ranking policy
 - Durable experiment exports with copied run evidence, comparison JSON, report HTML, manifest, and bundle ZIP
@@ -79,6 +81,7 @@ Inside the cockpit you can:
 
 - Launch a single run from a checked-in or edited config
 - Launch a parameter sweep across interaction strength, timestep, step count, amplitude, width, or seed
+- Launch a template-defined decision campaign that expands into a reproducible multi-parameter run matrix
 - Compare multiple runs side by side with shared experiment metadata
 - Save a comparison into the experiment registry and reopen it later with report and bundle downloads
 - Load an objective-driven template and see the recommended winner directly in the comparison view
@@ -107,13 +110,26 @@ List saved experiment artifacts:
 qs-dmss experiments list
 ```
 
+Launch the decision campaign defined by a template:
+
+```powershell
+qs-dmss campaigns run configs/demo.yaml
+```
+
+Or launch the bundled installed-package demo campaign:
+
+```powershell
+qs-dmss campaigns run-demo
+```
+
 The checked-in demo template now includes a decision profile:
 
 - `objective`
 - `constraints`
 - `ranking`
+- `campaign`
 
-That means sweeps and experiment exports can now return a replayable recommendation instead of only raw metric tables.
+That means sweeps, experiment exports, and template-driven campaigns can now return a replayable recommendation instead of only raw metric tables.
 
 ## Container Runtime
 
@@ -177,3 +193,7 @@ The experiment registry now makes comparison durable too:
 The decision layer adds recommendation semantics to that flow:
 
 `select template -> launch campaign -> score runs -> recommend winner -> export evidence`
+
+The campaign layer now automates the search plan too:
+
+`select template -> expand campaign -> run matrix -> score variants -> recommend winner -> reopen bundle`

@@ -39,3 +39,13 @@ ranking:
     norm_drift: 0.9
     max_density: 0.7
     elapsed_seconds: 0.3
+
+campaign:
+  label: Stability frontier campaign
+  strategy: grid
+  max_runs: 6
+  dimensions:
+    - path: engine.g_int
+      values: [0.02, 0.05, 0.08]
+    - path: engine.time_step
+      values: [0.015, 0.02]
