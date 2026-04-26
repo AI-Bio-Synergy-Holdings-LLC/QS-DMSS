@@ -5,6 +5,7 @@ import html
 import json
 import platform
 import zipfile
+from collections.abc import Iterable
 from datetime import datetime, timezone
 from importlib import metadata
 from pathlib import Path
@@ -20,6 +21,26 @@ def _file_sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _manifest_entries(
+    root_dir: Path,
+    excluded_paths: Iterable[str],
+) -> list[dict]:
+    excluded = set(excluded_paths)
+    entries = []
+    for file_path in sorted(path for path in root_dir.rglob("*") if path.is_file()):
+        relative_path = file_path.relative_to(root_dir).as_posix()
+        if relative_path in excluded:
+            continue
+        entries.append(
+            {
+                "path": relative_path,
+                "sha256": _file_sha256(file_path),
+                "size_bytes": file_path.stat().st_size,
+            }
+        )
+    return entries
 
 
 def build_environment_lock() -> dict:
@@ -122,20 +143,104 @@ def write_report(run_dir: Path, run_record: dict, metrics: dict) -> None:
     report_path.write_text(html_body, encoding="utf-8")
 
 
-def write_manifest(run_dir: Path) -> Path:
-    manifest_path = run_dir / "manifest.sha256.json"
-    entries = []
-    for file_path in sorted(path for path in run_dir.rglob("*") if path.is_file()):
-        relative_path = file_path.relative_to(run_dir).as_posix()
-        if relative_path in {"manifest.sha256.json", "evidence_bundle.zip"}:
-            continue
-        entries.append(
-            {
-                "path": relative_path,
-                "sha256": _file_sha256(file_path),
-                "size_bytes": file_path.stat().st_size,
-            }
-        )
+def write_experiment_report(
+    experiment_dir: Path,
+    experiment_record: dict,
+    comparison: dict,
+) -> None:
+    report_path = experiment_dir / "report.html"
+    shared = experiment_record.get("shared_experiment")
+    shared_markup = ""
+    if shared:
+        shared_markup = f"""
+    <h2>Shared Sweep Context</h2>
+    <ul>
+      <li>Experiment ID: <code>{html.escape(str(shared["id"]))}</code></li>
+      <li>Label: {html.escape(str(shared["label"]))}</li>
+      <li>Parameter: {html.escape(str(shared["parameter_label"]))} (<code>{html.escape(str(shared["parameter_path"]))}</code>)</li>
+    </ul>
+"""
+
+    highlights = comparison["highlights"]
+    rows = "\n".join(
+        "<tr>"
+        f"<td>{html.escape(row['run_id'])}</td>"
+        f"<td>{html.escape(str(row['parameter_value_label'] or '-'))}</td>"
+        f"<td>{row['energy_drift']}</td>"
+        f"<td>{row['norm_drift']}</td>"
+        f"<td>{row['max_density']}</td>"
+        f"<td>{row['elapsed_seconds']}</td>"
+        f"<td>{'verified' if row['verification_success'] else 'pending'}</td>"
+        "</tr>"
+        for row in comparison["rows"]
+    )
+    html_body = f"""<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>QS-DMSS Experiment Report</title>
+    <style>
+      body {{ font-family: Arial, sans-serif; margin: 32px; color: #111827; }}
+      h1, h2 {{ margin-bottom: 0.4rem; }}
+      table {{ border-collapse: collapse; width: 100%; margin-top: 16px; }}
+      th, td {{ border: 1px solid #d1d5db; padding: 8px; text-align: left; }}
+      th {{ background: #f3f4f6; }}
+      code {{ background: #f3f4f6; padding: 2px 4px; }}
+    </style>
+  </head>
+  <body>
+    <h1>QS-DMSS Experiment Report</h1>
+    <p><strong>Experiment ID:</strong> <code>{html.escape(experiment_record['experiment_id'])}</code></p>
+    <p><strong>Label:</strong> {html.escape(experiment_record['label'])}</p>
+    <p><strong>Kind:</strong> {html.escape(experiment_record['kind'])}</p>
+    <p><strong>Created:</strong> {html.escape(experiment_record['created_at'])}</p>
+    <p><strong>Baseline Run:</strong> {html.escape(comparison['baseline_run_id'])}</p>
+    <h2>Comparison Summary</h2>
+    <ul>
+      <li>Run count: {experiment_record['run_count']}</li>
+      <li>Energy drift span: {comparison['ranges']['energy_drift']['span']}</li>
+      <li>Norm drift span: {comparison['ranges']['norm_drift']['span']}</li>
+      <li>Max density span: {comparison['ranges']['max_density']['span']}</li>
+      <li>Fastest run: {comparison['ranges']['elapsed_seconds']['min_run_id']}</li>
+    </ul>
+    <h2>Highlights</h2>
+    <ul>
+      <li>Lowest absolute energy drift: {html.escape(highlights['lowest_abs_energy_drift_run_id'])}</li>
+      <li>Lowest absolute norm drift: {html.escape(highlights['lowest_abs_norm_drift_run_id'])}</li>
+      <li>Highest max density: {html.escape(highlights['highest_max_density_run_id'])}</li>
+    </ul>
+    {shared_markup}
+    <h2>Runs</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Run ID</th>
+          <th>Parameter</th>
+          <th>Energy Drift</th>
+          <th>Norm Drift</th>
+          <th>Max Density</th>
+          <th>Elapsed Seconds</th>
+          <th>Verification</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows}
+      </tbody>
+    </table>
+  </body>
+</html>
+"""
+    report_path.write_text(html_body, encoding="utf-8")
+
+
+def write_manifest_for_directory(
+    root_dir: Path,
+    *,
+    manifest_name: str = "manifest.sha256.json",
+    bundle_name: str = "evidence_bundle.zip",
+) -> Path:
+    manifest_path = root_dir / manifest_name
+    entries = _manifest_entries(root_dir, {manifest_name, bundle_name})
 
     manifest = {
         "schema_version": 1,
@@ -147,14 +252,26 @@ def write_manifest(run_dir: Path) -> Path:
     return manifest_path
 
 
-def create_bundle_zip(run_dir: Path) -> Path:
-    bundle_path = run_dir / "evidence_bundle.zip"
+def write_manifest(run_dir: Path) -> Path:
+    return write_manifest_for_directory(run_dir)
+
+
+def create_bundle_zip_for_directory(
+    root_dir: Path,
+    *,
+    bundle_name: str = "evidence_bundle.zip",
+) -> Path:
+    bundle_path = root_dir / bundle_name
     with zipfile.ZipFile(bundle_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        for file_path in sorted(path for path in run_dir.rglob("*") if path.is_file()):
+        for file_path in sorted(path for path in root_dir.rglob("*") if path.is_file()):
             if file_path == bundle_path:
                 continue
             archive.write(
                 file_path,
-                arcname=(Path(run_dir.name) / file_path.relative_to(run_dir)).as_posix(),
+                arcname=(Path(root_dir.name) / file_path.relative_to(root_dir)).as_posix(),
             )
     return bundle_path
+
+
+def create_bundle_zip(run_dir: Path) -> Path:
+    return create_bundle_zip_for_directory(run_dir)

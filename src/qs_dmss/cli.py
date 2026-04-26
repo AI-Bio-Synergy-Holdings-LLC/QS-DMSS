@@ -3,6 +3,8 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+from fastapi import HTTPException
+
 from qs_dmss.app import execute_run_from_path, replay_run
 from qs_dmss.evidence.verify import verify_run_path
 from qs_dmss.paths import demo_config_path
@@ -67,6 +69,42 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Optional run output directory override for the cockpit.",
     )
 
+    experiments_parser = subparsers.add_parser(
+        "experiments",
+        help="List and export experiment-level comparison bundles.",
+    )
+    experiments_subparsers = experiments_parser.add_subparsers(
+        dest="experiments_command",
+        required=True,
+    )
+
+    experiments_list_parser = experiments_subparsers.add_parser(
+        "list",
+        help="List persisted experiment artifacts.",
+    )
+    experiments_list_parser.add_argument(
+        "--output-root",
+        help="Optional run output directory override used to locate sibling experiments.",
+    )
+
+    experiments_export_parser = experiments_subparsers.add_parser(
+        "export",
+        help="Persist selected runs as an experiment evidence bundle.",
+    )
+    experiments_export_parser.add_argument(
+        "run_ids",
+        nargs="+",
+        help="Run IDs to include in the saved experiment artifact.",
+    )
+    experiments_export_parser.add_argument(
+        "--label",
+        help="Optional experiment label override.",
+    )
+    experiments_export_parser.add_argument(
+        "--output-root",
+        help="Optional run output directory override used to locate sibling experiments.",
+    )
+
     return parser
 
 
@@ -128,6 +166,42 @@ def main(argv: list[str] | None = None) -> int:
             port=args.port,
             output_root=args.output_root,
         )
+
+    if args.command == "experiments":
+        from qs_dmss.cockpit.api import CockpitService, CreateExperimentRequest
+
+        service = CockpitService.create(output_root=args.output_root)
+
+        if args.experiments_command == "list":
+            items = service.list_experiments()
+            if not items:
+                print(f"No experiment artifacts found under {service.experiments_root}")
+                return 0
+
+            print(f"Experiment artifacts under {service.experiments_root}:")
+            for item in items:
+                print(
+                    f"- {item['experiment_id']} | {item['label']} | "
+                    f"{item['run_count']} runs | {item['bundle_size_label']}"
+                )
+            return 0
+
+        if args.experiments_command == "export":
+            try:
+                detail = service.create_experiment(
+                    CreateExperimentRequest(
+                        run_ids=args.run_ids,
+                        label=args.label,
+                    )
+                )
+            except HTTPException as exc:
+                print(exc.detail)
+                return 1
+
+            print(f"Experiment saved: {detail['summary']['experiment_id']}")
+            print(f"Label: {detail['summary']['label']}")
+            print(f"Bundle: {service.experiments_root / detail['summary']['experiment_id'] / 'evidence_bundle.zip'}")
+            return 0
 
     parser.error(f"Unsupported command: {args.command}")
     return 2

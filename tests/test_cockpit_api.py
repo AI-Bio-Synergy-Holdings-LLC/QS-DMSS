@@ -88,6 +88,9 @@ def test_cockpit_api_launch_sweep_and_compare(tmp_path: Path) -> None:
     assert len(sweep["runs"]) == 2
     assert sweep["comparison"]["shared_experiment"]["parameter_path"] == "engine.g_int"
     assert len(sweep["comparison"]["rows"]) == 2
+    assert sweep["artifact"]["summary"]["experiment_id"] == sweep["experiment"]["id"]
+    assert sweep["artifact"]["summary"]["kind"] == "sweep"
+    assert sweep["artifact"]["summary"]["run_count"] == 2
 
     runs_payload = client.get("/api/runs")
     assert runs_payload.status_code == 200
@@ -111,3 +114,66 @@ def test_cockpit_api_launch_sweep_and_compare(tmp_path: Path) -> None:
     detail = detail_payload.json()
     assert detail["run_record"]["experiment"]["label"] == "interaction sweep"
     assert detail["run_record"]["experiment"]["parameter_value_label"] in {"0.02", "0.05"}
+
+    experiments_payload = client.get("/api/experiments")
+    assert experiments_payload.status_code == 200
+    experiment_items = experiments_payload.json()["items"]
+    assert experiment_items[0]["experiment_id"] == sweep["experiment"]["id"]
+
+    experiment_detail_payload = client.get(f"/api/experiments/{sweep['experiment']['id']}")
+    assert experiment_detail_payload.status_code == 200
+    experiment_detail = experiment_detail_payload.json()
+    assert experiment_detail["summary"]["label"] == "interaction sweep"
+    assert experiment_detail["comparison"]["shared_experiment"]["id"] == sweep["experiment"]["id"]
+
+    experiment_bundle_payload = client.get(f"/api/experiments/{sweep['experiment']['id']}/bundle")
+    assert experiment_bundle_payload.status_code == 200
+    assert experiment_bundle_payload.headers["content-type"].startswith("application/zip")
+
+    experiment_report_payload = client.get(f"/api/experiments/{sweep['experiment']['id']}/report")
+    assert experiment_report_payload.status_code == 200
+    assert "QS-DMSS Experiment Report" in experiment_report_payload.text
+
+
+def test_cockpit_api_save_manual_experiment(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    config_item = client.get("/api/configs").json()["items"][0]
+
+    first_run = client.post(
+        "/api/runs",
+        json={"config": config_item["config"], "source_name": config_item["name"]},
+    )
+    assert first_run.status_code == 200
+
+    second_config = dict(config_item["config"])
+    second_config["run"] = dict(config_item["config"]["run"])
+    second_config["engine"] = dict(config_item["config"]["engine"])
+    second_config["initial"] = dict(config_item["config"]["initial"])
+    second_config["run"]["name"] = "demo-alt"
+    second_config["engine"]["g_int"] = 0.05
+    second_run = client.post(
+        "/api/runs",
+        json={"config": second_config, "source_name": "demo-alt.yaml"},
+    )
+    assert second_run.status_code == 200
+
+    run_ids = [
+        first_run.json()["summary"]["run_id"],
+        second_run.json()["summary"]["run_id"],
+    ]
+    experiment_payload = client.post(
+        "/api/experiments",
+        json={"run_ids": run_ids, "label": "manual comparison"},
+    )
+    assert experiment_payload.status_code == 200
+    experiment_detail = experiment_payload.json()
+    assert experiment_detail["summary"]["label"] == "manual comparison"
+    assert experiment_detail["summary"]["kind"] == "comparison"
+    assert experiment_detail["comparison"]["baseline_run_id"] == run_ids[0]
+    assert len(experiment_detail["experiment_record"]["runs"]) == 2
+    assert experiment_detail["experiment_record"]["runs"][0]["artifacts"]["bundle"].endswith(
+        "evidence_bundle.zip"
+    )

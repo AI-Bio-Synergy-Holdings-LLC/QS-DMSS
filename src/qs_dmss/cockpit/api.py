@@ -20,9 +20,10 @@ from qs_dmss.experiment import (
     create_experiment_id,
     get_sweep_parameter,
     list_sweep_parameters,
+    persist_experiment_artifact,
 )
 from qs_dmss.io.config import load_config, parse_config, write_config
-from qs_dmss.paths import configs_root, discover_repo_root, runs_root
+from qs_dmss.paths import configs_root, discover_repo_root, experiments_root, runs_root
 
 
 class LaunchRunRequest(BaseModel):
@@ -32,6 +33,11 @@ class LaunchRunRequest(BaseModel):
 
 class CompareRunsRequest(BaseModel):
     run_ids: list[str]
+
+
+class CreateExperimentRequest(BaseModel):
+    run_ids: list[str]
+    label: str | None = None
 
 
 class SweepRequest(BaseModel):
@@ -46,6 +52,7 @@ class SweepRequest(BaseModel):
 class CockpitService:
     repo_root: Path
     output_root: Path
+    experiments_root: Path
     config_root: Path
     static_root: Path
 
@@ -59,10 +66,16 @@ class CockpitService:
         resolved_output_root = (
             Path(output_root).resolve() if output_root else runs_root(resolved_repo_root)
         )
+        resolved_experiments_root = experiments_root(
+            resolved_repo_root,
+            resolved_output_root,
+        )
         resolved_output_root.mkdir(parents=True, exist_ok=True)
+        resolved_experiments_root.mkdir(parents=True, exist_ok=True)
         return cls(
             repo_root=resolved_repo_root,
             output_root=resolved_output_root,
+            experiments_root=resolved_experiments_root,
             config_root=configs_root(resolved_repo_root),
             static_root=Path(__file__).resolve().parent / "static",
         )
@@ -86,10 +99,13 @@ class CockpitService:
         return items
 
     def list_runs(self) -> list[dict]:
-        items: list[dict] = []
-        for run_dir in self._list_run_dirs():
-            items.append(self._build_run_summary(run_dir))
-        return items
+        return [self._build_run_summary(run_dir) for run_dir in self._list_run_dirs()]
+
+    def list_experiments(self) -> list[dict]:
+        return [
+            self._build_experiment_summary(experiment_dir)
+            for experiment_dir in self._list_experiment_dirs()
+        ]
 
     def list_sweep_parameters(self) -> list[dict]:
         return list_sweep_parameters()
@@ -97,6 +113,10 @@ class CockpitService:
     def get_run_detail(self, run_id: str) -> dict:
         run_dir = self._get_run_dir(run_id)
         return self._build_run_detail(run_dir)
+
+    def get_experiment_detail(self, experiment_id: str) -> dict:
+        experiment_dir = self._get_experiment_dir(experiment_id)
+        return self._build_experiment_detail(experiment_dir)
 
     def launch_run(self, payload: LaunchRunRequest) -> dict:
         config = parse_config(payload.config)
@@ -133,6 +153,25 @@ class CockpitService:
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+    def create_experiment(self, payload: CreateExperimentRequest) -> dict:
+        run_ids = [run_id for run_id in payload.run_ids if run_id]
+        if len(run_ids) < 2:
+            raise HTTPException(status_code=400, detail="Select at least two runs to save an experiment")
+
+        try:
+            run_dirs = [self._get_run_dir(run_id) for run_id in run_ids]
+            details = [self._build_run_detail(run_dir) for run_dir in run_dirs]
+            outputs = persist_experiment_artifact(
+                run_dirs=run_dirs,
+                run_details=details,
+                experiments_root=self.experiments_root,
+                label=payload.label,
+                kind="comparison",
+            )
+            return self._build_experiment_detail(outputs.experiment_dir)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
     def launch_sweep(self, payload: SweepRequest) -> dict:
         try:
             base_config = parse_config(payload.config).to_dict()
@@ -141,10 +180,11 @@ class CockpitService:
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-        experiment_id = create_experiment_id()
+        experiment_id = create_experiment_id("sweep")
         experiment_label = payload.experiment_name or f"{base_config['run']['name']} {parameter.label} sweep"
         source_name = self._safe_source_name(payload.source_name)
 
+        run_dirs: list[Path] = []
         summaries: list[dict] = []
         details: list[dict] = []
         with TemporaryDirectory() as temp_dir:
@@ -167,9 +207,20 @@ class CockpitService:
                         total_runs=len(values),
                     ),
                 )
+                run_dirs.append(outputs.run_dir)
                 detail = self._build_run_detail(outputs.run_dir)
                 details.append(detail)
                 summaries.append(detail["summary"])
+
+        comparison = build_run_comparison(details)
+        artifact_outputs = persist_experiment_artifact(
+            run_dirs=run_dirs,
+            run_details=details,
+            experiments_root=self.experiments_root,
+            label=experiment_label,
+            experiment_id=experiment_id,
+            kind="sweep",
+        )
 
         return {
             "experiment": {
@@ -181,7 +232,8 @@ class CockpitService:
                 "run_ids": [summary["run_id"] for summary in summaries],
             },
             "runs": summaries,
-            "comparison": build_run_comparison(details),
+            "comparison": comparison,
+            "artifact": self._build_experiment_detail(artifact_outputs.experiment_dir),
         }
 
     def bundle_path(self, run_id: str) -> Path:
@@ -198,6 +250,20 @@ class CockpitService:
             raise HTTPException(status_code=404, detail="Run report not found")
         return report_path
 
+    def experiment_bundle_path(self, experiment_id: str) -> Path:
+        experiment_dir = self._get_experiment_dir(experiment_id)
+        bundle_path = experiment_dir / "evidence_bundle.zip"
+        if not bundle_path.exists():
+            raise HTTPException(status_code=404, detail="Experiment bundle not found")
+        return bundle_path
+
+    def experiment_report_path(self, experiment_id: str) -> Path:
+        experiment_dir = self._get_experiment_dir(experiment_id)
+        report_path = experiment_dir / "report.html"
+        if not report_path.exists():
+            raise HTTPException(status_code=404, detail="Experiment report not found")
+        return report_path
+
     def index_path(self) -> Path:
         return self.static_root / "index.html"
 
@@ -210,6 +276,16 @@ class CockpitService:
             if path.is_dir() and (path / "run.json").exists()
         ]
         return sorted(run_dirs, key=lambda path: path.stat().st_mtime, reverse=True)
+
+    def _list_experiment_dirs(self) -> list[Path]:
+        if not self.experiments_root.exists():
+            return []
+        experiment_dirs = [
+            path
+            for path in self.experiments_root.iterdir()
+            if path.is_dir() and (path / "experiment.json").exists()
+        ]
+        return sorted(experiment_dirs, key=lambda path: path.stat().st_mtime, reverse=True)
 
     def _safe_source_name(self, source_name: str) -> str:
         sanitized = Path(source_name).name or "cockpit.yaml"
@@ -224,6 +300,14 @@ class CockpitService:
         if not run_dir.exists() or not (run_dir / "run.json").exists():
             raise HTTPException(status_code=404, detail="Run not found")
         return run_dir
+
+    def _get_experiment_dir(self, experiment_id: str) -> Path:
+        experiment_dir = (self.experiments_root / experiment_id).resolve()
+        if experiment_dir.parent != self.experiments_root.resolve():
+            raise HTTPException(status_code=404, detail="Experiment not found")
+        if not experiment_dir.exists() or not (experiment_dir / "experiment.json").exists():
+            raise HTTPException(status_code=404, detail="Experiment not found")
+        return experiment_dir
 
     def _read_json(self, path: Path) -> dict:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -276,6 +360,7 @@ class CockpitService:
         metrics = self._read_json(run_dir / "metrics.json")
         config = load_config(run_dir / "config.yaml")
         experiment = run_record.get("experiment")
+        bundle_path = run_dir / "evidence_bundle.zip"
         return {
             "run_id": run_record["run_id"],
             "name": run_record["name"],
@@ -289,8 +374,8 @@ class CockpitService:
             "config_digest": run_record["config_digest"],
             "energy_drift": metrics["energy_drift"],
             "norm_drift": metrics["norm_drift"],
-            "bundle_size_bytes": (run_dir / "evidence_bundle.zip").stat().st_size,
-            "bundle_size_label": self._format_bytes((run_dir / "evidence_bundle.zip").stat().st_size),
+            "bundle_size_bytes": bundle_path.stat().st_size,
+            "bundle_size_label": self._format_bytes(bundle_path.stat().st_size),
             "experiment": experiment,
         }
 
@@ -326,6 +411,40 @@ class CockpitService:
             },
         }
 
+    def _build_experiment_summary(self, experiment_dir: Path) -> dict:
+        experiment_record = self._read_json(experiment_dir / "experiment.json")
+        bundle_path = experiment_dir / "evidence_bundle.zip"
+        return {
+            "experiment_id": experiment_record["experiment_id"],
+            "label": experiment_record["label"],
+            "kind": experiment_record["kind"],
+            "created_at": experiment_record["created_at"],
+            "baseline_run_id": experiment_record["baseline_run_id"],
+            "run_count": experiment_record["run_count"],
+            "run_ids": experiment_record["run_ids"],
+            "shared_experiment": experiment_record.get("shared_experiment"),
+            "bundle_size_bytes": bundle_path.stat().st_size,
+            "bundle_size_label": self._format_bytes(bundle_path.stat().st_size),
+        }
+
+    def _build_experiment_detail(self, experiment_dir: Path) -> dict:
+        experiment_record = self._read_json(experiment_dir / "experiment.json")
+        comparison = self._read_json(experiment_dir / "comparison.json")
+        manifest = self._read_json(experiment_dir / "manifest.sha256.json")
+        return {
+            "summary": self._build_experiment_summary(experiment_dir),
+            "experiment_record": experiment_record,
+            "comparison": comparison,
+            "evidence": {
+                "file_count": len(manifest.get("files", [])),
+                "artifact_paths": [entry["path"] for entry in manifest.get("files", [])],
+            },
+            "urls": {
+                "bundle": f"/api/experiments/{experiment_record['experiment_id']}/bundle",
+                "report": f"/api/experiments/{experiment_record['experiment_id']}/report",
+            },
+        }
+
 
 def create_app(
     repo_root: str | Path | None = None,
@@ -345,7 +464,12 @@ def create_app(
 
     @app.get("/api/health")
     def health() -> dict:
-        return {"status": "ok", "repo_root": str(service.repo_root), "output_root": str(service.output_root)}
+        return {
+            "status": "ok",
+            "repo_root": str(service.repo_root),
+            "output_root": str(service.output_root),
+            "experiments_root": str(service.experiments_root),
+        }
 
     @app.get("/api/configs")
     def configs() -> dict:
@@ -375,6 +499,18 @@ def create_app(
     def compare_runs(payload: CompareRunsRequest) -> dict:
         return service.compare_runs(payload)
 
+    @app.post("/api/experiments")
+    def create_experiment(payload: CreateExperimentRequest) -> dict:
+        return service.create_experiment(payload)
+
+    @app.get("/api/experiments")
+    def experiments() -> dict:
+        return {"items": service.list_experiments()}
+
+    @app.get("/api/experiments/{experiment_id}")
+    def experiment_detail(experiment_id: str) -> dict:
+        return service.get_experiment_detail(experiment_id)
+
     @app.post("/api/sweeps")
     def launch_sweep(payload: SweepRequest) -> dict:
         return service.launch_sweep(payload)
@@ -399,6 +535,20 @@ def create_app(
     @app.get("/api/runs/{run_id}/report")
     def run_report(run_id: str) -> FileResponse:
         report_path = service.report_path(run_id)
+        return FileResponse(report_path, media_type="text/html")
+
+    @app.get("/api/experiments/{experiment_id}/bundle")
+    def experiment_bundle_download(experiment_id: str) -> FileResponse:
+        bundle_path = service.experiment_bundle_path(experiment_id)
+        return FileResponse(
+            bundle_path,
+            media_type="application/zip",
+            filename=bundle_path.name,
+        )
+
+    @app.get("/api/experiments/{experiment_id}/report")
+    def experiment_report(experiment_id: str) -> FileResponse:
+        report_path = service.experiment_report_path(experiment_id)
         return FileResponse(report_path, media_type="text/html")
 
     return app

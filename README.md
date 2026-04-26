@@ -9,6 +9,7 @@ needed to move from prototype scripts into a reproducible package:
 - Config-driven simulation CLI
 - Local-first run cockpit and JSON API
 - Parameter sweeps and multi-run comparison in the cockpit
+- Experiment registry with saved comparison reports and bundles
 - Run ledger with stable run IDs and config digests
 - Evidence bundle with artifacts, metrics, manifest, and HTML report
 - Replay and verification commands for reproducibility checks
@@ -22,9 +23,11 @@ productization:
 - A NumPy-based split-step Schrodinger-Poisson solver
 - YAML configuration loading with explicit validation
 - Structured run outputs under `runs/<run_id>/`
+- Structured experiment outputs under `experiments/<experiment_id>/`
 - A local cockpit for launch, inspection, verification, replay, and bundle download
 - Sweep support for exploring one parameter across multiple deterministic runs
 - Comparison tooling for energy drift, norm drift, density, and runtime deltas
+- Durable experiment exports with copied run evidence, comparison JSON, report HTML, manifest, and bundle ZIP
 - Evidence artifacts:
   - `config.yaml`
   - `run.json`
@@ -75,6 +78,7 @@ Inside the cockpit you can:
 - Launch a single run from a checked-in or edited config
 - Launch a parameter sweep across interaction strength, timestep, step count, amplitude, width, or seed
 - Compare multiple runs side by side with shared experiment metadata
+- Save a comparison into the experiment registry and reopen it later with report and bundle downloads
 
 Verify the generated evidence bundle:
 
@@ -86,6 +90,18 @@ Replay a prior run using the captured config:
 
 ```powershell
 qs-dmss replay runs\<run_id>
+```
+
+Persist a saved experiment bundle from two or more runs:
+
+```powershell
+qs-dmss experiments export <run_id> <run_id> --label "comparison bundle"
+```
+
+List saved experiment artifacts:
+
+```powershell
+qs-dmss experiments list
 ```
 
 ## Container Runtime
@@ -112,6 +128,8 @@ configs/                 Checked-in example configs
 schemas/                 JSON schema for run configs
 src/qs_dmss/             Package source
 tests/                   Smoke and reproducibility tests
+runs/                    Run ledger outputs (generated)
+experiments/             Saved comparison artifacts (generated)
 ```
 
 ## Development
@@ -140,3 +158,7 @@ enterprise modules can now build on a stable execution loop:
 The cockpit adds the first browser-native product layer on top of that loop:
 
 `configure -> launch -> inspect -> verify -> replay -> download`
+
+The experiment registry now makes comparison durable too:
+
+`select runs -> compare -> save -> report -> bundle -> reopen`

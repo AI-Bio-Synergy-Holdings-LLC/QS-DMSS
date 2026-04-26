@@ -1,11 +1,20 @@
 from __future__ import annotations
 
 import copy
+import json
 import re
+import shutil
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any
+
+from qs_dmss.evidence.bundle import (
+    create_bundle_zip_for_directory,
+    write_experiment_report,
+    write_manifest_for_directory,
+)
 
 
 @dataclass(frozen=True)
@@ -26,6 +35,13 @@ class SweepParameter:
             "minimum": self.minimum,
             "step": self.step,
         }
+
+
+@dataclass(frozen=True)
+class ExperimentOutputs:
+    experiment_id: str
+    experiment_dir: Path
+    bundle_path: Path
 
 
 SWEEP_PARAMETERS: tuple[SweepParameter, ...] = (
@@ -79,6 +95,14 @@ SWEEP_PARAMETERS: tuple[SweepParameter, ...] = (
 )
 
 _SWEEP_PARAMETER_INDEX = {parameter.path: parameter for parameter in SWEEP_PARAMETERS}
+_CAPTURED_RUN_FILES = {
+    "config.yaml": "config",
+    "run.json": "run_record",
+    "metrics.json": "metrics",
+    "report.html": "report",
+    "manifest.sha256.json": "manifest",
+    "evidence_bundle.zip": "bundle",
+}
 
 
 def list_sweep_parameters() -> list[dict[str, Any]]:
@@ -91,6 +115,10 @@ def get_sweep_parameter(path: str) -> SweepParameter:
         available = ", ".join(item.path for item in SWEEP_PARAMETERS)
         raise ValueError(f"Unsupported sweep parameter '{path}'. Expected one of: {available}")
     return parameter
+
+
+def _utc_now() -> str:
+    return datetime.now(timezone.utc).isoformat()
 
 
 def _coerce_int(value: Any, path: str) -> int:
@@ -178,9 +206,9 @@ def apply_sweep_value(
     return updated
 
 
-def create_experiment_id() -> str:
+def create_experiment_id(kind: str = "sweep") -> str:
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-    return f"sweep-{timestamp}-{uuid.uuid4().hex[:8]}"
+    return f"{_slugify(kind)}-{timestamp}-{uuid.uuid4().hex[:8]}"
 
 
 def build_experiment_context(
@@ -266,7 +294,10 @@ def build_run_comparison(run_details: list[dict[str, Any]]) -> dict[str, Any]:
             }
         )
 
-    experiment_ids = {row["run_id"]: detail["run_record"].get("experiment", {}).get("id") for row, detail in zip(rows, run_details)}
+    experiment_ids = {
+        row["run_id"]: detail["run_record"].get("experiment", {}).get("id")
+        for row, detail in zip(rows, run_details)
+    }
     labels = {
         detail["run_record"].get("experiment", {}).get("label")
         for detail in run_details
@@ -309,3 +340,118 @@ def build_run_comparison(run_details: list[dict[str, Any]]) -> dict[str, Any]:
             "highest_max_density_run_id": max(rows, key=lambda row: row["max_density"])["run_id"],
         },
     }
+
+
+def _default_experiment_label(
+    kind: str,
+    comparison: dict[str, Any],
+    run_details: list[dict[str, Any]],
+) -> str:
+    shared = comparison.get("shared_experiment")
+    if kind == "sweep" and shared and shared.get("label"):
+        return str(shared["label"])
+    if shared and shared.get("label"):
+        return f"{shared['label']} comparison"
+    return f"{len(run_details)}-run comparison"
+
+
+def _copy_run_capture(
+    run_dir: Path,
+    destination_dir: Path,
+    experiment_dir: Path,
+) -> dict[str, str]:
+    destination_dir.mkdir(parents=True, exist_ok=True)
+    copied: dict[str, str] = {}
+    for filename, key in _CAPTURED_RUN_FILES.items():
+        source = run_dir / filename
+        if not source.exists():
+            continue
+        target = destination_dir / filename
+        shutil.copy2(source, target)
+        copied[key] = target.relative_to(experiment_dir).as_posix()
+    return copied
+
+
+def persist_experiment_artifact(
+    run_dirs: list[Path],
+    run_details: list[dict[str, Any]],
+    experiments_root: Path,
+    *,
+    label: str | None = None,
+    experiment_id: str | None = None,
+    kind: str = "comparison",
+) -> ExperimentOutputs:
+    if len(run_dirs) < 2:
+        raise ValueError("At least two runs are required to persist an experiment")
+    if len(run_dirs) != len(run_details):
+        raise ValueError("Run directory count must match run detail count")
+
+    comparison = build_run_comparison(run_details)
+    resolved_id = experiment_id or create_experiment_id(kind)
+    resolved_label = label or _default_experiment_label(kind, comparison, run_details)
+
+    experiments_root = Path(experiments_root).resolve()
+    experiments_root.mkdir(parents=True, exist_ok=True)
+    experiment_dir = experiments_root / resolved_id
+    try:
+        experiment_dir.mkdir(parents=True, exist_ok=False)
+    except FileExistsError as exc:
+        raise ValueError(f"Experiment artifact already exists: {resolved_id}") from exc
+
+    rows_by_run_id = {row["run_id"]: row for row in comparison["rows"]}
+    run_entries: list[dict[str, Any]] = []
+    for run_dir, detail in zip(run_dirs, run_details):
+        run_id = detail["summary"]["run_id"]
+        row = rows_by_run_id[run_id]
+        artifact_paths = _copy_run_capture(
+            run_dir=run_dir,
+            destination_dir=experiment_dir / "runs" / run_id,
+            experiment_dir=experiment_dir,
+        )
+        run_entries.append(
+            {
+                **row,
+                "artifacts": artifact_paths,
+            }
+        )
+
+    comparison_path = experiment_dir / "comparison.json"
+    comparison_path.write_text(json.dumps(comparison, indent=2), encoding="utf-8")
+
+    experiment_record = {
+        "schema_version": 1,
+        "experiment_id": resolved_id,
+        "label": resolved_label,
+        "kind": kind,
+        "created_at": _utc_now(),
+        "baseline_run_id": comparison["baseline_run_id"],
+        "run_count": len(run_entries),
+        "run_ids": [entry["run_id"] for entry in run_entries],
+        "shared_experiment": comparison.get("shared_experiment"),
+        "ranges": comparison["ranges"],
+        "highlights": comparison["highlights"],
+        "runs": run_entries,
+        "artifacts": {
+            "experiment": "experiment.json",
+            "comparison": "comparison.json",
+            "report": "report.html",
+            "manifest": "manifest.sha256.json",
+            "bundle": "evidence_bundle.zip",
+        },
+    }
+    experiment_record_path = experiment_dir / "experiment.json"
+    experiment_record_path.write_text(json.dumps(experiment_record, indent=2), encoding="utf-8")
+
+    write_experiment_report(
+        experiment_dir=experiment_dir,
+        experiment_record=experiment_record,
+        comparison=comparison,
+    )
+    write_manifest_for_directory(experiment_dir)
+    bundle_path = create_bundle_zip_for_directory(experiment_dir)
+
+    return ExperimentOutputs(
+        experiment_id=resolved_id,
+        experiment_dir=experiment_dir,
+        bundle_path=bundle_path,
+    )

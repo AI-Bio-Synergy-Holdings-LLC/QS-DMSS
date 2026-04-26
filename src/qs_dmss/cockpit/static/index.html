@@ -22,6 +22,7 @@
         <nav class="rail-nav" aria-label="Primary">
           <a class="rail-item active" href="#cockpit">Cockpit</a>
           <a class="rail-item" href="#runs">Runs</a>
+          <a class="rail-item" href="#experiments">Experiments</a>
           <a class="rail-item" href="#evidence">Evidence</a>
           <a class="rail-item" href="#artifacts">Artifacts</a>
           <a class="rail-item" href="#config">Config</a>
@@ -345,6 +346,73 @@
                 <tbody id="comparisonTableBody">
                   <tr>
                     <td colspan="6">Select at least two runs to compare.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          <section class="panel experiment-panel reveal" id="experiments">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">Experiments</p>
+                <h2 id="experimentTitle">Experiment Registry</h2>
+              </div>
+              <span class="detail-chip" id="experimentContext">No experiment saved</span>
+            </div>
+
+            <div class="panel-actions experiment-actions">
+              <button class="ghost-button" id="refreshExperimentsButton" type="button">
+                Refresh
+              </button>
+              <button class="ghost-button" id="saveExperimentButton" type="button">
+                Save Current Comparison
+              </button>
+              <button class="ghost-button" id="openExperimentReportButton" type="button">
+                Open Experiment Report
+              </button>
+              <a class="ghost-button" id="experimentBundleLink" href="#" download>
+                Download Experiment Bundle
+              </a>
+            </div>
+
+            <div class="compare-metrics experiment-metrics">
+              <article class="compare-card">
+                <span>Kind</span>
+                <strong id="experimentKind">-</strong>
+              </article>
+              <article class="compare-card">
+                <span>Runs</span>
+                <strong id="experimentRunCount">-</strong>
+              </article>
+              <article class="compare-card">
+                <span>Created</span>
+                <strong id="experimentCreated">-</strong>
+              </article>
+              <article class="compare-card">
+                <span>Bundle</span>
+                <strong id="experimentBundleSize">-</strong>
+              </article>
+              <article class="compare-card">
+                <span>Baseline</span>
+                <strong id="experimentBaseline">-</strong>
+              </article>
+            </div>
+
+            <div class="table-shell compact">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Experiment</th>
+                    <th>Kind</th>
+                    <th>Runs</th>
+                    <th>Created</th>
+                    <th>Bundle</th>
+                  </tr>
+                </thead>
+                <tbody id="experimentRegistryBody">
+                  <tr>
+                    <td colspan="5">No experiments saved yet.</td>
                   </tr>
                 </tbody>
               </table>

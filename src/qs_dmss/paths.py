@@ -56,3 +56,12 @@ def demo_config_path(repo_root: Path | None = None) -> Path:
 
 def runs_root(repo_root: Path) -> Path:
     return repo_root / "runs"
+
+
+def experiments_root(
+    repo_root: Path,
+    output_root: Path | None = None,
+) -> Path:
+    if output_root is not None:
+        return output_root.resolve().parent / "experiments"
+    return repo_root / "experiments"

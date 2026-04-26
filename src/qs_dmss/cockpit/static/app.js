@@ -1,9 +1,12 @@
 const state = {
   configs: [],
   runs: [],
+  experiments: [],
   sweepParameters: [],
   selectedRunId: null,
   selectedRun: null,
+  selectedExperimentId: null,
+  selectedExperiment: null,
   selectedTemplateName: null,
   selectedRunIds: [],
   comparison: null,
@@ -13,8 +16,12 @@ const els = {
   configTemplate: document.querySelector("#configTemplate"),
   loadTemplateButton: document.querySelector("#loadTemplateButton"),
   refreshRunsButton: document.querySelector("#refreshRunsButton"),
+  refreshExperimentsButton: document.querySelector("#refreshExperimentsButton"),
   compareButton: document.querySelector("#compareButton"),
   clearCompareButton: document.querySelector("#clearCompareButton"),
+  saveExperimentButton: document.querySelector("#saveExperimentButton"),
+  openExperimentReportButton: document.querySelector("#openExperimentReportButton"),
+  experimentBundleLink: document.querySelector("#experimentBundleLink"),
   selectedRunCount: document.querySelector("#selectedRunCount"),
   launchForm: document.querySelector("#launchForm"),
   launchButton: document.querySelector("#launchButton"),
@@ -38,6 +45,14 @@ const els = {
   compareNormSpan: document.querySelector("#compareNormSpan"),
   compareDensitySpan: document.querySelector("#compareDensitySpan"),
   compareFastestRun: document.querySelector("#compareFastestRun"),
+  experimentTitle: document.querySelector("#experimentTitle"),
+  experimentContext: document.querySelector("#experimentContext"),
+  experimentKind: document.querySelector("#experimentKind"),
+  experimentRunCount: document.querySelector("#experimentRunCount"),
+  experimentCreated: document.querySelector("#experimentCreated"),
+  experimentBundleSize: document.querySelector("#experimentBundleSize"),
+  experimentBaseline: document.querySelector("#experimentBaseline"),
+  experimentRegistryBody: document.querySelector("#experimentRegistryBody"),
   toastRegion: document.querySelector("#toastRegion"),
   fields: {
     runName: document.querySelector("#runNameInput"),
@@ -235,16 +250,21 @@ function renderConfigOptions() {
 
 function renderSweepParameterOptions() {
   els.sweepParameter.innerHTML = state.sweepParameters
-    .map(
-      (item) =>
-        `<option value="${item.path}">${item.label} - ${item.path}</option>`,
-    )
+    .map((item) => `<option value="${item.path}">${item.label} - ${item.path}</option>`)
     .join("");
 }
 
 function updateSelectionChip() {
   const count = state.selectedRunIds.length;
   els.selectedRunCount.textContent = `${count} selected`;
+  els.saveExperimentButton.disabled = count < 2;
+}
+
+function setExperimentActionsEnabled(enabled) {
+  els.openExperimentReportButton.disabled = !enabled;
+  els.experimentBundleLink.style.pointerEvents = enabled ? "auto" : "none";
+  els.experimentBundleLink.style.opacity = enabled ? "1" : "0.56";
+  els.experimentBundleLink.tabIndex = enabled ? 0 : -1;
 }
 
 function renderRunsTable() {
@@ -305,6 +325,42 @@ function renderRunsTable() {
   });
 
   updateSelectionChip();
+}
+
+function renderExperimentRegistry() {
+  if (!state.experiments.length) {
+    els.experimentRegistryBody.innerHTML = `
+      <tr>
+        <td colspan="5">No experiments saved yet.</td>
+      </tr>
+    `;
+    return;
+  }
+
+  els.experimentRegistryBody.innerHTML = state.experiments
+    .map((experiment) => {
+      const selected = experiment.experiment_id === state.selectedExperimentId ? "is-selected" : "";
+      const shared = experiment.shared_experiment;
+      const label = shared?.parameter_label
+        ? `<div class="compare-run"><strong>${experiment.label}</strong><span>${shared.parameter_label}</span></div>`
+        : `<div class="compare-run"><strong>${experiment.label}</strong><span>${experiment.experiment_id}</span></div>`;
+      return `
+        <tr class="${selected}" data-experiment-id="${experiment.experiment_id}">
+          <td>${label}</td>
+          <td>${experiment.kind}</td>
+          <td>${experiment.run_count}</td>
+          <td>${formatTimestamp(experiment.created_at)}</td>
+          <td>${experiment.bundle_size_label}</td>
+        </tr>
+      `;
+    })
+    .join("");
+
+  els.experimentRegistryBody.querySelectorAll("tr[data-experiment-id]").forEach((row) => {
+    row.addEventListener("click", () => {
+      selectExperiment(row.dataset.experimentId);
+    });
+  });
 }
 
 function renderTrace(svg, values, color) {
@@ -434,6 +490,41 @@ function renderSelectedRun(detail) {
   renderRunsTable();
 }
 
+function renderSelectedExperiment(detail) {
+  state.selectedExperiment = detail;
+  state.selectedExperimentId = detail.summary.experiment_id;
+
+  els.experimentTitle.textContent = detail.summary.label;
+  els.experimentContext.textContent = detail.summary.shared_experiment?.parameter_label
+    ? `${detail.summary.shared_experiment.parameter_label} sweep`
+    : detail.summary.experiment_id;
+  els.experimentKind.textContent = detail.summary.kind;
+  els.experimentRunCount.textContent = String(detail.summary.run_count);
+  els.experimentCreated.textContent = formatTimestamp(detail.summary.created_at);
+  els.experimentBundleSize.textContent = detail.summary.bundle_size_label;
+  els.experimentBaseline.textContent = shortRunId(detail.summary.baseline_run_id);
+  els.experimentBundleLink.href = detail.urls.bundle;
+  els.experimentBundleLink.setAttribute("download", "");
+  setExperimentActionsEnabled(true);
+
+  renderExperimentRegistry();
+}
+
+function renderExperimentPlaceholder() {
+  state.selectedExperiment = null;
+  state.selectedExperimentId = null;
+  els.experimentTitle.textContent = "Experiment Registry";
+  els.experimentContext.textContent = "No experiment saved";
+  els.experimentKind.textContent = "-";
+  els.experimentRunCount.textContent = "-";
+  els.experimentCreated.textContent = "-";
+  els.experimentBundleSize.textContent = "-";
+  els.experimentBaseline.textContent = "-";
+  els.experimentBundleLink.href = "#";
+  setExperimentActionsEnabled(false);
+  renderExperimentRegistry();
+}
+
 function renderComparison(comparison) {
   state.comparison = comparison;
 
@@ -505,9 +596,30 @@ async function refreshRuns() {
   renderRunsTable();
 }
 
+async function refreshExperiments() {
+  const payload = await fetchJson("/api/experiments");
+  state.experiments = payload.items;
+  const availableExperimentIds = new Set(
+    state.experiments.map((item) => item.experiment_id),
+  );
+  if (state.selectedExperimentId && !availableExperimentIds.has(state.selectedExperimentId)) {
+    renderExperimentPlaceholder();
+    return;
+  }
+  renderExperimentRegistry();
+}
+
 async function selectRun(runId) {
   const detail = await fetchJson(`/api/runs/${runId}`);
   renderSelectedRun(detail);
+}
+
+async function selectExperiment(experimentId) {
+  const detail = await fetchJson(`/api/experiments/${experimentId}`);
+  state.selectedRunIds = [...detail.summary.run_ids];
+  renderSelectedExperiment(detail);
+  renderComparison(detail.comparison);
+  renderRunsTable();
 }
 
 function toggleRunSelection(runId, checked) {
@@ -533,15 +645,19 @@ function parseSweepValues(text) {
 }
 
 async function hydrate() {
-  const [configPayload, sweepPayload] = await Promise.all([
+  const [configPayload, sweepPayload, experimentPayload] = await Promise.all([
     fetchJson("/api/configs"),
     fetchJson("/api/sweeps/parameters"),
+    fetchJson("/api/experiments"),
   ]);
   state.configs = configPayload.items;
   state.sweepParameters = sweepPayload.items;
+  state.experiments = experimentPayload.items;
   state.selectedTemplateName = configPayload.default_name || state.configs[0]?.name || null;
   renderConfigOptions();
   renderSweepParameterOptions();
+  renderExperimentRegistry();
+  setExperimentActionsEnabled(false);
 
   const selectedConfig = configByName(state.selectedTemplateName);
   if (selectedConfig) {
@@ -558,6 +674,12 @@ async function hydrate() {
 
   if (state.runs[0]) {
     await selectRun(state.runs[0].run_id);
+  }
+
+  if (state.experiments[0]) {
+    await selectExperiment(state.experiments[0].experiment_id);
+  } else {
+    renderExperimentPlaceholder();
   }
 }
 
@@ -611,7 +733,9 @@ async function handleLaunchSweep(event) {
     toast("Sweep complete", `Created ${payload.runs.length} runs`, "success");
     state.selectedRunIds = payload.experiment.run_ids;
     await refreshRuns();
+    await refreshExperiments();
     renderComparison(payload.comparison);
+    renderSelectedExperiment(payload.artifact);
     if (payload.runs[0]) {
       await selectRun(payload.runs[0].run_id);
     }
@@ -673,15 +797,53 @@ async function handleCompare() {
   }
 }
 
+async function handleSaveExperiment() {
+  if (state.selectedRunIds.length < 2) {
+    toast("Pick more runs", "Select at least two runs to save an experiment.", "danger");
+    return;
+  }
+
+  els.saveExperimentButton.disabled = true;
+  try {
+    const detail = await fetchJson("/api/experiments", {
+      method: "POST",
+      body: JSON.stringify({ run_ids: state.selectedRunIds }),
+    });
+    await refreshExperiments();
+    renderSelectedExperiment(detail);
+    renderComparison(detail.comparison);
+    toast("Experiment saved", `Created ${detail.summary.experiment_id}`, "success");
+  } catch (error) {
+    toast("Save failed", error.message, "danger");
+  } finally {
+    updateSelectionChip();
+  }
+}
+
 function clearComparison() {
   state.selectedRunIds = [];
   renderRunsTable();
   renderComparison(null);
 }
 
-function openReport() {
-  if (!state.selectedRun) return;
+function openReport(url, heading) {
+  if (!url) return;
+  els.reportFrame.src = url;
+  els.reportHeading.textContent = heading;
   els.reportDialog.showModal();
+}
+
+function openRunReport() {
+  if (!state.selectedRun) return;
+  openReport(state.selectedRun.urls.report, `Evidence Report - ${state.selectedRun.summary.run_id}`);
+}
+
+function openExperimentReport() {
+  if (!state.selectedExperiment) return;
+  openReport(
+    state.selectedExperiment.urls.report,
+    `Experiment Report - ${state.selectedExperiment.summary.experiment_id}`,
+  );
 }
 
 function bindEvents() {
@@ -710,13 +872,24 @@ function bindEvents() {
     }
   });
 
+  els.refreshExperimentsButton.addEventListener("click", async () => {
+    try {
+      await refreshExperiments();
+      toast("Experiment registry refreshed", "Latest saved comparisons loaded.", "success");
+    } catch (error) {
+      toast("Refresh failed", error.message, "danger");
+    }
+  });
+
   els.compareButton.addEventListener("click", handleCompare);
   els.clearCompareButton.addEventListener("click", clearComparison);
+  els.saveExperimentButton.addEventListener("click", handleSaveExperiment);
   els.launchForm.addEventListener("submit", handleLaunch);
   els.sweepForm.addEventListener("submit", handleLaunchSweep);
   els.verifyButton.addEventListener("click", handleVerify);
   els.replayButton.addEventListener("click", handleReplay);
-  els.openReportButton.addEventListener("click", openReport);
+  els.openReportButton.addEventListener("click", openRunReport);
+  els.openExperimentReportButton.addEventListener("click", openExperimentReport);
 }
 
 bindEvents();
