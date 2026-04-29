@@ -172,3 +172,8 @@ cython_debug/
 
 # PyPI configuration file
 .pypirc
+
+# QS-DMSS runtime outputs
+runs/
+experiments/
+.codex-logs/

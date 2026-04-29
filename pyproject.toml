@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "qs-dmss"
+version = "0.1.0"
+description = "Evidence-first reference package for the QuantumScalar Dark Matter Simulation Suite."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [
+  { name = "AI Bio Synergy Holdings LLC" }
+]
+dependencies = [
+  "fastapi>=0.116",
+  "numpy>=1.26",
+  "PyYAML>=6.0",
+  "uvicorn>=0.35",
+]
+
+[project.optional-dependencies]
+dev = [
+  "httpx>=0.28",
+  "pytest>=8.0",
+]
+
+[project.scripts]
+qs-dmss = "qs_dmss.cli:main"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"qs_dmss.assets" = ["configs/*.yaml", "schemas/*.json"]
+"qs_dmss.cockpit" = ["static/*.css", "static/*.html", "static/*.js"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]

@@ -1,0 +1,51 @@
+run:
+  name: demo
+  seed: 7
+  output_root: runs
+
+engine:
+  backend: numpy
+  grid_shape: [8, 8, 8]
+  box_size: 1.0
+  mass: 1.0
+  g_int: 0.05
+  time_step: 0.02
+  num_steps: 6
+  log_every: 1
+
+initial:
+  kind: gaussian
+  amplitude: 1.0
+  width: 0.2
+  random_phase: true
+
+objective:
+  name: Stability-first recommendation
+  summary: Prefer low drift with verified evidence while keeping density high enough for a credible final state.
+  primary_metric: energy_drift
+  goal: minimize_abs
+
+constraints:
+  max_abs_energy_drift: 0.2
+  max_abs_norm_drift: 0.2
+  min_max_density: 0.5
+  max_elapsed_seconds: 5.0
+  require_verification: true
+
+ranking:
+  primary_metric_weight: 2.4
+  weights:
+    energy_drift: 1.0
+    norm_drift: 0.9
+    max_density: 0.7
+    elapsed_seconds: 0.3
+
+campaign:
+  label: Stability frontier campaign
+  strategy: grid
+  max_runs: 6
+  dimensions:
+    - path: engine.g_int
+      values: [0.02, 0.05, 0.08]
+    - path: engine.time_step
+      values: [0.015, 0.02]
