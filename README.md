@@ -171,8 +171,12 @@ CI lives in [.github/workflows/ci.yml](.github/workflows/ci.yml) and validates:
 
 - the editable install and test suite across Python 3.10 through 3.13
 - static cockpit JavaScript syntax
-- wheel build and installed-wheel `run-demo` smoke test
+- source distribution and wheel build metadata
+- installed-wheel `run-demo` smoke test
 - Docker build plus live `/api/health` and `/api/configs` probes
+
+Release-candidate versioning and distribution artifact rules live in
+[RELEASE.md](RELEASE.md).
 
 ## Current Scope
 
