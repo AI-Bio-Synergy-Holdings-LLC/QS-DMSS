@@ -4,6 +4,7 @@ from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from qs_dmss.cockpit import api as cockpit_api
 from qs_dmss.cockpit.api import create_app
 
 
@@ -231,3 +232,54 @@ def test_cockpit_api_launch_campaign(tmp_path: Path) -> None:
     assert experiment["comparison"]["shared_experiment"]["kind"] == "campaign"
     assert len(experiment["comparison"]["shared_experiment"]["dimensions"]) == 2
     assert "QS-DMSS Experiment Report" in client.get(experiment["urls"]["report"]).text
+
+
+def test_cockpit_api_campaign_failure_persists_failed_artifact(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    real_execute = cockpit_api.execute_run_from_path
+    call_count = 0
+
+    def flaky_execute(*args, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 2:
+            raise RuntimeError("simulated variant failure")
+        return real_execute(*args, **kwargs)
+
+    monkeypatch.setattr(cockpit_api, "execute_run_from_path", flaky_execute)
+
+    config_item = client.get("/api/configs").json()["items"][0]
+    campaign_payload = client.post(
+        "/api/campaigns",
+        json={"config": config_item["config"], "source_name": config_item["name"]},
+    )
+    assert campaign_payload.status_code == 500
+    failure_detail = campaign_payload.json()["detail"]
+    assert failure_detail["message"] == "Campaign failed; a failed campaign artifact was saved."
+    assert failure_detail["error"] == "simulated variant failure"
+    assert len(failure_detail["run_ids"]) == 1
+
+    experiment_payload = client.get(f"/api/experiments/{failure_detail['experiment_id']}")
+    assert experiment_payload.status_code == 200
+    experiment = experiment_payload.json()
+    assert experiment["summary"]["status"] == "failed"
+    assert experiment["summary"]["kind"] == "campaign"
+    assert experiment["summary"]["run_count"] == 1
+    assert experiment["experiment_record"]["failure"]["completed_run_count"] == 1
+    assert experiment["experiment_record"]["failure"]["planned_run_count"] == 6
+    assert experiment["comparison"]["status"] == "failed"
+    assert experiment["decision"]["available"] is False
+
+    bundle_payload = client.get(experiment["urls"]["bundle"])
+    assert bundle_payload.status_code == 200
+    assert bundle_payload.headers["content-type"].startswith("application/zip")
+
+    report_payload = client.get(experiment["urls"]["report"])
+    assert report_payload.status_code == 200
+    assert "Failed Campaign Report" in report_payload.text

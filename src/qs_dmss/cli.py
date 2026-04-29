@@ -263,7 +263,16 @@ def main(argv: list[str] | None = None) -> int:
             )
         except (HTTPException, ValueError, FileNotFoundError) as exc:
             detail = exc.detail if isinstance(exc, HTTPException) else str(exc)
-            print(detail)
+            if isinstance(detail, dict):
+                print(detail.get("message", "Campaign failed"))
+                if detail.get("error"):
+                    print(f"Error: {detail['error']}")
+                if detail.get("experiment_id"):
+                    print(f"Failed campaign artifact: {detail['experiment_id']}")
+                if detail.get("bundle"):
+                    print(f"Bundle: {detail['bundle']}")
+            else:
+                print(detail)
             return 1
 
         print(f"Campaign saved: {payload['campaign']['id']}")

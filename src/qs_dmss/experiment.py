@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import html
 import json
 import re
 import shutil
@@ -591,6 +592,235 @@ def _copy_run_capture(
         shutil.copy2(source, target)
         copied[key] = target.relative_to(experiment_dir).as_posix()
     return copied
+
+
+def _shared_context_from_campaign_plan(campaign_plan: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": campaign_plan["id"],
+        "label": campaign_plan["label"],
+        "kind": "campaign",
+        "strategy": campaign_plan["strategy"],
+        "dimension_count": campaign_plan["dimension_count"],
+        "dimensions": [
+            {
+                "path": dimension["path"],
+                "label": dimension["label"],
+            }
+            for dimension in campaign_plan["dimensions"]
+        ],
+        "parameter_path": None,
+        "parameter_label": "Campaign Variant",
+    }
+
+
+def _failure_rows(run_details: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for detail in run_details:
+        run_record = detail["run_record"]
+        metrics = detail["metrics"]
+        experiment = run_record.get("experiment") or {}
+        rows.append(
+            {
+                "run_id": run_record["run_id"],
+                "name": run_record["name"],
+                "config_name": run_record["source_config_name"],
+                "seed": run_record["seed"],
+                "finished_at": run_record["finished_at"],
+                "elapsed_seconds": run_record["elapsed_seconds"],
+                "parameter_path": experiment.get("parameter_path"),
+                "parameter_label": experiment.get("parameter_label"),
+                "parameter_value": experiment.get("parameter_value"),
+                "parameter_value_label": experiment.get("parameter_value_label"),
+                "variant": experiment.get("variant"),
+                "variant_label": experiment.get("variant_label"),
+                "dimension_count": experiment.get("dimension_count"),
+                "energy_drift": metrics["energy_drift"],
+                "norm_drift": metrics["norm_drift"],
+                "max_density": metrics["max_density"],
+                "bundle_size_label": detail["evidence"]["bundle_size_label"],
+                "verification_success": detail["verification"]["success"],
+            }
+        )
+    return rows
+
+
+def _write_failed_campaign_report(
+    experiment_dir: Path,
+    experiment_record: dict[str, Any],
+    comparison: dict[str, Any],
+) -> None:
+    failure = experiment_record["failure"]
+    shared = experiment_record["shared_experiment"]
+    dimension_rows = "".join(
+        f"<li>{html.escape(str(dimension['label']))} (<code>{html.escape(str(dimension['path']))}</code>)</li>"
+        for dimension in shared.get("dimensions", [])
+    )
+    run_rows = "\n".join(
+        "<tr>"
+        f"<td>{html.escape(row['run_id'])}</td>"
+        f"<td>{html.escape(str(row.get('variant_label') or '-'))}</td>"
+        f"<td>{row['energy_drift']}</td>"
+        f"<td>{row['norm_drift']}</td>"
+        f"<td>{row['max_density']}</td>"
+        f"<td>{row['elapsed_seconds']}</td>"
+        "</tr>"
+        for row in comparison["rows"]
+    )
+    if not run_rows:
+        run_rows = "<tr><td colspan=\"6\">No variants completed before failure.</td></tr>"
+
+    html_body = f"""<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>QS-DMSS Failed Campaign Report</title>
+    <style>
+      body {{ font-family: Arial, sans-serif; margin: 32px; color: #111827; }}
+      h1, h2 {{ margin-bottom: 0.4rem; }}
+      table {{ border-collapse: collapse; width: 100%; margin-top: 16px; }}
+      th, td {{ border: 1px solid #d1d5db; padding: 8px; text-align: left; }}
+      th {{ background: #f3f4f6; }}
+      code {{ background: #f3f4f6; padding: 2px 4px; }}
+    </style>
+  </head>
+  <body>
+    <h1>QS-DMSS Failed Campaign Report</h1>
+    <p><strong>Experiment ID:</strong> <code>{html.escape(experiment_record['experiment_id'])}</code></p>
+    <p><strong>Label:</strong> {html.escape(experiment_record['label'])}</p>
+    <p><strong>Status:</strong> {html.escape(experiment_record['status'])}</p>
+    <p><strong>Error:</strong> {html.escape(failure['message'])}</p>
+    <h2>Campaign Context</h2>
+    <ul>
+      <li>Strategy: {html.escape(str(shared.get('strategy', '-')))}</li>
+      <li>Completed runs: {failure['completed_run_count']} of {failure['planned_run_count']}</li>
+    </ul>
+    <h3>Dimensions</h3>
+    <ul>
+      {dimension_rows}
+    </ul>
+    <h2>Completed Variants</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Run ID</th>
+          <th>Variant</th>
+          <th>Energy Drift</th>
+          <th>Norm Drift</th>
+          <th>Max Density</th>
+          <th>Elapsed Seconds</th>
+        </tr>
+      </thead>
+      <tbody>
+        {run_rows}
+      </tbody>
+    </table>
+  </body>
+</html>
+"""
+    (experiment_dir / "report.html").write_text(html_body, encoding="utf-8")
+
+
+def persist_failed_campaign_artifact(
+    *,
+    campaign_plan: dict[str, Any],
+    run_dirs: list[Path],
+    run_details: list[dict[str, Any]],
+    experiments_root: Path,
+    error: BaseException,
+) -> ExperimentOutputs:
+    if len(run_dirs) != len(run_details):
+        raise ValueError("Run directory count must match run detail count")
+
+    experiments_root = Path(experiments_root).resolve()
+    experiments_root.mkdir(parents=True, exist_ok=True)
+    experiment_dir = experiments_root / campaign_plan["id"]
+    try:
+        experiment_dir.mkdir(parents=True, exist_ok=False)
+    except FileExistsError as exc:
+        raise ValueError(f"Experiment artifact already exists: {campaign_plan['id']}") from exc
+
+    rows = _failure_rows(run_details)
+    rows_by_run_id = {row["run_id"]: row for row in rows}
+    run_entries: list[dict[str, Any]] = []
+    for run_dir, detail in zip(run_dirs, run_details):
+        run_id = detail["summary"]["run_id"]
+        row = rows_by_run_id[run_id]
+        artifact_paths = _copy_run_capture(
+            run_dir=run_dir,
+            destination_dir=experiment_dir / "runs" / run_id,
+            experiment_dir=experiment_dir,
+        )
+        run_entries.append({**row, "artifacts": artifact_paths})
+
+    failure = {
+        "message": str(error) or error.__class__.__name__,
+        "error_type": error.__class__.__name__,
+        "completed_run_count": len(run_entries),
+        "planned_run_count": campaign_plan["planned_run_count"],
+    }
+    decision = {
+        "available": False,
+        "status": "failed",
+        "reason": "Campaign execution failed before every planned variant completed.",
+    }
+    comparison = {
+        "schema_version": 1,
+        "status": "failed",
+        "failure": failure,
+        "baseline_run_id": rows[0]["run_id"] if rows else None,
+        "shared_experiment": _shared_context_from_campaign_plan(campaign_plan),
+        "rows": rows,
+        "ranges": {},
+        "highlights": {},
+        "decision": decision,
+    }
+    (experiment_dir / "comparison.json").write_text(
+        json.dumps(comparison, indent=2),
+        encoding="utf-8",
+    )
+
+    experiment_record = {
+        "schema_version": 1,
+        "status": "failed",
+        "experiment_id": campaign_plan["id"],
+        "label": campaign_plan["label"],
+        "kind": "campaign",
+        "created_at": _utc_now(),
+        "baseline_run_id": comparison["baseline_run_id"],
+        "run_count": len(run_entries),
+        "planned_run_count": campaign_plan["planned_run_count"],
+        "run_ids": [entry["run_id"] for entry in run_entries],
+        "shared_experiment": comparison["shared_experiment"],
+        "ranges": comparison["ranges"],
+        "highlights": comparison["highlights"],
+        "decision": decision,
+        "failure": failure,
+        "runs": run_entries,
+        "artifacts": {
+            "experiment": "experiment.json",
+            "comparison": "comparison.json",
+            "report": "report.html",
+            "manifest": "manifest.sha256.json",
+            "bundle": "evidence_bundle.zip",
+        },
+    }
+    (experiment_dir / "experiment.json").write_text(
+        json.dumps(experiment_record, indent=2),
+        encoding="utf-8",
+    )
+
+    _write_failed_campaign_report(
+        experiment_dir=experiment_dir,
+        experiment_record=experiment_record,
+        comparison=comparison,
+    )
+    write_manifest_for_directory(experiment_dir)
+    bundle_path = create_bundle_zip_for_directory(experiment_dir)
+    return ExperimentOutputs(
+        experiment_id=campaign_plan["id"],
+        experiment_dir=experiment_dir,
+        bundle_path=bundle_path,
+    )
 
 
 def persist_experiment_artifact(

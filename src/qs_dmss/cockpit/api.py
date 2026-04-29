@@ -23,6 +23,7 @@ from qs_dmss.experiment import (
     create_experiment_id,
     get_sweep_parameter,
     list_sweep_parameters,
+    persist_failed_campaign_artifact,
     persist_experiment_artifact,
 )
 from qs_dmss.io.config import load_config, parse_config, write_config
@@ -255,30 +256,62 @@ class CockpitService:
         run_dirs: list[Path] = []
         summaries: list[dict] = []
         details: list[dict] = []
-        with TemporaryDirectory() as temp_dir:
-            temp_root = Path(temp_dir)
-            for variant in campaign_plan["variants"]:
-                temp_config_dir = temp_root / f"run-{variant['ordinal']:02d}"
-                temp_config_dir.mkdir(parents=True, exist_ok=True)
-                temp_path = temp_config_dir / source_name
-                write_config(parse_config(variant["config"]), temp_path)
-                outputs = execute_run_from_path(
-                    temp_path,
-                    output_root=self.output_root,
-                    experiment=build_campaign_context(
-                        experiment_id=campaign_plan["id"],
-                        label=campaign_plan["label"],
-                        strategy=campaign_plan["strategy"],
-                        dimensions=campaign_plan["dimensions"],
-                        variant=variant["variant"],
-                        ordinal=variant["ordinal"],
-                        total_runs=campaign_plan["planned_run_count"],
-                    ),
+        try:
+            with TemporaryDirectory() as temp_dir:
+                temp_root = Path(temp_dir)
+                for variant in campaign_plan["variants"]:
+                    temp_config_dir = temp_root / f"run-{variant['ordinal']:02d}"
+                    temp_config_dir.mkdir(parents=True, exist_ok=True)
+                    temp_path = temp_config_dir / source_name
+                    write_config(parse_config(variant["config"]), temp_path)
+                    outputs = execute_run_from_path(
+                        temp_path,
+                        output_root=self.output_root,
+                        experiment=build_campaign_context(
+                            experiment_id=campaign_plan["id"],
+                            label=campaign_plan["label"],
+                            strategy=campaign_plan["strategy"],
+                            dimensions=campaign_plan["dimensions"],
+                            variant=variant["variant"],
+                            ordinal=variant["ordinal"],
+                            total_runs=campaign_plan["planned_run_count"],
+                        ),
+                    )
+                    run_dirs.append(outputs.run_dir)
+                    detail = self._build_run_detail(outputs.run_dir)
+                    details.append(detail)
+                    summaries.append(detail["summary"])
+        except Exception as exc:
+            try:
+                failure_outputs = persist_failed_campaign_artifact(
+                    campaign_plan=campaign_plan,
+                    run_dirs=run_dirs,
+                    run_details=details,
+                    experiments_root=self.experiments_root,
+                    error=exc,
                 )
-                run_dirs.append(outputs.run_dir)
-                detail = self._build_run_detail(outputs.run_dir)
-                details.append(detail)
-                summaries.append(detail["summary"])
+                failure_detail = self._build_experiment_detail(failure_outputs.experiment_dir)
+            except Exception as persist_exc:
+                raise HTTPException(
+                    status_code=500,
+                    detail={
+                        "message": "Campaign failed, and the failed campaign artifact could not be saved.",
+                        "error": str(exc),
+                        "artifact_error": str(persist_exc),
+                        "completed_run_ids": [summary["run_id"] for summary in summaries],
+                    },
+                ) from persist_exc
+            raise HTTPException(
+                status_code=500,
+                detail={
+                    "message": "Campaign failed; a failed campaign artifact was saved.",
+                    "error": str(exc),
+                    "experiment_id": failure_detail["summary"]["experiment_id"],
+                    "run_ids": failure_detail["summary"]["run_ids"],
+                    "bundle": failure_detail["urls"]["bundle"],
+                    "report": failure_detail["urls"]["report"],
+                },
+            ) from exc
 
         comparison = build_run_comparison(details)
         artifact_outputs = persist_experiment_artifact(
@@ -494,9 +527,11 @@ class CockpitService:
             "experiment_id": experiment_record["experiment_id"],
             "label": experiment_record["label"],
             "kind": experiment_record["kind"],
+            "status": experiment_record.get("status", "completed"),
             "created_at": experiment_record["created_at"],
             "baseline_run_id": experiment_record["baseline_run_id"],
             "run_count": experiment_record["run_count"],
+            "planned_run_count": experiment_record.get("planned_run_count"),
             "run_ids": experiment_record["run_ids"],
             "shared_experiment": experiment_record.get("shared_experiment"),
             "decision_available": bool((experiment_record.get("decision") or {}).get("available")),

@@ -234,5 +234,34 @@
         }
       }
     }
-  }
+  },
+  "dependentRequired": {
+    "constraints": ["objective"],
+    "ranking": ["objective"],
+    "campaign": ["objective"]
+  },
+  "allOf": [
+    {
+      "if": {
+        "required": ["objective"],
+        "properties": {
+          "objective": {
+            "required": ["goal"],
+            "properties": {
+              "goal": {
+                "const": "target"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "objective": {
+            "required": ["target_value"]
+          }
+        }
+      }
+    }
+  ]
 }

@@ -197,7 +197,7 @@ def _require_mapping(data: Any, field_name: str) -> dict[str, Any]:
 
 
 def _require_int(value: Any, field_name: str, minimum: int | None = None) -> int:
-    if not isinstance(value, int):
+    if not isinstance(value, int) or isinstance(value, bool):
         raise ValueError(f"'{field_name}' must be an integer")
     if minimum is not None and value < minimum:
         raise ValueError(f"'{field_name}' must be >= {minimum}")
@@ -405,7 +405,10 @@ def parse_config(data: dict[str, Any]) -> SimulationConfig:
     if (
         not isinstance(grid_shape, list)
         or len(grid_shape) != 3
-        or any(not isinstance(value, int) or value < 2 for value in grid_shape)
+        or any(
+            not isinstance(value, int) or isinstance(value, bool) or value < 2
+            for value in grid_shape
+        )
     ):
         raise ValueError("'engine.grid_shape' must be a list of three integers >= 2")
 

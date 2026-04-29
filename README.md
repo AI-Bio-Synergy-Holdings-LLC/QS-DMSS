@@ -167,7 +167,7 @@ Run the smoke tests:
 pytest
 ```
 
-CI lives in [ci.yml](/C:/Users/chuck/Documents/New project/QS-DMSS-git/.github/workflows/ci.yml:1) and validates:
+CI lives in [.github/workflows/ci.yml](.github/workflows/ci.yml) and validates:
 
 - the editable install and test suite across Python 3.10 through 3.13
 - static cockpit JavaScript syntax
