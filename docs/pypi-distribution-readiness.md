@@ -41,6 +41,27 @@ issue or PR:
   from the GitHub release, or bump to a new version before any package metadata
   or artifact contents change.
 
+## Approval Record
+
+Approved on `2026-04-30` by repository owner instruction for the next external
+distribution preparation phase:
+
+- Package-name owner: `AI Bio Synergy Holdings LLC`.
+- Support owner: `AI Bio Synergy Holdings LLC`.
+- Non-sensitive support intake: GitHub Issues on
+  `AI-Bio-Synergy-Holdings-LLC/QS-DMSS`.
+- Sensitive report intake: `SECURITY.md`.
+- Supported release line: `v0.1.x`, beginning with `v0.1.0`.
+- Supported Python range: package metadata `>=3.10`, with CI validation on
+  Python 3.10 through 3.13.
+- Artifact policy: any later PyPI upload of `0.1.0` must use the exact GitHub
+  release artifacts listed below. If metadata or artifact contents change, cut a
+  new version instead of reusing `0.1.0`.
+
+This approval does not by itself authorize an upload. PyPI account or
+organization ownership, mandatory 2FA, and the Trusted Publishing configuration
+still need to be completed before publication.
+
 ## `v0.1.0` Artifact Policy
 
 The GitHub `v0.1.0` release is the canonical artifact source for this version.
