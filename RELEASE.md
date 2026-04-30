@@ -1,10 +1,11 @@
 # QS-DMSS Release Policy
 
-This policy keeps release-candidate builds, Python package metadata, and GitHub
-release artifacts aligned before the final `v0.1.0` release.
+This policy keeps release builds, Python package metadata, and GitHub release
+artifacts aligned before tags are published.
 
-Current hardening target: `v0.1.0-rc.2` / `0.1.0rc2`. The published
-`v0.1.0-rc.1` tag remains immutable; do not move or replace it.
+Current release target: `v0.1.0` / `0.1.0`. Published release-candidate tags
+such as `v0.1.0-rc.1` and `v0.1.0-rc.2` remain immutable; do not move or
+replace them.
 
 ## Version Alignment
 
@@ -39,6 +40,7 @@ Current hardening target: `v0.1.0-rc.2` / `0.1.0rc2`. The published
 
 1. Resolve reviewer feedback against the latest release-candidate branch.
 2. Bump package metadata from the current prerelease version to `0.1.0`.
+   Completed for this branch.
 3. Run the full local validation suite:
 
    ```powershell
