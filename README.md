@@ -69,6 +69,10 @@ Run the bundled demo config from any installed build:
 qs-dmss run-demo
 ```
 
+Reviewers who want to validate the published release without a source checkout
+can use the wheel-first path in
+[docs/reviewer-wheel-quickstart.md](docs/reviewer-wheel-quickstart.md).
+
 Start the local cockpit:
 
 ```powershell
@@ -177,6 +181,9 @@ CI lives in [.github/workflows/ci.yml](.github/workflows/ci.yml) and validates:
 
 Release-candidate versioning and distribution artifact rules live in
 [RELEASE.md](RELEASE.md).
+
+External distribution gates for PyPI/name ownership approval live in
+[docs/pypi-distribution-readiness.md](docs/pypi-distribution-readiness.md).
 
 ## Current Scope
 
