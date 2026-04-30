@@ -34,7 +34,20 @@ replace them.
 - Docker images are validation artifacts for this phase; publish a registry image
   only after a registry namespace, tagging policy, and retention policy are chosen.
 - Do not publish to PyPI until package-name ownership, final metadata, and
-  support expectations are explicitly approved.
+  support expectations are explicitly approved. Track that approval in
+  [docs/pypi-distribution-readiness.md](docs/pypi-distribution-readiness.md).
+- If `v0.1.0` is published to an external package index after the GitHub
+  release, publish the exact GitHub release artifacts. If any metadata or
+  artifact content changes are needed, cut a new version instead of reusing
+  `0.1.0`.
+
+## Reviewer Onboarding
+
+- GitHub release wheels are the preferred reviewer path for this phase because
+  they validate the installed-package experience without requiring a source
+  checkout.
+- The reviewer quickstart lives in
+  [docs/reviewer-wheel-quickstart.md](docs/reviewer-wheel-quickstart.md).
 
 ## Final `v0.1.0` Promotion Checklist
 
