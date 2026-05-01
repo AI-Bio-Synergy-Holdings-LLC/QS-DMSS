@@ -1,0 +1,159 @@
+name: Publish to PyPI
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "GitHub release tag to publish, for example v0.1.0"
+        required: true
+        type: string
+      confirm:
+        description: "Type publish-to-pypi to confirm publication"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+run-name: Publish ${{ inputs.tag }} to PyPI
+
+jobs:
+  prepare-release-assets:
+    name: Validate release assets
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Validate manual dispatch
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ inputs.confirm }}" != "publish-to-pypi" ]]; then
+            echo "Refusing to publish: confirmation input must be publish-to-pypi." >&2
+            exit 1
+          fi
+          if [[ ! "${{ inputs.tag }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Refusing to publish: tag must be a final release tag like v0.1.0." >&2
+            exit 1
+          fi
+
+      - name: Check out release tag
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Install verification tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install twine
+
+      - name: Download GitHub release artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          gh release download "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --dir dist \
+            --pattern "*.whl" \
+            --pattern "*.tar.gz"
+          find dist -maxdepth 1 -type f -print | sort
+
+      - name: Validate release artifact metadata
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          python - <<'PY'
+          import os
+          import tarfile
+          import zipfile
+          from email.parser import Parser
+          from pathlib import Path
+          import tomllib
+
+          tag = os.environ["RELEASE_TAG"]
+          project = tomllib.loads(Path("pyproject.toml").read_text())
+          package_name = project["project"]["name"]
+          version = project["project"]["version"]
+          expected_tag = f"v{version}"
+          if tag != expected_tag:
+              raise SystemExit(f"Tag {tag!r} does not match package version {expected_tag!r}.")
+
+          dist = Path("dist")
+          wheels = sorted(dist.glob("*.whl"))
+          sdists = sorted(dist.glob("*.tar.gz"))
+          if len(wheels) != 1 or len(sdists) != 1:
+              raise SystemExit(f"Expected one wheel and one sdist, got {wheels!r} and {sdists!r}.")
+
+          expected_wheel = f"qs_dmss-{version}-py3-none-any.whl"
+          expected_sdist = f"qs_dmss-{version}.tar.gz"
+          if wheels[0].name != expected_wheel or sdists[0].name != expected_sdist:
+              raise SystemExit(
+                  f"Unexpected artifacts: {wheels[0].name}, {sdists[0].name}; "
+                  f"expected {expected_wheel}, {expected_sdist}."
+              )
+
+          with zipfile.ZipFile(wheels[0]) as archive:
+              metadata_path = next(
+                  name for name in archive.namelist() if name.endswith(".dist-info/METADATA")
+              )
+              metadata = Parser().parsestr(archive.read(metadata_path).decode("utf-8"))
+          if metadata["Name"].lower().replace("_", "-") != package_name:
+              raise SystemExit(f"Wheel name mismatch: {metadata['Name']!r}.")
+          if metadata["Version"] != version:
+              raise SystemExit(f"Wheel version mismatch: {metadata['Version']!r}.")
+
+          with tarfile.open(sdists[0]) as archive:
+              names = set(archive.getnames())
+          for required in (
+              f"qs_dmss-{version}/README.md",
+              f"qs_dmss-{version}/RELEASE.md",
+              f"qs_dmss-{version}/pyproject.toml",
+          ):
+              if required not in names:
+                  raise SystemExit(f"Sdist missing {required}.")
+
+          print(f"Validated {package_name} {version} release artifacts from {tag}.")
+          PY
+
+      - name: Check release artifacts
+        run: python -m twine check dist/*
+
+      - name: Upload PyPI-ready artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pypi-release-dists
+          path: dist/
+          if-no-files-found: error
+
+  publish:
+    name: Publish distributions
+    runs-on: ubuntu-latest
+    needs: prepare-release-assets
+    environment:
+      name: pypi
+      url: https://pypi.org/project/qs-dmss/
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Download PyPI-ready artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: pypi-release-dists
+          path: dist/
+
+      - name: Publish release distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist/

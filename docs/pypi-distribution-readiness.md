@@ -62,6 +62,48 @@ This approval does not by itself authorize an upload. PyPI account or
 organization ownership, mandatory 2FA, and the Trusted Publishing configuration
 still need to be completed before publication.
 
+## Trusted Publishing Configuration
+
+Use PyPI Trusted Publishing instead of a long-lived API token.
+
+Repository-side configuration:
+
+- GitHub environment: `pypi`
+- Environment required reviewer: `SIONSOULSION`
+- Environment deployment branch policy: `main`
+- Publishing workflow: `.github/workflows/publish-pypi.yml`
+- Trigger: manual `workflow_dispatch`
+- Required confirmation input: `publish-to-pypi`
+- Distribution source: files already attached to the GitHub release for the
+  requested tag
+
+GitHub-side setup completed on `2026-05-01`: the `pypi` environment exists,
+requires `SIONSOULSION` approval, and is restricted to deployments from `main`.
+
+PyPI pending publisher values:
+
+- PyPI project name: `qs-dmss`
+- Publisher: GitHub Actions
+- Owner: `AI-Bio-Synergy-Holdings-LLC`
+- Repository name: `QS-DMSS`
+- Workflow name: `publish-pypi.yml`
+- Environment name: `pypi`
+
+Create the pending publisher at
+`https://pypi.org/manage/account/publishing/`. A pending publisher does not
+reserve the project name until the first successful publish, so publish promptly
+after configuration if the name must be claimed.
+
+After the pending publisher is saved in PyPI, run the GitHub workflow manually
+from Actions -> Publish to PyPI with:
+
+- `tag`: `v0.1.0`
+- `confirm`: `publish-to-pypi`
+
+The workflow downloads the GitHub release assets, validates package metadata,
+checks the distributions with Twine, then publishes through the `pypi`
+environment using PyPI's short-lived OIDC token exchange.
+
 ## `v0.1.0` Artifact Policy
 
 The GitHub `v0.1.0` release is the canonical artifact source for this version.
