@@ -129,7 +129,7 @@ jobs:
         run: python -m twine check dist/*
 
       - name: Upload PyPI-ready artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pypi-release-dists
           path: dist/
@@ -148,7 +148,7 @@ jobs:
 
     steps:
       - name: Download PyPI-ready artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: pypi-release-dists
           path: dist/
