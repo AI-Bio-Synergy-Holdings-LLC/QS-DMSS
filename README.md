@@ -48,25 +48,32 @@ productization:
 
 ## Quickstart
 
-Create a virtual environment and install the package in editable mode:
+Install the published package from PyPI:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install -e .[dev]
+python -m pip install qs-dmss
 ```
 
-Run the checked-in demo config:
-
-```powershell
-qs-dmss run configs/demo.yaml
-```
-
-Run the bundled demo config from any installed build:
+Run the bundled demo config from the installed package:
 
 ```powershell
 qs-dmss run-demo
+```
+
+Launch the bundled installed-package demo campaign:
+
+```powershell
+qs-dmss campaigns run-demo
+```
+
+For source development, install the checked-out repository in editable mode:
+
+```powershell
+python -m pip install -e .[dev]
+qs-dmss run configs/demo.yaml
 ```
 
 Reviewers who want to validate the published release without a source checkout
@@ -182,7 +189,7 @@ CI lives in [.github/workflows/ci.yml](.github/workflows/ci.yml) and validates:
 Release-candidate versioning and distribution artifact rules live in
 [RELEASE.md](RELEASE.md).
 
-External distribution gates for PyPI/name ownership approval live in
+PyPI distribution details and Trusted Publishing provenance live in
 [docs/pypi-distribution-readiness.md](docs/pypi-distribution-readiness.md).
 
 ## Current Scope

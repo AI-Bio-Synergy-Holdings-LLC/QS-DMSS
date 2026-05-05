@@ -1,7 +1,7 @@
 # QS-DMSS Release Policy
 
-This policy keeps release builds, Python package metadata, and GitHub release
-artifacts aligned before tags are published.
+This policy keeps release builds, Python package metadata, GitHub release
+artifacts, and PyPI distributions aligned before and after tags are published.
 
 Current release target: `v0.1.0` / `0.1.0`. Published release-candidate tags
 such as `v0.1.0-rc.1` and `v0.1.0-rc.2` remain immutable; do not move or
@@ -33,19 +33,19 @@ replace them.
   outputs, not package distribution artifacts.
 - Docker images are validation artifacts for this phase; publish a registry image
   only after a registry namespace, tagging policy, and retention policy are chosen.
-- Do not publish to PyPI until package-name ownership, final metadata, and
-  support expectations are explicitly approved. Track that approval in
+- PyPI publication uses Trusted Publishing through
+  [.github/workflows/publish-pypi.yml](.github/workflows/publish-pypi.yml).
+- The initial PyPI `0.1.0` publication is complete. Track publication details in
   [docs/pypi-distribution-readiness.md](docs/pypi-distribution-readiness.md).
-- If `v0.1.0` is published to an external package index after the GitHub
-  release, publish the exact GitHub release artifacts. If any metadata or
-  artifact content changes are needed, cut a new version instead of reusing
-  `0.1.0`.
+- PyPI uploads must use the exact GitHub release artifacts for the same tag. If
+  any metadata or artifact content changes are needed, cut a new version instead
+  of reusing an already-published version.
 
 ## Reviewer Onboarding
 
-- GitHub release wheels are the preferred reviewer path for this phase because
-  they validate the installed-package experience without requiring a source
-  checkout.
+- PyPI is the preferred reviewer path for the public installed-package
+  experience.
+- GitHub release wheels remain the direct artifact validation path.
 - The reviewer quickstart lives in
   [docs/reviewer-wheel-quickstart.md](docs/reviewer-wheel-quickstart.md).
 
