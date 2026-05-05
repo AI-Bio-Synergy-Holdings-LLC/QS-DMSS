@@ -10,7 +10,7 @@ from pathlib import Path
 
 from qs_dmss.decision import decision_profile_from_config
 from qs_dmss.io.config import SimulationConfig, config_digest
-from qs_dmss.paths import discover_repo_root
+from qs_dmss.paths import bundled_assets_root, discover_repo_root
 
 
 @dataclass(frozen=True)
@@ -43,6 +43,12 @@ def _resolve_output_root(
     output_root = Path(config.run.output_root)
     if output_root.is_absolute():
         return output_root
+    try:
+        source_config_path.resolve().relative_to(bundled_assets_root().resolve())
+    except ValueError:
+        pass
+    else:
+        return (Path.cwd() / output_root).resolve()
     if repo_root.exists():
         return (repo_root / output_root).resolve()
     return (source_config_path.parent / output_root).resolve()
