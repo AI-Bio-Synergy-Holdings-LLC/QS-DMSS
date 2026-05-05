@@ -3,7 +3,7 @@
 This policy keeps release builds, Python package metadata, GitHub release
 artifacts, and PyPI distributions aligned before and after tags are published.
 
-Current release target: `v0.1.0` / `0.1.0`. Published release-candidate tags
+Current release target: `v0.1.1` / `0.1.1`. Published release-candidate tags
 such as `v0.1.0-rc.1` and `v0.1.0-rc.2` remain immutable; do not move or
 replace them.
 
@@ -12,8 +12,8 @@ replace them.
 - GitHub release-candidate tags use SemVer-style names such as `v0.1.0-rc.1`.
 - Python package metadata uses the equivalent PEP 440 form, such as
   `0.1.0rc1`.
-- Final releases use matching final versions: Git tag `v0.1.0` and package
-  version `0.1.0`.
+- Final releases use matching final versions: Git tags such as `v0.1.1` and
+  package versions such as `0.1.1`.
 - `pyproject.toml`, `qs_dmss.__version__`, and installed package metadata must
   agree before a release tag is cut.
 - CI enforces version alignment through `tests/test_packaging.py`.
@@ -49,11 +49,11 @@ replace them.
 - The reviewer quickstart lives in
   [docs/reviewer-wheel-quickstart.md](docs/reviewer-wheel-quickstart.md).
 
-## Final `v0.1.0` Promotion Checklist
+## Patch Release Promotion Checklist
 
-1. Resolve reviewer feedback against the latest release-candidate branch.
-2. Bump package metadata from the current prerelease version to `0.1.0`.
-   Completed for this branch.
+1. Resolve reviewer feedback against the latest release branch.
+2. Bump package metadata, `qs_dmss.__version__`, and release docs to the target
+   patch version.
 3. Run the full local validation suite:
 
    ```powershell
@@ -63,6 +63,7 @@ replace them.
    ```
 
 4. Merge through a green PR and wait for `main` CI to pass.
-5. Tag the merge commit as `v0.1.0`.
+5. Tag the merge commit.
 6. Create a GitHub release from that tag and attach only approved distribution
    artifacts.
+7. Publish the same release artifacts to PyPI through Trusted Publishing.

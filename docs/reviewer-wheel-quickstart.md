@@ -4,13 +4,13 @@ This path validates QS-DMSS from a published distribution without a source
 checkout. It is intended for reviewers who need a fast productization smoke
 test.
 
-Release: `v0.1.0`
+Release: `v0.1.1`
 
 PyPI:
 `https://pypi.org/project/qs-dmss/`
 
 Wheel:
-`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.1.0/qs_dmss-0.1.0-py3-none-any.whl`
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.1.1/qs_dmss-0.1.1-py3-none-any.whl`
 
 ## PyPI Install
 
@@ -29,14 +29,14 @@ qs-dmss campaigns run-demo
 Use this path when validating the GitHub release asset directly.
 
 ```powershell
-$release = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.1.0"
-Invoke-WebRequest "$release/qs_dmss-0.1.0-py3-none-any.whl" -OutFile "qs_dmss-0.1.0-py3-none-any.whl"
-python -m pip install .\qs_dmss-0.1.0-py3-none-any.whl
+$release = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.1.1"
+Invoke-WebRequest "$release/qs_dmss-0.1.1-py3-none-any.whl" -OutFile "qs_dmss-0.1.1-py3-none-any.whl"
+python -m pip install .\qs_dmss-0.1.1-py3-none-any.whl
 ```
 
 ## Expected Signals
 
-- `python -m pip install` reports `Successfully installed qs-dmss-0.1.0`.
+- `python -m pip install` reports the expected `qs-dmss` version.
 - `qs-dmss run-demo` prints a run directory, evidence bundle path, and
   `Verification passed`.
 - `qs-dmss campaigns run-demo` prints a saved campaign ID, planned run count,

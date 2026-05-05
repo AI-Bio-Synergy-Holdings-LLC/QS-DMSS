@@ -1,6 +1,6 @@
 # PyPI Distribution
 
-QS-DMSS `v0.1.0` is published on PyPI:
+QS-DMSS is published on PyPI:
 `https://pypi.org/project/qs-dmss/`.
 
 Install from PyPI:
@@ -11,9 +11,11 @@ python -m pip install qs-dmss
 
 ## Publication Record
 
-Published on `2026-05-05` through GitHub Actions Trusted Publishing.
+Initial PyPI publication completed on `2026-05-05` through GitHub Actions
+Trusted Publishing.
 
-- Published version: `0.1.0`
+- Initial published version: `0.1.0`
+- Current patch release target: `0.1.1`
 - PyPI project URL: `https://pypi.org/project/qs-dmss/`
 - Publish workflow run:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/actions/runs/25393532837`
@@ -109,18 +111,18 @@ The workflow downloads the GitHub release assets for the requested tag,
 validates package metadata, checks the distributions with Twine, then publishes
 through the `pypi` environment using PyPI's short-lived OIDC token exchange.
 
-## `v0.1.0` Artifact Policy
+## Artifact Policy
 
-The GitHub `v0.1.0` release is the canonical artifact source for this version.
-The PyPI `0.1.0` upload uses the same files and digests:
+Each GitHub release is the canonical artifact source for the same PyPI version.
+The PyPI `0.1.0` upload used these GitHub release files and digests:
 
 - `qs_dmss-0.1.0-py3-none-any.whl`
   `sha256:c3acdcfac27a9108013f9f0774c9bd48775070edf11fb447b992e8288aa30870`
 - `qs_dmss-0.1.0.tar.gz`
   `sha256:36eb80c9994405206df4a80e246bd9fc61d64d5085e8981db13bec8a118fbce9`
 
-If metadata changes are needed, do not reuse version `0.1.0`. Cut a new patch
-or prerelease version so GitHub and PyPI artifacts remain traceable.
+If metadata changes are needed, do not reuse an already-published version. Cut a
+new patch or prerelease version so GitHub and PyPI artifacts remain traceable.
 
 ## Preflight Commands
 

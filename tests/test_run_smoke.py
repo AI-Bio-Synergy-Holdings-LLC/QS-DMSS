@@ -70,3 +70,22 @@ def test_bundled_demo_config_and_cli_entrypoint(tmp_path: Path) -> None:
 
     run_record = json.loads((run_dirs[0] / "run.json").read_text(encoding="utf-8"))
     assert run_record["decision_profile"]["objective"]["primary_metric"] == "energy_drift"
+
+
+def test_run_demo_defaults_to_current_working_directory(tmp_path: Path) -> None:
+    demo_path = demo_config_path(tmp_path)
+    previous_cwd = Path.cwd()
+    try:
+        os.chdir(tmp_path)
+        exit_code = main(["run-demo"])
+    finally:
+        os.chdir(previous_cwd)
+    assert exit_code == 0
+
+    runs_root = tmp_path / "runs"
+    assert runs_root.exists()
+    run_dirs = [path for path in runs_root.iterdir() if path.is_dir()]
+    assert len(run_dirs) == 1
+    verification = verify_run_path(run_dirs[0])
+    assert verification.success, verification.errors
+    assert not (demo_path.parent / "runs").exists()

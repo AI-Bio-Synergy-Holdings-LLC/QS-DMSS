@@ -24,3 +24,24 @@ def test_cli_campaigns_run_demo(tmp_path: Path, capsys) -> None:
     experiments_dir = tmp_path / "experiments"
     assert experiments_dir.exists()
     assert any(path.is_dir() for path in experiments_dir.iterdir())
+
+
+def test_cli_campaigns_run_demo_defaults_to_current_working_directory(
+    tmp_path: Path,
+    capsys,
+) -> None:
+    previous_cwd = Path.cwd()
+    try:
+        os.chdir(tmp_path)
+        exit_code = main(["campaigns", "run-demo"])
+    finally:
+        os.chdir(previous_cwd)
+
+    assert exit_code == 0
+    output = capsys.readouterr().out
+    assert "Campaign saved:" in output
+    assert "Planned runs: 6" in output
+
+    assert (tmp_path / "runs").exists()
+    assert (tmp_path / "experiments").exists()
+    assert any(path.is_dir() for path in (tmp_path / "experiments").iterdir())

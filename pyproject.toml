@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qs-dmss"
-version = "0.1.0"
+version = "0.1.1"
 description = "Evidence-first reference package for the QuantumScalar Dark Matter Simulation Suite."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -12,12 +12,30 @@ license = "Apache-2.0"
 authors = [
   { name = "AI Bio Synergy Holdings LLC" }
 ]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Scientific/Engineering",
+]
 dependencies = [
   "fastapi>=0.116",
   "numpy>=1.26",
   "PyYAML>=6.0",
   "uvicorn>=0.35",
 ]
+
+[project.urls]
+Homepage = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS"
+Repository = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS"
+Issues = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues"
+Releases = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases"
+Documentation = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS#readme"
+PyPI = "https://pypi.org/project/qs-dmss/"
 
 [project.optional-dependencies]
 dev = [
