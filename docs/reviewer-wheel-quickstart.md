@@ -1,27 +1,37 @@
-# Reviewer Wheel Quickstart
+# Reviewer Install Quickstart
 
-This path validates QS-DMSS from the published GitHub release wheel without a
-source checkout. It is intended for reviewers who need a fast productization
-smoke test.
+This path validates QS-DMSS from a published distribution without a source
+checkout. It is intended for reviewers who need a fast productization smoke
+test.
 
 Release: `v0.1.0`
+
+PyPI:
+`https://pypi.org/project/qs-dmss/`
 
 Wheel:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.1.0/qs_dmss-0.1.0-py3-none-any.whl`
 
-## Windows PowerShell
+## PyPI Install
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install qs-dmss
+
+qs-dmss run-demo
+qs-dmss campaigns run-demo
+```
+
+## GitHub Release Wheel
+
+Use this path when validating the GitHub release asset directly.
 
 ```powershell
 $release = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.1.0"
 Invoke-WebRequest "$release/qs_dmss-0.1.0-py3-none-any.whl" -OutFile "qs_dmss-0.1.0-py3-none-any.whl"
-
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
 python -m pip install .\qs_dmss-0.1.0-py3-none-any.whl
-
-qs-dmss run-demo
-qs-dmss campaigns run-demo
 ```
 
 ## Expected Signals
