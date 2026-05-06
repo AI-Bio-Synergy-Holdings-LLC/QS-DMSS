@@ -1,0 +1,38 @@
+name: Bug Report
+description: Report a reproducible QS-DMSS defect.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What happened, and what did you expect instead?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction Steps
+      description: Include commands, config snippets, or run IDs when possible.
+      placeholder: |
+        1. python -m pip install qs-dmss
+        2. qs-dmss run-demo
+        3. ...
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence
+      description: Paste relevant error messages, verification output, or artifact paths.
+    validations:
+      required: false
+  - type: input
+    id: version
+    attributes:
+      label: QS-DMSS Version
+      placeholder: "0.1.1"
+    validations:
+      required: false

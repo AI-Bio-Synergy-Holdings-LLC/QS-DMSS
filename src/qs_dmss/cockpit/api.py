@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
-from qs_dmss.app import execute_run_from_path, replay_run as replay_existing_run
+from qs_dmss.app import execute_run, replay_run as replay_existing_run
 from qs_dmss.decision import evaluate_run_decision
 from qs_dmss.evidence.verify import verify_run_path
 from qs_dmss.experiment import (
@@ -26,8 +26,15 @@ from qs_dmss.experiment import (
     persist_failed_campaign_artifact,
     persist_experiment_artifact,
 )
-from qs_dmss.io.config import load_config, parse_config, write_config
-from qs_dmss.paths import configs_root, discover_repo_root, experiments_root, runs_root
+from qs_dmss.io.config import load_config, parse_config
+from qs_dmss.paths import (
+    contained_path,
+    configs_root,
+    discover_repo_root,
+    experiments_root,
+    runs_root,
+    safe_filename,
+)
 
 
 class LaunchRunRequest(BaseModel):
@@ -129,11 +136,13 @@ class CockpitService:
 
     def launch_run(self, payload: LaunchRunRequest) -> dict:
         config = parse_config(payload.config)
-        source_name = self._safe_source_name(payload.source_name)
         with TemporaryDirectory() as temp_dir:
-            temp_path = Path(temp_dir) / source_name
-            write_config(config, temp_path)
-            outputs = execute_run_from_path(temp_path, output_root=self.output_root)
+            temp_path = self._temp_source_path(Path(temp_dir), payload.source_name)
+            outputs = execute_run(
+                config=config,
+                source_config_path=temp_path,
+                output_root=self.output_root,
+            )
         return self._build_run_detail(outputs.run_dir)
 
     def verify_run(self, run_id: str) -> dict:
@@ -191,7 +200,6 @@ class CockpitService:
 
         experiment_id = create_experiment_id("sweep")
         experiment_label = payload.experiment_name or f"{base_config['run']['name']} {parameter.label} sweep"
-        source_name = self._safe_source_name(payload.source_name)
 
         run_dirs: list[Path] = []
         summaries: list[dict] = []
@@ -202,10 +210,10 @@ class CockpitService:
                 varied_config = apply_sweep_value(base_config, parameter.path, value)
                 temp_config_dir = temp_root / f"run-{index:02d}"
                 temp_config_dir.mkdir(parents=True, exist_ok=True)
-                temp_path = temp_config_dir / source_name
-                write_config(parse_config(varied_config), temp_path)
-                outputs = execute_run_from_path(
-                    temp_path,
+                temp_path = self._temp_source_path(temp_config_dir, payload.source_name)
+                outputs = execute_run(
+                    config=parse_config(varied_config),
+                    source_config_path=temp_path,
                     output_root=self.output_root,
                     experiment=build_experiment_context(
                         experiment_id=experiment_id,
@@ -252,7 +260,6 @@ class CockpitService:
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-        source_name = self._safe_source_name(payload.source_name)
         run_dirs: list[Path] = []
         summaries: list[dict] = []
         details: list[dict] = []
@@ -262,10 +269,10 @@ class CockpitService:
                 for variant in campaign_plan["variants"]:
                     temp_config_dir = temp_root / f"run-{variant['ordinal']:02d}"
                     temp_config_dir.mkdir(parents=True, exist_ok=True)
-                    temp_path = temp_config_dir / source_name
-                    write_config(parse_config(variant["config"]), temp_path)
-                    outputs = execute_run_from_path(
-                        temp_path,
+                    temp_path = self._temp_source_path(temp_config_dir, payload.source_name)
+                    outputs = execute_run(
+                        config=parse_config(variant["config"]),
+                        source_config_path=temp_path,
                         output_root=self.output_root,
                         experiment=build_campaign_context(
                             experiment_id=campaign_plan["id"],
@@ -391,10 +398,14 @@ class CockpitService:
         return sorted(experiment_dirs, key=lambda path: path.stat().st_mtime, reverse=True)
 
     def _safe_source_name(self, source_name: str) -> str:
-        sanitized = Path(source_name).name or "cockpit.yaml"
-        if not sanitized.endswith((".yaml", ".yml")):
-            sanitized = f"{sanitized}.yaml"
-        return sanitized
+        return safe_filename(
+            source_name,
+            default="cockpit.yaml",
+            suffixes=(".yaml", ".yml"),
+        )
+
+    def _temp_source_path(self, temp_dir: Path, source_name: str) -> Path:
+        return contained_path(temp_dir, self._safe_source_name(source_name))
 
     def _get_run_dir(self, run_id: str) -> Path:
         run_dir = (self.output_root / run_id).resolve()

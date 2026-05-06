@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
+
+_SAFE_FILENAME_PATTERN = re.compile(r"[^A-Za-z0-9_.-]+")
 
 
 def package_root() -> Path:
@@ -9,6 +12,32 @@ def package_root() -> Path:
 
 def bundled_assets_root() -> Path:
     return package_root() / "assets"
+
+
+def safe_filename(
+    value: str | None,
+    *,
+    default: str,
+    suffixes: tuple[str, ...] = (),
+) -> str:
+    raw_value = (value or default).strip().replace("\\", "/")
+    leaf_name = raw_value.rsplit("/", 1)[-1]
+    sanitized = _SAFE_FILENAME_PATTERN.sub("-", leaf_name).strip(".-")
+    if not sanitized:
+        sanitized = default
+    if suffixes and not sanitized.endswith(suffixes):
+        sanitized = f"{sanitized}{suffixes[0]}"
+    return sanitized
+
+
+def contained_path(base_dir: Path, *parts: str | Path) -> Path:
+    base_path = base_dir.resolve()
+    candidate = base_path.joinpath(*parts).resolve()
+    try:
+        candidate.relative_to(base_path)
+    except ValueError as exc:
+        raise ValueError(f"Path escapes expected root: {candidate}") from exc
+    return candidate
 
 
 def _is_repo_candidate(root: Path) -> bool:
