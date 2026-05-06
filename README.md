@@ -78,7 +78,7 @@ qs-dmss run configs/demo.yaml
 
 Reviewers who want to validate the published release without a source checkout
 can use the wheel-first path in
-[docs/reviewer-wheel-quickstart.md](docs/reviewer-wheel-quickstart.md).
+[docs/reviewer-wheel-quickstart.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-wheel-quickstart.md).
 
 Start the local cockpit:
 
@@ -178,7 +178,9 @@ Run the smoke tests:
 pytest
 ```
 
-CI lives in [.github/workflows/ci.yml](.github/workflows/ci.yml) and validates:
+CI lives in
+[.github/workflows/ci.yml](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/.github/workflows/ci.yml)
+and validates:
 
 - the editable install and test suite across Python 3.10 through 3.13
 - static cockpit JavaScript syntax
@@ -187,10 +189,10 @@ CI lives in [.github/workflows/ci.yml](.github/workflows/ci.yml) and validates:
 - Docker build plus live `/api/health` and `/api/configs` probes
 
 Release-candidate versioning and distribution artifact rules live in
-[RELEASE.md](RELEASE.md).
+[RELEASE.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/RELEASE.md).
 
 PyPI distribution details and Trusted Publishing provenance live in
-[docs/pypi-distribution-readiness.md](docs/pypi-distribution-readiness.md).
+[docs/pypi-distribution-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/pypi-distribution-readiness.md).
 
 ## Current Scope
 
