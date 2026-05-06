@@ -15,20 +15,23 @@ Initial PyPI publication completed on `2026-05-05` through GitHub Actions
 Trusted Publishing.
 
 - Initial published version: `0.1.0`
-- Current patch release target: `0.1.1`
+- Current published version: `0.1.1`
 - PyPI project URL: `https://pypi.org/project/qs-dmss/`
-- Publish workflow run:
+- Initial publish workflow run:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/actions/runs/25393532837`
-- Publish commit: `3cd208ff985041cf95261f8de289e4dd5a14df49`
+- Initial publish commit: `3cd208ff985041cf95261f8de289e4dd5a14df49`
 - Upload method: Trusted Publishing / GitHub OIDC
-- Published files:
+- Current published files:
+  - `qs_dmss-0.1.1-py3-none-any.whl`
+  - `qs_dmss-0.1.1.tar.gz`
+- Initial published files:
   - `qs_dmss-0.1.0-py3-none-any.whl`
   - `qs_dmss-0.1.0.tar.gz`
 
 Post-publication smoke validation completed from a fresh virtual environment:
 
 ```powershell
-python -m pip install --no-cache-dir qs-dmss==0.1.0
+python -m pip install --no-cache-dir qs-dmss==0.1.1
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 ```
@@ -41,7 +44,7 @@ qs-dmss campaigns run-demo
 - Organization: `AI Bio Synergy Holdings LLC`
 - License: `Apache-2.0`
 - Supported Python range: `>=3.10`
-- CI validation range for `v0.1.0`: Python 3.10 through 3.13 plus Docker smoke
+- CI validation range for `v0.1.x`: Python 3.10 through 3.13 plus Docker smoke
 
 ## Approval Gate Status
 
