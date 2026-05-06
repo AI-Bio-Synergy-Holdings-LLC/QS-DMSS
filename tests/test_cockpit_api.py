@@ -52,6 +52,28 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert replay_run["run_record"]["replayed_from"] == run_id
 
 
+def test_cockpit_api_sanitizes_source_name(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    config_item = client.get("/api/configs").json()["items"][0]
+    launch_payload = client.post(
+        "/api/runs",
+        json={
+            "config": config_item["config"],
+            "source_name": "../../outside/evil",
+        },
+    )
+
+    assert launch_payload.status_code == 200
+    run_record = launch_payload.json()["run_record"]
+    assert run_record["source_config_name"] == "evil.yaml"
+    assert ".." not in run_record["source_config_name"]
+    assert "/" not in run_record["source_config_name"]
+    assert "\\" not in run_record["source_config_name"]
+
+
 def test_cockpit_api_uses_bundled_configs_when_repo_has_none(tmp_path: Path) -> None:
     app = create_app(repo_root=tmp_path, output_root=tmp_path / "runs")
     client = TestClient(app)
@@ -201,7 +223,7 @@ def test_cockpit_api_launch_campaign(tmp_path: Path) -> None:
     config_item = client.get("/api/configs").json()["items"][0]
     campaign_payload = client.post(
         "/api/campaigns",
-        json={"config": config_item["config"], "source_name": config_item["name"]},
+        json={"config": config_item["config"], "source_name": "../../outside/campaign"},
     )
     assert campaign_payload.status_code == 200
     campaign = campaign_payload.json()
@@ -220,6 +242,7 @@ def test_cockpit_api_launch_campaign(tmp_path: Path) -> None:
     run_detail = client.get(f"/api/runs/{campaign['runs'][0]['run_id']}")
     assert run_detail.status_code == 200
     detail = run_detail.json()
+    assert detail["run_record"]["source_config_name"] == "campaign.yaml"
     assert detail["run_record"]["experiment"]["kind"] == "campaign"
     assert detail["run_record"]["experiment"]["strategy"] == "grid"
     assert len(detail["run_record"]["experiment"]["variant"]) == 2
@@ -242,7 +265,7 @@ def test_cockpit_api_campaign_failure_persists_failed_artifact(
     app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
     client = TestClient(app)
 
-    real_execute = cockpit_api.execute_run_from_path
+    real_execute = cockpit_api.execute_run
     call_count = 0
 
     def flaky_execute(*args, **kwargs):
@@ -252,7 +275,7 @@ def test_cockpit_api_campaign_failure_persists_failed_artifact(
             raise RuntimeError("simulated variant failure")
         return real_execute(*args, **kwargs)
 
-    monkeypatch.setattr(cockpit_api, "execute_run_from_path", flaky_execute)
+    monkeypatch.setattr(cockpit_api, "execute_run", flaky_execute)
 
     config_item = client.get("/api/configs").json()["items"][0]
     campaign_payload = client.post(
