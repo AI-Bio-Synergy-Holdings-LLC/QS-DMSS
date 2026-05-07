@@ -194,6 +194,11 @@ Release-candidate versioning and distribution artifact rules live in
 PyPI distribution details and Trusted Publishing provenance live in
 [docs/pypi-distribution-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/pypi-distribution-readiness.md).
 
+Scholarly indexing readiness notes for ASCL and JOSS live in
+[docs/ascl-joss-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ascl-joss-readiness.md).
+The public technical launch post draft lives in
+[docs/public-technical-launch-post.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/public-technical-launch-post.md).
+
 ## Citation
 
 Citation metadata lives in
