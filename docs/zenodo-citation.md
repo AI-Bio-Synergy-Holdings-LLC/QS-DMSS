@@ -1,38 +1,59 @@
-# Zenodo Citation Setup
+# Zenodo Citation
 
 QS-DMSS uses `CITATION.cff` as its canonical citation metadata file.
 
 ## Current Status
 
 - Public baseline: `v0.1.3`
+- Current package metadata target: `v0.1.4` / `0.1.4`
 - Citation metadata file: `CITATION.cff`
-- DOI status: pending Zenodo archival
+- DOI status: archived through the Zenodo GitHub integration
+- Zenodo concept DOI: `10.5281/zenodo.20074924`
+- First archived release DOI: `10.5281/zenodo.20074925`
+- First archived release record: `https://zenodo.org/records/20074925`
+- Zenodo citation/reference metadata: no downstream citation or reference
+  relationships recorded yet
+- Software Heritage archival status: pending; no SWHID is recorded yet
 - Zenodo-specific metadata file: not used
 
 Do not add `.zenodo.json` unless QS-DMSS needs Zenodo-specific metadata that
 `CITATION.cff` cannot express. If both files exist, Zenodo uses `.zenodo.json`
 and ignores `CITATION.cff` for GitHub release archiving.
 
-## Zenodo Steps
+## Citation Guidance
 
-1. Connect the repository in Zenodo under the GitHub integration.
-2. Enable `AI-Bio-Synergy-Holdings-LLC/QS-DMSS`.
-3. Archive the desired release in Zenodo.
-4. Copy the minted Zenodo DOI.
-5. Open a follow-up PR that adds the DOI to `CITATION.cff`, this document, and
-   the README citation section.
+Use the Zenodo concept DOI for project-level citations that should resolve to
+the latest archived QS-DMSS release:
 
-For automatic GitHub release archival, enable the repository before creating
-the GitHub release that Zenodo should ingest. `v0.1.3` is the first planned
-release after Zenodo was enabled, so it should be the first release archived
-through the GitHub integration.
-
-## DOI Update Target
-
-After Zenodo mints a DOI, add it to `CITATION.cff`:
-
-```yaml
-doi: 10.5281/zenodo.<record>
+```text
+10.5281/zenodo.20074924
 ```
 
-Prefer the Zenodo DOI for formal research references once it exists.
+Use the version DOI when citing the exact first archived release artifacts:
+
+```text
+10.5281/zenodo.20074925
+```
+
+`CITATION.cff` stores the concept DOI in the root `doi` field so GitHub and
+PyPI package metadata can point to a stable citation target before each future
+release-specific DOI is minted. It also lists the first archived release DOI in
+`identifiers` so the exact `v0.1.3` archive remains visible from the citation
+metadata.
+
+## Zenodo Workflow
+
+For automatic GitHub release archival, enable the repository before creating
+the GitHub release that Zenodo should ingest. `v0.1.3` was the first release
+created after Zenodo was enabled, and it archived successfully through the
+GitHub integration.
+
+Future release workflow:
+
+1. Merge the release-prep PR through green CI.
+2. Tag the merge commit and create the GitHub release.
+3. Let Zenodo archive the release automatically.
+4. Add the new version DOI to the GitHub release notes.
+5. Add the Software Heritage SWHID once archival completes.
+6. Keep the concept DOI in package-facing citation metadata unless the release
+   process can inject the version DOI before PyPI publication.
