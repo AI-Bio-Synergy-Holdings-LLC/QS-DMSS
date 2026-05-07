@@ -4,7 +4,7 @@ QS-DMSS uses `CITATION.cff` as its canonical citation metadata file.
 
 ## Current Status
 
-- Public baseline: `v0.1.2`
+- Public baseline: `v0.1.3`
 - Citation metadata file: `CITATION.cff`
 - DOI status: pending Zenodo archival
 - Zenodo-specific metadata file: not used
@@ -23,10 +23,9 @@ and ignores `CITATION.cff` for GitHub release archiving.
    the README citation section.
 
 For automatic GitHub release archival, enable the repository before creating
-the GitHub release that Zenodo should ingest. If the goal is to mint a DOI for
-the already-published `v0.1.2` baseline without more release churn, use a manual
-Zenodo software upload based on the `v0.1.2` source archive, then record the DOI
-in a follow-up PR.
+the GitHub release that Zenodo should ingest. `v0.1.3` is the first planned
+release after Zenodo was enabled, so it should be the first release archived
+through the GitHub integration.
 
 ## DOI Update Target
 
