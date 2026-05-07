@@ -201,8 +201,12 @@ Citation metadata lives in
 GitHub uses this file to populate the repository citation prompt, and Zenodo can
 use it when archiving GitHub releases.
 
-After Zenodo archives the release, prefer the Zenodo DOI citation for formal
-research references. Zenodo setup notes live in
+For formal research references, prefer the Zenodo DOI citation:
+
+- Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
+- First archived release of record: [v0.1.3 / 10.5281/zenodo.20074925](https://doi.org/10.5281/zenodo.20074925)
+
+Zenodo citation notes live in
 [docs/zenodo-citation.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/zenodo-citation.md).
 
 ## Current Scope
