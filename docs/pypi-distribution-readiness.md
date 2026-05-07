@@ -15,15 +15,15 @@ Initial PyPI publication completed on `2026-05-05` through GitHub Actions
 Trusted Publishing.
 
 - Initial published version: `0.1.0`
-- Current published version: `0.1.2`
+- Current published version: `0.1.3`
 - PyPI project URL: `https://pypi.org/project/qs-dmss/`
 - Initial publish workflow run:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/actions/runs/25393532837`
 - Initial publish commit: `3cd208ff985041cf95261f8de289e4dd5a14df49`
 - Upload method: Trusted Publishing / GitHub OIDC
 - Current published files:
-  - `qs_dmss-0.1.2-py3-none-any.whl`
-  - `qs_dmss-0.1.2.tar.gz`
+  - `qs_dmss-0.1.3-py3-none-any.whl`
+  - `qs_dmss-0.1.3.tar.gz`
 - Initial published files:
   - `qs_dmss-0.1.0-py3-none-any.whl`
   - `qs_dmss-0.1.0.tar.gz`
@@ -31,7 +31,7 @@ Trusted Publishing.
 Post-publication smoke validation completed from a fresh virtual environment:
 
 ```powershell
-python -m pip install --no-cache-dir qs-dmss==0.1.2
+python -m pip install --no-cache-dir qs-dmss==0.1.3
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 ```
@@ -118,7 +118,7 @@ PyPI Trusted Publisher values:
 For future releases, run the GitHub workflow manually from
 Actions -> Publish to PyPI with:
 
-- `tag`: the final release tag, such as `v0.1.2`
+- `tag`: the final release tag, such as `v0.1.3`
 - `confirm`: `publish-to-pypi`
 
 The workflow downloads the GitHub release assets for the requested tag,
@@ -144,13 +144,13 @@ Run these commands from a clean checkout at a future release tag before any
 approved upload:
 
 ```powershell
-git checkout v0.1.2
+git checkout v0.1.3
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip build twine
 python -m build --sdist --wheel
 python -m twine check dist/*
-python -m pip install .\dist\qs_dmss-0.1.2-py3-none-any.whl
+python -m pip install .\dist\qs_dmss-0.1.3-py3-none-any.whl
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 ```
