@@ -1,0 +1,40 @@
+name: Reproducibility Review
+description: Review install, demo, replay, verification, or evidence-bundle behavior.
+title: "[Reproducibility Review]: "
+labels:
+  - review-wanted
+  - reproducibility
+body:
+  - type: textarea
+    id: path
+    attributes:
+      label: Reviewed Path
+      description: Which path did you run?
+      placeholder: |
+        python -m pip install qs-dmss
+        qs-dmss run-demo
+        qs-dmss campaigns run-demo
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Result
+      description: What happened? Include output snippets, run IDs, bundle paths, or verification messages.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, shell, install source, and QS-DMSS version.
+      placeholder: "Windows 11, Python 3.13, PowerShell, PyPI qs-dmss==0.1.5"
+    validations:
+      required: true
+  - type: textarea
+    id: friction
+    attributes:
+      label: Friction Or Missing Evidence
+      description: What would make this easier for the next reviewer?
+    validations:
+      required: false

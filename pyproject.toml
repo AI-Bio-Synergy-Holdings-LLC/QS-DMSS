@@ -4,13 +4,22 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qs-dmss"
-version = "0.1.4"
+version = "0.1.5"
 description = "Evidence-first reference package for the QuantumScalar Dark Matter Simulation Suite."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 authors = [
   { name = "AI Bio Synergy Holdings LLC" }
+]
+keywords = [
+  "dark matter",
+  "scientific computing",
+  "simulation",
+  "reproducibility",
+  "schrodinger-poisson",
+  "evidence bundles",
+  "research software",
 ]
 classifiers = [
   "Development Status :: 3 - Alpha",
@@ -21,6 +30,9 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Topic :: Scientific/Engineering",
+  "Topic :: Scientific/Engineering :: Astronomy",
+  "Topic :: Scientific/Engineering :: Physics",
+  "Topic :: Scientific/Engineering :: Visualization",
 ]
 dependencies = [
   "fastapi>=0.116",
@@ -35,10 +47,15 @@ Repository = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS"
 Issues = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues"
 Releases = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases"
 Documentation = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS#readme"
+Contributing = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/CONTRIBUTING.md"
+Review = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new/choose"
+"Reviewer Quickstart" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-wheel-quickstart.md"
+"Circulation Funnel" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/circulation-funnel.md"
 PyPI = "https://pypi.org/project/qs-dmss/"
 DOI = "https://doi.org/10.5281/zenodo.20074924"
 "First Archived Release DOI" = "https://doi.org/10.5281/zenodo.20074925"
-Zenodo = "https://zenodo.org/records/20074925"
+"Latest Archived Release DOI" = "https://doi.org/10.5281/zenodo.20075891"
+Zenodo = "https://zenodo.org/records/20075891"
 
 [project.optional-dependencies]
 dev = [

@@ -3,7 +3,7 @@
 This policy keeps release builds, Python package metadata, GitHub release
 artifacts, and PyPI distributions aligned before and after tags are published.
 
-Current release target: `v0.1.4` / `0.1.4`. Published release-candidate tags
+Current release target: `v0.1.5` / `0.1.5`. Published release-candidate tags
 such as `v0.1.0-rc.1` and `v0.1.0-rc.2` remain immutable; do not move or
 replace them.
 
@@ -12,8 +12,8 @@ replace them.
 - GitHub release-candidate tags use SemVer-style names such as `v0.1.0-rc.1`.
 - Python package metadata uses the equivalent PEP 440 form, such as
   `0.1.0rc1`.
-- Final releases use matching final versions: Git tags such as `v0.1.4` and
-  package versions such as `0.1.4`.
+- Final releases use matching final versions: Git tags such as `v0.1.5` and
+  package versions such as `0.1.5`.
 - `pyproject.toml`, `qs_dmss.__version__`, and installed package metadata must
   agree before a release tag is cut.
 - CI enforces version alignment through `tests/test_packaging.py`.
