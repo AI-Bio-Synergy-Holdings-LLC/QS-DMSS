@@ -11,6 +11,9 @@ QS-DMSS uses `CITATION.cff` as its canonical citation metadata file.
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
 - First archived release DOI: `10.5281/zenodo.20074925`
 - First archived release record: `https://zenodo.org/records/20074925`
+- Zenodo citation/reference metadata: no downstream citation or reference
+  relationships recorded yet
+- Software Heritage archival status: pending; no SWHID is recorded yet
 - Zenodo-specific metadata file: not used
 
 Do not add `.zenodo.json` unless QS-DMSS needs Zenodo-specific metadata that
@@ -32,9 +35,11 @@ Use the version DOI when citing the exact first archived release artifacts:
 10.5281/zenodo.20074925
 ```
 
-`CITATION.cff` stores the concept DOI so GitHub and PyPI package metadata can
-point to a stable citation target before each future release-specific DOI is
-minted.
+`CITATION.cff` stores the concept DOI in the root `doi` field so GitHub and
+PyPI package metadata can point to a stable citation target before each future
+release-specific DOI is minted. It also lists the first archived release DOI in
+`identifiers` so the exact `v0.1.3` archive remains visible from the citation
+metadata.
 
 ## Zenodo Workflow
 
@@ -49,5 +54,6 @@ Future release workflow:
 2. Tag the merge commit and create the GitHub release.
 3. Let Zenodo archive the release automatically.
 4. Add the new version DOI to the GitHub release notes.
-5. Keep the concept DOI in package-facing citation metadata unless the release
+5. Add the Software Heritage SWHID once archival completes.
+6. Keep the concept DOI in package-facing citation metadata unless the release
    process can inject the version DOI before PyPI publication.

@@ -37,6 +37,7 @@ Releases = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases"
 Documentation = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS#readme"
 PyPI = "https://pypi.org/project/qs-dmss/"
 DOI = "https://doi.org/10.5281/zenodo.20074924"
+"First Archived Release DOI" = "https://doi.org/10.5281/zenodo.20074925"
 Zenodo = "https://zenodo.org/records/20074925"
 
 [project.optional-dependencies]

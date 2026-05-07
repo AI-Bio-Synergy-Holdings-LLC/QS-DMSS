@@ -59,6 +59,7 @@ metadata has a stable citation target:
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
 - First archived release DOI: `10.5281/zenodo.20074925`
 - First archived release record: `https://zenodo.org/records/20074925`
+- Software Heritage archival status: pending; no SWHID is recorded yet
 
 Use the concept DOI for project-level citation. Use the version DOI when citing
 the exact `v0.1.3` archived release artifacts.
