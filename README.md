@@ -194,6 +194,17 @@ Release-candidate versioning and distribution artifact rules live in
 PyPI distribution details and Trusted Publishing provenance live in
 [docs/pypi-distribution-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/pypi-distribution-readiness.md).
 
+## Citation
+
+Citation metadata lives in
+[CITATION.cff](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/CITATION.cff).
+GitHub uses this file to populate the repository citation prompt, and Zenodo can
+use it when archiving GitHub releases.
+
+After Zenodo archives the release, prefer the Zenodo DOI citation for formal
+research references. Zenodo setup notes live in
+[docs/zenodo-citation.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/zenodo-citation.md).
+
 ## Current Scope
 
 This branch intentionally focuses on the package/evidence/reproducibility spine

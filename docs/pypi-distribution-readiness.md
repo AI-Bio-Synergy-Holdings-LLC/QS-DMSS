@@ -45,6 +45,17 @@ qs-dmss campaigns run-demo
 - License: `Apache-2.0`
 - Supported Python range: `>=3.10`
 - CI validation range for `v0.1.x`: Python 3.10 through 3.13 plus Docker smoke
+- Citation metadata: `CITATION.cff`
+
+## Citation and Archival Metadata
+
+QS-DMSS uses `CITATION.cff` as the canonical software-citation metadata file.
+GitHub uses this file for the repository citation prompt, and Zenodo can use it
+when archiving GitHub releases.
+
+The current citation metadata intentionally omits a DOI until Zenodo mints one.
+After Zenodo archival, update `CITATION.cff` and this document with the Zenodo
+DOI before the next public release.
 
 ## Approval Gate Status
 
