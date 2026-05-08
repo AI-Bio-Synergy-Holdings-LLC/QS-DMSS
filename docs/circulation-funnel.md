@@ -44,8 +44,9 @@ DOI: https://doi.org/10.5281/zenodo.20074924
 
 ## Starter Issue Backlog
 
-Open these as real GitHub issues after this funnel lands. Keep each issue small,
-assignable, and independently reviewable.
+The starter backlog was seeded as GitHub issues `#17` through `#26`. Keep each
+issue small, assignable, and independently reviewable; use this list as the
+source of truth for future replacements or follow-up tasks.
 
 ### 1. Add Linux/macOS snippets to the reviewer quickstart
 
