@@ -80,6 +80,12 @@ Reviewers who want to validate the published release without a source checkout
 can use the wheel-first path in
 [docs/reviewer-wheel-quickstart.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-wheel-quickstart.md).
 
+External reviewers and contributors can start with the circulation funnel in
+[docs/circulation-funnel.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/circulation-funnel.md),
+then open a scientific review, reproducibility review, bug report, feature
+request, or contributor task through
+[GitHub Issues](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new/choose).
+
 Start the local cockpit:
 
 ```powershell
@@ -204,6 +210,7 @@ use it when archiving GitHub releases.
 For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
+- Latest archived release DOI: [v0.1.4 / 10.5281/zenodo.20075891](https://doi.org/10.5281/zenodo.20075891)
 - First archived release DOI: [v0.1.3 / 10.5281/zenodo.20074925](https://doi.org/10.5281/zenodo.20074925)
 - Software Heritage archival: pending; add the SWHID after Software Heritage
   reports a completed archive for the release.

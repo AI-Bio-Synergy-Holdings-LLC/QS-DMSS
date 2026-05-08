@@ -1,0 +1,42 @@
+name: Scientific Review
+description: Review the scientific framing, assumptions, or model boundaries.
+title: "[Scientific Review]: "
+labels:
+  - review-wanted
+  - research-validation
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for reviewing QS-DMSS. Please focus this issue on scientific framing, assumptions, limitations, or validation gaps. This project is a public alpha and does not claim peer-reviewed scientific results.
+  - type: textarea
+    id: focus
+    attributes:
+      label: Review Focus
+      description: What scientific claim, assumption, model boundary, or validation path are you reviewing?
+      placeholder: "Example: clarify whether the demo configuration should be described as a smoke test rather than a physical benchmark."
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Evidence Or Reference
+      description: Link papers, examples, calculations, or comparable tools that support your feedback.
+    validations:
+      required: false
+  - type: textarea
+    id: suggested-change
+    attributes:
+      label: Suggested Change
+      description: What is the smallest wording, test, benchmark, or documentation change that would address this?
+    validations:
+      required: true
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope Check
+      options:
+        - label: I understand QS-DMSS is currently an alpha reference implementation.
+          required: true
+        - label: This issue does not report a private security concern.
+          required: true

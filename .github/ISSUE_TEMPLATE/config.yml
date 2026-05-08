@@ -1,5 +1,11 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
+  - name: Reviewer install quickstart
+    url: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-wheel-quickstart.md
+    about: Start here if you want to install QS-DMSS and run the public demo path before opening an issue.
+  - name: Circulation and review funnel
+    url: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/circulation-funnel.md
+    about: Use this guide to choose a scientific, reproducibility, documentation, or contributor review path.
   - name: Security Reports
     url: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/security/policy
     about: Please report suspected vulnerabilities privately through the security policy.
