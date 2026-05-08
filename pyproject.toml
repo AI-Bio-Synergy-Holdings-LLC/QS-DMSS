@@ -51,11 +51,12 @@ Contributing = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main
 Review = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new/choose"
 "Reviewer Quickstart" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-wheel-quickstart.md"
 "Circulation Funnel" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/circulation-funnel.md"
+"Beta Readiness" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/beta-readiness.md"
 PyPI = "https://pypi.org/project/qs-dmss/"
 DOI = "https://doi.org/10.5281/zenodo.20074924"
 "First Archived Release DOI" = "https://doi.org/10.5281/zenodo.20074925"
-"Latest Archived Release DOI" = "https://doi.org/10.5281/zenodo.20075891"
-Zenodo = "https://zenodo.org/records/20075891"
+"Latest Archived Release DOI" = "https://doi.org/10.5281/zenodo.20076871"
+Zenodo = "https://zenodo.org/records/20076871"
 
 [project.optional-dependencies]
 dev = [

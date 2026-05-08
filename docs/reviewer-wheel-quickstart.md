@@ -14,9 +14,23 @@ Wheel:
 
 ## PyPI Install
 
+Windows PowerShell:
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install qs-dmss
+
+qs-dmss run-demo
+qs-dmss campaigns run-demo
+```
+
+Linux/macOS Bash:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install qs-dmss
 
@@ -28,10 +42,19 @@ qs-dmss campaigns run-demo
 
 Use this path when validating the GitHub release asset directly.
 
+Windows PowerShell:
+
 ```powershell
 $release = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.1.5"
 Invoke-WebRequest "$release/qs_dmss-0.1.5-py3-none-any.whl" -OutFile "qs_dmss-0.1.5-py3-none-any.whl"
 python -m pip install .\qs_dmss-0.1.5-py3-none-any.whl
+```
+
+Linux/macOS Bash:
+
+```bash
+release="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.1.5"
+python -m pip install "$release/qs_dmss-0.1.5-py3-none-any.whl"
 ```
 
 ## Expected Signals
@@ -41,6 +64,46 @@ python -m pip install .\qs_dmss-0.1.5-py3-none-any.whl
   `Verification passed`.
 - `qs-dmss campaigns run-demo` prints a saved campaign ID, planned run count,
   recommended run, decision status, and experiment bundle path.
+
+The demo is a smoke test for installation, deterministic execution, evidence
+generation, verification, and replay. It is not a scientific benchmark and does
+not claim peer-reviewed physical significance.
+
+Representative `qs-dmss run-demo` output:
+
+```text
+Demo config: .../demo.yaml
+Run complete: .../runs/demo-20260508T005532Z-e132e11e
+Evidence bundle: .../runs/demo-20260508T005532Z-e132e11e/evidence_bundle.zip
+Verification passed for .../runs/demo-20260508T005532Z-e132e11e
+Checked files: 8
+```
+
+Representative `qs-dmss campaigns run-demo` output:
+
+```text
+Campaign saved: campaign-20260508T005536Z-a1acec40
+Label: Stability frontier campaign
+Planned runs: 6
+Recommended run: demo-g-int-0-02-time-step-0-015-20260508T005536Z-134a1eaf
+Decision status: qualified
+Reason: Recommended run satisfies every active constraint and achieved the strongest weighted score.
+Bundle: .../experiments/campaign-20260508T005536Z-a1acec40/evidence_bundle.zip
+```
+
+## Reproducibility Review Checklist
+
+- Confirm `python -m pip install qs-dmss` succeeds in a fresh environment.
+- Confirm `qs-dmss run-demo` writes outputs under a caller-controlled `runs/`
+  path or the current working directory.
+- Confirm the generated run includes `run.json`, `metrics.json`,
+  `environment.lock.json`, `manifest.sha256.json`, and `evidence_bundle.zip`.
+- Confirm `qs-dmss verify <run_dir>` reports `Verification passed`.
+- Confirm `qs-dmss replay <run_dir>` creates a new verified replay run.
+- Confirm `qs-dmss campaigns run-demo` writes an experiment bundle and reports
+  a recommendation status.
+- Open a Reproducibility Review issue if any install, output path, verification,
+  replay, or campaign step behaves differently on your platform.
 
 ## Optional Source Checkout
 

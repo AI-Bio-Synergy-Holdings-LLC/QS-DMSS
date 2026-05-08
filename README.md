@@ -194,11 +194,19 @@ and validates:
 - installed-wheel `run-demo` smoke test
 - Docker build plus live `/api/health` and `/api/configs` probes
 
+Fresh-install adoption smoke lives in
+[.github/workflows/fresh-install-smoke.yml](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/.github/workflows/fresh-install-smoke.yml)
+and validates PyPI and GitHub release-wheel installs on Linux, macOS, and
+Windows.
+
 Release-candidate versioning and distribution artifact rules live in
 [RELEASE.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/RELEASE.md).
 
 PyPI distribution details and Trusted Publishing provenance live in
 [docs/pypi-distribution-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/pypi-distribution-readiness.md).
+
+The beta promotion gate lives in
+[docs/beta-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/beta-readiness.md).
 
 ## Citation
 
@@ -210,7 +218,8 @@ use it when archiving GitHub releases.
 For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
-- Latest archived release DOI: [v0.1.4 / 10.5281/zenodo.20075891](https://doi.org/10.5281/zenodo.20075891)
+- Latest archived release DOI: [v0.1.5 / 10.5281/zenodo.20076871](https://doi.org/10.5281/zenodo.20076871)
+- Previous archived release DOI: [v0.1.4 / 10.5281/zenodo.20075891](https://doi.org/10.5281/zenodo.20075891)
 - First archived release DOI: [v0.1.3 / 10.5281/zenodo.20074925](https://doi.org/10.5281/zenodo.20074925)
 - Software Heritage archival: pending; add the SWHID after Software Heritage
   reports a completed archive for the release.

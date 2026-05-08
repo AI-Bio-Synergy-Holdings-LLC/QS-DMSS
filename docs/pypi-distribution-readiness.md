@@ -36,6 +36,10 @@ qs-dmss run-demo
 qs-dmss campaigns run-demo
 ```
 
+Cross-platform adoption validation lives in
+`.github/workflows/fresh-install-smoke.yml`. It validates both the PyPI install
+path and the GitHub release-wheel path on Linux, macOS, and Windows.
+
 ## Package Identity
 
 - PyPI project name: `qs-dmss`
@@ -57,7 +61,9 @@ The current citation metadata includes the Zenodo concept DOI so package-facing
 metadata has a stable citation target:
 
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: `10.5281/zenodo.20075891`
+- Latest archived release DOI: `10.5281/zenodo.20076871`
+- Latest archived release record: `https://zenodo.org/records/20076871`
+- Previous archived release DOI: `10.5281/zenodo.20075891`
 - First archived release DOI: `10.5281/zenodo.20074925`
 - First archived release record: `https://zenodo.org/records/20074925`
 - Software Heritage archival status: pending; no SWHID is recorded yet
