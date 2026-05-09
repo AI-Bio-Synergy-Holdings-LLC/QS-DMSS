@@ -58,5 +58,5 @@ def test_public_discovery_metadata_is_present() -> None:
     }:
         assert label in urls
 
-    assert urls["Latest Archived Release DOI"] == "https://doi.org/10.5281/zenodo.20076871"
-    assert urls["Zenodo"] == "https://zenodo.org/records/20076871"
+    assert urls["Latest Archived Release DOI"] == "https://doi.org/10.5281/zenodo.20091602"
+    assert urls["Zenodo"] == "https://zenodo.org/records/20091602"

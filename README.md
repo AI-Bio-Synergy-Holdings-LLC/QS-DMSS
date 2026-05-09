@@ -221,8 +221,8 @@ use it when archiving GitHub releases.
 For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
-- Latest archived release DOI: [v0.1.5 / 10.5281/zenodo.20076871](https://doi.org/10.5281/zenodo.20076871)
-- Previous archived release DOI: [v0.1.4 / 10.5281/zenodo.20075891](https://doi.org/10.5281/zenodo.20075891)
+- Latest archived release DOI: [v0.2.0 / 10.5281/zenodo.20091602](https://doi.org/10.5281/zenodo.20091602)
+- Previous archived release DOI: [v0.1.5 / 10.5281/zenodo.20076871](https://doi.org/10.5281/zenodo.20076871)
 - First archived release DOI: [v0.1.3 / 10.5281/zenodo.20074925](https://doi.org/10.5281/zenodo.20074925)
 - Software Heritage archival: pending; add the SWHID after Software Heritage
   reports a completed archive for the release.
