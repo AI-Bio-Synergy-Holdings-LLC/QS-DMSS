@@ -4,15 +4,15 @@ QS-DMSS uses `CITATION.cff` as its canonical citation metadata file.
 
 ## Current Status
 
-- Public baseline: `v0.1.5`
+- Public baseline: `v0.2.0`
 - Current package metadata target: `v0.2.0` / `0.2.0`
 - Citation metadata file: `CITATION.cff`
 - DOI status: archived through the Zenodo GitHub integration
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: `10.5281/zenodo.20076871`
-- Latest archived release record: `https://zenodo.org/records/20076871`
-- Previous archived release DOI: `10.5281/zenodo.20075891`
-- Previous archived release record: `https://zenodo.org/records/20075891`
+- Latest archived release DOI: `10.5281/zenodo.20091602`
+- Latest archived release record: `https://zenodo.org/records/20091602`
+- Previous archived release DOI: `10.5281/zenodo.20076871`
+- Previous archived release record: `https://zenodo.org/records/20076871`
 - First archived release DOI: `10.5281/zenodo.20074925`
 - First archived release record: `https://zenodo.org/records/20074925`
 - Zenodo citation/reference metadata: no downstream citation or reference
@@ -42,7 +42,7 @@ Use the version DOI when citing the exact first archived release artifacts:
 Use the latest known version DOI when citing the current archived release:
 
 ```text
-10.5281/zenodo.20076871
+10.5281/zenodo.20091602
 ```
 
 `CITATION.cff` stores the concept DOI in the root `doi` field so GitHub and

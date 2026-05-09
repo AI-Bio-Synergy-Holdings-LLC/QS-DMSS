@@ -61,9 +61,9 @@ The current citation metadata includes the Zenodo concept DOI so package-facing
 metadata has a stable citation target:
 
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: `10.5281/zenodo.20076871`
-- Latest archived release record: `https://zenodo.org/records/20076871`
-- Previous archived release DOI: `10.5281/zenodo.20075891`
+- Latest archived release DOI: `10.5281/zenodo.20091602`
+- Latest archived release record: `https://zenodo.org/records/20091602`
+- Previous archived release DOI: `10.5281/zenodo.20076871`
 - First archived release DOI: `10.5281/zenodo.20074925`
 - First archived release record: `https://zenodo.org/records/20074925`
 - Software Heritage archival status: pending; no SWHID is recorded yet
