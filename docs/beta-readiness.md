@@ -1,6 +1,6 @@
-# Beta Readiness Gate
+# Beta Readiness
 
-This gate defines what must be true before QS-DMSS moves from
+This document records the gate used to move QS-DMSS from
 `Development Status :: 3 - Alpha` to `Development Status :: 4 - Beta` on PyPI.
 
 The intended beta claim is narrow:
@@ -10,15 +10,14 @@ The intended beta claim is narrow:
 
 ## Current Decision
 
-- Current published release: `v0.1.5` / `0.1.5`
-- Current PyPI classifier: `Development Status :: 3 - Alpha`
-- Target promotion release: `v0.2.0`
-- Target promotion classifier: `Development Status :: 4 - Beta`
+- Current release target: `v0.2.0` / `0.2.0`
+- Current PyPI classifier target: `Development Status :: 4 - Beta`
+- Promotion basis: `v0.1.5` passed the beta-readiness gate
 - Current Zenodo concept DOI: `10.5281/zenodo.20074924`
 - Latest archived release DOI: `10.5281/zenodo.20076871`
 
-Do not publish the beta classifier until this gate is green on `main` and the
-release owner explicitly approves the `v0.2.0` promotion.
+The beta classifier is only appropriate for the narrow package/evidence surface
+defined below.
 
 ## Beta-Stable Surface
 
@@ -50,7 +49,7 @@ The beta label does not claim:
 - Long-term stability for experimental cockpit UI details.
 - Compatibility with arbitrary user-defined physical models.
 
-## Required Evidence Before Promotion
+## Required Evidence
 
 - Main CI is green across Python 3.10 through 3.13.
 - CodeQL has no open high-severity alerts.
@@ -69,12 +68,12 @@ The beta label does not claim:
 
 ## Promotion Patch
 
-Once this gate is satisfied, the `v0.2.0` promotion PR should make only the
-classifier and release-alignment changes needed for beta:
+The `v0.2.0` promotion makes only the classifier and release-alignment changes
+needed for beta:
 
-- Bump `pyproject.toml` and `qs_dmss.__version__` to `0.2.0`.
-- Change the PyPI classifier to `Development Status :: 4 - Beta`.
-- Update release docs and issue templates from `0.1.5` to `0.2.0`.
+- Bumps `pyproject.toml` and `qs_dmss.__version__` to `0.2.0`.
+- Changes the PyPI classifier to `Development Status :: 4 - Beta`.
+- Updates release docs and issue templates to `0.2.0`.
 - Preserve the public language: beta for reproducible package/evidence
   workflows, not peer-reviewed scientific validation.
 - Cut `v0.2.0`, let Zenodo archive it, and publish through Trusted Publishing.

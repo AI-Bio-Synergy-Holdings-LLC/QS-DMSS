@@ -5,7 +5,7 @@ QS-DMSS uses `CITATION.cff` as its canonical citation metadata file.
 ## Current Status
 
 - Public baseline: `v0.1.5`
-- Current package metadata target: `v0.1.5` / `0.1.5`
+- Current package metadata target: `v0.2.0` / `0.2.0`
 - Citation metadata file: `CITATION.cff`
 - DOI status: archived through the Zenodo GitHub integration
 - Zenodo concept DOI: `10.5281/zenodo.20074924`

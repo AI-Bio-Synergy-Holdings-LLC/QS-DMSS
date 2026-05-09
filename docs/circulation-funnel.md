@@ -27,12 +27,13 @@ Use these calls to action in public posts, direct outreach, and release notes.
 ## Copyable Review Ask
 
 ```text
-QS-DMSS is a public, citable alpha for reproducible dark matter simulation
-workflows. I am looking for review in three specific areas:
+QS-DMSS is public, citable beta software for reproducible package/evidence
+workflows. It is not peer-reviewed scientific validation. I am looking for
+review in three specific areas:
 
 1. Reproducibility: does `pip install qs-dmss`, `qs-dmss run-demo`, and
    `qs-dmss campaigns run-demo` work cleanly on your machine?
-2. Scientific framing: are the model boundaries and alpha-status claims clear
+2. Scientific framing: are the model boundaries and beta-status claims clear
    and appropriately conservative?
 3. Contributor path: are there small issues that would be reasonable for a
    first external pull request?
