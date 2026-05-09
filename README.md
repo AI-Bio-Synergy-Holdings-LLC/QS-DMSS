@@ -4,6 +4,9 @@ QS-DMSS is a deterministic, evidence-first reference build of the QuantumScalar
 Dark Matter Simulation Suite. This repository now ships the productization spine
 needed to move from prototype scripts into a reproducible package:
 
+QS-DMSS is beta for reproducible package/evidence workflows; it is not
+peer-reviewed scientific validation.
+
 - Installable Python package
 - Bundled demo assets for installed-package smoke testing
 - Config-driven simulation CLI

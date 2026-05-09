@@ -8,7 +8,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for reviewing QS-DMSS. Please focus this issue on scientific framing, assumptions, limitations, or validation gaps. This project is a public alpha and does not claim peer-reviewed scientific results.
+        Thank you for reviewing QS-DMSS. Please focus this issue on scientific framing, assumptions, limitations, or validation gaps. This project is beta for reproducible package/evidence workflows; it is not peer-reviewed scientific validation.
   - type: textarea
     id: focus
     attributes:
@@ -36,7 +36,7 @@ body:
     attributes:
       label: Scope Check
       options:
-        - label: I understand QS-DMSS is currently an alpha reference implementation.
+        - label: I understand QS-DMSS is beta for reproducible package/evidence workflows, not peer-reviewed scientific validation.
           required: true
         - label: This issue does not report a private security concern.
           required: true

@@ -25,6 +25,10 @@ def test_public_discovery_metadata_is_present() -> None:
     pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
     project = pyproject["project"]
 
+    classifiers = set(project["classifiers"])
+    assert "Development Status :: 4 - Beta" in classifiers
+    assert "Development Status :: 3 - Alpha" not in classifiers
+
     keywords = set(project["keywords"])
     for keyword in {
         "dark matter",
