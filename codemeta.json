@@ -1,0 +1,49 @@
+{
+  "@context": "https://w3id.org/codemeta/3.1",
+  "@type": "SoftwareSourceCode",
+  "@id": "https://doi.org/10.5281/zenodo.20074924",
+  "name": "QS-DMSS",
+  "description": "Evidence-first reference package for the QuantumScalar Dark Matter Simulation Suite, with deterministic runs, decision campaigns, and reproducible evidence bundles.",
+  "identifier": "https://doi.org/10.5281/zenodo.20074924",
+  "citation": "https://doi.org/10.5281/zenodo.20091602",
+  "codeRepository": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
+  "issueTracker": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues",
+  "downloadUrl": "https://pypi.org/project/qs-dmss/",
+  "releaseNotes": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.2.0",
+  "url": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS#readme",
+  "softwareVersion": "0.2.0",
+  "version": "0.2.0",
+  "datePublished": "2026-05-09",
+  "license": "https://spdx.org/licenses/Apache-2.0",
+  "programmingLanguage": "Python",
+  "runtimePlatform": "Python >=3.10",
+  "applicationCategory": "Scientific/Engineering",
+  "developmentStatus": "active",
+  "keywords": [
+    "dark matter",
+    "Schrodinger-Poisson",
+    "scientific computing",
+    "simulation",
+    "reproducibility",
+    "evidence bundles",
+    "Python"
+  ],
+  "author": [
+    {
+      "@type": "Organization",
+      "name": "AI Bio Synergy Holdings LLC"
+    }
+  ],
+  "maintainer": [
+    {
+      "@type": "Organization",
+      "name": "AI Bio Synergy Holdings LLC"
+    }
+  ],
+  "softwareRequirements": [
+    "fastapi>=0.116",
+    "numpy>=1.26",
+    "PyYAML>=6.0",
+    "uvicorn>=0.35"
+  ]
+}

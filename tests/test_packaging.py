@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from importlib import metadata
 from pathlib import Path
 
@@ -60,3 +61,15 @@ def test_public_discovery_metadata_is_present() -> None:
 
     assert urls["Latest Archived Release DOI"] == "https://doi.org/10.5281/zenodo.20091602"
     assert urls["Zenodo"] == "https://zenodo.org/records/20091602"
+
+
+def test_codemeta_release_metadata_is_aligned() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
+    declared_version = pyproject["project"]["version"]
+    codemeta = json.loads((repo_root / "codemeta.json").read_text(encoding="utf-8"))
+
+    assert codemeta["softwareVersion"] == declared_version
+    assert codemeta["version"] == declared_version
+    assert codemeta["citation"] == "https://doi.org/10.5281/zenodo.20091602"
+    assert codemeta["releaseNotes"].endswith(f"/releases/tag/v{declared_version}")
