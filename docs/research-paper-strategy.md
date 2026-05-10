@@ -39,6 +39,8 @@ Evidence needed:
 - Fresh install smoke from PyPI and GitHub release wheels.
 - Deterministic run-demo and campaign-demo evidence.
 - Benchmark scenarios from `docs/research-grade-upgrade-slice.md`.
+- Reviewer feedback gathered through `docs/reviewer-packet.md`.
+- A JOSS preflight pass against `docs/joss-preflight.md`.
 - A clear limitations section.
 - Human-confirmed authorship, affiliations, acknowledgements, and AI usage
   disclosure.
@@ -96,9 +98,9 @@ Claims to avoid until then:
 
 ## Immediate Writing Task
 
-Do not expand `paper/paper.md` into submission form yet. First, build the
-benchmark and validation spine. Then update the paper scaffold with evidence
-that a reviewer can reproduce.
+Do not expand `paper/paper.md` into submission form yet. Use `v0.3.0` as the
+stable public baseline, gather reviewer feedback through the review packet, and
+then update the paper scaffold with evidence that a reviewer can reproduce.
 
 The current paper should remain a disciplined scaffold until the benchmark
-slice provides data.
+slice and external review provide enough data.
