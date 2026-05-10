@@ -216,6 +216,11 @@ Scholarly indexing readiness and public-launch materials live in
 and
 [docs/public-technical-launch-post.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/public-technical-launch-post.md).
 
+The next research-grade upgrade slice is defined in
+[docs/research-grade-upgrade-slice.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/research-grade-upgrade-slice.md),
+with paper strategy notes in
+[docs/research-paper-strategy.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/research-paper-strategy.md).
+
 ## Citation
 
 Citation metadata lives in
