@@ -40,6 +40,49 @@ Cross-platform adoption validation lives in
 `.github/workflows/fresh-install-smoke.yml`. It validates both the PyPI install
 path and the GitHub release-wheel path on Linux, macOS, and Windows.
 
+## Built Wheel Project URL Check
+
+PyPI renders project links from wheel metadata, so release preflight should
+confirm `Project-URL` fields after building artifacts:
+
+```powershell
+python -m build --sdist --wheel
+$env:WHEEL_PATH = (Get-ChildItem dist\qs_dmss-*.whl | Sort-Object Name | Select-Object -Last 1).FullName
+python - <<'PY'
+import email
+import os
+import zipfile
+from pathlib import Path
+
+wheel = Path(os.environ["WHEEL_PATH"])
+required = {
+    "Repository",
+    "Issues",
+    "Documentation",
+    "PyPI",
+    "DOI",
+    "Review",
+    "Reviewer Quickstart",
+}
+
+with zipfile.ZipFile(wheel) as archive:
+    metadata_name = next(
+        name for name in archive.namelist() if name.endswith(".dist-info/METADATA")
+    )
+    message = email.message_from_bytes(archive.read(metadata_name))
+
+project_urls = message.get_all("Project-URL") or []
+labels = {item.split(",", 1)[0].strip() for item in project_urls}
+missing = required - labels
+if missing:
+    raise SystemExit(f"Missing Project-URL labels: {sorted(missing)}")
+print("Project-URL labels present:", ", ".join(sorted(labels)))
+PY
+```
+
+The check should include at least Repository, Issues, Documentation, PyPI, DOI,
+Review, and Reviewer Quickstart before publication.
+
 ## Package Identity
 
 - PyPI project name: `qs-dmss`

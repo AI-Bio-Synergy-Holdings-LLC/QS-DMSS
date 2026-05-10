@@ -10,6 +10,9 @@ public-facing, so small, reproducible changes are preferred over broad rewrites.
 - Regression tests for CLI, cockpit, packaging, and reproducibility behavior.
 - Small bug fixes with a clear before/after validation path.
 
+New contributors can use [docs/contributor-map.md](docs/contributor-map.md) to
+match user-facing behavior to source files and tests.
+
 ## Development Setup
 
 ```powershell

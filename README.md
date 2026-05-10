@@ -221,6 +221,18 @@ The beta promotion gate lives in
 Benchmark validation guidance lives in
 [docs/benchmark-validation.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/benchmark-validation.md).
 
+Evidence artifact definitions live in
+[docs/evidence-bundle-glossary.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/evidence-bundle-glossary.md),
+demo and benchmark expectations live in
+[docs/demo-benchmark-expectations.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/demo-benchmark-expectations.md),
+and decision profile fields are annotated in
+[docs/decision-profile-example.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/decision-profile-example.md).
+
+Contributor source-map guidance lives in
+[docs/contributor-map.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/contributor-map.md),
+and GitHub social preview setup lives in
+[docs/social-preview.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/social-preview.md).
+
 Scholarly indexing readiness and public-launch materials live in
 [docs/ascl-joss-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ascl-joss-readiness.md)
 and

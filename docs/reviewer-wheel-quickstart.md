@@ -69,6 +69,11 @@ The demo is a smoke test for installation, deterministic execution, evidence
 generation, verification, and replay. It is not a scientific benchmark and does
 not claim peer-reviewed physical significance.
 
+For artifact definitions, see
+[docs/evidence-bundle-glossary.md](evidence-bundle-glossary.md). For the
+difference between demo smoke tests and benchmark validation, see
+[docs/demo-benchmark-expectations.md](demo-benchmark-expectations.md).
+
 Representative `qs-dmss run-demo` output:
 
 ```text
