@@ -89,6 +89,10 @@ Reviewers who want to validate the published release without a source checkout
 can use the wheel-first path in
 [docs/reviewer-wheel-quickstart.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-wheel-quickstart.md).
 
+Reviewers who want the shortest overview of what to inspect, what QS-DMSS
+claims, and where to file feedback can start with
+[docs/reviewer-packet.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-packet.md).
+
 External reviewers and contributors can start with the circulation funnel in
 [docs/circulation-funnel.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/circulation-funnel.md),
 then open a scientific review, reproducibility review, bug report, feature
@@ -237,6 +241,9 @@ Scholarly indexing readiness and public-launch materials live in
 [docs/ascl-joss-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ascl-joss-readiness.md)
 and
 [docs/public-technical-launch-post.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/public-technical-launch-post.md).
+
+The JOSS preflight checklist lives in
+[docs/joss-preflight.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/joss-preflight.md).
 
 The next research-grade upgrade slice is defined in
 [docs/research-grade-upgrade-slice.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/research-grade-upgrade-slice.md),

@@ -92,7 +92,7 @@ Review, and Reviewer Quickstart before publication.
 - Organization: `AI Bio Synergy Holdings LLC`
 - License: `Apache-2.0`
 - Supported Python range: `>=3.10`
-- CI validation range for `v0.1.x`: Python 3.10 through 3.13 plus Docker smoke
+- CI validation range for `v0.3.x`: Python 3.10 through 3.13 plus Docker smoke
 - Citation metadata: `CITATION.cff`
 
 ## Citation and Archival Metadata
@@ -137,7 +137,7 @@ distribution preparation phase:
 - Non-sensitive support intake: GitHub Issues on
   `AI-Bio-Synergy-Holdings-LLC/QS-DMSS`.
 - Sensitive report intake: `SECURITY.md`.
-- Supported release line: `v0.1.x`, beginning with `v0.1.0`.
+- Supported release line: `v0.3.x`, beginning with `v0.3.0`.
 - Supported Python range: package metadata `>=3.10`, with CI validation on
   Python 3.10 through 3.13.
 - Artifact policy: any later PyPI upload of `0.1.0` must use the exact GitHub

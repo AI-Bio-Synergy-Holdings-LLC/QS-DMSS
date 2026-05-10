@@ -2,8 +2,12 @@
 
 ## Supported Versions
 
-The currently supported public release line is `v0.1.x`, beginning with
-`v0.1.0`.
+The currently supported public release line is `v0.3.x`, beginning with
+`v0.3.0`.
+
+Earlier public release lines remain archived and citable, but security fixes
+should target the current supported line unless a maintainer explicitly decides
+that a backport is necessary.
 
 ## Reporting a Vulnerability
 

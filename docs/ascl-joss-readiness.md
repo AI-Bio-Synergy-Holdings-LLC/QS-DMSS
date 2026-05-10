@@ -4,7 +4,7 @@ This document keeps QS-DMSS honest about public scholarly-indexing readiness.
 It separates materials that can be prepared now from claims and submissions
 that should wait for external research-use evidence.
 
-Last reviewed: 2026-05-09
+Last reviewed: 2026-05-10
 
 ## Current Public Baseline
 
@@ -100,6 +100,8 @@ Ready now:
   macOS, and Windows.
 - The package has tests, replay, verification, evidence bundles, and release
   artifacts.
+- A reviewer packet now gives external reviewers a single entrypoint for the
+  review claim, fast validation path, artifacts to inspect, and issue lanes.
 - A pre-submission paper scaffold lives under `paper/`.
 
 Not ready yet:
@@ -112,6 +114,9 @@ Not ready yet:
 - The paper still needs a stronger state-of-the-field comparison and a concrete
   research impact statement backed by adoption, benchmark, preprint, or workflow
   evidence.
+
+The detailed preflight matrix lives in
+[joss-preflight.md](joss-preflight.md).
 
 Recommended JOSS path:
 

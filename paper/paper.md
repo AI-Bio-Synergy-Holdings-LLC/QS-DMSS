@@ -12,7 +12,7 @@ authors:
 affiliations:
   - name: "TODO: Confirm author affiliations"
     index: 1
-date: 2026-05-09
+date: 10 May 2026
 bibliography: paper.bib
 ---
 
@@ -52,7 +52,11 @@ execution, artifact capture, replay, verification, campaign expansion, and
 objective-based recommendation.
 
 Relevant context includes ultralight scalar dark matter reviews [@hui2017] and
-the scientific Python stack used by the implementation [@harris2020].
+the scientific Python stack used by the implementation [@harris2020]. The
+comparison worklist should include PyUltraLight-style notebook solvers, AMR or
+cosmological scalar-field codes, and workflow/reproducibility tools. QS-DMSS
+should be positioned around evidence capture and reviewability rather than
+large-scale solver performance.
 
 # Software design
 
@@ -90,10 +94,14 @@ not be presented as peer-reviewed scientific validation of the underlying model.
 
 # AI usage disclosure
 
-TODO: Finalize this disclosure before submission. If generative AI tools were
-used in software development, documentation, release engineering, or paper
-drafting, describe how they were used and how human review, tests, and
-validation controlled the quality of generated content.
+TODO: Owner must confirm the final disclosure before submission.
+
+Draft disclosure: OpenAI ChatGPT/Codex-style assistance was used during
+software development, documentation drafting, release engineering, and paper
+scaffolding. Human maintainers retained responsibility for design decisions,
+reviewed generated changes, ran tests and release validation, and controlled
+what was merged, tagged, and published. No generative AI output should be
+treated as scientific validation of the underlying model.
 
 # Acknowledgements
 
