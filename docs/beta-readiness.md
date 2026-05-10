@@ -14,7 +14,7 @@ The intended beta claim is narrow:
 - Current PyPI classifier target: `Development Status :: 4 - Beta`
 - Promotion basis: `v0.1.5` passed the beta-readiness gate
 - Current Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: pending for `v0.3.0`; previous archived release DOI: `10.5281/zenodo.20091602`
+- Latest archived release DOI: `10.5281/zenodo.20112923`
 
 The beta classifier is only appropriate for the narrow package/evidence surface
 defined below.
