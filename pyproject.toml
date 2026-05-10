@@ -76,7 +76,12 @@ package-dir = { "" = "src" }
 where = ["src"]
 
 [tool.setuptools.package-data]
-"qs_dmss.assets" = ["configs/*.yaml", "schemas/*.json"]
+"qs_dmss.assets" = [
+  "benchmarks/expected/*.json",
+  "benchmarks/scenarios/*.yaml",
+  "configs/*.yaml",
+  "schemas/*.json",
+]
 "qs_dmss.cockpit" = ["static/*.css", "static/*.html", "static/*.js"]
 
 [tool.pytest.ini_options]

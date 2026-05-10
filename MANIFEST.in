@@ -8,7 +8,9 @@ include SECURITY.md
 include codemeta.json
 include pyproject.toml
 recursive-include configs *.yaml
+recursive-include benchmarks *.md
 recursive-include docs *.md
 recursive-include paper *.bib *.md
 recursive-include schemas *.json
+recursive-include src/qs_dmss/assets/benchmarks *.yaml *.json
 recursive-include tests *.py
