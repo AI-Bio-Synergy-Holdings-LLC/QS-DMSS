@@ -38,6 +38,16 @@ Primary deliverable:
 - Add a small set of canonical benchmark scenarios that can run quickly,
   produce evidence bundles, and report acceptance signals.
 
+Initial implementation status:
+
+- Packaged benchmark scenarios and expected metric envelopes live under
+  `src/qs_dmss/assets/benchmarks/`.
+- `qs-dmss benchmarks list` exposes the packaged scenario names.
+- `qs-dmss benchmarks validate` runs selected scenarios, verifies evidence,
+  checks metric envelopes, replays runs, and writes
+  `benchmark-validation/benchmark-validation.json`.
+- Reviewer guidance lives in `docs/benchmark-validation.md`.
+
 Suggested structure:
 
 ```text

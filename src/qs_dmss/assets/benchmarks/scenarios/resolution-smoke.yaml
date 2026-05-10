@@ -1,0 +1,41 @@
+run:
+  name: benchmark-resolution-smoke
+  seed: 11
+  output_root: runs
+
+engine:
+  backend: numpy
+  grid_shape: [6, 6, 6]
+  box_size: 1.0
+  mass: 1.0
+  g_int: 0.05
+  time_step: 0.015
+  num_steps: 5
+  log_every: 1
+
+initial:
+  kind: gaussian
+  amplitude: 1.0
+  width: 0.22
+  random_phase: true
+
+objective:
+  name: Benchmark resolution smoke
+  summary: Exercise a smaller grid to prove the benchmark validator is not tied to the demo dimensions.
+  primary_metric: energy_drift
+  goal: minimize_abs
+
+constraints:
+  max_abs_energy_drift: 0.2
+  max_abs_norm_drift: 0.2
+  min_max_density: 0.4
+  max_elapsed_seconds: 15.0
+  require_verification: true
+
+ranking:
+  primary_metric_weight: 2.2
+  weights:
+    energy_drift: 1.0
+    norm_drift: 0.9
+    max_density: 0.5
+    elapsed_seconds: 0.4

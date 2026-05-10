@@ -82,6 +82,12 @@ PyPI distribution, Zenodo DOI archival [@qsdmss020], CI across Python 3.10
 through 3.13, Docker smoke validation, and installed-package demo/campaign smoke
 tests across Linux, macOS, and Windows.
 
+The post-beta development line adds a lightweight benchmark validation spine:
+packaged benchmark scenarios, expected metric envelopes, evidence-bundle
+verification, replay checks, and a JSON validation report. This benchmark spine
+supports software-methods review of the reproducibility workflow, but it should
+not be presented as peer-reviewed scientific validation of the underlying model.
+
 # AI usage disclosure
 
 TODO: Finalize this disclosure before submission. If generative AI tools were

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "scenario": "demo-baseline",
+  "description": "Demo-scale deterministic benchmark for the packaged run, evidence, verify, and replay path.",
+  "metric_envelopes": {
+    "final_norm": {
+      "min": 0.1203,
+      "max": 0.1204
+    },
+    "norm_drift": {
+      "abs_max": 1e-9
+    },
+    "energy_drift": {
+      "min": 0.32,
+      "max": 0.34
+    },
+    "max_density": {
+      "min": 0.93,
+      "max": 0.96
+    },
+    "elapsed_seconds": {
+      "min": 0.0,
+      "max": 15.0
+    }
+  },
+  "history": {
+    "expected_final_step": 6,
+    "expected_points": 7
+  },
+  "replay": {
+    "density_allclose_rtol": 1e-10,
+    "density_allclose_atol": 1e-12
+  }
+}

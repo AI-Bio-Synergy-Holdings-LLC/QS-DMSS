@@ -49,6 +49,40 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Optional output directory override for replayed runs.",
     )
 
+    benchmarks_parser = subparsers.add_parser(
+        "benchmarks",
+        help="List and validate packaged benchmark scenarios.",
+    )
+    benchmarks_subparsers = benchmarks_parser.add_subparsers(
+        dest="benchmarks_command",
+        required=True,
+    )
+
+    benchmarks_subparsers.add_parser(
+        "list",
+        help="List packaged benchmark scenario names.",
+    )
+
+    benchmarks_validate_parser = benchmarks_subparsers.add_parser(
+        "validate",
+        help="Run benchmark scenarios and validate evidence, metrics, and replay.",
+    )
+    benchmarks_validate_parser.add_argument(
+        "--scenario",
+        action="append",
+        dest="scenarios",
+        help="Scenario name to validate. Repeat to validate multiple scenarios.",
+    )
+    benchmarks_validate_parser.add_argument(
+        "--output-root",
+        help="Directory for benchmark run, replay, and summary outputs.",
+    )
+    benchmarks_validate_parser.add_argument(
+        "--skip-replay",
+        action="store_true",
+        help="Skip replay validation and only check fresh benchmark runs.",
+    )
+
     cockpit_parser = subparsers.add_parser(
         "cockpit",
         help="Start the local QS-DMSS browser cockpit.",
@@ -184,6 +218,37 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Replay complete: {outputs.run_dir}")
         print(f"Evidence bundle: {outputs.bundle_path}")
         return _print_verification_result(outputs.run_dir)
+
+    if args.command == "benchmarks":
+        from qs_dmss.benchmarks import (
+            list_benchmark_scenarios,
+            validate_benchmark_scenarios,
+        )
+
+        if args.benchmarks_command == "list":
+            for scenario_name in list_benchmark_scenarios():
+                print(scenario_name)
+            return 0
+
+        if args.benchmarks_command == "validate":
+            try:
+                report = validate_benchmark_scenarios(
+                    scenarios=args.scenarios,
+                    output_root=args.output_root,
+                    replay=not args.skip_replay,
+                )
+            except (FileNotFoundError, ValueError) as exc:
+                print(exc)
+                return 1
+
+            for scenario in report["scenarios"]:
+                status = "passed" if scenario["success"] else "failed"
+                print(f"Benchmark {status}: {scenario['scenario']}")
+                for check in scenario["checks"]:
+                    if not check["success"]:
+                        print(f"- {check['name']}: {check['detail']}")
+            print(f"Report: {report['report_path']}")
+            return 0 if report["success"] else 1
 
     if args.command == "cockpit":
         from qs_dmss.cockpit.server import run_cockpit_server

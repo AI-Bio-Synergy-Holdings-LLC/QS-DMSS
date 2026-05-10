@@ -72,6 +72,12 @@ Launch the bundled installed-package demo campaign:
 qs-dmss campaigns run-demo
 ```
 
+Run the benchmark validation spine:
+
+```powershell
+qs-dmss benchmarks validate --scenario demo-baseline
+```
+
 For source development, install the checked-out repository in editable mode:
 
 ```powershell
@@ -172,6 +178,7 @@ and exposes the health endpoint at `http://127.0.0.1:8001/api/health`.
 
 ```text
 configs/                 Checked-in example configs
+benchmarks/              Benchmark validation guidance
 schemas/                 JSON schema for run configs
 src/qs_dmss/             Package source
 tests/                   Smoke and reproducibility tests
@@ -210,6 +217,9 @@ PyPI distribution details and Trusted Publishing provenance live in
 
 The beta promotion gate lives in
 [docs/beta-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/beta-readiness.md).
+
+Benchmark validation guidance lives in
+[docs/benchmark-validation.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/benchmark-validation.md).
 
 Scholarly indexing readiness and public-launch materials live in
 [docs/ascl-joss-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ascl-joss-readiness.md)
