@@ -10,11 +10,11 @@ The intended beta claim is narrow:
 
 ## Current Decision
 
-- Current release target: `v0.2.0` / `0.2.0`
+- Current release target: `v0.3.0` / `0.3.0`
 - Current PyPI classifier target: `Development Status :: 4 - Beta`
 - Promotion basis: `v0.1.5` passed the beta-readiness gate
 - Current Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: `10.5281/zenodo.20091602`
+- Latest archived release DOI: pending for `v0.3.0`; previous archived release DOI: `10.5281/zenodo.20091602`
 
 The beta classifier is only appropriate for the narrow package/evidence surface
 defined below.
@@ -31,6 +31,8 @@ The beta promise applies to these user-facing workflows:
 - Producing campaign outputs under caller-controlled `experiments/` paths.
 - Verifying generated evidence bundles with `qs-dmss verify`.
 - Replaying a generated run with `qs-dmss replay`.
+- Running `qs-dmss benchmarks validate --scenario demo-baseline` from the
+  packaged benchmark validation spine.
 - Publishing traceable wheel and sdist artifacts through GitHub releases and
   PyPI Trusted Publishing.
 - Keeping package metadata, release assets, and citation metadata aligned.
@@ -68,16 +70,20 @@ The beta label does not claim:
 
 ## Promotion Patch
 
-The `v0.2.0` promotion makes only the classifier and release-alignment changes
-needed for beta:
+The `v0.2.0` promotion made only the classifier and release-alignment changes
+needed for beta.
 
-- Bumps `pyproject.toml` and `qs_dmss.__version__` to `0.2.0`.
-- Changes the PyPI classifier to `Development Status :: 4 - Beta`.
-- Updates release docs and issue templates to `0.2.0`.
+The `v0.3.0` promotion adds the benchmark-validation release surface:
+
+- Bumps `pyproject.toml` and `qs_dmss.__version__` to `0.3.0`.
+- Keeps the PyPI classifier at `Development Status :: 4 - Beta`.
+- Ships packaged benchmark scenarios, expected metric envelopes, and
+  `qs-dmss benchmarks validate`.
+- Updates release docs and issue templates to `0.3.0`.
 - Preserve the public language: beta for reproducible package/evidence
   workflows, not peer-reviewed scientific validation.
-- Cut `v0.2.0`, let Zenodo archive it, and publish through Trusted Publishing.
+- Cut `v0.3.0`, let Zenodo archive it, and publish through Trusted Publishing.
 
-Avoid adding new features in the beta promotion PR. The point of the promotion
-is to change the maturity signal only after the release surface is already
-proven.
+Avoid expanding the scientific claim in the benchmark-validation promotion.
+The point of `v0.3.0` is to make the benchmark evidence workflow installable,
+not to claim peer-reviewed scientific validation.

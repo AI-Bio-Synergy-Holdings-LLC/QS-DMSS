@@ -78,7 +78,7 @@ external adoption, issue-driven review by another group, or integration into a
 real research workflow.
 
 The current public baseline provides near-term reproducibility evidence through
-PyPI distribution, Zenodo DOI archival [@qsdmss020], CI across Python 3.10
+PyPI distribution, Zenodo DOI archival [@qsdmss030], CI across Python 3.10
 through 3.13, Docker smoke validation, and installed-package demo/campaign smoke
 tests across Linux, macOS, and Windows.
 

@@ -6,13 +6,13 @@ adopters, and research collaborators.
 Suggested title:
 
 ```text
-QS-DMSS v0.2.0: a citable beta for reproducible simulation evidence workflows
+QS-DMSS v0.3.0: benchmark validation for reproducible simulation evidence workflows
 ```
 
 Post:
 
 ````markdown
-Today I am sharing QS-DMSS v0.2.0 as public beta software for reproducible
+Today I am sharing QS-DMSS v0.3.0 as public beta software for reproducible
 package/evidence workflows around QuantumScalar dark matter simulation.
 
 The point of this release is not to claim a new scientific result. It is not
@@ -30,6 +30,7 @@ QS-DMSS currently includes:
 - deterministic replay and verification commands;
 - template-driven decision campaigns across parameter grids;
 - objective-based run ranking;
+- packaged benchmark validation with expected metric envelopes;
 - a local cockpit for launching, inspecting, verifying, comparing, and exporting runs;
 - GitHub Actions CI across Python 3.10 through 3.13 plus Docker smoke validation;
 - fresh-install smoke validation from PyPI and GitHub release wheels on Linux, macOS, and Windows;
@@ -45,8 +46,8 @@ Public entry points:
 
 - GitHub: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
 - PyPI: https://pypi.org/project/qs-dmss/
-- Latest release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.2.0
-- Zenodo DOI: https://doi.org/10.5281/zenodo.20091602
+- Latest release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.3.0
+- Zenodo concept DOI: https://doi.org/10.5281/zenodo.20074924
 
 Fast smoke test:
 
@@ -57,6 +58,7 @@ python -m pip install --upgrade pip
 python -m pip install qs-dmss
 qs-dmss run-demo
 qs-dmss campaigns run-demo
+qs-dmss benchmarks validate --scenario demo-baseline
 ```
 
 What this release is:
@@ -85,12 +87,12 @@ or auditable dark matter modeling workflows, I would value your review.
 Short social version:
 
 ```text
-QS-DMSS v0.2.0 is public: citable beta software for reproducible
+QS-DMSS v0.3.0 is public: citable beta software for reproducible
 package/evidence workflows around QuantumScalar dark matter simulation.
 
 It focuses on the evidence spine: deterministic runs, manifest-verified bundles,
-replay, campaign comparison, objective-based recommendations, CI, PyPI, and
-Zenodo DOI archival.
+replay, campaign comparison, objective-based recommendations, packaged
+benchmark validation, CI, PyPI, and Zenodo DOI archival.
 
 This is not peer-reviewed scientific validation, and it is not a JOSS/ASCL claim
 yet. It is the public baseline for review, adoption feedback, and
@@ -98,5 +100,5 @@ research-readiness hardening.
 
 GitHub: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
 PyPI: https://pypi.org/project/qs-dmss/
-DOI: https://doi.org/10.5281/zenodo.20091602
+Concept DOI: https://doi.org/10.5281/zenodo.20074924
 ```

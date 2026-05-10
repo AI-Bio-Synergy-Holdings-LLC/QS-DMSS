@@ -127,12 +127,12 @@ def main() -> int:
     parser.add_argument(
         "--package-version",
         required=True,
-        help="Published package version, for example 0.2.0.",
+        help="Published package version, for example 0.3.0.",
     )
     parser.add_argument(
         "--release-tag",
         required=True,
-        help="GitHub release tag containing the wheel, for example v0.2.0.",
+        help="GitHub release tag containing the wheel, for example v0.3.0.",
     )
     args = parser.parse_args()
     run_smoke(args.source, args.package_version, args.release_tag)
