@@ -253,7 +253,7 @@ use it when archiving GitHub releases.
 For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
-- Latest archived release DOI: pending for `v0.3.0` until Zenodo archives the release
+- Latest archived release DOI: [v0.3.0 / 10.5281/zenodo.20112923](https://doi.org/10.5281/zenodo.20112923)
 - Previous archived release DOI: [v0.2.0 / 10.5281/zenodo.20091602](https://doi.org/10.5281/zenodo.20091602)
 - Earlier archived release DOI: [v0.1.5 / 10.5281/zenodo.20076871](https://doi.org/10.5281/zenodo.20076871)
 - First archived release DOI: [v0.1.3 / 10.5281/zenodo.20074925](https://doi.org/10.5281/zenodo.20074925)
