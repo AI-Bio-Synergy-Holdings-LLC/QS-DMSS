@@ -211,6 +211,11 @@ PyPI distribution details and Trusted Publishing provenance live in
 The beta promotion gate lives in
 [docs/beta-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/beta-readiness.md).
 
+Scholarly indexing readiness and public-launch materials live in
+[docs/ascl-joss-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ascl-joss-readiness.md)
+and
+[docs/public-technical-launch-post.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/public-technical-launch-post.md).
+
 ## Citation
 
 Citation metadata lives in
