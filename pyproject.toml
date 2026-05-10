@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qs-dmss"
-version = "0.2.0"
+version = "0.3.0"
 description = "Evidence-first reference package for the QuantumScalar Dark Matter Simulation Suite."
 readme = "README.md"
 requires-python = ">=3.10"
@@ -52,6 +52,7 @@ Review = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new/choo
 "Reviewer Quickstart" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-wheel-quickstart.md"
 "Circulation Funnel" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/circulation-funnel.md"
 "Beta Readiness" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/beta-readiness.md"
+"Benchmark Validation" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/benchmark-validation.md"
 PyPI = "https://pypi.org/project/qs-dmss/"
 DOI = "https://doi.org/10.5281/zenodo.20074924"
 "First Archived Release DOI" = "https://doi.org/10.5281/zenodo.20074925"

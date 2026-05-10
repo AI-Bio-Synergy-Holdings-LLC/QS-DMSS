@@ -47,6 +47,8 @@ Initial implementation status:
   checks metric envelopes, replays runs, and writes
   `benchmark-validation/benchmark-validation.json`.
 - Reviewer guidance lives in `docs/benchmark-validation.md`.
+- `v0.3.0` is the first intended public release target for this benchmark
+  validation spine.
 
 Suggested structure:
 

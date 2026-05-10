@@ -31,7 +31,7 @@ Appropriate claims:
 - Package architecture and reproducibility model.
 - How configs, ledgers, manifests, bundles, replay, campaigns, and decision
   profiles connect.
-- What v0.2.0 proves as a public beta package.
+- What v0.3.0 proves as a public beta package with benchmark validation.
 - What the software does not yet validate scientifically.
 
 Evidence needed:
@@ -89,7 +89,7 @@ Claims to avoid until then:
 3. Software architecture.
 4. Reproducibility and evidence model.
 5. Benchmark and validation design.
-6. Current v0.2.0 state.
+6. Current v0.3.0 state.
 7. Limitations and non-goals.
 8. Roadmap toward external validation.
 9. AI usage, provenance, and human review.

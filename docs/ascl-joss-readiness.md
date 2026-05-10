@@ -10,8 +10,8 @@ Last reviewed: 2026-05-09
 
 - Repository: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS`
 - PyPI package: `https://pypi.org/project/qs-dmss/`
-- Latest release: `v0.2.0`
-- Zenodo version DOI: `10.5281/zenodo.20091602`
+- Latest release: `v0.3.0`
+- Zenodo version DOI: pending for `v0.3.0`; previous version DOI `10.5281/zenodo.20091602`
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
 - License: Apache-2.0
 - Public install path: `python -m pip install qs-dmss`
@@ -71,7 +71,7 @@ Package URL:
 https://pypi.org/project/qs-dmss/
 
 Preferred citation:
-QS-DMSS v0.2.0, Zenodo, doi:10.5281/zenodo.20091602
+QS-DMSS v0.3.0, Zenodo version DOI pending; use concept DOI doi:10.5281/zenodo.20074924 until archived.
 
 Research paper using the code:
 TODO: add submitted preprint, peer-reviewed paper, or accepted thesis URL.
@@ -117,8 +117,8 @@ Recommended JOSS path:
 
 1. Keep improving the public repository through ordinary issues and pull
    requests rather than private bursts.
-2. Add a small benchmark or reproducible example that demonstrates why the
-   evidence-first design matters.
+2. Expand the packaged benchmark-validation spine with reviewer-driven
+   scenarios that demonstrate why the evidence-first design matters.
 3. Use QS-DMSS in a submitted research preprint or documented research workflow.
 4. Collect at least one external review, issue, fork, or usage signal.
 5. Replace placeholders in `paper/paper.md` with final authors, affiliations,

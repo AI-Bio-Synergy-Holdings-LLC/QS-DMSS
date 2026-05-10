@@ -52,6 +52,7 @@ def test_public_discovery_metadata_is_present() -> None:
         "Reviewer Quickstart",
         "Circulation Funnel",
         "Beta Readiness",
+        "Benchmark Validation",
         "PyPI",
         "DOI",
         "Latest Archived Release DOI",
