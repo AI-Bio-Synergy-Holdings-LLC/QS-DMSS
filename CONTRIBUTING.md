@@ -13,6 +13,16 @@ public-facing, so small, reproducible changes are preferred over broad rewrites.
 New contributors can use [docs/contributor-map.md](docs/contributor-map.md) to
 match user-facing behavior to source files and tests.
 
+## Funding And Stewardship
+
+QS-DMSS participates in Open Source Collective at
+`https://opencollective.com/qs-dmss`. Financial support is used to sustain
+open-source maintenance, reviewer-facing documentation, reproducibility
+workflow hardening, and public research-software readiness.
+
+Funding does not change the review boundary: scientific claims still need
+reproducible evidence, public review, and appropriate scholarly validation.
+
 ## Development Setup
 
 ```powershell
