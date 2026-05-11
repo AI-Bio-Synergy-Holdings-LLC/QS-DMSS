@@ -10,6 +10,8 @@ Release DOI: `10.5281/zenodo.20112923`
 
 Project DOI: `10.5281/zenodo.20074924`
 
+Open Collective: `https://opencollective.com/qs-dmss`
+
 ## Review Claim
 
 QS-DMSS is beta for reproducible package/evidence workflows; it is not
@@ -68,6 +70,17 @@ Choose the lane that matches the feedback you want to provide.
 
 Open feedback through
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new/choose`.
+
+## Funding And Stewardship
+
+QS-DMSS has been accepted into Open Source Collective. The Open Collective page
+provides a transparent support path for maintenance of the public package,
+reviewer documentation, benchmark validation, and reproducibility infrastructure.
+
+Funding support should be interpreted as support for open-source stewardship,
+not as scientific endorsement. Reviewers should continue to evaluate QS-DMSS
+through the reproducible artifacts, benchmark evidence, issue discussions, and
+eventual scholarly review.
 
 ## Artifacts To Inspect
 

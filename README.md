@@ -250,6 +250,19 @@ The next research-grade upgrade slice is defined in
 with paper strategy notes in
 [docs/research-paper-strategy.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/research-paper-strategy.md).
 
+## Funding And Stewardship
+
+QS-DMSS has been accepted into Open Source Collective. Support can be directed
+through [Open Collective](https://opencollective.com/qs-dmss) to help sustain
+transparent maintenance of the reproducible package/evidence workflow,
+reviewer documentation, benchmark validation, and public research-software
+readiness work.
+
+Funding support does not imply peer-reviewed scientific validation or
+endorsement of any physical model. Scientific claims should continue to be
+reviewed through reproducible evidence, public issues, and formal scholarly
+review.
+
 ## Citation
 
 Citation metadata lives in

@@ -42,7 +42,7 @@ workflow is a meaningful contribution to the research community.
 | Tests and CI | Pytest suite, benchmark smoke, wheel smoke, Docker smoke, CodeQL | Ready | Add tests only when behavior changes |
 | Documentation | README, reviewer quickstart, evidence glossary, benchmark docs, contributor map | Ready enough | Use reviewer feedback to patch confusing sections |
 | Example usage | `run-demo`, `campaigns run-demo`, `benchmarks validate` | Ready enough | Add a short tutorial only if reviewers need more context |
-| Community pathways | CONTRIBUTING, SECURITY, issue templates, review packet | Ready | Keep labels/issues organized for external feedback |
+| Community pathways | CONTRIBUTING, SECURITY, issue templates, review packet, Open Collective stewardship path | Ready | Keep labels/issues organized for external feedback |
 | Software paper | `paper/paper.md` scaffold with required sections | Partial | Replace TODOs with owner-confirmed authorship, comparison, impact, and AI disclosure |
 | State of the field | Initial citations and comparison targets identified | Not ready | Compare directly against PyUltraLight, SCALAR, AxioNyx, and adjacent workflow tools |
 | Research impact | Reproducible release evidence and benchmark spine | Not ready | Collect external review, adoption, benchmark comparison, preprint, or real workflow evidence |
@@ -66,6 +66,8 @@ Before submission, update `paper/paper.md` with:
 - Acknowledgements, funding, conflicts, and support statements.
 - References for related software, scientific context, and the archived
   `v0.3.0` release DOI.
+- Funding and stewardship statement if support materially contributed to the
+  submitted work.
 
 ## Comparison Targets
 
