@@ -93,11 +93,12 @@ Reviewers who want the shortest overview of what to inspect, what QS-DMSS
 claims, and where to file feedback can start with
 [docs/reviewer-packet.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-packet.md).
 
-External reviewers and contributors can start with the circulation funnel in
+External reviewers and contributors can start with the active review sprint in
+[issue #37](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37),
+then use the circulation funnel in
 [docs/circulation-funnel.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/circulation-funnel.md),
-then open a scientific review, reproducibility review, bug report, feature
-request, or contributor task through
-[GitHub Issues](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new/choose).
+or the copyable outreach asks in
+[docs/external-review-outreach.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/external-review-outreach.md).
 
 Start the local cockpit:
 

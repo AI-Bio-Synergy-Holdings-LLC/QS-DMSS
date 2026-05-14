@@ -12,6 +12,9 @@ Project DOI: `10.5281/zenodo.20074924`
 
 Open Collective: `https://opencollective.com/qs-dmss`
 
+Active external review sprint:
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
+
 ## Review Claim
 
 QS-DMSS is beta for reproducible package/evidence workflows; it is not
@@ -68,8 +71,15 @@ Choose the lane that matches the feedback you want to provide.
 | Documentation | README, reviewer quickstart, evidence glossary, benchmark expectations | Documentation issue |
 | Paper readiness | JOSS paper scaffold, state-of-field comparison, research impact evidence | Scientific review |
 
-Open feedback through
-`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new/choose`.
+Open feedback through the active review sprint:
+
+- Overview: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
+- Fresh install and reproducibility:
+  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/39`
+- Evidence bundle and benchmark validation:
+  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/40`
+- Scientific framing and JOSS preflight:
+  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/41`
 
 ## Funding And Stewardship
 
