@@ -9,8 +9,10 @@ specific GitHub issue, pull request, or reproducibility signal.
 - GitHub repository: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS`
 - PyPI package: `https://pypi.org/project/qs-dmss/`
 - Latest release: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases`
-- Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Review entry point: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new/choose`
+- Zenodo release DOI: `10.5281/zenodo.20112923`
+- Open Collective: `https://opencollective.com/qs-dmss`
+- Review sprint hub: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
+- Outreach copy: `docs/external-review-outreach.md`
 
 ## Reviewer Paths
 
@@ -18,29 +20,23 @@ Use these calls to action in public posts, direct outreach, and release notes.
 
 | Reviewer type | Ask | GitHub path |
 | --- | --- | --- |
-| Scientific reviewer | Review model framing, assumptions, and limitation language. | Open a Scientific Review issue. |
-| Reproducibility reviewer | Install from PyPI, run the demo/campaign, and report friction. | Open a Reproducibility Review issue. |
-| Python/package reviewer | Inspect packaging metadata, Trusted Publishing, and install behavior. | Open a bug, feature, or contributor task. |
-| Documentation reviewer | Improve first-run clarity or reviewer onboarding. | Open a contributor task or PR. |
-| New contributor | Claim a focused issue with clear files and validation. | Use `good first issue` tasks. |
+| Broad reviewer | Pick any lane and leave one comment, even if everything passes. | `#37` |
+| Reproducibility reviewer | Install from PyPI, run the demo/campaign, and report friction. | `#39` |
+| Python/package reviewer | Inspect package install behavior and first-run clarity. | `#39` |
+| Evidence/benchmark reviewer | Inspect bundle contents, replay, benchmark validation, and auditability. | `#40` |
+| Scientific reviewer | Review model framing, assumptions, limitation language, and JOSS readiness. | `#41` |
+| New contributor | Identify the first task that would make contribution easier. | `#37` or `good first issue` tasks |
 
 ## Copyable Review Ask
 
 ```text
-QS-DMSS is public, citable beta software for reproducible package/evidence
-workflows. It is not peer-reviewed scientific validation. I am looking for
-review in three specific areas:
+QS-DMSS v0.3.0 is running a small external review sprint.
 
-1. Reproducibility: does `pip install qs-dmss`, `qs-dmss run-demo`, and
-   `qs-dmss campaigns run-demo` work cleanly on your machine?
-2. Scientific framing: are the model boundaries and beta-status claims clear
-   and appropriately conservative?
-3. Contributor path: are there small issues that would be reasonable for a
-   first external pull request?
+It is beta software for reproducible package/evidence workflows, not
+peer-reviewed scientific validation. If you have 10-20 minutes, please pick one
+review lane and leave one GitHub comment, even if everything passes:
 
-GitHub: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
-PyPI: https://pypi.org/project/qs-dmss/
-DOI: https://doi.org/10.5281/zenodo.20074924
+https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37
 ```
 
 ## Starter Issue Backlog
