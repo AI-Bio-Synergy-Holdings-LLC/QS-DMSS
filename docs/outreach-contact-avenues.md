@@ -13,6 +13,9 @@ Primary opt-in discussion:
 Reviewer opt-in issue form:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=reviewer_opt_in.yml`
 
+Community outreach wave 1:
+`docs/community-outreach-wave-1.md`
+
 ## Contact Principle
 
 Valid outreach contacts should come from explicit public opt-in or from a

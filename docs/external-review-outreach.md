@@ -20,6 +20,8 @@ Wave 1 tracker and direct asks: `docs/external-review-wave-1.md`
 
 Outreach contact avenues: `docs/outreach-contact-avenues.md`
 
+Community outreach wave 1: `docs/community-outreach-wave-1.md`
+
 Claim boundary: QS-DMSS is beta for reproducible package/evidence workflows;
 it is not peer-reviewed scientific validation.
 
