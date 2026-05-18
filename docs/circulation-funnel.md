@@ -16,6 +16,7 @@ specific GitHub issue, pull request, or reproducibility signal.
 - Reviewer opt-in issue form: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=reviewer_opt_in.yml`
 - Outreach copy: `docs/external-review-outreach.md`
 - Outreach contact avenues: `docs/outreach-contact-avenues.md`
+- Community outreach wave 1: `docs/community-outreach-wave-1.md`
 
 ## Reviewer Paths
 
