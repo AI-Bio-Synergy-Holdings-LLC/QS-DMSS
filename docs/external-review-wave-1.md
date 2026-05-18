@@ -12,6 +12,9 @@ Stable baseline: `qs-dmss==0.3.0` / GitHub release `v0.3.0`
 
 Review sprint hub: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
 
+Reviewer opt-in discussion:
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
+
 ## Operating Rules
 
 1. Send one issue per person.
@@ -19,6 +22,8 @@ Review sprint hub: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issue
 3. Ask for one public GitHub comment, even if everything passes.
 4. Do not ask for endorsement, citation, sponsorship, or scientific validation.
 5. Wait for reviewer feedback before cutting another package release.
+6. If someone is interested but not ready to review, route them to the opt-in
+   discussion instead of collecting private contact details in the repository.
 
 ## Wave 1 Routing
 

@@ -12,6 +12,7 @@ specific GitHub issue, pull request, or reproducibility signal.
 - Zenodo release DOI: `10.5281/zenodo.20112923`
 - Open Collective: `https://opencollective.com/qs-dmss`
 - Review sprint hub: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
+- Reviewer opt-in discussion: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
 - Outreach copy: `docs/external-review-outreach.md`
 
 ## Reviewer Paths

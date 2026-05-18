@@ -15,6 +15,9 @@ Open Collective: `https://opencollective.com/qs-dmss`
 Active external review sprint:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
 
+Reviewer opt-in discussion:
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
+
 ## Review Claim
 
 QS-DMSS is beta for reproducible package/evidence workflows; it is not

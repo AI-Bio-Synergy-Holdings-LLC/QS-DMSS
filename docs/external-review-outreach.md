@@ -10,6 +10,9 @@ Release DOI: `10.5281/zenodo.20112923`
 
 Open Collective: `https://opencollective.com/qs-dmss`
 
+Reviewer opt-in discussion:
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
+
 Wave 1 tracker and direct asks: `docs/external-review-wave-1.md`
 
 Claim boundary: QS-DMSS is beta for reproducible package/evidence workflows;
