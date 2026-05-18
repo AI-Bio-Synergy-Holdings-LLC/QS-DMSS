@@ -13,7 +13,12 @@ Open Collective: `https://opencollective.com/qs-dmss`
 Reviewer opt-in discussion:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
 
+Reviewer opt-in issue form:
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=reviewer_opt_in.yml`
+
 Wave 1 tracker and direct asks: `docs/external-review-wave-1.md`
+
+Outreach contact avenues: `docs/outreach-contact-avenues.md`
 
 Claim boundary: QS-DMSS is beta for reproducible package/evidence workflows;
 it is not peer-reviewed scientific validation.

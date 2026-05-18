@@ -6,6 +6,12 @@ contact_links:
   - name: Circulation and review funnel
     url: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/circulation-funnel.md
     about: Use this guide to choose a scientific, reproducibility, documentation, or contributor review path.
+  - name: Reviewer opt-in discussion
+    url: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44
+    about: Opt into review coordination without opening an issue.
+  - name: Outreach contact avenues
+    url: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/outreach-contact-avenues.md
+    about: Maintainer guide for ethical outreach channels and contact paths.
   - name: Security Reports
     url: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/security/policy
     about: Please report suspected vulnerabilities privately through the security policy.

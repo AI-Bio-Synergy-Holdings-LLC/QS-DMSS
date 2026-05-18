@@ -13,7 +13,9 @@ specific GitHub issue, pull request, or reproducibility signal.
 - Open Collective: `https://opencollective.com/qs-dmss`
 - Review sprint hub: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
 - Reviewer opt-in discussion: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
+- Reviewer opt-in issue form: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=reviewer_opt_in.yml`
 - Outreach copy: `docs/external-review-outreach.md`
+- Outreach contact avenues: `docs/outreach-contact-avenues.md`
 
 ## Reviewer Paths
 

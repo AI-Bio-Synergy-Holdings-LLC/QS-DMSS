@@ -18,6 +18,9 @@ Active external review sprint:
 Reviewer opt-in discussion:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
 
+Reviewer opt-in issue form:
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=reviewer_opt_in.yml`
+
 ## Review Claim
 
 QS-DMSS is beta for reproducible package/evidence workflows; it is not

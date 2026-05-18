@@ -1,0 +1,51 @@
+name: Reviewer Opt-In
+description: Opt into a QS-DMSS review lane or future reviewer follow-up.
+title: "[Reviewer Opt-In]: "
+labels:
+  - review-wanted
+  - reviewer-opt-in
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for being willing to help review QS-DMSS. This issue is public and your GitHub handle will be the contact path.
+
+        Please do not post private email addresses, phone numbers, or private contact details here. If you prefer a lighter-weight public signal, use Discussion #44 instead: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44
+  - type: dropdown
+    id: lane
+    attributes:
+      label: Review Lane
+      description: Pick the lane where you are most willing to help.
+      options:
+        - Install/reproducibility (#39)
+        - Evidence bundle and benchmark validation (#40)
+        - Scientific framing and JOSS preflight (#41)
+        - Broad open-source/contributor feedback (#37)
+        - Not sure yet
+    validations:
+      required: true
+  - type: textarea
+    id: available-review
+    attributes:
+      label: What can you review?
+      description: Keep this short. Examples are OS/Python install path, evidence bundle clarity, JOSS framing, docs onboarding, or contributor experience.
+      placeholder: "I can test the PyPI install on Ubuntu with Python 3.12 and leave notes on #39."
+    validations:
+      required: true
+  - type: input
+    id: timeframe
+    attributes:
+      label: Rough Timeframe
+      description: Optional public estimate so maintainers know when to follow up.
+      placeholder: "This week, next sprint, or when v0.3.0 review closes"
+    validations:
+      required: false
+  - type: checkboxes
+    id: consent
+    attributes:
+      label: Public Follow-Up Consent
+      options:
+        - label: Maintainers may follow up with me publicly on this issue or tag my GitHub handle in the linked review lane.
+          required: true
+        - label: I understand this is not an endorsement, citation, sponsorship, or peer-reviewed validation.
+          required: true
