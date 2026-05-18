@@ -97,6 +97,8 @@ External reviewers and contributors can start with the active review sprint in
 [issue #37](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37),
 opt into review coordination through
 [GitHub Discussion #44](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44),
+use the
+[reviewer opt-in issue form](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=reviewer_opt_in.yml),
 then use the circulation funnel in
 [docs/circulation-funnel.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/circulation-funnel.md),
 or the copyable outreach asks in

@@ -15,6 +15,9 @@ Review sprint hub: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issue
 Reviewer opt-in discussion:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
 
+Reviewer opt-in issue form:
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=reviewer_opt_in.yml`
+
 ## Operating Rules
 
 1. Send one issue per person.
@@ -23,7 +26,8 @@ Reviewer opt-in discussion:
 4. Do not ask for endorsement, citation, sponsorship, or scientific validation.
 5. Wait for reviewer feedback before cutting another package release.
 6. If someone is interested but not ready to review, route them to the opt-in
-   discussion instead of collecting private contact details in the repository.
+   discussion or reviewer opt-in issue form instead of collecting private
+   contact details in the repository.
 
 ## Wave 1 Routing
 
