@@ -248,6 +248,7 @@ def main(argv: list[str] | None = None) -> int:
                     if not check["success"]:
                         print(f"- {check['name']}: {check['detail']}")
             print(f"Report: {report['report_path']}")
+            print(f"Reviewer summary: {report['markdown_report_path']}")
             return 0 if report["success"] else 1
 
     if args.command == "cockpit":

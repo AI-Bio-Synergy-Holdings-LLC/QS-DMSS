@@ -78,6 +78,9 @@ Run the benchmark validation spine:
 qs-dmss benchmarks validate --scenario demo-baseline
 ```
 
+This writes `benchmark-validation/benchmark-validation.json` plus a
+reviewer-readable `benchmark-validation/benchmark-validation.md` summary.
+
 For source development, install the checked-out repository in editable mode:
 
 ```powershell

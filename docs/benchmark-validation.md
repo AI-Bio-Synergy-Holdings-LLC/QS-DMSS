@@ -40,6 +40,8 @@ The validator writes:
 - `benchmark-validation/runs/` for fresh benchmark run evidence.
 - `benchmark-validation/replays/` for replay evidence.
 - `benchmark-validation/benchmark-validation.json` for the summary report.
+- `benchmark-validation/benchmark-validation.md` for a reviewer-readable
+  summary of status, metric envelopes, checks, and artifact paths.
 
 ## Packaged Scenarios
 

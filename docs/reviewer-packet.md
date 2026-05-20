@@ -58,7 +58,8 @@ Expected signals:
 - `qs-dmss campaigns run-demo` writes an experiment under `experiments/` and
   reports a recommended run plus decision status.
 - `qs-dmss benchmarks validate --scenario demo-baseline` writes
-  `benchmark-validation/benchmark-validation.json` and reports
+  `benchmark-validation/benchmark-validation.json`,
+  `benchmark-validation/benchmark-validation.md`, and reports
   `Benchmark passed: demo-baseline`.
 
 Use [reviewer-wheel-quickstart.md](reviewer-wheel-quickstart.md) for the
@@ -116,6 +117,7 @@ For a generated run directory, inspect:
 For a benchmark validation run, inspect:
 
 - `benchmark-validation/benchmark-validation.json`
+- `benchmark-validation/benchmark-validation.md`
 - `benchmark-validation/runs/`
 - `benchmark-validation/replays/`
 

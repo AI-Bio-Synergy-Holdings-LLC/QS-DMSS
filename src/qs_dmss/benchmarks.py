@@ -14,6 +14,8 @@ from qs_dmss.paths import bundled_assets_root, contained_path, safe_filename
 
 
 BENCHMARK_REPORT_SCHEMA_VERSION = 1
+BENCHMARK_JSON_REPORT = "benchmark-validation.json"
+BENCHMARK_MARKDOWN_REPORT = "benchmark-validation.md"
 
 
 @dataclass(frozen=True)
@@ -118,6 +120,30 @@ def _check_metric_envelope(
         observed=observed,
         expected=envelope,
     )
+
+
+def _format_report_value(value: Any) -> str:
+    if isinstance(value, bool) or value is None:
+        return str(value).lower()
+    if isinstance(value, (int, float)):
+        return f"{float(value):.6g}"
+    return str(value)
+
+
+def _format_envelope(envelope: dict[str, Any]) -> str:
+    ordered_keys = ("min", "max", "abs_max")
+    parts = [
+        f"{key}={_format_report_value(envelope[key])}"
+        for key in ordered_keys
+        if key in envelope
+    ]
+    if parts:
+        return ", ".join(parts)
+    return json.dumps(envelope, sort_keys=True)
+
+
+def _table_cell(value: Any) -> str:
+    return _format_report_value(value).replace("|", "\\|").replace("\n", " ")
 
 
 def _check_history(metrics: dict[str, Any], expected: dict[str, Any]) -> list[dict[str, Any]]:
@@ -297,6 +323,101 @@ def _validate_one_scenario(
     return scenario_report
 
 
+def _markdown_scenario_section(scenario: dict[str, Any]) -> list[str]:
+    status = "PASS" if scenario["success"] else "FAIL"
+    lines = [
+        f"## Scenario: {scenario['scenario']}",
+        "",
+        f"Status: **{status}**",
+    ]
+
+    if scenario.get("description"):
+        lines.extend(["", scenario["description"]])
+
+    for label, key in (
+        ("Run directory", "run_dir"),
+        ("Evidence bundle", "bundle_path"),
+        ("Replay directory", "replay_run_dir"),
+        ("Replay evidence bundle", "replay_bundle_path"),
+    ):
+        if scenario.get(key):
+            lines.append(f"{label}: `{scenario[key]}`")
+
+    metrics = scenario.get("metrics") or {}
+    checks = scenario.get("checks") or []
+    metric_envelopes = {
+        check["name"].removeprefix("metric:"): check.get("expected", {})
+        for check in checks
+        if str(check.get("name", "")).startswith("metric:")
+    }
+    if metrics:
+        lines.extend(
+            [
+                "",
+                "### Metric Envelopes",
+                "",
+                "| Metric | Observed | Expected envelope |",
+                "| --- | ---: | --- |",
+            ]
+        )
+        for metric_name, observed in metrics.items():
+            envelope = metric_envelopes.get(metric_name, {})
+            lines.append(
+                "| "
+                f"{_table_cell(metric_name)} | "
+                f"{_table_cell(observed)} | "
+                f"{_table_cell(_format_envelope(envelope))} |"
+            )
+
+    if checks:
+        lines.extend(
+            [
+                "",
+                "### Checks",
+                "",
+                "| Check | Status | Detail |",
+                "| --- | --- | --- |",
+            ]
+        )
+        for check in checks:
+            check_status = "PASS" if check["success"] else "FAIL"
+            lines.append(
+                "| "
+                f"{_table_cell(check['name'])} | "
+                f"{check_status} | "
+                f"{_table_cell(check['detail'])} |"
+            )
+
+    lines.append("")
+    return lines
+
+
+def write_benchmark_markdown_report(report: dict[str, Any], path: Path) -> None:
+    status = "PASS" if report["success"] else "FAIL"
+    lines = [
+        "# QS-DMSS Benchmark Validation Summary",
+        "",
+        "This reviewer-facing summary accompanies the machine-readable",
+        f"`{BENCHMARK_JSON_REPORT}` report.",
+        "",
+        "A passing benchmark validates deterministic execution, evidence capture,",
+        "manifest verification, replay compatibility, and expected metric envelopes",
+        "for the packaged scenarios. It is not peer-reviewed scientific validation.",
+        "",
+        f"Overall status: **{status}**",
+        f"Generated at: `{report['generated_at']}`",
+        f"Output root: `{report['output_root']}`",
+        f"Replay enabled: `{report['replay_enabled']}`",
+        f"JSON report: `{report['report_path']}`",
+        "",
+    ]
+
+    for scenario in report["scenarios"]:
+        lines.extend(_markdown_scenario_section(scenario))
+
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
 def validate_benchmark_scenarios(
     scenarios: list[str] | tuple[str, ...] | None = None,
     output_root: str | Path | None = None,
@@ -332,10 +453,13 @@ def validate_benchmark_scenarios(
     }
     report["success"] = all(scenario["success"] for scenario in report["scenarios"])
 
-    report_path = output_path / "benchmark-validation.json"
+    report_path = output_path / BENCHMARK_JSON_REPORT
+    markdown_report_path = output_path / BENCHMARK_MARKDOWN_REPORT
     report["report_path"] = str(report_path)
+    report["markdown_report_path"] = str(markdown_report_path)
     report_path.write_text(
         json.dumps(report, indent=2, sort_keys=True),
         encoding="utf-8",
     )
+    write_benchmark_markdown_report(report, markdown_report_path)
     return report
