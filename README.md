@@ -104,6 +104,11 @@ then use the circulation funnel in
 or the copyable outreach asks in
 [docs/external-review-outreach.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/external-review-outreach.md).
 
+Active post-v0.3.0 development is tracked in
+[issue #49](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/49)
+and
+[docs/post-v0.3-active-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/post-v0.3-active-roadmap.md).
+
 Start the local cockpit:
 
 ```powershell
@@ -249,6 +254,9 @@ and
 
 The JOSS preflight checklist lives in
 [docs/joss-preflight.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/joss-preflight.md).
+
+The post-v0.3.0 active development roadmap lives in
+[docs/post-v0.3-active-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/post-v0.3-active-roadmap.md).
 
 The next research-grade upgrade slice is defined in
 [docs/research-grade-upgrade-slice.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/research-grade-upgrade-slice.md),
