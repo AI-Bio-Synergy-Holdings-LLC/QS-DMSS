@@ -29,6 +29,13 @@ def test_packaged_benchmark_validation_smoke(tmp_path: Path) -> None:
     saved_report = json.loads(report_path.read_text(encoding="utf-8"))
     assert saved_report["success"] is True
     assert saved_report["scenarios"][0]["metrics"]["energy_drift"] > 0
+    markdown_report = Path(report["markdown_report_path"])
+    assert markdown_report.exists()
+    markdown_text = markdown_report.read_text(encoding="utf-8")
+    assert "# QS-DMSS Benchmark Validation Summary" in markdown_text
+    assert "Scenario: demo-baseline" in markdown_text
+    assert "Metric Envelopes" in markdown_text
+    assert "not peer-reviewed scientific validation" in markdown_text
 
 
 def test_cli_benchmark_list_and_validate(tmp_path: Path, capsys) -> None:
@@ -52,3 +59,5 @@ def test_cli_benchmark_list_and_validate(tmp_path: Path, capsys) -> None:
     output = capsys.readouterr().out
     assert "Benchmark passed: demo-baseline" in output
     assert "benchmark-validation.json" in output
+    assert "Reviewer summary:" in output
+    assert "benchmark-validation.md" in output
