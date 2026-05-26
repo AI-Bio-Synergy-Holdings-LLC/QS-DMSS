@@ -81,6 +81,17 @@ qs-dmss benchmarks validate --scenario demo-baseline
 This writes `benchmark-validation/benchmark-validation.json` plus a
 reviewer-readable `benchmark-validation/benchmark-validation.md` summary.
 
+From a source checkout containing the post-v0.3.0 showcase command, run the
+canonical simulation showcase:
+
+```powershell
+qs-dmss showcase run --output-root simulation-showcase
+```
+
+This writes a reviewer-facing `simulation-showcase/simulation-showcase.md`
+walkthrough, CSV tables, SVG plots, verified run evidence, and replay evidence
+for the packaged canonical simulation scenario.
+
 For source development, install the checked-out repository in editable mode:
 
 ```powershell
@@ -237,6 +248,9 @@ The beta promotion gate lives in
 
 Benchmark validation guidance lives in
 [docs/benchmark-validation.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/benchmark-validation.md).
+
+Canonical simulation showcase guidance lives in
+[docs/simulation-showcase.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/simulation-showcase.md).
 
 Evidence artifact definitions live in
 [docs/evidence-bundle-glossary.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/evidence-bundle-glossary.md),

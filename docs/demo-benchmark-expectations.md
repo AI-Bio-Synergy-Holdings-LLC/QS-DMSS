@@ -6,8 +6,12 @@ QS-DMSS has two lightweight validation paths with different purposes:
   reproducibility smoke tests.
 - `qs-dmss benchmarks validate` is a benchmark validation spine that runs
   packaged scenarios against expected metric envelopes and replay checks.
+- `qs-dmss showcase run` is a reviewer-facing simulation walkthrough that
+  generates CSV tables, SVG plots, verified evidence, and replay evidence for a
+  canonical scenario.
 
-Neither path is peer-reviewed scientific validation of a dark matter model.
+None of these paths is peer-reviewed scientific validation of a dark matter
+model.
 
 ## Demo Runtime Expectations
 
@@ -50,3 +54,25 @@ qs-dmss benchmarks validate
 Benchmark failures should be treated as review signals. They may indicate a
 real regression, platform-specific numerical drift, or an expected envelope
 that needs to be intentionally updated with clear rationale.
+
+## Showcase Runtime Expectations
+
+The canonical showcase uses a slightly larger grid than the demo while still
+remaining small enough for local reviewer use. It should complete quickly on a
+typical laptop, but reviewers should treat runtime as a practical signal rather
+than a fixed performance benchmark.
+
+Run the showcase from a source checkout that includes the command:
+
+```powershell
+qs-dmss showcase run --output-root simulation-showcase
+```
+
+Expected showcase signals:
+
+- The command creates `simulation-showcase/simulation-showcase.md`.
+- The command creates a verified run under `simulation-showcase/runs/`.
+- The command creates a verified replay under `simulation-showcase/replays/`.
+- The command creates CSV and SVG artifacts under
+  `simulation-showcase/artifacts/` so reviewers can inspect energy history,
+  radial density, and the final-density midplane without custom plotting code.

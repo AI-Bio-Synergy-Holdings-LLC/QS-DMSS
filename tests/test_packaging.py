@@ -54,6 +54,7 @@ def test_public_discovery_metadata_is_present() -> None:
         "Circulation Funnel",
         "Beta Readiness",
         "Benchmark Validation",
+        "Simulation Showcase",
         "JOSS Preflight",
         "PyPI",
         "DOI",

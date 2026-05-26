@@ -26,16 +26,18 @@ release. Avoid package churn for documentation-only visibility work.
 
 ## Current Active Slice
 
-The next build slice is reviewer-confidence work around the validation spine:
+The next build slice is reviewer-confidence work around a canonical simulation
+showcase:
 
-- clarify benchmark scenario purpose, expected envelopes, and failure meaning;
+- add one packaged scenario that highlights the actual simulated field output;
+- generate reviewer-readable CSV tables, SVG plots, and a summary report;
+- verify and replay the showcase run through the normal evidence path;
 - make generated evidence bundles and replay outputs faster to inspect;
-- improve the reviewer path from PyPI install to evidence verification;
 - route community feedback into focused issues instead of broad private notes;
 - refine the research/JOSS framing so current claims and non-claims stay clear.
 
 This is intentionally not a new scientific-validation claim. It is a stronger
-software-review and evidence-audit path for the current reference
+software-review, simulation-inspection, and evidence-audit path for the current reference
 implementation.
 
 ## Public Review Goals
@@ -64,6 +66,8 @@ Maintainer updates should be small and public:
 If reviewers confirm the current path is understandable, the next engineering
 work should deepen the validation spine rather than broaden the product:
 
+- fold reviewer feedback from the canonical simulation showcase into scenario
+  naming, plots, and report wording;
 - add clearer benchmark comparison notes;
 - document when metric-envelope updates are acceptable;
 - expose reviewer-friendly summaries for benchmark and replay evidence;
