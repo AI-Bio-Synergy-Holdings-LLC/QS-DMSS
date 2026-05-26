@@ -83,6 +83,39 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Skip replay validation and only check fresh benchmark runs.",
     )
 
+    showcase_parser = subparsers.add_parser(
+        "showcase",
+        help="Run reviewer-facing canonical simulation showcase scenarios.",
+    )
+    showcase_subparsers = showcase_parser.add_subparsers(
+        dest="showcase_command",
+        required=True,
+    )
+
+    showcase_subparsers.add_parser(
+        "list",
+        help="List packaged simulation showcase scenario names.",
+    )
+
+    showcase_run_parser = showcase_subparsers.add_parser(
+        "run",
+        help="Run the canonical simulation showcase and write reviewer artifacts.",
+    )
+    showcase_run_parser.add_argument(
+        "--scenario",
+        default="canonical-simulation",
+        help="Packaged showcase scenario name to run.",
+    )
+    showcase_run_parser.add_argument(
+        "--output-root",
+        help="Directory for showcase run, replay, plot, table, and report outputs.",
+    )
+    showcase_run_parser.add_argument(
+        "--skip-replay",
+        action="store_true",
+        help="Skip replay validation and only generate fresh-run showcase artifacts.",
+    )
+
     cockpit_parser = subparsers.add_parser(
         "cockpit",
         help="Start the local QS-DMSS browser cockpit.",
@@ -247,6 +280,38 @@ def main(argv: list[str] | None = None) -> int:
                 for check in scenario["checks"]:
                     if not check["success"]:
                         print(f"- {check['name']}: {check['detail']}")
+            print(f"Report: {report['report_path']}")
+            print(f"Reviewer summary: {report['markdown_report_path']}")
+            return 0 if report["success"] else 1
+
+    if args.command == "showcase":
+        from qs_dmss.showcase import (
+            list_showcase_scenarios,
+            run_simulation_showcase,
+        )
+
+        if args.showcase_command == "list":
+            for scenario_name in list_showcase_scenarios():
+                print(scenario_name)
+            return 0
+
+        if args.showcase_command == "run":
+            try:
+                report = run_simulation_showcase(
+                    output_root=args.output_root,
+                    scenario=args.scenario,
+                    replay=not args.skip_replay,
+                )
+            except (FileNotFoundError, ValueError) as exc:
+                print(exc)
+                return 1
+
+            status = "passed" if report["success"] else "failed"
+            print(f"Simulation showcase {status}: {report['scenario']}")
+            print(f"Run complete: {report['run']['run_dir']}")
+            print(f"Evidence bundle: {report['run']['bundle_path']}")
+            if report.get("replay"):
+                print(f"Replay complete: {report['replay']['run_dir']}")
             print(f"Report: {report['report_path']}")
             print(f"Reviewer summary: {report['markdown_report_path']}")
             return 0 if report["success"] else 1

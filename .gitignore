@@ -177,4 +177,5 @@ cython_debug/
 runs/
 experiments/
 benchmark-validation/
+simulation-showcase/
 .codex-logs/

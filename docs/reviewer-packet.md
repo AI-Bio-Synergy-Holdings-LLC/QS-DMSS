@@ -65,6 +65,28 @@ Expected signals:
 Use [reviewer-wheel-quickstart.md](reviewer-wheel-quickstart.md) for the
 cross-platform PyPI and GitHub release-wheel commands.
 
+## Simulation Showcase Path
+
+The post-v0.3.0 source tree also includes a canonical simulation showcase for
+reviewers who want to inspect the actual simulated field output, not just the
+install and benchmark envelopes:
+
+```powershell
+python -m pip install -e .[dev]
+qs-dmss showcase run --output-root simulation-showcase
+```
+
+Expected signals:
+
+- `simulation-showcase/simulation-showcase.md` explains the scenario, metrics,
+  verification status, replay status, and claim boundary.
+- `simulation-showcase/artifacts/` contains CSV tables and SVG plots for energy
+  history, radial density, and the final-density midplane.
+- `simulation-showcase/runs/` and `simulation-showcase/replays/` contain normal
+  QS-DMSS evidence bundles.
+
+Use [simulation-showcase.md](simulation-showcase.md) for the detailed path.
+
 ## Review Lanes
 
 Choose the lane that matches the feedback you want to provide.
@@ -75,6 +97,7 @@ Choose the lane that matches the feedback you want to provide.
 | Evidence workflow | `run-demo`, generated artifacts, `verify`, `replay`, bundle contents | Reproducibility review |
 | Campaign workflow | `campaigns run-demo`, campaign metadata, recommendation status, experiment bundle | Reproducibility review or feature request |
 | Benchmark workflow | `benchmarks list`, `benchmarks validate`, metric envelope report, replay compatibility | Scientific review or reproducibility review |
+| Simulation showcase | `showcase run`, generated CSV/SVG outputs, replay comparison, scenario narrative | Scientific review or evidence review |
 | Documentation | README, reviewer quickstart, evidence glossary, benchmark expectations | Documentation issue |
 | Paper readiness | JOSS paper scaffold, state-of-field comparison, research impact evidence | Scientific review |
 

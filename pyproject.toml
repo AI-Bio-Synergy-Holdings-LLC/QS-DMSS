@@ -54,6 +54,7 @@ Review = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new/choo
 "Circulation Funnel" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/circulation-funnel.md"
 "Beta Readiness" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/beta-readiness.md"
 "Benchmark Validation" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/benchmark-validation.md"
+"Simulation Showcase" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/simulation-showcase.md"
 "JOSS Preflight" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/joss-preflight.md"
 PyPI = "https://pypi.org/project/qs-dmss/"
 DOI = "https://doi.org/10.5281/zenodo.20074924"
@@ -84,6 +85,7 @@ where = ["src"]
   "benchmarks/scenarios/*.yaml",
   "configs/*.yaml",
   "schemas/*.json",
+  "showcases/*.yaml",
 ]
 "qs_dmss.cockpit" = ["static/*.css", "static/*.html", "static/*.js"]
 
