@@ -49,6 +49,12 @@ def _latest_child(path: Path) -> Path:
     return max(children, key=lambda child: child.stat().st_mtime)
 
 
+def _version_at_least(version: str, minimum: tuple[int, int, int]) -> bool:
+    parts = version.split(".")
+    parsed = tuple(int(part) for part in parts[:3])
+    return parsed >= minimum
+
+
 def run_smoke(source: str, package_version: str, release_tag: str) -> None:
     workspace = Path(tempfile.mkdtemp(prefix=f"qs-dmss-{source}-")).resolve()
     try:
@@ -81,6 +87,7 @@ def run_smoke(source: str, package_version: str, release_tag: str) -> None:
         campaign_runs_root = output_root / "campaign-runs"
         campaign_experiments_root = output_root / "experiments"
         replay_root = output_root / "replays"
+        showcase_root = output_root / "simulation-showcase"
 
         _run([str(cli), "run-demo", "--output-root", str(run_root)], cwd=workspace)
         run_dir = _latest_child(run_root)
@@ -103,6 +110,35 @@ def run_smoke(source: str, package_version: str, release_tag: str) -> None:
         campaign_dir = _latest_child(campaign_experiments_root)
         if not (campaign_dir / "evidence_bundle.zip").is_file():
             raise AssertionError(f"Missing campaign bundle under {campaign_dir}")
+
+        if _version_at_least(package_version, (0, 4, 0)):
+            _run(
+                [
+                    str(cli),
+                    "showcase",
+                    "run",
+                    "--output-root",
+                    str(showcase_root),
+                ],
+                cwd=workspace,
+            )
+            for required in (
+                showcase_root / "simulation-showcase.json",
+                showcase_root / "simulation-showcase.md",
+                showcase_root / "artifacts" / "step-history.csv",
+                showcase_root / "artifacts" / "radial-density-profile.csv",
+                showcase_root / "artifacts" / "density-midplane.csv",
+                showcase_root / "artifacts" / "energy-history.svg",
+                showcase_root / "artifacts" / "radial-density-profile.svg",
+                showcase_root / "artifacts" / "density-midplane.svg",
+            ):
+                if not required.is_file():
+                    raise AssertionError(f"Missing showcase artifact: {required}")
+        else:
+            print(
+                "Skipping showcase smoke because it ships in qs-dmss>=0.4.0.",
+                flush=True,
+            )
 
         print(
             f"Fresh install smoke passed for {source} "
@@ -127,12 +163,12 @@ def main() -> int:
     parser.add_argument(
         "--package-version",
         required=True,
-        help="Published package version, for example 0.3.0.",
+        help="Published package version, for example 0.4.0.",
     )
     parser.add_argument(
         "--release-tag",
         required=True,
-        help="GitHub release tag containing the wheel, for example v0.3.0.",
+        help="GitHub release tag containing the wheel, for example v0.4.0.",
     )
     args = parser.parse_args()
     run_smoke(args.source, args.package_version, args.release_tag)

@@ -62,7 +62,8 @@ remaining small enough for local reviewer use. It should complete quickly on a
 typical laptop, but reviewers should treat runtime as a practical signal rather
 than a fixed performance benchmark.
 
-Run the showcase from a source checkout that includes the command:
+Run the showcase from the published package or a source checkout that includes
+the command:
 
 ```powershell
 qs-dmss showcase run --output-root simulation-showcase

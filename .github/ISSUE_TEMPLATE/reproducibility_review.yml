@@ -28,7 +28,7 @@ body:
     attributes:
       label: Environment
       description: OS, Python version, shell, install source, and QS-DMSS version.
-      placeholder: "Windows 11, Python 3.13, PowerShell, PyPI qs-dmss==0.3.0"
+      placeholder: "Windows 11, Python 3.13, PowerShell, PyPI qs-dmss==0.4.0"
     validations:
       required: true
   - type: textarea

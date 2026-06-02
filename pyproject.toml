@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qs-dmss"
-version = "0.3.0"
-description = "Evidence-first reference package for the QuantumScalar Dark Matter Simulation Suite."
+version = "0.4.0"
+description = "Evidence-first reference package for the QuantumScalar Dark Matter Simulation Suite with canonical simulation showcase artifacts."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"

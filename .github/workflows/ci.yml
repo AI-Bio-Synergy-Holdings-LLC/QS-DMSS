@@ -78,6 +78,7 @@ jobs:
           assert "qs_dmss/assets/schemas/run_config.schema.json" in wheel_names
           assert "qs_dmss/assets/benchmarks/scenarios/demo-baseline.yaml" in wheel_names
           assert "qs_dmss/assets/benchmarks/expected/demo-baseline.metrics.json" in wheel_names
+          assert "qs_dmss/assets/showcases/canonical-simulation.yaml" in wheel_names
 
           sdist_root = f"qs_dmss-{version}/"
           with tarfile.open(sdist) as archive:
@@ -88,6 +89,10 @@ jobs:
           assert sdist_root + "schemas/run_config.schema.json" in sdist_names
           assert (
               sdist_root + "src/qs_dmss/assets/benchmarks/scenarios/demo-baseline.yaml"
+              in sdist_names
+          )
+          assert (
+              sdist_root + "src/qs_dmss/assets/showcases/canonical-simulation.yaml"
               in sdist_names
           )
           PY
@@ -102,6 +107,7 @@ jobs:
           cd /tmp/qs-dmss-wheel-smoke
           "$GITHUB_WORKSPACE"/wheel-smoke/bin/qs-dmss run-demo --output-root runs
           "$GITHUB_WORKSPACE"/wheel-smoke/bin/qs-dmss benchmarks validate --scenario demo-baseline
+          "$GITHUB_WORKSPACE"/wheel-smoke/bin/qs-dmss showcase run --output-root simulation-showcase
 
   docker:
     name: Docker smoke

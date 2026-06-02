@@ -22,10 +22,16 @@ Can I understand what QS-DMSS is simulating, run it, inspect the output, and
 verify/replay the evidence without needing private context?
 ```
 
-## Run It From A Source Checkout
+## Run It From The Published Package
 
-Until this command appears in a published package release, install from the
-current source checkout:
+Install the release package and run the showcase:
+
+```powershell
+python -m pip install qs-dmss==0.4.0
+qs-dmss showcase run --output-root simulation-showcase
+```
+
+For source development, install from the current checkout instead:
 
 ```powershell
 python -m pip install -e .[dev]
@@ -73,8 +79,8 @@ workflow envelopes and replay tolerances.
 If you are asking a reviewer to inspect only one thing, ask:
 
 ```text
-Please run `qs-dmss showcase run --output-root simulation-showcase` from the
-current source checkout and leave one public comment: did the generated
+Please run `qs-dmss showcase run --output-root simulation-showcase` and leave
+one public comment: did the generated
 `simulation-showcase.md` make the simulation purpose, output, and evidence
 boundary understandable?
 ```
