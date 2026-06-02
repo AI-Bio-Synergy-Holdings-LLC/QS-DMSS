@@ -15,7 +15,7 @@ Public roadmap issue:
 
 - Package: `qs-dmss==0.4.0`
 - GitHub release target: `v0.4.0`
-- Latest archived release DOI before `v0.4.0`: `10.5281/zenodo.20112923`
+- Latest archived release DOI: `10.5281/zenodo.20500433`
 - Review hub:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
 - Reviewer opt-in discussion:
