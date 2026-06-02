@@ -1,12 +1,12 @@
-# v0.3.0 External Review Outreach
+# v0.4.0 External Review Outreach
 
 Use this page to invite focused first-pass review without creating release
 churn. The ask is intentionally small: leave one GitHub comment, even if
 everything passes.
 
-Current review baseline: `qs-dmss==0.3.0` / GitHub release `v0.3.0`
+Current review baseline: `qs-dmss==0.4.0` / GitHub release `v0.4.0`
 
-Release DOI: `10.5281/zenodo.20112923`
+Release DOI: pending Zenodo archival after the `v0.4.0` GitHub release.
 
 Open Collective: `https://opencollective.com/qs-dmss`
 
@@ -39,7 +39,7 @@ it is not peer-reviewed scientific validation.
 ## Short Broad Ask
 
 ```text
-QS-DMSS v0.3.0 is ready for a small external review sprint.
+QS-DMSS v0.4.0 is ready for a small external review sprint.
 
 It is beta software for reproducible package/evidence workflows, not
 peer-reviewed scientific validation. If you have 10-20 minutes, please pick one
@@ -51,11 +51,13 @@ https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37
 ## Package/Reproducibility Ask
 
 ```text
-Could you sanity-check the fresh-install path for QS-DMSS v0.3.0?
+Could you sanity-check the fresh-install path for QS-DMSS v0.4.0?
 
-The useful test is small: install `qs-dmss==0.3.0` from PyPI in a clean
-environment, run `qs-dmss run-demo`, and leave one comment about whether the
-install, CLI output, and generated `./runs` artifacts were clear:
+The useful test is small: install `qs-dmss==0.4.0` from PyPI in a clean
+environment, run `qs-dmss run-demo`, `qs-dmss benchmarks validate --scenario
+demo-baseline`, and `qs-dmss showcase run --output-root simulation-showcase`,
+then leave one comment about whether the install, CLI output, generated
+evidence, and showcase artifacts were clear:
 
 https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/39
 ```
@@ -63,12 +65,12 @@ https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/39
 ## Evidence/Benchmark Ask
 
 ```text
-Could you review whether the QS-DMSS v0.3.0 evidence and benchmark path is
+Could you review whether the QS-DMSS v0.4.0 evidence, benchmark, and showcase path is
 auditable enough for early external feedback?
 
 The key question is not whether the model is scientifically validated. It is
-whether the evidence bundle, replay path, and benchmark validation docs make
-the software workflow inspectable:
+whether the evidence bundle, replay path, benchmark validation docs, and
+canonical simulation showcase make the software workflow inspectable:
 
 https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/40
 ```
@@ -76,7 +78,7 @@ https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/40
 ## Scientific/JOSS Framing Ask
 
 ```text
-Could you review the scientific-software framing for QS-DMSS v0.3.0 before any
+Could you review the scientific-software framing for QS-DMSS v0.4.0 before any
 formal JOSS or paper submission?
 
 The project is explicitly beta for reproducible package/evidence workflows and
@@ -90,11 +92,12 @@ https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/41
 ## Public Post
 
 ```text
-QS-DMSS v0.3.0 is running a small external review sprint.
+QS-DMSS v0.4.0 is running a small external review sprint.
 
-The goal is first-pass feedback on reproducibility, evidence bundles, benchmark
-validation, and JOSS/scientific-software framing. The boundary is important:
-QS-DMSS is beta for reproducible package/evidence workflows, not
+The goal is first-pass feedback on reproducibility, evidence bundles,
+benchmark validation, the canonical simulation showcase, and
+JOSS/scientific-software framing. The boundary is important: QS-DMSS is beta
+for reproducible package/evidence workflows, not
 peer-reviewed scientific validation.
 
 If you have 10-20 minutes, please pick one lane and leave one GitHub comment,

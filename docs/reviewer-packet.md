@@ -4,9 +4,11 @@ This packet is the shortest path for an external reviewer to understand what
 QS-DMSS is claiming, reproduce the public baseline, and decide where feedback
 would be most useful.
 
-Current public baseline: `v0.3.0` / `qs-dmss==0.3.0`
+Current public baseline: `v0.4.0` / `qs-dmss==0.4.0`
 
-Release DOI: `10.5281/zenodo.20112923`
+Release DOI: pending Zenodo archival after the `v0.4.0` GitHub release.
+
+Latest archived release DOI before `v0.4.0`: `10.5281/zenodo.20112923`
 
 Project DOI: `10.5281/zenodo.20074924`
 
@@ -44,11 +46,12 @@ Use the published PyPI package from a clean environment:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.3.0
+python -m pip install qs-dmss==0.4.0
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 qs-dmss benchmarks validate --scenario demo-baseline
+qs-dmss showcase run --output-root simulation-showcase
 ```
 
 Expected signals:
@@ -61,18 +64,20 @@ Expected signals:
   `benchmark-validation/benchmark-validation.json`,
   `benchmark-validation/benchmark-validation.md`, and reports
   `Benchmark passed: demo-baseline`.
+- `qs-dmss showcase run --output-root simulation-showcase` writes
+  `simulation-showcase/simulation-showcase.md`, CSV tables, SVG plots,
+  verified run evidence, and replay evidence.
 
 Use [reviewer-wheel-quickstart.md](reviewer-wheel-quickstart.md) for the
 cross-platform PyPI and GitHub release-wheel commands.
 
 ## Simulation Showcase Path
 
-The post-v0.3.0 source tree also includes a canonical simulation showcase for
+The published `v0.4.0` package includes a canonical simulation showcase for
 reviewers who want to inspect the actual simulated field output, not just the
 install and benchmark envelopes:
 
 ```powershell
-python -m pip install -e .[dev]
 qs-dmss showcase run --output-root simulation-showcase
 ```
 

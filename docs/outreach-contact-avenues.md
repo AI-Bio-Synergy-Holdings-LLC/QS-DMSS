@@ -5,7 +5,7 @@ review contacts. It is intentionally conservative: do not scrape anonymous
 traffic, do not infer identities from downloads or clones, and do not collect
 private contact details in public repository files.
 
-Current public baseline: `qs-dmss==0.3.0` / GitHub release `v0.3.0`
+Current public baseline: `qs-dmss==0.4.0` / GitHub release `v0.4.0`
 
 Primary opt-in discussion:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
@@ -158,12 +158,12 @@ the review packet, paper, examples, tests, and contribution path are ready.
 ## Copyable Cross-Community Ask
 
 ```text
-QS-DMSS v0.3.0 is looking for a few first-pass external reviewers.
+QS-DMSS v0.4.0 is looking for a few first-pass external reviewers.
 
 The project is beta software for reproducible package/evidence workflows, not
 peer-reviewed scientific validation. The immediate goal is modest: three public
-comments, one each on install/reproducibility, evidence/benchmark validation,
-and scientific/JOSS framing.
+comments across install/reproducibility, evidence/benchmark validation,
+canonical simulation showcase clarity, and scientific/JOSS framing.
 
 If you are open to reviewing one small lane, please opt in here:
 

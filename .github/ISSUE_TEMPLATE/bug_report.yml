@@ -33,6 +33,6 @@ body:
     id: version
     attributes:
       label: QS-DMSS Version
-      placeholder: "0.3.0"
+      placeholder: "0.4.0"
     validations:
       required: false

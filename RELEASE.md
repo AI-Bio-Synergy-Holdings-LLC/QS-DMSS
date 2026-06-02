@@ -3,7 +3,7 @@
 This policy keeps release builds, Python package metadata, GitHub release
 artifacts, and PyPI distributions aligned before and after tags are published.
 
-Current release target: `v0.3.0` / `0.3.0`. Published release-candidate tags
+Current release target: `v0.4.0` / `0.4.0`. Published release-candidate tags
 such as `v0.1.0-rc.1` and `v0.1.0-rc.2` remain immutable; do not move or
 replace them.
 
@@ -27,8 +27,9 @@ replace them.
   before publication.
 - Source distributions must include `RELEASE.md`, checked-in demo configs, and
   checked-in JSON schemas.
-- Wheels must include the bundled demo config and schema package assets used by
-  `qs-dmss run-demo`.
+- Wheels must include the bundled demo config, schema, benchmark assets, and
+  canonical simulation showcase assets used by `qs-dmss run-demo`,
+  `qs-dmss benchmarks validate`, and `qs-dmss showcase run`.
 - Runtime evidence bundles under `runs/` and `experiments/` are reproducibility
   outputs, not package distribution artifacts.
 - Docker images are validation artifacts for this phase; publish a registry image

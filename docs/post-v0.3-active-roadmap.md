@@ -13,16 +13,17 @@ Public roadmap issue:
 
 ## Stable Review Baseline
 
-- Package: `qs-dmss==0.3.0`
-- GitHub release: `v0.3.0`
-- Release DOI: `10.5281/zenodo.20112923`
+- Package: `qs-dmss==0.4.0`
+- GitHub release target: `v0.4.0`
+- Latest archived release DOI before `v0.4.0`: `10.5281/zenodo.20112923`
 - Review hub:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
 - Reviewer opt-in discussion:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
 
-Use `v0.3.0` for external review unless a public blocker requires a patch
-release. Avoid package churn for documentation-only visibility work.
+Use `v0.4.0` for external review after publication because it makes the
+canonical simulation showcase installable from PyPI. Avoid package churn for
+documentation-only visibility work after this release.
 
 ## Current Active Slice
 
