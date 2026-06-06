@@ -6,7 +6,7 @@ everything passes.
 
 Current review baseline: `qs-dmss==0.4.0` / GitHub release `v0.4.0`
 
-Release DOI: pending Zenodo archival after the `v0.4.0` GitHub release.
+Release DOI: `10.5281/zenodo.20500433`
 
 Open Collective: `https://opencollective.com/qs-dmss`
 
