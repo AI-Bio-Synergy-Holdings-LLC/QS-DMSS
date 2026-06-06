@@ -1,5 +1,10 @@
 # Circulation Funnel
 
+Status: retained for historical outreach context. Current builder-facing
+strategy lives in [product-vision.md](product-vision.md),
+[contributor-roadmap.md](contributor-roadmap.md), and
+[funding-roadmap.md](funding-roadmap.md).
+
 This guide turns public attention into useful review, issues, commits, and
 release feedback. It is intentionally narrow: every path should end with a
 specific GitHub issue, pull request, or reproducibility signal.
@@ -31,10 +36,10 @@ Use these calls to action in public posts, direct outreach, and release notes.
 | Scientific reviewer | Review model framing, assumptions, limitation language, and JOSS readiness. | `#41` |
 | New contributor | Identify the first task that would make contribution easier. | `#37` or `good first issue` tasks |
 
-## Copyable Review Ask
+## Historical Review Ask
 
 ```text
-QS-DMSS v0.3.0 is running a small external review sprint.
+QS-DMSS v0.3.0 ran a small external review sprint.
 
 It is beta software for reproducible package/evidence workflows, not
 peer-reviewed scientific validation. If you have 10-20 minutes, please pick one

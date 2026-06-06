@@ -1,8 +1,17 @@
 # QS-DMSS
 
-QS-DMSS is a deterministic, evidence-first reference build of the QuantumScalar
-Dark Matter Simulation Suite. This repository now ships the productization spine
-needed to move from prototype scripts into a reproducible package:
+QS-DMSS is a deterministic, evidence-first simulation lab for the
+QuantumScalar Dark Matter Simulation Suite.
+
+The product loop is simple:
+
+```text
+run simulations -> inspect evidence -> compare campaigns -> publish reproducible artifacts
+```
+
+QS-DMSS is not trying to be "just another solver." The project direction is to
+turn simulation runs into trustworthy research objects: configured, measured,
+bundled, verified, replayable, comparable, citable, and ready to share.
 
 QS-DMSS is beta for reproducible package/evidence workflows; it is not
 peer-reviewed scientific validation.
@@ -18,12 +27,13 @@ peer-reviewed scientific validation.
 - Run ledger with stable run IDs and config digests
 - Evidence bundle with artifacts, metrics, manifest, and HTML report
 - Replay and verification commands for reproducibility checks
+- Canonical simulation showcase with CSV, SVG, report, run evidence, and replay evidence
 - GitHub Actions CI and containerized runtime
 
 ## What This Build Includes
 
-The current reference implementation focuses on the backbone needed for
-productization:
+The current reference implementation focuses on the backbone needed for an
+evidence-first simulation lab:
 
 - A NumPy-based split-step Schrodinger-Poisson solver
 - YAML configuration loading with explicit validation
@@ -79,7 +89,7 @@ qs-dmss benchmarks validate --scenario demo-baseline
 ```
 
 This writes `benchmark-validation/benchmark-validation.json` plus a
-reviewer-readable `benchmark-validation/benchmark-validation.md` summary.
+human-readable `benchmark-validation/benchmark-validation.md` summary.
 
 Run the canonical simulation showcase:
 
@@ -87,7 +97,7 @@ Run the canonical simulation showcase:
 qs-dmss showcase run --output-root simulation-showcase
 ```
 
-This writes a reviewer-facing `simulation-showcase/simulation-showcase.md`
+This writes a human-readable `simulation-showcase/simulation-showcase.md`
 walkthrough, CSV tables, SVG plots, verified run evidence, and replay evidence
 for the packaged canonical simulation scenario.
 
@@ -98,29 +108,24 @@ python -m pip install -e .[dev]
 qs-dmss run configs/demo.yaml
 ```
 
-Reviewers who want to validate the published release without a source checkout
-can use the wheel-first path in
-[docs/reviewer-wheel-quickstart.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-wheel-quickstart.md).
+Builders and sponsors can start with the product direction:
 
-Reviewers who want the shortest overview of what to inspect, what QS-DMSS
-claims, and where to file feedback can start with
-[docs/reviewer-packet.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-packet.md).
+- [docs/product-vision.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/product-vision.md)
+- [docs/contributor-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/contributor-roadmap.md)
+- [docs/funding-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/funding-roadmap.md)
 
-External reviewers and contributors can start with the active review sprint in
-[issue #37](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37),
-opt into review coordination through
-[GitHub Discussion #44](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44),
-use the
-[reviewer opt-in issue form](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=reviewer_opt_in.yml),
-then use the circulation funnel in
-[docs/circulation-funnel.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/circulation-funnel.md),
-or the copyable outreach asks in
-[docs/external-review-outreach.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/external-review-outreach.md).
+The next major product slice is QS-DMSS Lab Mode: a richer cockpit/showcase
+experience for running scenarios, inspecting outputs, comparing variants,
+verifying and replaying evidence, and exporting polished reports.
 
-Active post-v0.3.0 development is tracked in
-[issue #49](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/49)
-and
-[docs/post-v0.3-active-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/post-v0.3-active-roadmap.md).
+Public builder coordination now lives in
+[issue #57](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57).
+
+Review paths remain available for people who want to validate the public
+package:
+
+- [docs/reviewer-wheel-quickstart.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-wheel-quickstart.md)
+- [docs/reviewer-packet.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-packet.md)
 
 Start the local cockpit:
 
@@ -184,7 +189,7 @@ The checked-in demo template now includes a decision profile:
 
 That means sweeps, experiment exports, and template-driven campaigns can now return a replayable recommendation instead of only raw metric tables.
 
-The packaged showcase command adds a reviewer-facing simulation inspection path
+The packaged showcase command adds a simulation inspection path
 on top of that loop:
 
 `run packaged scenario -> export CSV/SVG artifacts -> verify evidence -> replay -> compare final density`
@@ -263,6 +268,12 @@ demo and benchmark expectations live in
 and decision profile fields are annotated in
 [docs/decision-profile-example.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/decision-profile-example.md).
 
+Product, funding, and builder-roadmap guidance lives in
+[docs/product-vision.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/product-vision.md),
+[docs/funding-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/funding-roadmap.md),
+and
+[docs/contributor-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/contributor-roadmap.md).
+
 Contributor source-map guidance lives in
 [docs/contributor-map.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/contributor-map.md),
 and GitHub social preview setup lives in
@@ -276,7 +287,7 @@ and
 The JOSS preflight checklist lives in
 [docs/joss-preflight.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/joss-preflight.md).
 
-The post-v0.3.0 active development roadmap lives in
+The active builder roadmap lives in
 [docs/post-v0.3-active-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/post-v0.3-active-roadmap.md).
 
 The next research-grade upgrade slice is defined in
@@ -287,10 +298,16 @@ with paper strategy notes in
 ## Funding And Stewardship
 
 QS-DMSS has been accepted into Open Source Collective. Support can be directed
-through [Open Collective](https://opencollective.com/qs-dmss) to help sustain
-transparent maintenance of the reproducible package/evidence workflow,
-reviewer documentation, benchmark validation, and public research-software
-readiness work.
+through [Open Collective](https://opencollective.com/qs-dmss).
+
+The current funding ask is concrete: help build QS-DMSS Lab Mode and the
+publication-grade artifact workflow around it. Funding should unlock visible
+public outcomes such as cockpit improvements, scenario packs, evidence
+exploration, report exports, campaign tooling, benchmark scenarios, and
+research-software documentation.
+
+The funding roadmap lives in
+[docs/funding-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/funding-roadmap.md).
 
 Funding support does not imply peer-reviewed scientific validation or
 endorsement of any physical model. Scientific claims should continue to be
@@ -318,11 +335,11 @@ For formal research references, prefer the Zenodo DOI citation:
 Zenodo citation notes live in
 [docs/zenodo-citation.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/zenodo-citation.md).
 
-## Current Scope
+## Product Spine
 
-This branch intentionally focuses on the package/evidence/reproducibility spine
-first. Optional accelerator backends, UI layers, plugin expansion, and broader
-enterprise modules can now build on a stable execution loop:
+QS-DMSS already has the package/evidence/reproducibility spine needed for a
+stronger product. Optional accelerator backends, plugin expansion, and broader
+research modules can build on a stable execution loop:
 
 `configure -> run -> measure -> bundle -> verify -> replay`
 
@@ -341,3 +358,7 @@ The decision layer adds recommendation semantics to that flow:
 The campaign layer now automates the search plan too:
 
 `select template -> expand campaign -> run matrix -> score variants -> recommend winner -> reopen bundle`
+
+The next product layer is Lab Mode:
+
+`choose scenario -> run simulation -> inspect evidence -> compare variants -> verify/replay -> export report`

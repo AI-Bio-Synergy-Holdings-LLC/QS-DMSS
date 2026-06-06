@@ -1,91 +1,94 @@
-# Post-v0.3.0 Active Roadmap
+# Active Builder Roadmap
 
-This roadmap keeps the next QS-DMSS development arc visible while `v0.3.0`
-remains the stable public review baseline.
+This file remains at the older roadmap path so existing links do not break, but
+the strategy has moved beyond a review-sprint posture.
 
-QS-DMSS is beta for reproducible package/evidence workflows; it is not
-peer-reviewed scientific validation. The active post-v0.3.0 work should make
-that beta baseline easier to review, harder to misinterpret, and more useful
-for contributors who want a concrete place to help.
+The current QS-DMSS direction is:
 
-Public roadmap issue:
-`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/49`
+```text
+run simulations -> inspect evidence -> compare campaigns -> publish reproducible artifacts
+```
 
-## Stable Review Baseline
+The stable public package is `qs-dmss==0.4.0`, archived as
+`v0.4.0` with DOI `10.5281/zenodo.20500433`.
 
-- Package: `qs-dmss==0.4.0`
-- GitHub release target: `v0.4.0`
-- Latest archived release DOI: `10.5281/zenodo.20500433`
-- Review hub:
-  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
-- Reviewer opt-in discussion:
-  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
+## Strategic Shift
 
-Use `v0.4.0` for external review after publication because it makes the
-canonical simulation showcase installable from PyPI. Avoid package churn for
-documentation-only visibility work after this release.
+The earlier v0.3/v0.4 work made QS-DMSS installable, citable, reproducible, and
+reviewable. The next phase should make it compelling to build and fund.
 
-## Current Active Slice
+That means:
 
-The next build slice is reviewer-confidence work around a canonical simulation
-showcase:
+- fewer broad "please review" asks;
+- more concrete build lanes;
+- fewer documentation-only release loops;
+- more simulation-lab product work;
+- clearer funding milestones tied to public artifacts.
 
-- add one packaged scenario that highlights the actual simulated field output;
-- generate reviewer-readable CSV tables, SVG plots, and a summary report;
-- verify and replay the showcase run through the normal evidence path;
-- make generated evidence bundles and replay outputs faster to inspect;
-- route community feedback into focused issues instead of broad private notes;
-- refine the research/JOSS framing so current claims and non-claims stay clear.
+The full strategy now lives in:
 
-This is intentionally not a new scientific-validation claim. It is a stronger
-software-review, simulation-inspection, and evidence-audit path for the current reference
-implementation.
+- [product-vision.md](product-vision.md)
+- [contributor-roadmap.md](contributor-roadmap.md)
+- [funding-roadmap.md](funding-roadmap.md)
 
-## Public Review Goals
+## Current Active Slice: QS-DMSS Lab Mode
 
-The immediate goal is three public review comments:
+Lab Mode is the first product slice that can make QS-DMSS feel meaningfully
+different from a generic open simulator.
 
-- one install/reproducibility comment on issue `#39`;
-- one evidence/benchmark-validation comment on issue `#40`;
-- one scientific/JOSS-framing comment on issue `#41`.
+The target user flow is:
 
-A short pass/fail comment is enough to move the project forward. The highest
-value signal is public evidence that an external reader could install, run, or
-critique the project from the published artifacts.
+```text
+choose scenario -> run simulation -> inspect evidence -> compare variants -> verify/replay -> export report
+```
+
+The first implementation should focus on the local cockpit and existing
+showcase/campaign/evidence spine:
+
+- scenario launcher for packaged scenarios;
+- run status and metric summary;
+- embedded CSV/SVG outputs from showcase artifacts;
+- campaign comparison and recommendation explanation;
+- evidence verification and replay controls;
+- polished report export for a selected run or campaign.
+
+## Builder Board Tracks
+
+Public builder board:
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57`
+
+The public issue board should consolidate around seven ambitious but concrete
+tracks:
+
+1. Lab Mode cockpit flow.
+2. Scenario library and scenario metadata.
+3. Evidence Explorer.
+4. Publication-grade report export.
+5. Campaign Studio.
+6. Numerical validation scenarios.
+7. Release and infrastructure reliability.
+
+Each track should have a small first task and a larger destination. The goal is
+to give contributors and sponsors a visible path into meaningful work.
 
 ## Maintainer Cadence
 
-Maintainer updates should be small and public:
+Maintainer updates should now emphasize product momentum:
 
-- weekly or event-driven comments on issue `#49`;
-- review-sprint status updates on issue `#37` or discussion `#44`;
-- focused follow-up issues for concrete reviewer blockers;
-- no new package release unless a blocker affects the public adoption path.
-
-## What Comes After Review Feedback
-
-If reviewers confirm the current path is understandable, the next engineering
-work should deepen the validation spine rather than broaden the product:
-
-- fold reviewer feedback from the canonical simulation showcase into scenario
-  naming, plots, and report wording;
-- add clearer benchmark comparison notes;
-- document when metric-envelope updates are acceptable;
-- expose reviewer-friendly summaries for benchmark and replay evidence;
-- improve paper/JOSS readiness from actual reviewer questions;
-- keep PyPI, Zenodo, and GitHub metadata synchronized only when a meaningful
-  release is justified.
+- short progress updates on the builder board;
+- focused PRs that advance one track;
+- issue comments that move stale review requests into build opportunities;
+- package releases only when a meaningful product or runtime milestone lands.
 
 ## Non-Goals For This Track
 
-This active roadmap does not claim:
+This roadmap does not claim:
 
 - peer-reviewed scientific validation;
 - production cosmology or astrophysics readiness;
 - GPU, distributed, or high-performance backend support;
 - stable internal Python APIs;
-- a commitment to release every documentation update as a package version.
+- a need to publish a new package for every documentation update.
 
-The purpose is visible, disciplined momentum: stable enough for review, active
-enough that onlookers can see where the originator and contributors are moving
-next.
+The purpose is to make QS-DMSS worth building with: a reproducible simulation
+lab where outputs are inspectable, replayable, comparable, and publishable.
