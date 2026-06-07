@@ -5,6 +5,10 @@ Review date: 2026-06-07
 Backlog purpose: convert the Lab Mode MVP from a functional technical cockpit
 into a premium, fundable, contributor-attractive simulation lab experience.
 
+Implementation update: the Priority 0 release-gating polish items below are
+addressed in this PR's Lab Mode polish pass. The backlog keeps the acceptance
+criteria visible for future regression checks.
+
 Anchors:
 
 - WCAG 2.2: https://www.w3.org/TR/WCAG22/

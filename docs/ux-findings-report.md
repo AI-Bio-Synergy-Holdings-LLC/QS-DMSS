@@ -6,6 +6,12 @@ Review target: QS-DMSS cockpit with Lab Mode MVP on `codex/lab-mode-mvp`
 
 Review status: heuristic UX review, not a formal WCAG conformance claim
 
+Implementation update: this PR now includes a Lab Mode polish pass addressing
+the highest-leverage findings from this review: mobile reflow, disabled report
+link semantics, muted text contrast, visible focus indicators, long-running
+status feedback, and rail label crowding. The findings remain as the audit
+trail for why those changes were made.
+
 ## Review Anchors
 
 This review is anchored against:

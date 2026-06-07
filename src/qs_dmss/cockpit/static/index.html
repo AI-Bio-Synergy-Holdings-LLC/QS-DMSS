@@ -80,6 +80,12 @@
                   Run Lab Mode Showcase
                 </button>
               </div>
+              <div class="lab-progress-shell" id="labProgressShell" hidden>
+                <span class="lab-progress-bar"></span>
+              </div>
+              <p class="lab-progress-text" id="labProgressText" role="status" aria-live="polite">
+                Ready to launch the packaged showcase.
+              </p>
 
               <div class="recommendation-shell compact">
                 <div class="recommendation-copy">
@@ -106,14 +112,28 @@
                 </article>
                 <article class="compare-card">
                   <span>Report</span>
-                  <a id="labMarkdownLink" href="#" target="_blank" rel="noreferrer">
-                    Open Markdown
+                  <a
+                    class="lab-report-link"
+                    id="labMarkdownLink"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-disabled="true"
+                    tabindex="-1"
+                  >
+                    Run first
                   </a>
                 </article>
                 <article class="compare-card">
                   <span>Report Data</span>
-                  <a id="labJsonLink" href="#" target="_blank" rel="noreferrer">
-                    Open JSON
+                  <a
+                    class="lab-report-link"
+                    id="labJsonLink"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-disabled="true"
+                    tabindex="-1"
+                  >
+                    Run first
                   </a>
                 </article>
               </div>

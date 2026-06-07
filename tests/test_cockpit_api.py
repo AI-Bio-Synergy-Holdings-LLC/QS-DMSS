@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -16,6 +17,15 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     root = client.get("/")
     assert root.status_code == 200
     assert "QS-DMSS Run Cockpit" in root.text
+    assert 'id="labProgressText"' in root.text
+    markdown_link = re.search(r'<a[^>]+id="labMarkdownLink"[^>]*>', root.text)
+    json_link = re.search(r'<a[^>]+id="labJsonLink"[^>]*>', root.text)
+    assert markdown_link is not None
+    assert json_link is not None
+    for report_link in (markdown_link.group(0), json_link.group(0)):
+        assert "href=" not in report_link
+        assert 'aria-disabled="true"' in report_link
+        assert 'tabindex="-1"' in report_link
 
     config_payload = client.get("/api/configs")
     assert config_payload.status_code == 200

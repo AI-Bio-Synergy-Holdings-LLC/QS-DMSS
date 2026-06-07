@@ -24,6 +24,8 @@ const els = {
   labScenarioMeta: document.querySelector("#labScenarioMeta"),
   labRunId: document.querySelector("#labRunId"),
   labStatus: document.querySelector("#labStatus"),
+  labProgressShell: document.querySelector("#labProgressShell"),
+  labProgressText: document.querySelector("#labProgressText"),
   labVerification: document.querySelector("#labVerification"),
   labReplay: document.querySelector("#labReplay"),
   labMarkdownLink: document.querySelector("#labMarkdownLink"),
@@ -258,15 +260,32 @@ function renderShowcaseOptions() {
 }
 
 function setLabLinksEnabled(enabled) {
-  [els.labMarkdownLink, els.labJsonLink].forEach((link) => {
+  [
+    [els.labMarkdownLink, "Open Markdown"],
+    [els.labJsonLink, "Open JSON"],
+  ].forEach(([link, readyLabel]) => {
     if (enabled) {
       link.removeAttribute("aria-disabled");
+      link.removeAttribute("tabindex");
+      link.textContent = readyLabel;
+      link.classList.remove("is-disabled");
     } else {
-      link.href = "#";
+      link.removeAttribute("href");
       link.setAttribute("aria-disabled", "true");
+      link.setAttribute("tabindex", "-1");
+      link.textContent = "Run first";
+      link.classList.add("is-disabled");
     }
   });
   els.labSelectRunButton.disabled = !enabled;
+}
+
+function setLabProgress(isRunning, message) {
+  els.launchLabButton.disabled = isRunning;
+  els.launchLabButton.setAttribute("aria-busy", String(isRunning));
+  els.launchLabButton.textContent = isRunning ? "Running Lab Mode..." : "Run Lab Mode Showcase";
+  els.labProgressShell.hidden = !isRunning;
+  els.labProgressText.textContent = message;
 }
 
 function renderLabMode() {
@@ -282,6 +301,7 @@ function renderLabMode() {
     els.labRunId.textContent = "No Lab Mode run yet";
     els.labStatus.textContent = "Idle";
     els.labStatus.className = "status-badge is-idle";
+    els.labProgressText.textContent = "Ready to launch the packaged showcase.";
     els.labVerification.textContent = "Pending";
     els.labReplay.textContent = "Pending";
     els.labArtifactLinks.innerHTML = `
@@ -1018,8 +1038,15 @@ async function handleLaunchLabMode() {
     return;
   }
 
-  els.launchLabButton.disabled = true;
-  els.launchLabButton.textContent = "Running Lab Mode...";
+  setLabProgress(
+    true,
+    "Running the showcase now. QS-DMSS is generating the run, evidence bundle, replay, report, and artifacts.",
+  );
+  els.labStatus.textContent = "Running";
+  els.labStatus.className = "status-badge is-warning";
+  els.labVerification.textContent = "Generating evidence";
+  els.labReplay.textContent = "Waiting for replay";
+  setLabLinksEnabled(false);
 
   try {
     const payload = await fetchJson(`/api/showcases/${encodeURIComponent(scenarioName)}/run`, {
@@ -1031,11 +1058,17 @@ async function handleLaunchLabMode() {
     await refreshRuns();
     renderLabMode();
     renderSelectedRun(payload.run);
+    setLabProgress(
+      false,
+      `Complete. Created ${shortRunId(payload.run.summary.run_id)} with report links and artifacts ready.`,
+    );
   } catch (error) {
+    els.labStatus.textContent = "Failed";
+    els.labStatus.className = "status-badge is-danger";
+    els.labVerification.textContent = "Not verified";
+    els.labReplay.textContent = "Not replayed";
+    setLabProgress(false, "Lab Mode failed. Review the error message and try again.");
     toast("Lab Mode failed", error.message, "danger");
-  } finally {
-    els.launchLabButton.disabled = false;
-    els.launchLabButton.textContent = "Run Lab Mode Showcase";
   }
 }
 

@@ -4,6 +4,12 @@ Review date: 2026-06-07
 
 Reviewed surface: QS-DMSS cockpit with Lab Mode MVP on `codex/lab-mode-mvp`
 
+Implementation update: after this scorecard was created, the same PR received a
+Lab Mode polish pass for the largest readiness blockers: mobile reflow,
+disabled report-link semantics, muted text contrast, visible focus indicators,
+long-running status feedback, and rail label crowding. Treat the numeric score
+as the pre-polish baseline until a formal re-score is performed.
+
 Score scale:
 
 - 5: ready for broad public use
