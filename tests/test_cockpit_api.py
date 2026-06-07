@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -16,6 +17,15 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     root = client.get("/")
     assert root.status_code == 200
     assert "QS-DMSS Run Cockpit" in root.text
+    assert 'id="labProgressText"' in root.text
+    markdown_link = re.search(r'<a[^>]+id="labMarkdownLink"[^>]*>', root.text)
+    json_link = re.search(r'<a[^>]+id="labJsonLink"[^>]*>', root.text)
+    assert markdown_link is not None
+    assert json_link is not None
+    for report_link in (markdown_link.group(0), json_link.group(0)):
+        assert "href=" not in report_link
+        assert 'aria-disabled="true"' in report_link
+        assert 'tabindex="-1"' in report_link
 
     config_payload = client.get("/api/configs")
     assert config_payload.status_code == 200
@@ -83,6 +93,51 @@ def test_cockpit_api_uses_bundled_configs_when_repo_has_none(tmp_path: Path) -> 
     body = config_payload.json()
     assert body["default_name"] == "demo.yaml"
     assert body["items"][0]["path"] == "configs/demo.yaml"
+
+
+def test_cockpit_api_launches_lab_mode_showcase(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    showcase_payload = client.get("/api/showcases")
+    assert showcase_payload.status_code == 200
+    showcase_body = showcase_payload.json()
+    assert showcase_body["default_name"] == "canonical-simulation"
+    assert showcase_body["items"][0]["name"] == "canonical-simulation"
+
+    launch_payload = client.post("/api/showcases/canonical-simulation/run")
+    assert launch_payload.status_code == 200
+    lab_mode = launch_payload.json()
+    run_id = lab_mode["run"]["summary"]["run_id"]
+    replay_id = lab_mode["replay_run"]["summary"]["run_id"]
+
+    assert lab_mode["scenario"]["name"] == "canonical-simulation"
+    assert lab_mode["report"]["success"] is True
+    assert lab_mode["report"]["run"]["run_id"] == run_id
+    assert lab_mode["report"]["replay"]["run_id"] == replay_id
+    assert lab_mode["report"]["replay"]["final_density_allclose"] is True
+    assert lab_mode["artifact_links"]
+
+    runs_payload = client.get("/api/runs")
+    assert runs_payload.status_code == 200
+    run_ids = {item["run_id"] for item in runs_payload.json()["items"]}
+    assert {run_id, replay_id}.issubset(run_ids)
+
+    run_detail = client.get(f"/api/runs/{run_id}")
+    assert run_detail.status_code == 200
+    assert run_detail.json()["urls"]["bundle"].endswith("/bundle")
+
+    markdown_report = client.get(lab_mode["urls"]["markdown_report"])
+    assert markdown_report.status_code == 200
+    assert "QS-DMSS Canonical Simulation Showcase" in markdown_report.text
+
+    json_report = client.get(lab_mode["urls"]["json_report"])
+    assert json_report.status_code == 200
+    assert json_report.json()["run"]["run_id"] == run_id
+
+    artifact_payload = client.get(lab_mode["artifact_links"][0]["url"])
+    assert artifact_payload.status_code == 200
 
 
 def test_cockpit_api_launch_sweep_and_compare(tmp_path: Path) -> None:

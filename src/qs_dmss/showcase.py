@@ -489,6 +489,8 @@ def run_simulation_showcase(
     *,
     scenario: str = DEFAULT_SHOWCASE_NAME,
     replay: bool = True,
+    runs_output_root: str | Path | None = None,
+    replay_output_root: str | Path | None = None,
 ) -> dict[str, Any]:
     output_path = (
         Path(output_root).resolve()
@@ -496,12 +498,22 @@ def run_simulation_showcase(
         else (Path.cwd() / "simulation-showcase").resolve()
     )
     output_path.mkdir(parents=True, exist_ok=True)
+    run_root = (
+        Path(runs_output_root).resolve()
+        if runs_output_root is not None
+        else output_path / "runs"
+    )
+    replay_root = (
+        Path(replay_output_root).resolve()
+        if replay_output_root is not None
+        else output_path / "replays"
+    )
 
     selected = resolve_showcase_scenario(scenario)
     config = load_config(selected.config_path)
     outputs = execute_run_from_path(
         selected.config_path,
-        output_root=output_path / "runs",
+        output_root=run_root,
     )
     verification = verify_run_path(outputs.run_dir)
     metrics = _read_json(outputs.run_dir / "metrics.json")
@@ -511,7 +523,7 @@ def run_simulation_showcase(
     if replay:
         replay_outputs = replay_run(
             outputs.run_dir,
-            output_root=output_path / "replays",
+            output_root=replay_root,
         )
         replay_verification = verify_run_path(replay_outputs.run_dir)
         replay_comparison = _compare_replay(outputs.run_dir, replay_outputs.run_dir)

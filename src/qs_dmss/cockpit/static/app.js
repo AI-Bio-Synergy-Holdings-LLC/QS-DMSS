@@ -1,8 +1,11 @@
 const state = {
   configs: [],
+  showcases: [],
   runs: [],
   experiments: [],
   sweepParameters: [],
+  selectedShowcaseName: null,
+  labResult: null,
   selectedRunId: null,
   selectedRun: null,
   selectedExperimentId: null,
@@ -15,6 +18,20 @@ const state = {
 const els = {
   configTemplate: document.querySelector("#configTemplate"),
   loadTemplateButton: document.querySelector("#loadTemplateButton"),
+  labScenarioSelect: document.querySelector("#labScenarioSelect"),
+  launchLabButton: document.querySelector("#launchLabButton"),
+  labScenarioSummary: document.querySelector("#labScenarioSummary"),
+  labScenarioMeta: document.querySelector("#labScenarioMeta"),
+  labRunId: document.querySelector("#labRunId"),
+  labStatus: document.querySelector("#labStatus"),
+  labProgressShell: document.querySelector("#labProgressShell"),
+  labProgressText: document.querySelector("#labProgressText"),
+  labVerification: document.querySelector("#labVerification"),
+  labReplay: document.querySelector("#labReplay"),
+  labMarkdownLink: document.querySelector("#labMarkdownLink"),
+  labJsonLink: document.querySelector("#labJsonLink"),
+  labSelectRunButton: document.querySelector("#labSelectRunButton"),
+  labArtifactLinks: document.querySelector("#labArtifactLinks"),
   refreshRunsButton: document.querySelector("#refreshRunsButton"),
   refreshExperimentsButton: document.querySelector("#refreshExperimentsButton"),
   compareButton: document.querySelector("#compareButton"),
@@ -221,12 +238,108 @@ function configByName(name) {
   return state.configs.find((item) => item.name === name) || null;
 }
 
+function showcaseByName(name) {
+  return state.showcases.find((item) => item.name === name) || null;
+}
+
 function sweepParameterByPath(path) {
   return state.sweepParameters.find((item) => item.path === path) || null;
 }
 
 function parameterLabel(path) {
   return sweepParameterByPath(path)?.label || path;
+}
+
+function renderShowcaseOptions() {
+  els.labScenarioSelect.innerHTML = state.showcases
+    .map((item) => `<option value="${item.name}">${item.label}</option>`)
+    .join("");
+  if (state.selectedShowcaseName) {
+    els.labScenarioSelect.value = state.selectedShowcaseName;
+  }
+}
+
+function setLabLinksEnabled(enabled) {
+  [
+    [els.labMarkdownLink, "Open Markdown"],
+    [els.labJsonLink, "Open JSON"],
+  ].forEach(([link, readyLabel]) => {
+    if (enabled) {
+      link.removeAttribute("aria-disabled");
+      link.removeAttribute("tabindex");
+      link.textContent = readyLabel;
+      link.classList.remove("is-disabled");
+    } else {
+      link.removeAttribute("href");
+      link.setAttribute("aria-disabled", "true");
+      link.setAttribute("tabindex", "-1");
+      link.textContent = "Run first";
+      link.classList.add("is-disabled");
+    }
+  });
+  els.labSelectRunButton.disabled = !enabled;
+}
+
+function setLabProgress(isRunning, message) {
+  els.launchLabButton.disabled = isRunning;
+  els.launchLabButton.setAttribute("aria-busy", String(isRunning));
+  els.launchLabButton.textContent = isRunning ? "Running Lab Mode..." : "Run Lab Mode Showcase";
+  els.labProgressShell.hidden = !isRunning;
+  els.labProgressText.textContent = message;
+}
+
+function renderLabMode() {
+  const scenario = showcaseByName(state.selectedShowcaseName);
+  els.labScenarioSummary.textContent =
+    scenario?.description ||
+    "Choose a packaged showcase to create a run, replay, artifacts, and a report.";
+  els.labScenarioMeta.textContent = scenario
+    ? `${scenario.grid_label} | ${scenario.steps} steps | ${scenario.claim_boundary}`
+    : "No packaged showcase selected";
+
+  if (!state.labResult) {
+    els.labRunId.textContent = "No Lab Mode run yet";
+    els.labStatus.textContent = "Idle";
+    els.labStatus.className = "status-badge is-idle";
+    els.labProgressText.textContent = "Ready to launch the packaged showcase.";
+    els.labVerification.textContent = "Pending";
+    els.labReplay.textContent = "Pending";
+    els.labArtifactLinks.innerHTML = `
+      <li>Run the canonical showcase to populate CSV/SVG artifacts and report links.</li>
+    `;
+    setLabLinksEnabled(false);
+    return;
+  }
+
+  const { report, run, replay_run: replayRun, artifact_links: artifactLinks, urls } = state.labResult;
+  els.labRunId.textContent = run.summary.run_id;
+  els.labStatus.textContent = report.success ? "Passed" : "Needs review";
+  els.labStatus.className = `status-badge ${toneForStatus(report.success ? "completed" : "failed")}`;
+  els.labVerification.textContent = report.verification.success
+    ? `Verified (${report.verification.checked_files})`
+    : "Verification failed";
+  els.labReplay.textContent = replayRun
+    ? report.replay.final_density_allclose
+      ? `Replay matched (${shortRunId(replayRun.summary.run_id)})`
+      : "Replay mismatch"
+    : "Replay skipped";
+  els.labMarkdownLink.href = urls.markdown_report;
+  els.labJsonLink.href = urls.json_report;
+  els.labArtifactLinks.innerHTML = artifactLinks.length
+    ? artifactLinks
+        .map(
+          (item) => `
+            <li>
+              <a href="${item.url}" target="_blank" rel="noreferrer">
+                <strong>${item.label}</strong>
+                <span>${item.name}</span>
+              </a>
+            </li>
+          `,
+        )
+        .join("")
+    : "<li>No exported showcase artifacts found.</li>";
+  setLabLinksEnabled(true);
 }
 
 function fillForm(config) {
@@ -849,17 +962,22 @@ function renderExperimentPlaceholder() {
 }
 
 async function hydrate() {
-  const [configPayload, sweepPayload, experimentPayload] = await Promise.all([
+  const [configPayload, sweepPayload, showcasePayload, experimentPayload] = await Promise.all([
     fetchJson("/api/configs"),
     fetchJson("/api/sweeps/parameters"),
+    fetchJson("/api/showcases"),
     fetchJson("/api/experiments"),
   ]);
   state.configs = configPayload.items;
   state.sweepParameters = sweepPayload.items;
+  state.showcases = showcasePayload.items;
   state.experiments = experimentPayload.items;
   state.selectedTemplateName = configPayload.default_name || state.configs[0]?.name || null;
+  state.selectedShowcaseName = showcasePayload.default_name || state.showcases[0]?.name || null;
   renderConfigOptions();
   renderSweepParameterOptions();
+  renderShowcaseOptions();
+  renderLabMode();
   renderExperimentRegistry();
   setExperimentActionsEnabled(false);
 
@@ -910,6 +1028,47 @@ async function handleLaunch(event) {
   } finally {
     els.launchButton.disabled = false;
     els.launchButton.textContent = "Launch Run";
+  }
+}
+
+async function handleLaunchLabMode() {
+  const scenarioName = els.labScenarioSelect.value || state.selectedShowcaseName;
+  if (!scenarioName) {
+    toast("No showcase selected", "Choose a packaged showcase scenario first.", "danger");
+    return;
+  }
+
+  setLabProgress(
+    true,
+    "Running the showcase now. QS-DMSS is generating the run, evidence bundle, replay, report, and artifacts.",
+  );
+  els.labStatus.textContent = "Running";
+  els.labStatus.className = "status-badge is-warning";
+  els.labVerification.textContent = "Generating evidence";
+  els.labReplay.textContent = "Waiting for replay";
+  setLabLinksEnabled(false);
+
+  try {
+    const payload = await fetchJson(`/api/showcases/${encodeURIComponent(scenarioName)}/run`, {
+      method: "POST",
+    });
+    state.labResult = payload;
+    state.selectedShowcaseName = payload.scenario.name;
+    toast("Lab Mode complete", `Created ${payload.run.summary.run_id}`, "success");
+    await refreshRuns();
+    renderLabMode();
+    renderSelectedRun(payload.run);
+    setLabProgress(
+      false,
+      `Complete. Created ${shortRunId(payload.run.summary.run_id)} with report links and artifacts ready.`,
+    );
+  } catch (error) {
+    els.labStatus.textContent = "Failed";
+    els.labStatus.className = "status-badge is-danger";
+    els.labVerification.textContent = "Not verified";
+    els.labReplay.textContent = "Not replayed";
+    setLabProgress(false, "Lab Mode failed. Review the error message and try again.");
+    toast("Lab Mode failed", error.message, "danger");
   }
 }
 
@@ -1086,6 +1245,21 @@ function openExperimentReport() {
 }
 
 function bindEvents() {
+  els.labScenarioSelect.addEventListener("change", (event) => {
+    state.selectedShowcaseName = event.target.value;
+    state.labResult = null;
+    renderLabMode();
+  });
+
+  els.launchLabButton.addEventListener("click", handleLaunchLabMode);
+  els.labSelectRunButton.addEventListener("click", async () => {
+    const runId = state.labResult?.run?.summary?.run_id;
+    if (runId) {
+      await selectRun(runId);
+      document.querySelector("#artifacts")?.scrollIntoView({ behavior: "smooth" });
+    }
+  });
+
   els.loadTemplateButton.addEventListener("click", () => {
     const selected = configByName(els.configTemplate.value);
     if (selected) {

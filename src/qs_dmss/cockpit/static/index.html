@@ -21,6 +21,7 @@
         </div>
         <nav class="rail-nav" aria-label="Primary">
           <a class="rail-item active" href="#cockpit">Cockpit</a>
+          <a class="rail-item" href="#lab-mode">Lab</a>
           <a class="rail-item" href="#runs">Runs</a>
           <a class="rail-item" href="#experiments">Experiments</a>
           <a class="rail-item" href="#evidence">Evidence</a>
@@ -50,6 +51,112 @@
         </header>
 
         <section class="board-grid">
+          <section class="panel lab-panel reveal" id="lab-mode">
+            <div class="lab-hero">
+              <div>
+                <p class="panel-kicker">Lab Mode</p>
+                <h2>Run, Inspect, Verify, Replay, Export</h2>
+                <p class="lab-copy">
+                  Launch the packaged simulation showcase and keep the generated run inside
+                  the cockpit ledger, with evidence, replay, report, and artifacts one click away.
+                </p>
+              </div>
+              <div class="lab-flow" aria-label="Lab Mode flow">
+                <span>Choose scenario</span>
+                <span>Run simulation</span>
+                <span>Inspect evidence</span>
+                <span>Verify and replay</span>
+                <span>Export report</span>
+              </div>
+            </div>
+
+            <div class="lab-console">
+              <div class="lab-controls">
+                <label class="field">
+                  <span>Packaged Scenario</span>
+                  <select id="labScenarioSelect"></select>
+                </label>
+                <button class="primary-button" id="launchLabButton" type="button">
+                  Run Lab Mode Showcase
+                </button>
+              </div>
+              <div class="lab-progress-shell" id="labProgressShell" hidden>
+                <span class="lab-progress-bar"></span>
+              </div>
+              <p class="lab-progress-text" id="labProgressText" role="status" aria-live="polite">
+                Ready to launch the packaged showcase.
+              </p>
+
+              <div class="recommendation-shell compact">
+                <div class="recommendation-copy">
+                  <p class="recommendation-label">Scenario</p>
+                  <h3 id="labScenarioMeta">No packaged showcase selected</h3>
+                  <p class="recommendation-note" id="labScenarioSummary">
+                    Choose a packaged showcase to create a run, replay, artifacts, and a report.
+                  </p>
+                </div>
+                <div class="recommendation-meta">
+                  <span class="status-badge is-idle" id="labStatus">Idle</span>
+                  <span class="selection-chip" id="labRunId">No Lab Mode run yet</span>
+                </div>
+              </div>
+
+              <div class="lab-metrics">
+                <article class="compare-card">
+                  <span>Evidence</span>
+                  <strong id="labVerification">Pending</strong>
+                </article>
+                <article class="compare-card">
+                  <span>Replay</span>
+                  <strong id="labReplay">Pending</strong>
+                </article>
+                <article class="compare-card">
+                  <span>Report</span>
+                  <a
+                    class="lab-report-link"
+                    id="labMarkdownLink"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-disabled="true"
+                    tabindex="-1"
+                  >
+                    Run first
+                  </a>
+                </article>
+                <article class="compare-card">
+                  <span>Report Data</span>
+                  <a
+                    class="lab-report-link"
+                    id="labJsonLink"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-disabled="true"
+                    tabindex="-1"
+                  >
+                    Run first
+                  </a>
+                </article>
+              </div>
+
+              <div class="lab-actions">
+                <button class="secondary-button teal" id="labSelectRunButton" type="button" disabled>
+                  Inspect Run in Cockpit
+                </button>
+                <p class="form-note">
+                  Lab Mode reuses the existing run detail, evidence bundle, verify, replay, and
+                  report controls below after the showcase run completes.
+                </p>
+              </div>
+
+              <div class="artifact-list-shell lab-artifact-shell">
+                <p class="artifact-list-title">Showcase Artifacts</p>
+                <ul class="lab-artifact-list" id="labArtifactLinks">
+                  <li>Run the canonical showcase to populate CSV/SVG artifacts and report links.</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
           <section class="panel launch-panel reveal" id="cockpit">
             <div class="panel-head">
               <div>
