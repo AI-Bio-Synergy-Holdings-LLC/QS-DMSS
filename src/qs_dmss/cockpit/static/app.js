@@ -32,6 +32,12 @@ const els = {
   labJsonLink: document.querySelector("#labJsonLink"),
   labSelectRunButton: document.querySelector("#labSelectRunButton"),
   labArtifactLinks: document.querySelector("#labArtifactLinks"),
+  labExplorerStatus: document.querySelector("#labExplorerStatus"),
+  labReportPreviewTitle: document.querySelector("#labReportPreviewTitle"),
+  labReportPreviewBody: document.querySelector("#labReportPreviewBody"),
+  labReportMetrics: document.querySelector("#labReportMetrics"),
+  labEvidenceChecklist: document.querySelector("#labEvidenceChecklist"),
+  labArtifactPreview: document.querySelector("#labArtifactPreview"),
   refreshRunsButton: document.querySelector("#refreshRunsButton"),
   refreshExperimentsButton: document.querySelector("#refreshExperimentsButton"),
   compareButton: document.querySelector("#compareButton"),
@@ -157,6 +163,15 @@ function cloneJson(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function toneForStatus(status) {
   const normalized = String(status || "idle").toLowerCase();
   return toneClassByStatus[normalized] || "is-idle";
@@ -234,6 +249,14 @@ async function fetchJson(url, options) {
   return response.json();
 }
 
+async function fetchText(url) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Request failed: ${response.status}`);
+  }
+  return response.text();
+}
+
 function configByName(name) {
   return state.configs.find((item) => item.name === name) || null;
 }
@@ -288,6 +311,186 @@ function setLabProgress(isRunning, message) {
   els.labProgressText.textContent = message;
 }
 
+function renderMetricPreview(metrics) {
+  const rows = [
+    ["Norm drift", formatScientific(metrics.norm_drift)],
+    ["Energy drift", formatScientific(metrics.energy_drift)],
+    ["Max density", formatScientific(metrics.max_density)],
+    ["Elapsed", formatSeconds(metrics.elapsed_seconds)],
+    ["History points", String(metrics.history_points)],
+  ];
+  els.labReportMetrics.innerHTML = rows
+    .map(
+      ([label, value]) => `
+        <div>
+          <dt>${escapeHtml(label)}</dt>
+          <dd>${escapeHtml(value)}</dd>
+        </div>
+      `,
+    )
+    .join("");
+}
+
+function renderEvidenceChecklist(result) {
+  const { report, run, replay_run: replayRun } = result;
+  const replay = report.replay;
+  const evidenceItems = [
+    {
+      tone: "is-success",
+      label: "Evidence bundle",
+      detail: `${run.evidence.bundle_size_label} bundle with ${run.evidence.file_count} manifest files.`,
+    },
+    {
+      tone: report.verification.success ? "is-success" : "is-danger",
+      label: "Verification",
+      detail: report.verification.success
+        ? `${report.verification.checked_files} files verified from the run directory.`
+        : `${report.verification.errors.length} verification error(s) reported.`,
+    },
+    {
+      tone: replay?.final_density_allclose ? "is-success" : "is-warning",
+      label: "Replay",
+      detail: replayRun
+        ? `Replay ${shortRunId(replayRun.summary.run_id)} ${
+            replay.final_density_allclose ? "matched final density." : "needs review."
+          }`
+        : "Replay was skipped for this showcase run.",
+    },
+    {
+      tone: report.success ? "is-success" : "is-warning",
+      label: "Research object",
+      detail: report.success
+        ? "Report, artifacts, evidence bundle, and replay status are ready to inspect."
+        : "The generated research object needs review before sharing.",
+    },
+  ];
+  els.labEvidenceChecklist.innerHTML = evidenceItems
+    .map(
+      (item) => `
+        <li>
+          <span class="status-pill ${item.tone}">${escapeHtml(item.label)}</span>
+          <p>${escapeHtml(item.detail)}</p>
+        </li>
+      `,
+    )
+    .join("");
+}
+
+function parseCsvPreview(text, rowLimit = 4, columnLimit = 5) {
+  return text
+    .trim()
+    .split(/\r?\n/)
+    .slice(0, rowLimit + 1)
+    .map((line) => line.split(",").slice(0, columnLimit));
+}
+
+function csvPreviewMarkup(text) {
+  const rows = parseCsvPreview(text);
+  if (!rows.length) {
+    return "<p>No CSV rows found.</p>";
+  }
+  const [headers, ...bodyRows] = rows;
+  return `
+    <table class="lab-csv-preview-table">
+      <thead>
+        <tr>${headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("")}</tr>
+      </thead>
+      <tbody>
+        ${bodyRows
+          .map(
+            (row) => `
+              <tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>
+            `,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+async function loadCsvPreview(item, index, runId) {
+  const target = els.labArtifactPreview.querySelector(`[data-csv-index="${index}"]`);
+  if (!target) return;
+  try {
+    const text = await fetchText(item.url);
+    if (state.labResult?.run?.summary?.run_id !== runId) return;
+    target.innerHTML = csvPreviewMarkup(text);
+  } catch (error) {
+    target.innerHTML = `<p>CSV preview unavailable: ${escapeHtml(error.message)}</p>`;
+  }
+}
+
+function renderArtifactPreviews(artifactLinks, runId) {
+  const previewable = artifactLinks.filter(
+    (item) => item.previewable || ["csv", "svg"].includes(item.kind),
+  );
+  if (!previewable.length) {
+    els.labArtifactPreview.innerHTML = "<p>No previewable SVG or CSV artifacts were generated.</p>";
+    return;
+  }
+
+  els.labArtifactPreview.innerHTML = previewable
+    .map((item, index) => {
+      const title = escapeHtml(item.label);
+      const name = escapeHtml(item.name);
+      if (item.kind === "svg") {
+        return `
+          <figure class="lab-artifact-preview-item">
+            <figcaption>
+              <strong>${title}</strong>
+              <span>${name}</span>
+            </figcaption>
+            <img src="${escapeHtml(item.url)}" alt="${title} preview" loading="lazy" />
+          </figure>
+        `;
+      }
+      if (item.kind === "csv") {
+        return `
+          <section class="lab-artifact-preview-item">
+            <header>
+              <strong>${title}</strong>
+              <span>${name}</span>
+            </header>
+            <div class="lab-csv-preview" data-csv-index="${index}">
+              <p>Loading first rows...</p>
+            </div>
+          </section>
+        `;
+      }
+      return "";
+    })
+    .join("");
+
+  previewable.forEach((item, index) => {
+    if (item.kind === "csv") {
+      loadCsvPreview(item, index, runId);
+    }
+  });
+}
+
+function renderLabEvidenceExplorer(result) {
+  if (!result) {
+    els.labExplorerStatus.textContent = "Run showcase first";
+    els.labReportPreviewTitle.textContent = "No showcase report yet";
+    els.labReportPreviewBody.textContent =
+      "Run Lab Mode to summarize the simulation narrative, claim boundary, and key numerical diagnostics directly inside the cockpit.";
+    els.labReportMetrics.innerHTML = "";
+    els.labEvidenceChecklist.innerHTML =
+      "<li>Verification, replay, and bundle status appear after the showcase run.</li>";
+    els.labArtifactPreview.innerHTML =
+      "<p>SVG plots and CSV first rows appear here after Lab Mode completes.</p>";
+    return;
+  }
+
+  const { report, artifact_links: artifactLinks } = result;
+  els.labExplorerStatus.textContent = report.success ? "Research object ready" : "Needs review";
+  els.labReportPreviewTitle.textContent = `${report.scenario} report summary`;
+  els.labReportPreviewBody.textContent = `${report.scenario_narrative} ${report.claim_boundary}`;
+  renderMetricPreview(report.metrics);
+  renderEvidenceChecklist(result);
+  renderArtifactPreviews(artifactLinks, result.run.summary.run_id);
+}
+
 function renderLabMode() {
   const scenario = showcaseByName(state.selectedShowcaseName);
   els.labScenarioSummary.textContent =
@@ -308,6 +511,7 @@ function renderLabMode() {
       <li>Run the canonical showcase to populate CSV/SVG artifacts and report links.</li>
     `;
     setLabLinksEnabled(false);
+    renderLabEvidenceExplorer(null);
     return;
   }
 
@@ -340,6 +544,7 @@ function renderLabMode() {
         .join("")
     : "<li>No exported showcase artifacts found.</li>";
   setLabLinksEnabled(true);
+  renderLabEvidenceExplorer(state.labResult);
 }
 
 function fillForm(config) {

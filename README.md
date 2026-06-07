@@ -137,7 +137,7 @@ Then open [http://127.0.0.1:8001](http://127.0.0.1:8001) in a browser.
 
 Inside the cockpit you can:
 
-- Use Lab Mode to launch the packaged canonical simulation showcase and inspect its evidence, replay, report, and exported artifacts
+- Use Lab Mode to launch the packaged canonical simulation showcase, inspect its Evidence Explorer, preview the generated report/artifacts, and open the full evidence outputs
 - Launch a single run from a checked-in or edited config
 - Launch a parameter sweep across interaction strength, timestep, step count, amplitude, width, or seed
 - Launch a template-defined decision campaign that expands into a reproducible multi-parameter run matrix

@@ -573,10 +573,13 @@ class CockpitService:
         links = []
         for key, value in report.get("artifacts", {}).items():
             artifact_name = Path(value).name
+            kind = Path(artifact_name).suffix.lstrip(".") or "file"
             links.append(
                 {
                     "label": key.replace("_", " ").title(),
                     "name": artifact_name,
+                    "kind": kind,
+                    "previewable": kind in {"csv", "svg"},
                     "url": f"/api/showcases/{scenario}/artifacts/{artifact_name}",
                 }
             )
