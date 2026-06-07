@@ -176,6 +176,7 @@ cython_debug/
 # QS-DMSS runtime outputs
 runs/
 experiments/
+showcases/
 benchmark-validation/
 simulation-showcase/
 .codex-logs/

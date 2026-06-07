@@ -1,8 +1,11 @@
 const state = {
   configs: [],
+  showcases: [],
   runs: [],
   experiments: [],
   sweepParameters: [],
+  selectedShowcaseName: null,
+  labResult: null,
   selectedRunId: null,
   selectedRun: null,
   selectedExperimentId: null,
@@ -15,6 +18,18 @@ const state = {
 const els = {
   configTemplate: document.querySelector("#configTemplate"),
   loadTemplateButton: document.querySelector("#loadTemplateButton"),
+  labScenarioSelect: document.querySelector("#labScenarioSelect"),
+  launchLabButton: document.querySelector("#launchLabButton"),
+  labScenarioSummary: document.querySelector("#labScenarioSummary"),
+  labScenarioMeta: document.querySelector("#labScenarioMeta"),
+  labRunId: document.querySelector("#labRunId"),
+  labStatus: document.querySelector("#labStatus"),
+  labVerification: document.querySelector("#labVerification"),
+  labReplay: document.querySelector("#labReplay"),
+  labMarkdownLink: document.querySelector("#labMarkdownLink"),
+  labJsonLink: document.querySelector("#labJsonLink"),
+  labSelectRunButton: document.querySelector("#labSelectRunButton"),
+  labArtifactLinks: document.querySelector("#labArtifactLinks"),
   refreshRunsButton: document.querySelector("#refreshRunsButton"),
   refreshExperimentsButton: document.querySelector("#refreshExperimentsButton"),
   compareButton: document.querySelector("#compareButton"),
@@ -221,12 +236,90 @@ function configByName(name) {
   return state.configs.find((item) => item.name === name) || null;
 }
 
+function showcaseByName(name) {
+  return state.showcases.find((item) => item.name === name) || null;
+}
+
 function sweepParameterByPath(path) {
   return state.sweepParameters.find((item) => item.path === path) || null;
 }
 
 function parameterLabel(path) {
   return sweepParameterByPath(path)?.label || path;
+}
+
+function renderShowcaseOptions() {
+  els.labScenarioSelect.innerHTML = state.showcases
+    .map((item) => `<option value="${item.name}">${item.label}</option>`)
+    .join("");
+  if (state.selectedShowcaseName) {
+    els.labScenarioSelect.value = state.selectedShowcaseName;
+  }
+}
+
+function setLabLinksEnabled(enabled) {
+  [els.labMarkdownLink, els.labJsonLink].forEach((link) => {
+    if (enabled) {
+      link.removeAttribute("aria-disabled");
+    } else {
+      link.href = "#";
+      link.setAttribute("aria-disabled", "true");
+    }
+  });
+  els.labSelectRunButton.disabled = !enabled;
+}
+
+function renderLabMode() {
+  const scenario = showcaseByName(state.selectedShowcaseName);
+  els.labScenarioSummary.textContent =
+    scenario?.description ||
+    "Choose a packaged showcase to create a run, replay, artifacts, and a report.";
+  els.labScenarioMeta.textContent = scenario
+    ? `${scenario.grid_label} | ${scenario.steps} steps | ${scenario.claim_boundary}`
+    : "No packaged showcase selected";
+
+  if (!state.labResult) {
+    els.labRunId.textContent = "No Lab Mode run yet";
+    els.labStatus.textContent = "Idle";
+    els.labStatus.className = "status-badge is-idle";
+    els.labVerification.textContent = "Pending";
+    els.labReplay.textContent = "Pending";
+    els.labArtifactLinks.innerHTML = `
+      <li>Run the canonical showcase to populate CSV/SVG artifacts and report links.</li>
+    `;
+    setLabLinksEnabled(false);
+    return;
+  }
+
+  const { report, run, replay_run: replayRun, artifact_links: artifactLinks, urls } = state.labResult;
+  els.labRunId.textContent = run.summary.run_id;
+  els.labStatus.textContent = report.success ? "Passed" : "Needs review";
+  els.labStatus.className = `status-badge ${toneForStatus(report.success ? "completed" : "failed")}`;
+  els.labVerification.textContent = report.verification.success
+    ? `Verified (${report.verification.checked_files})`
+    : "Verification failed";
+  els.labReplay.textContent = replayRun
+    ? report.replay.final_density_allclose
+      ? `Replay matched (${shortRunId(replayRun.summary.run_id)})`
+      : "Replay mismatch"
+    : "Replay skipped";
+  els.labMarkdownLink.href = urls.markdown_report;
+  els.labJsonLink.href = urls.json_report;
+  els.labArtifactLinks.innerHTML = artifactLinks.length
+    ? artifactLinks
+        .map(
+          (item) => `
+            <li>
+              <a href="${item.url}" target="_blank" rel="noreferrer">
+                <strong>${item.label}</strong>
+                <span>${item.name}</span>
+              </a>
+            </li>
+          `,
+        )
+        .join("")
+    : "<li>No exported showcase artifacts found.</li>";
+  setLabLinksEnabled(true);
 }
 
 function fillForm(config) {
@@ -849,17 +942,22 @@ function renderExperimentPlaceholder() {
 }
 
 async function hydrate() {
-  const [configPayload, sweepPayload, experimentPayload] = await Promise.all([
+  const [configPayload, sweepPayload, showcasePayload, experimentPayload] = await Promise.all([
     fetchJson("/api/configs"),
     fetchJson("/api/sweeps/parameters"),
+    fetchJson("/api/showcases"),
     fetchJson("/api/experiments"),
   ]);
   state.configs = configPayload.items;
   state.sweepParameters = sweepPayload.items;
+  state.showcases = showcasePayload.items;
   state.experiments = experimentPayload.items;
   state.selectedTemplateName = configPayload.default_name || state.configs[0]?.name || null;
+  state.selectedShowcaseName = showcasePayload.default_name || state.showcases[0]?.name || null;
   renderConfigOptions();
   renderSweepParameterOptions();
+  renderShowcaseOptions();
+  renderLabMode();
   renderExperimentRegistry();
   setExperimentActionsEnabled(false);
 
@@ -910,6 +1008,34 @@ async function handleLaunch(event) {
   } finally {
     els.launchButton.disabled = false;
     els.launchButton.textContent = "Launch Run";
+  }
+}
+
+async function handleLaunchLabMode() {
+  const scenarioName = els.labScenarioSelect.value || state.selectedShowcaseName;
+  if (!scenarioName) {
+    toast("No showcase selected", "Choose a packaged showcase scenario first.", "danger");
+    return;
+  }
+
+  els.launchLabButton.disabled = true;
+  els.launchLabButton.textContent = "Running Lab Mode...";
+
+  try {
+    const payload = await fetchJson(`/api/showcases/${encodeURIComponent(scenarioName)}/run`, {
+      method: "POST",
+    });
+    state.labResult = payload;
+    state.selectedShowcaseName = payload.scenario.name;
+    toast("Lab Mode complete", `Created ${payload.run.summary.run_id}`, "success");
+    await refreshRuns();
+    renderLabMode();
+    renderSelectedRun(payload.run);
+  } catch (error) {
+    toast("Lab Mode failed", error.message, "danger");
+  } finally {
+    els.launchLabButton.disabled = false;
+    els.launchLabButton.textContent = "Run Lab Mode Showcase";
   }
 }
 
@@ -1086,6 +1212,21 @@ function openExperimentReport() {
 }
 
 function bindEvents() {
+  els.labScenarioSelect.addEventListener("change", (event) => {
+    state.selectedShowcaseName = event.target.value;
+    state.labResult = null;
+    renderLabMode();
+  });
+
+  els.launchLabButton.addEventListener("click", handleLaunchLabMode);
+  els.labSelectRunButton.addEventListener("click", async () => {
+    const runId = state.labResult?.run?.summary?.run_id;
+    if (runId) {
+      await selectRun(runId);
+      document.querySelector("#artifacts")?.scrollIntoView({ behavior: "smooth" });
+    }
+  });
+
   els.loadTemplateButton.addEventListener("click", () => {
     const selected = configByName(els.configTemplate.value);
     if (selected) {

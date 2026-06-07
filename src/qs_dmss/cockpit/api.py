@@ -35,6 +35,14 @@ from qs_dmss.paths import (
     runs_root,
     safe_filename,
 )
+from qs_dmss.showcase import (
+    DEFAULT_SHOWCASE_NAME,
+    SHOWCASE_JSON_REPORT,
+    SHOWCASE_MARKDOWN_REPORT,
+    list_showcase_scenarios,
+    resolve_showcase_scenario,
+    run_simulation_showcase,
+)
 
 
 class LaunchRunRequest(BaseModel):
@@ -126,6 +134,9 @@ class CockpitService:
     def list_sweep_parameters(self) -> list[dict]:
         return list_sweep_parameters()
 
+    def list_showcases(self) -> list[dict]:
+        return [self._build_showcase_summary(name) for name in list_showcase_scenarios()]
+
     def get_run_detail(self, run_id: str) -> dict:
         run_dir = self._get_run_dir(run_id)
         return self._build_run_detail(run_dir)
@@ -159,6 +170,32 @@ class CockpitService:
         run_dir = self._get_run_dir(run_id)
         outputs = replay_existing_run(run_dir, output_root=self.output_root)
         return self._build_run_detail(outputs.run_dir)
+
+    def launch_showcase(self, scenario: str = DEFAULT_SHOWCASE_NAME) -> dict:
+        selected = self._resolve_showcase_scenario(scenario)
+        showcase_root = self._showcase_output_root(selected.name, create=True)
+        report = run_simulation_showcase(
+            output_root=showcase_root,
+            scenario=selected.name,
+            runs_output_root=self.output_root,
+            replay_output_root=self.output_root,
+        )
+        run_detail = self._build_run_detail(Path(report["run"]["run_dir"]))
+        replay_detail = None
+        if report.get("replay"):
+            replay_detail = self._build_run_detail(Path(report["replay"]["run_dir"]))
+
+        return {
+            "scenario": self._build_showcase_summary(selected.name),
+            "report": report,
+            "run": run_detail,
+            "replay_run": replay_detail,
+            "artifact_links": self._build_showcase_artifact_links(selected.name, report),
+            "urls": {
+                "markdown_report": f"/api/showcases/{selected.name}/report",
+                "json_report": f"/api/showcases/{selected.name}/report.json",
+            },
+        }
 
     def compare_runs(self, payload: CompareRunsRequest) -> dict:
         run_ids = [run_id for run_id in payload.run_ids if run_id]
@@ -374,6 +411,33 @@ class CockpitService:
             raise HTTPException(status_code=404, detail="Experiment report not found")
         return report_path
 
+    def showcase_markdown_path(self, scenario: str) -> Path:
+        report_path = self._showcase_output_root(
+            self._resolve_showcase_scenario(scenario).name
+        ) / SHOWCASE_MARKDOWN_REPORT
+        if not report_path.exists():
+            raise HTTPException(status_code=404, detail="Showcase report not found")
+        return report_path
+
+    def showcase_json_path(self, scenario: str) -> Path:
+        report_path = self._showcase_output_root(
+            self._resolve_showcase_scenario(scenario).name
+        ) / SHOWCASE_JSON_REPORT
+        if not report_path.exists():
+            raise HTTPException(status_code=404, detail="Showcase JSON report not found")
+        return report_path
+
+    def showcase_artifact_path(self, scenario: str, artifact_name: str) -> Path:
+        scenario_name = self._resolve_showcase_scenario(scenario).name
+        artifact_root = self._showcase_output_root(scenario_name) / "artifacts"
+        artifact_path = contained_path(
+            artifact_root,
+            safe_filename(artifact_name, default="artifact"),
+        )
+        if not artifact_path.exists() or not artifact_path.is_file():
+            raise HTTPException(status_code=404, detail="Showcase artifact not found")
+        return artifact_path
+
     def index_path(self) -> Path:
         return self.static_root / "index.html"
 
@@ -423,6 +487,22 @@ class CockpitService:
             raise HTTPException(status_code=404, detail="Experiment not found")
         return experiment_dir
 
+    def _resolve_showcase_scenario(self, scenario: str):
+        try:
+            return resolve_showcase_scenario(scenario)
+        except (FileNotFoundError, ValueError) as exc:
+            raise HTTPException(status_code=404, detail="Showcase scenario not found") from exc
+
+    def _showcase_output_root(self, scenario: str, *, create: bool = False) -> Path:
+        showcases_root = self.output_root.resolve().parent / "showcases"
+        output_root = contained_path(
+            showcases_root,
+            safe_filename(scenario, default=DEFAULT_SHOWCASE_NAME),
+        )
+        if create:
+            output_root.mkdir(parents=True, exist_ok=True)
+        return output_root
+
     def _read_json(self, path: Path) -> dict:
         return json.loads(path.read_text(encoding="utf-8"))
 
@@ -468,6 +548,39 @@ class CockpitService:
             for label, count in buckets.items()
             if count > 0
         ]
+
+    def _build_showcase_summary(self, scenario: str) -> dict:
+        selected = self._resolve_showcase_scenario(scenario)
+        config = load_config(selected.config_path)
+        return {
+            "name": selected.name,
+            "label": selected.name.replace("-", " ").title(),
+            "config_name": selected.config_path.name,
+            "run_name": config.run.name,
+            "grid_label": self._format_grid_label(config.engine.grid_shape),
+            "steps": config.engine.num_steps,
+            "description": (
+                "Packaged canonical simulation scenario that produces a run, "
+                "verified evidence bundle, replay check, CSV/SVG artifacts, "
+                "and a human-readable showcase report."
+            ),
+            "claim_boundary": (
+                "Workflow demonstration only; not peer-reviewed scientific validation."
+            ),
+        }
+
+    def _build_showcase_artifact_links(self, scenario: str, report: dict) -> list[dict]:
+        links = []
+        for key, value in report.get("artifacts", {}).items():
+            artifact_name = Path(value).name
+            links.append(
+                {
+                    "label": key.replace("_", " ").title(),
+                    "name": artifact_name,
+                    "url": f"/api/showcases/{scenario}/artifacts/{artifact_name}",
+                }
+            )
+        return links
 
     def _build_run_summary(self, run_dir: Path) -> dict:
         run_record = self._read_json(run_dir / "run.json")
@@ -608,6 +721,38 @@ def create_app(
     @app.get("/api/sweeps/parameters")
     def sweep_parameters() -> dict:
         return {"items": service.list_sweep_parameters()}
+
+    @app.get("/api/showcases")
+    def showcases() -> dict:
+        items = service.list_showcases()
+        return {
+            "items": items,
+            "default_name": DEFAULT_SHOWCASE_NAME,
+        }
+
+    @app.post("/api/showcases/{scenario}/run")
+    def launch_showcase(scenario: str) -> dict:
+        return service.launch_showcase(scenario)
+
+    @app.get("/api/showcases/{scenario}/report")
+    def showcase_markdown_report(scenario: str) -> FileResponse:
+        report_path = service.showcase_markdown_path(scenario)
+        return FileResponse(report_path, media_type="text/markdown")
+
+    @app.get("/api/showcases/{scenario}/report.json")
+    def showcase_json_report(scenario: str) -> FileResponse:
+        report_path = service.showcase_json_path(scenario)
+        return FileResponse(report_path, media_type="application/json")
+
+    @app.get("/api/showcases/{scenario}/artifacts/{artifact_name}")
+    def showcase_artifact(scenario: str, artifact_name: str) -> FileResponse:
+        artifact_path = service.showcase_artifact_path(scenario, artifact_name)
+        media_type = "application/octet-stream"
+        if artifact_path.suffix == ".svg":
+            media_type = "image/svg+xml"
+        elif artifact_path.suffix == ".csv":
+            media_type = "text/csv"
+        return FileResponse(artifact_path, media_type=media_type, filename=artifact_path.name)
 
     @app.get("/api/runs")
     def runs() -> dict:

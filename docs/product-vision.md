@@ -81,6 +81,11 @@ This does not require inventing a new scientific claim. It makes the current
 claim easier to experience: QS-DMSS turns simulation runs into trustworthy,
 portable research objects.
 
+The first MVP should expose the packaged canonical simulation showcase directly
+inside the cockpit so a fresh user can launch one scenario, inspect its run,
+verify/replay evidence, and open the generated report/artifacts without reading
+source code first.
+
 ## Build Priorities
 
 The strategic build priorities are:
