@@ -21,6 +21,9 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert 'id="labEvidenceExplorer"' in root.text
     assert 'id="labReportPreviewBody"' in root.text
     assert 'id="labArtifactPreview"' in root.text
+    assert 'id="labInterpretationSummary"' in root.text
+    assert 'id="labMeaningList"' in root.text
+    assert 'id="labNonClaimList"' in root.text
     markdown_link = re.search(r'<a[^>]+id="labMarkdownLink"[^>]*>', root.text)
     json_link = re.search(r'<a[^>]+id="labJsonLink"[^>]*>', root.text)
     assert markdown_link is not None
@@ -120,7 +123,28 @@ def test_cockpit_api_launches_lab_mode_showcase(tmp_path: Path) -> None:
     assert lab_mode["report"]["run"]["run_id"] == run_id
     assert lab_mode["report"]["replay"]["run_id"] == replay_id
     assert lab_mode["report"]["replay"]["final_density_allclose"] is True
+    interpretation = lab_mode["report"]["interpretation"]
+    assert interpretation["plain_language_summary"].startswith("This showcase starts")
+    assert interpretation["what_this_result_means"]
+    assert interpretation["what_this_result_does_not_claim"]
+    assert interpretation["review_prompt"]
+    assert {item["artifact_key"] for item in interpretation["artifact_callouts"]} == {
+        "energy_history_svg",
+        "midplane_density_svg",
+        "midplane_slice_csv",
+        "radial_density_svg",
+        "radial_profile_csv",
+        "step_history_csv",
+    }
     assert lab_mode["artifact_links"]
+    assert {item["key"] for item in lab_mode["artifact_links"]} == {
+        "energy_history_svg",
+        "midplane_density_svg",
+        "midplane_slice_csv",
+        "radial_density_svg",
+        "radial_profile_csv",
+        "step_history_csv",
+    }
     assert {item["kind"] for item in lab_mode["artifact_links"]} == {"csv", "svg"}
     assert all(item["previewable"] for item in lab_mode["artifact_links"])
 
@@ -136,10 +160,13 @@ def test_cockpit_api_launches_lab_mode_showcase(tmp_path: Path) -> None:
     markdown_report = client.get(lab_mode["urls"]["markdown_report"])
     assert markdown_report.status_code == 200
     assert "QS-DMSS Canonical Simulation Showcase" in markdown_report.text
+    assert "## Guided Interpretation" in markdown_report.text
+    assert "### What This Result Does Not Claim" in markdown_report.text
 
     json_report = client.get(lab_mode["urls"]["json_report"])
     assert json_report.status_code == 200
     assert json_report.json()["run"]["run_id"] == run_id
+    assert json_report.json()["interpretation"]["artifact_callouts"]
 
     artifact_payload = client.get(lab_mode["artifact_links"][0]["url"])
     assert artifact_payload.status_code == 200

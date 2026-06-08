@@ -386,11 +386,110 @@ def _metrics_summary(metrics: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _showcase_guided_interpretation(
+    metrics: dict[str, Any],
+    verification: Any,
+    replay_report: dict[str, Any] | None,
+) -> dict[str, Any]:
+    norm_message = (
+        "The norm drift is effectively zero for this small deterministic run, "
+        "which is a useful sanity check for the numerical workflow."
+        if abs(float(metrics["relative_norm_drift"])) <= 1e-12
+        else "The norm drift is visible enough to deserve reviewer attention."
+    )
+    replay_message = (
+        "Replay reproduced the final density array, so the generated evidence can be re-run "
+        "through the same deterministic path."
+        if replay_report is not None and replay_report["final_density_allclose"]
+        else "Replay was skipped or did not match final density, so the result should be reviewed before sharing."
+    )
+    verification_message = (
+        f"Evidence verification checked {verification.checked_files} files from the run directory."
+        if verification.success
+        else "Evidence verification reported errors; inspect the JSON report before trusting this run."
+    )
+    return {
+        "plain_language_summary": (
+            "This showcase starts with a compact scalar-field density packet and evolves it "
+            "through the packaged reference solver. The goal is not to prove a scientific "
+            "claim; the goal is to show that QS-DMSS can run a scenario, preserve evidence, "
+            "replay the result, and expose interpretable artifacts."
+        ),
+        "what_this_result_means": [
+            norm_message,
+            "The energy-history and density artifacts give reviewers a compact view of how the simulated field evolves over the configured steps.",
+            verification_message,
+            replay_message,
+        ],
+        "what_this_result_does_not_claim": [
+            "It does not establish peer-reviewed dark-matter, cosmology, or quantum-gravity conclusions.",
+            "It does not prove the solver is valid for production scientific inference beyond this packaged reference workflow.",
+            "It should be treated as a reproducible workflow demonstration and a starting point for external review.",
+        ],
+        "artifact_callouts": [
+            {
+                "artifact_key": "energy_history_svg",
+                "title": "Energy history plot",
+                "callout": "Use this plot to see whether the run changes smoothly across simulation steps.",
+                "why_it_matters": "Abrupt jumps would be a useful signal for reviewers to inspect timestep, grid, or solver assumptions.",
+            },
+            {
+                "artifact_key": "radial_density_svg",
+                "title": "Radial density profile",
+                "callout": "Use this profile to understand how density concentrates from the center outward.",
+                "why_it_matters": "It turns the final 3D field into a compact shape reviewers can compare across scenarios.",
+            },
+            {
+                "artifact_key": "midplane_density_svg",
+                "title": "Midplane density heatmap",
+                "callout": "Use this heatmap to inspect the spatial structure of the final density slice.",
+                "why_it_matters": "It makes the simulated field visible without opening binary array artifacts.",
+            },
+            {
+                "artifact_key": "step_history_csv",
+                "title": "Step history table",
+                "callout": "Use the CSV to inspect norm, energy, and max-density values step by step.",
+                "why_it_matters": "The table is the machine-readable companion to the plotted run history.",
+            },
+            {
+                "artifact_key": "radial_profile_csv",
+                "title": "Radial profile table",
+                "callout": "Use the CSV when you want to replot or independently analyze the radial profile.",
+                "why_it_matters": "It keeps the visual summary reproducible outside the cockpit.",
+            },
+            {
+                "artifact_key": "midplane_slice_csv",
+                "title": "Midplane slice table",
+                "callout": "Use the CSV to inspect exact coordinates and density values behind the heatmap.",
+                "why_it_matters": "It lets reviewers audit the plotted density slice numerically.",
+            },
+        ],
+        "review_prompt": (
+            "A useful review comment can focus on whether these artifacts make the simulated behavior "
+            "understandable, whether the claim boundary is clear, or which diagnostic would make the "
+            "scenario more trustworthy."
+        ),
+    }
+
+
 def write_showcase_markdown_report(report: dict[str, Any], path: Path) -> None:
     metrics = report["metrics"]
     verification = report["verification"]
     replay = report.get("replay")
     artifacts = report["artifacts"]
+    interpretation = report["interpretation"]
+    artifact_callout_lines = []
+    for item in interpretation["artifact_callouts"]:
+        artifact_callout_lines.extend(
+            [
+                f"### {item['title']}",
+                "",
+                item["callout"],
+                "",
+                f"Why it matters: {item['why_it_matters']}",
+                "",
+            ]
+        )
     replay_lines = [
         "| Replay evidence verification | skipped | Replay was disabled. |",
         "| Replay density comparison | skipped | Replay was disabled. |",
@@ -418,6 +517,25 @@ def write_showcase_markdown_report(report: dict[str, Any], path: Path) -> None:
         f"- Output root: `{report['output_root']}`",
         "",
         report["scenario_narrative"],
+        "",
+        "## Guided Interpretation",
+        "",
+        interpretation["plain_language_summary"],
+        "",
+        "### What This Result Means",
+        "",
+        *[f"- {item}" for item in interpretation["what_this_result_means"]],
+        "",
+        "### What This Result Does Not Claim",
+        "",
+        *[f"- {item}" for item in interpretation["what_this_result_does_not_claim"]],
+        "",
+        "### Artifact Callouts",
+        "",
+        *artifact_callout_lines,
+        "### Reviewer Prompt",
+        "",
+        interpretation["review_prompt"],
         "",
         "## Reproduce This Showcase",
         "",
@@ -517,6 +635,7 @@ def run_simulation_showcase(
     )
     verification = verify_run_path(outputs.run_dir)
     metrics = _read_json(outputs.run_dir / "metrics.json")
+    metrics_summary = _metrics_summary(metrics)
     artifacts = _write_showcase_artifacts(output_path, outputs.run_dir, config)
 
     replay_report = None
@@ -564,7 +683,12 @@ def run_simulation_showcase(
             "errors": verification.errors,
         },
         "replay": replay_report,
-        "metrics": _metrics_summary(metrics),
+        "metrics": metrics_summary,
+        "interpretation": _showcase_guided_interpretation(
+            metrics_summary,
+            verification,
+            replay_report,
+        ),
         "artifacts": artifacts,
     }
     report["success"] = bool(
