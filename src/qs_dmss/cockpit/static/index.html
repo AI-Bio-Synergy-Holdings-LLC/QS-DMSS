@@ -154,6 +154,39 @@
                   <li>Run the canonical showcase to populate CSV/SVG artifacts and report links.</li>
                 </ul>
               </div>
+
+              <div class="lab-evidence-explorer" id="labEvidenceExplorer">
+                <div class="panel-head compact">
+                  <div>
+                    <p class="panel-kicker">Evidence Explorer</p>
+                    <h3>Research Object Preview</h3>
+                  </div>
+                  <span class="selection-chip" id="labExplorerStatus">Run showcase first</span>
+                </div>
+                <div class="lab-research-grid">
+                  <article class="lab-research-card">
+                    <p class="artifact-list-title">Report Preview</p>
+                    <h4 id="labReportPreviewTitle">No showcase report yet</h4>
+                    <p id="labReportPreviewBody">
+                      Run Lab Mode to summarize the simulation narrative, claim boundary, and key
+                      numerical diagnostics directly inside the cockpit.
+                    </p>
+                    <dl class="lab-report-metrics" id="labReportMetrics"></dl>
+                  </article>
+                  <article class="lab-research-card">
+                    <p class="artifact-list-title">Evidence Status</p>
+                    <ul class="lab-evidence-checklist" id="labEvidenceChecklist">
+                      <li>Verification, replay, and bundle status appear after the showcase run.</li>
+                    </ul>
+                  </article>
+                  <article class="lab-research-card lab-artifact-preview-card">
+                    <p class="artifact-list-title">Artifact Preview</p>
+                    <div class="lab-artifact-preview" id="labArtifactPreview">
+                      <p>SVG plots and CSV first rows appear here after Lab Mode completes.</p>
+                    </div>
+                  </article>
+                </div>
+              </div>
             </div>
           </section>
 

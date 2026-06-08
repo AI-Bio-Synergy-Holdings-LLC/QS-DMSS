@@ -453,6 +453,145 @@ h2 {
   font-size: 0.86rem;
 }
 
+.lab-evidence-explorer {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(21, 57, 61, 0.1);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(42, 106, 106, 0.1), transparent 28%),
+    linear-gradient(135deg, rgba(255, 253, 248, 0.8), rgba(247, 238, 222, 0.76));
+}
+
+.lab-evidence-explorer h3,
+.lab-research-card h4 {
+  margin: 0;
+}
+
+.lab-research-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
+  gap: 14px;
+}
+
+.lab-research-card {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(21, 57, 61, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 253, 248, 0.74);
+}
+
+.lab-research-card p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.lab-report-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.lab-report-metrics div {
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid rgba(21, 57, 61, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.54);
+}
+
+.lab-evidence-checklist {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.lab-evidence-checklist li {
+  display: grid;
+  gap: 6px;
+}
+
+.lab-evidence-checklist .status-pill {
+  font-weight: 800;
+}
+
+.lab-artifact-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.lab-artifact-preview-card {
+  grid-column: 1 / -1;
+}
+
+.lab-artifact-preview-item {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+  padding: 12px;
+  margin: 0;
+  border: 1px solid rgba(21, 57, 61, 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.56);
+}
+
+.lab-artifact-preview-item header,
+.lab-artifact-preview-item figcaption {
+  display: grid;
+  gap: 2px;
+}
+
+.lab-artifact-preview-item span {
+  color: var(--muted);
+  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.lab-artifact-preview-item img {
+  width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  border: 1px solid rgba(21, 57, 61, 0.08);
+  border-radius: 12px;
+  background: #fffdf8;
+}
+
+.lab-csv-preview {
+  overflow: auto;
+}
+
+.lab-csv-preview-table {
+  width: 100%;
+  min-width: 360px;
+  border-collapse: collapse;
+  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-size: 0.78rem;
+}
+
+.lab-csv-preview-table th,
+.lab-csv-preview-table td {
+  padding: 7px 8px;
+  border-bottom: 1px solid rgba(21, 57, 61, 0.09);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.lab-csv-preview-table th {
+  color: var(--teal);
+  font-weight: 800;
+}
+
 .status-panel,
 .detail-panel,
 .evidence-panel {
@@ -1246,7 +1385,8 @@ tbody tr.is-selected {
   .lab-hero,
   .lab-flow,
   .lab-metrics,
-  .lab-artifact-list {
+  .lab-artifact-list,
+  .lab-research-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1370,6 +1510,22 @@ tbody tr.is-selected {
 
   .lab-artifact-list li {
     min-height: auto;
+  }
+
+  .lab-evidence-explorer {
+    padding: 14px;
+  }
+
+  .lab-report-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .lab-artifact-preview {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .lab-csv-preview-table {
+    min-width: 260px;
   }
 
   .advanced-grid,

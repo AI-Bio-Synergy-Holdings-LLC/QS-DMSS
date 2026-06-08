@@ -18,6 +18,9 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert root.status_code == 200
     assert "QS-DMSS Run Cockpit" in root.text
     assert 'id="labProgressText"' in root.text
+    assert 'id="labEvidenceExplorer"' in root.text
+    assert 'id="labReportPreviewBody"' in root.text
+    assert 'id="labArtifactPreview"' in root.text
     markdown_link = re.search(r'<a[^>]+id="labMarkdownLink"[^>]*>', root.text)
     json_link = re.search(r'<a[^>]+id="labJsonLink"[^>]*>', root.text)
     assert markdown_link is not None
@@ -118,6 +121,8 @@ def test_cockpit_api_launches_lab_mode_showcase(tmp_path: Path) -> None:
     assert lab_mode["report"]["replay"]["run_id"] == replay_id
     assert lab_mode["report"]["replay"]["final_density_allclose"] is True
     assert lab_mode["artifact_links"]
+    assert {item["kind"] for item in lab_mode["artifact_links"]} == {"csv", "svg"}
+    assert all(item["previewable"] for item in lab_mode["artifact_links"])
 
     runs_payload = client.get("/api/runs")
     assert runs_payload.status_code == 200
