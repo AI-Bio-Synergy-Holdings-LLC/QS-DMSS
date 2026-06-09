@@ -24,6 +24,9 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert 'id="labInterpretationSummary"' in root.text
     assert 'id="labMeaningList"' in root.text
     assert 'id="labNonClaimList"' in root.text
+    assert 'id="launchLabComparisonButton"' in root.text
+    assert 'id="labComparisonSummary"' in root.text
+    assert 'id="labComparisonMeaningList"' in root.text
     markdown_link = re.search(r'<a[^>]+id="labMarkdownLink"[^>]*>', root.text)
     json_link = re.search(r'<a[^>]+id="labJsonLink"[^>]*>', root.text)
     assert markdown_link is not None
@@ -170,6 +173,47 @@ def test_cockpit_api_launches_lab_mode_showcase(tmp_path: Path) -> None:
 
     artifact_payload = client.get(lab_mode["artifact_links"][0]["url"])
     assert artifact_payload.status_code == 200
+
+
+def test_cockpit_api_launches_guided_showcase_comparison(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    comparison_payload = client.post("/api/showcases/canonical-simulation/compare")
+    assert comparison_payload.status_code == 200
+    guided = comparison_payload.json()
+
+    assert guided["scenario"]["name"] == "canonical-simulation"
+    assert len(guided["runs"]) == 3
+    assert len(guided["comparison"]["rows"]) == 3
+    assert guided["comparison"]["shared_experiment"]["kind"] == "guided-comparison"
+    assert guided["comparison"]["shared_experiment"]["strategy"] == "packaged-variants"
+    assert guided["artifact"]["summary"]["kind"] == "guided-comparison"
+    assert guided["artifact"]["summary"]["run_count"] == 3
+    assert guided["artifact"]["summary"]["experiment_id"].startswith("guided-comparison-")
+    assert guided["urls"]["report"].endswith("/report")
+    assert guided["urls"]["bundle"].endswith("/bundle")
+
+    guide = guided["guide"]
+    assert guide["plain_language_summary"].startswith("QS-DMSS ran the canonical showcase")
+    assert len(guide["what_changed"]) >= 4
+    assert len(guide["what_to_inspect"]) >= 3
+    assert guide["what_this_does_not_claim"]
+    assert "review comment" in guide["review_prompt"]
+
+    variant_labels = {
+        row["parameter_value_label"] for row in guided["comparison"]["rows"]
+    }
+    assert variant_labels == {"Baseline", "Wider packet", "Stronger interaction"}
+
+    experiment_report = client.get(guided["urls"]["report"])
+    assert experiment_report.status_code == 200
+    assert "QS-DMSS Experiment Report" in experiment_report.text
+
+    experiment_bundle = client.get(guided["urls"]["bundle"])
+    assert experiment_bundle.status_code == 200
+    assert experiment_bundle.headers["content-type"].startswith("application/zip")
 
 
 def test_cockpit_api_launch_sweep_and_compare(tmp_path: Path) -> None:

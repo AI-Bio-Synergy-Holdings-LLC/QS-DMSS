@@ -524,6 +524,38 @@ h2 {
   font-weight: 700;
 }
 
+.lab-comparison-card {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(42, 106, 106, 0.16);
+  border-radius: 22px;
+  background:
+    radial-gradient(circle at 4% 0%, rgba(42, 106, 106, 0.14), transparent 32%),
+    linear-gradient(135deg, rgba(255, 253, 248, 0.82), rgba(239, 246, 244, 0.76));
+}
+
+.lab-comparison-card > p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.lab-comparison-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.lab-comparison-actions .lab-report-link {
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  background: rgba(255, 252, 246, 0.72);
+}
+
 .lab-research-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(320px, 0.8fr);
@@ -1566,7 +1598,8 @@ tbody tr.is-selected {
   }
 
   .lab-controls .primary-button,
-  .lab-actions .secondary-button {
+  .lab-actions .secondary-button,
+  .lab-comparison-actions .lab-report-link {
     width: 100%;
   }
 

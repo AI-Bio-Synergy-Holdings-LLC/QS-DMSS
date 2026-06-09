@@ -4,6 +4,7 @@ import json
 from dataclasses import dataclass
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from typing import Any
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
@@ -14,6 +15,7 @@ from qs_dmss.app import execute_run, replay_run as replay_existing_run
 from qs_dmss.decision import evaluate_run_decision
 from qs_dmss.evidence.verify import verify_run_path
 from qs_dmss.experiment import (
+    apply_parameter_values,
     apply_sweep_value,
     build_campaign_context,
     build_campaign_plan,
@@ -21,6 +23,7 @@ from qs_dmss.experiment import (
     build_run_comparison,
     coerce_sweep_values,
     create_experiment_id,
+    format_parameter_value,
     get_sweep_parameter,
     list_sweep_parameters,
     persist_failed_campaign_artifact,
@@ -195,6 +198,67 @@ class CockpitService:
                 "markdown_report": f"/api/showcases/{selected.name}/report",
                 "json_report": f"/api/showcases/{selected.name}/report.json",
             },
+        }
+
+    def launch_showcase_comparison(self, scenario: str = DEFAULT_SHOWCASE_NAME) -> dict:
+        selected = self._resolve_showcase_scenario(scenario)
+        base_config = load_config(selected.config_path).to_dict()
+        dimensions = self._guided_comparison_dimensions()
+        variants = self._guided_comparison_variants(base_config)
+        experiment_id = create_experiment_id("guided-comparison")
+        experiment_label = f"{selected.name.replace('-', ' ').title()} guided comparison"
+
+        run_dirs: list[Path] = []
+        summaries: list[dict] = []
+        details: list[dict] = []
+        with TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            for ordinal, variant in enumerate(variants, start=1):
+                variant_config = self._guided_comparison_config(
+                    base_config,
+                    variant["values"],
+                )
+                temp_config_dir = temp_root / f"variant-{ordinal:02d}"
+                temp_config_dir.mkdir(parents=True, exist_ok=True)
+                temp_path = self._temp_source_path(
+                    temp_config_dir,
+                    f"{selected.name}-{variant['slug']}.yaml",
+                )
+                outputs = execute_run(
+                    config=parse_config(variant_config),
+                    source_config_path=temp_path,
+                    output_root=self.output_root,
+                    experiment=self._guided_comparison_context(
+                        experiment_id=experiment_id,
+                        label=experiment_label,
+                        dimensions=dimensions,
+                        variant=variant,
+                        ordinal=ordinal,
+                        total_runs=len(variants),
+                    ),
+                )
+                run_dirs.append(outputs.run_dir)
+                detail = self._build_run_detail(outputs.run_dir)
+                details.append(detail)
+                summaries.append(detail["summary"])
+
+        artifact_outputs = persist_experiment_artifact(
+            run_dirs=run_dirs,
+            run_details=details,
+            experiments_root=self.experiments_root,
+            label=experiment_label,
+            experiment_id=experiment_id,
+            kind="guided-comparison",
+        )
+        artifact_detail = self._build_experiment_detail(artifact_outputs.experiment_dir)
+
+        return {
+            "scenario": self._build_showcase_summary(selected.name),
+            "comparison": artifact_detail["comparison"],
+            "guide": self._build_guided_comparison_guide(artifact_detail["comparison"]),
+            "runs": summaries,
+            "artifact": artifact_detail,
+            "urls": artifact_detail["urls"],
         }
 
     def compare_runs(self, payload: CompareRunsRequest) -> dict:
@@ -586,6 +650,153 @@ class CockpitService:
             )
         return links
 
+    def _guided_comparison_dimensions(self) -> list[dict[str, str]]:
+        return [
+            {
+                "path": "initial.width",
+                "label": "Initial packet width",
+            },
+            {
+                "path": "engine.g_int",
+                "label": "Interaction strength",
+            },
+        ]
+
+    def _guided_comparison_variants(self, base_config: dict[str, Any]) -> list[dict[str, Any]]:
+        base_width = float(base_config["initial"]["width"])
+        base_interaction = float(base_config["engine"]["g_int"])
+        wider_width = round(base_width * 1.27, 6)
+        stronger_interaction = round(base_interaction * 1.5, 6)
+        return [
+            {
+                "slug": "baseline",
+                "label": "Baseline",
+                "description": "The packaged canonical showcase settings.",
+                "values": {
+                    "initial.width": base_width,
+                    "engine.g_int": base_interaction,
+                },
+            },
+            {
+                "slug": "wider-packet",
+                "label": "Wider packet",
+                "description": "A wider initial density packet with the same interaction strength.",
+                "values": {
+                    "initial.width": wider_width,
+                    "engine.g_int": base_interaction,
+                },
+            },
+            {
+                "slug": "stronger-interaction",
+                "label": "Stronger interaction",
+                "description": "The baseline packet with a stronger self-interaction setting.",
+                "values": {
+                    "initial.width": base_width,
+                    "engine.g_int": stronger_interaction,
+                },
+            },
+        ]
+
+    def _guided_comparison_config(
+        self,
+        base_config: dict[str, Any],
+        values: dict[str, int | float],
+    ) -> dict[str, Any]:
+        return apply_parameter_values(
+            base_config,
+            [(path, value) for path, value in values.items()],
+        )
+
+    def _guided_comparison_context(
+        self,
+        *,
+        experiment_id: str,
+        label: str,
+        dimensions: list[dict[str, str]],
+        variant: dict[str, Any],
+        ordinal: int,
+        total_runs: int,
+    ) -> dict[str, Any]:
+        entries = [
+            {
+                "path": dimension["path"],
+                "label": dimension["label"],
+                "value": variant["values"][dimension["path"]],
+                "value_label": format_parameter_value(variant["values"][dimension["path"]]),
+            }
+            for dimension in dimensions
+        ]
+        return {
+            "id": experiment_id,
+            "kind": "guided-comparison",
+            "label": label,
+            "strategy": "packaged-variants",
+            "dimensions": dimensions,
+            "dimension_count": len(dimensions),
+            "parameter_path": None,
+            "parameter_label": "Guided Variant",
+            "parameter_value": None,
+            "parameter_value_label": variant["label"],
+            "variant": entries,
+            "variant_label": variant["label"],
+            "variant_note": variant["description"],
+            "ordinal": ordinal,
+            "total_runs": total_runs,
+        }
+
+    def _build_guided_comparison_guide(self, comparison: dict[str, Any]) -> dict[str, Any]:
+        rows = comparison["rows"]
+        highlights = comparison["highlights"]
+        ranges = comparison["ranges"]
+        decision = comparison.get("decision") or {}
+        recommended_run_id = decision.get("recommended_run_id")
+        recommended_row = next(
+            (row for row in rows if row["run_id"] == recommended_run_id),
+            None,
+        )
+        recommended_label = (
+            recommended_row.get("variant_label") or recommended_row.get("parameter_value_label")
+            if recommended_row
+            else None
+        )
+        recommendation_sentence = (
+            f"The current objective profile recommends the {recommended_label} variant "
+            f"({recommended_run_id})."
+            if recommended_run_id and recommended_label
+            else "No objective-driven recommendation is available, so compare the evidence rows manually."
+        )
+        return {
+            "title": "How the guided variants differ",
+            "plain_language_summary": (
+                "QS-DMSS ran the canonical showcase as a small guided comparison: the baseline, "
+                "a wider initial density packet, and a stronger interaction variant. The variants "
+                "use the same deterministic seed so the cockpit can focus attention on evidence "
+                "differences rather than random setup changes."
+            ),
+            "what_changed": [
+                f"Baseline run: {rows[0]['run_id']}. Each other row reports deltas against that baseline.",
+                f"Energy drift span across variants: {ranges['energy_drift']['span']:.3e}.",
+                f"Norm drift span across variants: {ranges['norm_drift']['span']:.3e}.",
+                f"Max-density span across variants: {ranges['max_density']['span']:.3e}.",
+                recommendation_sentence,
+            ],
+            "what_to_inspect": [
+                f"Lowest absolute energy drift: {highlights['lowest_abs_energy_drift_run_id']}.",
+                f"Lowest absolute norm drift: {highlights['lowest_abs_norm_drift_run_id']}.",
+                f"Highest max density: {highlights['highest_max_density_run_id']}.",
+                "Open the experiment report to inspect the comparison table, copied run evidence, and bundle manifest.",
+            ],
+            "what_this_does_not_claim": [
+                "It does not prove one variant is scientifically correct or physically validated.",
+                "It does not replace peer review, calibration, or domain-specific benchmark validation.",
+                "It demonstrates the QS-DMSS workflow for comparing reproducible research objects.",
+            ],
+            "review_prompt": (
+                "A useful review comment can focus on whether the comparison makes variant behavior "
+                "understandable, whether the evidence deltas are enough, or which diagnostic should be added next."
+            ),
+        }
+
     def _build_run_summary(self, run_dir: Path) -> dict:
         run_record = self._read_json(run_dir / "run.json")
         metrics = self._read_json(run_dir / "metrics.json")
@@ -737,6 +948,10 @@ def create_app(
     @app.post("/api/showcases/{scenario}/run")
     def launch_showcase(scenario: str) -> dict:
         return service.launch_showcase(scenario)
+
+    @app.post("/api/showcases/{scenario}/compare")
+    def launch_showcase_comparison(scenario: str) -> dict:
+        return service.launch_showcase_comparison(scenario)
 
     @app.get("/api/showcases/{scenario}/report")
     def showcase_markdown_report(scenario: str) -> FileResponse:
