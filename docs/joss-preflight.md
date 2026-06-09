@@ -65,7 +65,7 @@ Before submission, update `paper/paper.md` with:
 - A complete AI usage disclosure that lists tools, scope, and human validation.
 - Acknowledgements, funding, conflicts, and support statements.
 - References for related software, scientific context, the Zenodo concept DOI,
-  and the current release DOI once the `v0.5.0` archive is minted.
+  and the `v0.5.0` release DOI.
 - Funding and stewardship statement if support materially contributed to the
   submitted work.
 
