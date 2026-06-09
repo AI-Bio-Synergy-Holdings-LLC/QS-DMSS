@@ -106,9 +106,10 @@ The current citation metadata includes the Zenodo concept DOI so package-facing
 metadata has a stable citation target:
 
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI before `v0.5.0` archival: `10.5281/zenodo.20500433`
-- Latest archived release record before `v0.5.0` archival: `https://zenodo.org/records/20500433`
-- `v0.5.0` release DOI: pending Zenodo archive after the GitHub release is created
+- Latest archived release DOI: `10.5281/zenodo.20617028`
+- Latest archived release record: `https://zenodo.org/records/20617028`
+- Previous archived release DOI for `v0.4.0`: `10.5281/zenodo.20500433`
+- Previous archived release record for `v0.4.0`: `https://zenodo.org/records/20500433`
 - Previous archived release DOI for `v0.3.0`: `10.5281/zenodo.20112923`
 - Previous archived release record for `v0.3.0`: `https://zenodo.org/records/20112923`
 - Previous archived release DOI for `v0.2.0`: `10.5281/zenodo.20091602`

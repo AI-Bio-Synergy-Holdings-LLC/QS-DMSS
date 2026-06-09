@@ -7,10 +7,12 @@ QS-DMSS uses `CITATION.cff` as its canonical citation metadata file.
 - Public baseline: `v0.5.0`
 - Current package metadata target: `v0.5.0` / `0.5.0`
 - Citation metadata file: `CITATION.cff`
-- DOI status: `v0.5.0` pending archival through the Zenodo GitHub integration
+- DOI status: archived through the Zenodo GitHub integration
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI before `v0.5.0`: `10.5281/zenodo.20500433`
-- Latest archived release record before `v0.5.0`: `https://zenodo.org/records/20500433`
+- Latest archived release DOI: `10.5281/zenodo.20617028`
+- Latest archived release record: `https://zenodo.org/records/20617028`
+- Previous archived release DOI for `v0.4.0`: `10.5281/zenodo.20500433`
+- Previous archived release record for `v0.4.0`: `https://zenodo.org/records/20500433`
 - Previous archived release DOI for `v0.3.0`: `10.5281/zenodo.20112923`
 - Previous archived release record for `v0.3.0`: `https://zenodo.org/records/20112923`
 - Previous archived release DOI for `v0.2.0`: `10.5281/zenodo.20091602`
@@ -43,18 +45,16 @@ Use the version DOI when citing the exact first archived release artifacts:
 10.5281/zenodo.20074925
 ```
 
-Use the latest known version DOI when citing the current archived release
-until Zenodo mints the `v0.5.0` version DOI:
+Use the latest known version DOI when citing the current archived release:
 
 ```text
-10.5281/zenodo.20500433
+10.5281/zenodo.20617028
 ```
 
 `CITATION.cff` stores the concept DOI in the root `doi` field so GitHub and
-PyPI package metadata can point to a stable citation target before each future
-release-specific DOI is minted. It also lists the latest and first archived
-release DOIs in `identifiers` so exact release archives remain visible from the
-citation metadata.
+PyPI package metadata can point to a stable citation target across releases. It
+also lists the latest and earlier archived release DOIs in `identifiers` so
+exact release archives remain visible from the citation metadata.
 
 ## Zenodo Workflow
 
