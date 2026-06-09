@@ -699,6 +699,228 @@ h2 {
   font-weight: 800;
 }
 
+.research-object-export {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(217, 109, 46, 0.18);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(217, 109, 46, 0.16), transparent 30%),
+    radial-gradient(circle at 0% 100%, rgba(42, 106, 106, 0.1), transparent 32%),
+    linear-gradient(135deg, rgba(255, 253, 248, 0.86), rgba(248, 238, 222, 0.8));
+}
+
+.research-object-lede,
+.research-object-surface > p,
+.research-object-placeholder li,
+.research-object-card p,
+.research-object-cta p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.research-object-actions {
+  align-items: stretch;
+}
+
+.research-object-actions .lab-report-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 16px;
+  background: rgba(255, 252, 246, 0.72);
+  font-weight: 800;
+}
+
+.research-object-surface {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid rgba(21, 57, 61, 0.1);
+  border-radius: 22px;
+  background: rgba(255, 253, 248, 0.72);
+}
+
+.research-object-placeholder {
+  display: grid;
+  gap: 10px;
+}
+
+.research-object-placeholder strong {
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.research-object-placeholder ul {
+  display: grid;
+  gap: 8px;
+  padding-left: 18px;
+  margin: 0;
+}
+
+.research-object-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.research-object-head h4,
+.research-object-card h5 {
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.research-object-head h4 {
+  font-size: clamp(1.45rem, 2.2vw, 2rem);
+}
+
+.research-object-head > div {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.research-object-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.research-object-card {
+  display: grid;
+  align-content: start;
+  min-width: 0;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(21, 57, 61, 0.09);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.research-object-card h5 {
+  font-size: 1.28rem;
+}
+
+.research-object-wide {
+  grid-column: 1 / -1;
+}
+
+.research-object-boundary {
+  padding: 10px 12px;
+  border-left: 4px solid var(--copper);
+  border-radius: 12px;
+  background: rgba(217, 109, 46, 0.08);
+  color: var(--text) !important;
+  font-weight: 700;
+}
+
+.research-object-evidence-list,
+.research-object-artifact-list {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.research-object-evidence-list li,
+.research-object-artifact-list li {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(21, 57, 61, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 253, 248, 0.62);
+}
+
+.research-object-evidence-list span,
+.research-object-artifact-list span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.research-object-evidence-list strong,
+.research-object-artifact-list a,
+.research-object-link-row a {
+  color: var(--teal-soft);
+  font-weight: 800;
+}
+
+.research-object-artifact-list code {
+  color: var(--muted);
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.research-object-card pre {
+  overflow: auto;
+  margin: 0;
+  padding: 12px;
+  border: 1px solid rgba(21, 57, 61, 0.09);
+  border-radius: 14px;
+  background: rgba(21, 57, 61, 0.06);
+  color: var(--teal);
+  white-space: pre-wrap;
+}
+
+.research-object-table-wrap {
+  overflow: auto;
+  border: 1px solid rgba(21, 57, 61, 0.09);
+  border-radius: 16px;
+}
+
+.research-object-comparison-table {
+  min-width: 720px;
+  background: rgba(255, 253, 248, 0.62);
+}
+
+.research-object-link-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.research-object-link-row a {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  padding: 0 12px;
+  border: 1px solid rgba(42, 106, 106, 0.16);
+  border-radius: 14px;
+  background: rgba(42, 106, 106, 0.07);
+}
+
+.research-object-cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border: 1px solid rgba(42, 106, 106, 0.14);
+  border-radius: 20px;
+  background:
+    linear-gradient(135deg, rgba(42, 106, 106, 0.1), rgba(217, 109, 46, 0.08)),
+    rgba(255, 253, 248, 0.78);
+}
+
+.research-object-cta div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .status-panel,
 .detail-panel,
 .evidence-panel {
@@ -791,6 +1013,14 @@ h2 {
 .rail-item:focus-visible,
 .lab-metrics a:focus-visible,
 .lab-artifact-list a:focus-visible {
+  box-shadow:
+    0 0 0 5px var(--focus-ring-soft),
+    0 14px 28px rgba(21, 57, 61, 0.12);
+}
+
+.research-object-actions .lab-report-link:focus-visible,
+.research-object-link-row a:focus-visible,
+.research-object-cta a:focus-visible {
   box-shadow:
     0 0 0 5px var(--focus-ring-soft),
     0 14px 28px rgba(21, 57, 61, 0.12);
@@ -1500,7 +1730,8 @@ tbody tr.is-selected {
   .lab-flow,
   .lab-metrics,
   .lab-artifact-list,
-  .lab-research-grid {
+  .lab-research-grid,
+  .research-object-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1553,6 +1784,11 @@ tbody tr.is-selected {
     flex-direction: column;
   }
 
+  .research-object-head,
+  .research-object-cta {
+    flex-direction: column;
+  }
+
   .recommendation-meta {
     width: 100%;
     justify-items: start;
@@ -1599,6 +1835,8 @@ tbody tr.is-selected {
 
   .lab-controls .primary-button,
   .lab-actions .secondary-button,
+  .research-object-actions .primary-button,
+  .research-object-actions .lab-report-link,
   .lab-comparison-actions .lab-report-link {
     width: 100%;
   }
@@ -1629,6 +1867,18 @@ tbody tr.is-selected {
 
   .lab-evidence-explorer {
     padding: 14px;
+  }
+
+  .research-object-export,
+  .research-object-surface,
+  .research-object-card,
+  .research-object-cta {
+    padding: 14px;
+  }
+
+  .research-object-link-row,
+  .research-object-cta div {
+    flex-direction: column;
   }
 
   .lab-report-metrics {

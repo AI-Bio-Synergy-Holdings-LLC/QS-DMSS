@@ -7,6 +7,8 @@ const state = {
   selectedShowcaseName: null,
   labResult: null,
   labComparisonResult: null,
+  researchObject: null,
+  researchObjectDownloadUrl: null,
   selectedRunId: null,
   selectedRun: null,
   selectedExperimentId: null,
@@ -53,6 +55,12 @@ const els = {
   labReviewPrompt: document.querySelector("#labReviewPrompt"),
   labEvidenceChecklist: document.querySelector("#labEvidenceChecklist"),
   labArtifactPreview: document.querySelector("#labArtifactPreview"),
+  researchObjectStatus: document.querySelector("#researchObjectStatus"),
+  researchObjectLede: document.querySelector("#researchObjectLede"),
+  composeResearchObjectButton: document.querySelector("#composeResearchObjectButton"),
+  researchObjectDownloadLink: document.querySelector("#researchObjectDownloadLink"),
+  researchObjectSurface: document.querySelector("#researchObjectSurface"),
+  researchObjectCta: document.querySelector("#researchObjectCta"),
   refreshRunsButton: document.querySelector("#refreshRunsButton"),
   refreshExperimentsButton: document.querySelector("#refreshExperimentsButton"),
   compareButton: document.querySelector("#compareButton"),
@@ -172,6 +180,19 @@ const toneColorByEvidence = {
   copper: "rgba(217, 109, 46, 0.94)",
   olive: "rgba(126, 132, 80, 0.92)",
   stone: "rgba(217, 209, 193, 1)",
+};
+
+const citationMetadata = {
+  packageVersion: "0.5.0",
+  releaseTag: "v0.5.0",
+  conceptDoi: "10.5281/zenodo.20074924",
+  releaseDoi: "10.5281/zenodo.20617028",
+  releaseUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.5.0",
+  pypiUrl: "https://pypi.org/project/qs-dmss/0.5.0/",
+  repositoryUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
+  openCollectiveUrl: "https://opencollective.com/qs-dmss",
+  builderBoardUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57",
+  composerIssueUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/67",
 };
 
 function cloneJson(value) {
@@ -616,6 +637,478 @@ function renderLabEvidenceExplorer(result) {
   );
 }
 
+function clearResearchObject() {
+  if (state.researchObjectDownloadUrl) {
+    URL.revokeObjectURL(state.researchObjectDownloadUrl);
+  }
+  state.researchObject = null;
+  state.researchObjectDownloadUrl = null;
+}
+
+function setResearchObjectDownloadEnabled(enabled) {
+  const link = els.researchObjectDownloadLink;
+  if (enabled && state.researchObjectDownloadUrl && state.researchObject) {
+    link.href = state.researchObjectDownloadUrl;
+    link.download = state.researchObject.fileName;
+    link.removeAttribute("aria-disabled");
+    link.removeAttribute("tabindex");
+    link.textContent = "Download Markdown";
+    link.classList.remove("is-disabled");
+    return;
+  }
+
+  link.removeAttribute("href");
+  link.removeAttribute("download");
+  link.setAttribute("aria-disabled", "true");
+  link.setAttribute("tabindex", "-1");
+  link.textContent = "Download after compose";
+  link.classList.add("is-disabled");
+}
+
+function metricRowsForResearchObject(metrics) {
+  return [
+    ["Norm drift", formatScientific(metrics.norm_drift)],
+    ["Relative norm drift", formatScientific(metrics.relative_norm_drift)],
+    ["Energy drift", formatScientific(metrics.energy_drift)],
+    ["Relative energy drift", formatScientific(metrics.relative_energy_drift)],
+    ["Final max density", formatScientific(metrics.max_density)],
+    ["Elapsed", formatSeconds(metrics.elapsed_seconds)],
+    ["History points", String(metrics.history_points)],
+  ];
+}
+
+function evidenceRowsForResearchObject(result) {
+  const { report, run, replay_run: replayRun } = result;
+  const replay = report.replay;
+  return [
+    {
+      label: "Evidence bundle",
+      status: run.evidence.bundle_size_label,
+      detail: `${run.evidence.file_count} manifest files are available for audit.`,
+    },
+    {
+      label: "Verification",
+      status: report.verification.success ? "PASS" : "REVIEW",
+      detail: report.verification.success
+        ? `${report.verification.checked_files} files verified from the run directory.`
+        : `${report.verification.errors.length} verification error(s) require inspection.`,
+    },
+    {
+      label: "Replay",
+      status: replay?.final_density_allclose ? "PASS" : "REVIEW",
+      detail: replayRun
+        ? `Replay ${shortRunId(replayRun.summary.run_id)} ${
+            replay.final_density_allclose ? "matched final density." : "needs review."
+          }`
+        : "Replay was skipped for this showcase run.",
+    },
+    {
+      label: "Claim boundary",
+      status: "Scoped",
+      detail: report.claim_boundary,
+    },
+  ];
+}
+
+function artifactRowsForResearchObject(artifactLinks) {
+  return (artifactLinks || []).map((item) => ({
+    label: item.label,
+    name: item.name,
+    kind: item.kind === "svg" ? "Figure" : "Data",
+    url: item.url,
+  }));
+}
+
+function comparisonRowsForResearchObject(result) {
+  return (result?.comparison?.rows || []).map((row) => ({
+    label: row.parameter_value_label || row.config_name || row.run_id,
+    runId: row.run_id,
+    energyDrift: formatScientific(row.energy_drift),
+    normDrift: formatScientific(row.norm_drift),
+    maxDensity: formatScientific(row.max_density),
+    energyDelta: formatSignedScientific(row.delta_from_baseline?.energy_drift),
+  }));
+}
+
+function buildResearchObjectMarkdown(researchObject) {
+  const lines = [
+    "# QS-DMSS Research Object Export",
+    "",
+    `Generated: ${researchObject.generatedAt}`,
+    `Scenario: ${researchObject.scenario.label}`,
+    `Run ID: ${researchObject.runId}`,
+    `Package: qs-dmss==${citationMetadata.packageVersion}`,
+    "",
+    "## Scenario",
+    "",
+    researchObject.scenario.description,
+    "",
+    `Claim boundary: ${researchObject.claimBoundary}`,
+    "",
+    "## Key Metrics",
+    "",
+    "| Metric | Value |",
+    "| --- | ---: |",
+    ...researchObject.metrics.map(([label, value]) => `| ${label} | ${value} |`),
+    "",
+    "## Evidence Status",
+    "",
+    "| Check | Status | Detail |",
+    "| --- | --- | --- |",
+    ...researchObject.evidence.map(
+      (item) => `| ${item.label} | ${item.status} | ${item.detail} |`,
+    ),
+    "",
+    "## Figures And Artifacts",
+    "",
+    "| Type | Artifact | Local cockpit link |",
+    "| --- | --- | --- |",
+    ...researchObject.artifacts.map(
+      (item) => `| ${item.kind} | ${item.label} (${item.name}) | ${item.url} |`,
+    ),
+    "",
+    "## Guided Interpretation",
+    "",
+    researchObject.interpretation.summary,
+    "",
+    "What this result means:",
+    ...researchObject.interpretation.means.map((item) => `- ${item}`),
+    "",
+    "What this result does not claim:",
+    ...researchObject.interpretation.nonClaims.map((item) => `- ${item}`),
+    "",
+  ];
+
+  if (researchObject.comparison.available) {
+    lines.push(
+      "## Guided Comparison",
+      "",
+      researchObject.comparison.summary,
+      "",
+      "| Variant | Run ID | Energy drift | Norm drift | Max density | Energy delta |",
+      "| --- | --- | ---: | ---: | ---: | ---: |",
+      ...researchObject.comparison.rows.map(
+        (row) =>
+          `| ${row.label} | ${row.runId} | ${row.energyDrift} | ${row.normDrift} | ${row.maxDensity} | ${row.energyDelta} |`,
+      ),
+      "",
+      `Comparison report: ${researchObject.comparison.reportUrl}`,
+      `Comparison bundle: ${researchObject.comparison.bundleUrl}`,
+      "",
+    );
+  }
+
+  lines.push(
+    "## Replay Instructions",
+    "",
+    "```powershell",
+    ...researchObject.replayCommands,
+    "```",
+    "",
+    "## Citation",
+    "",
+    `Project DOI: https://doi.org/${citationMetadata.conceptDoi}`,
+    `Release DOI: https://doi.org/${citationMetadata.releaseDoi}`,
+    `Repository: ${citationMetadata.repositoryUrl}`,
+    `Release: ${citationMetadata.releaseUrl}`,
+    `PyPI: ${citationMetadata.pypiUrl}`,
+    "",
+    "## Build Participation",
+    "",
+    `Open Collective: ${citationMetadata.openCollectiveUrl}`,
+    `Builder board: ${citationMetadata.builderBoardUrl}`,
+    `Export composer issue: ${citationMetadata.composerIssueUrl}`,
+    "",
+  );
+
+  return `${lines.join("\n")}\n`;
+}
+
+function buildResearchObject() {
+  const result = state.labResult;
+  const comparison = state.labComparisonResult;
+  const report = result.report;
+  const run = result.run;
+  const runId = run.summary.run_id;
+  const scenario = result.scenario;
+  const interpretation = report.interpretation || {};
+  const researchObject = {
+    generatedAt: new Date().toISOString(),
+    scenario: {
+      label: scenario.label || report.scenario,
+      name: scenario.name || report.scenario,
+      description: scenario.description || report.scenario_narrative,
+    },
+    runId,
+    claimBoundary: report.claim_boundary,
+    status: report.success ? "Ready" : "Needs review",
+    metrics: metricRowsForResearchObject(report.metrics),
+    evidence: evidenceRowsForResearchObject(result),
+    artifacts: artifactRowsForResearchObject(result.artifact_links),
+    interpretation: {
+      summary: interpretation.plain_language_summary || report.scenario_narrative,
+      means: interpretation.what_this_result_means || [],
+      nonClaims: interpretation.what_this_result_does_not_claim || [report.claim_boundary],
+      reviewPrompt: interpretation.review_prompt || "Review the generated evidence before citing.",
+    },
+    comparison: {
+      available: Boolean(comparison),
+      summary: comparison?.guide?.plain_language_summary || "",
+      rows: comparisonRowsForResearchObject(comparison),
+      reportUrl: comparison?.urls?.report || "",
+      bundleUrl: comparison?.urls?.bundle || "",
+    },
+    replayCommands: [
+      `qs-dmss verify "${report.run.run_dir}"`,
+      `qs-dmss replay "${report.run.run_dir}" --output-root "replays"`,
+      `qs-dmss showcase run --output-root "${report.output_root}"`,
+    ],
+  };
+  const fileStem = `${researchObject.scenario.name}-${shortRunId(runId)}-research-object`;
+  researchObject.fileName = `${fileStem}.md`;
+  researchObject.markdown = buildResearchObjectMarkdown(researchObject);
+  return researchObject;
+}
+
+function researchObjectMetricsMarkup(researchObject) {
+  return researchObject.metrics
+    .map(
+      ([label, value]) => `
+        <div>
+          <dt>${escapeHtml(label)}</dt>
+          <dd>${escapeHtml(value)}</dd>
+        </div>
+      `,
+    )
+    .join("");
+}
+
+function researchObjectEvidenceMarkup(researchObject) {
+  return researchObject.evidence
+    .map(
+      (item) => `
+        <li>
+          <span>${escapeHtml(item.label)}</span>
+          <strong>${escapeHtml(item.status)}</strong>
+          <p>${escapeHtml(item.detail)}</p>
+        </li>
+      `,
+    )
+    .join("");
+}
+
+function researchObjectArtifactMarkup(researchObject) {
+  return researchObject.artifacts
+    .map(
+      (item) => `
+        <li>
+          <span>${escapeHtml(item.kind)}</span>
+          <a href="${escapeHtml(item.url)}" target="_blank" rel="noreferrer">
+            ${escapeHtml(item.label)}
+          </a>
+          <code>${escapeHtml(item.name)}</code>
+        </li>
+      `,
+    )
+    .join("");
+}
+
+function researchObjectComparisonMarkup(researchObject) {
+  if (!researchObject.comparison.available) {
+    return `
+      <p>
+        Guided Comparison has not been run yet. Compose again after comparison to add
+        variant deltas and comparison bundle links.
+      </p>
+    `;
+  }
+  return `
+    <p>${escapeHtml(researchObject.comparison.summary)}</p>
+    <div class="research-object-table-wrap">
+      <table class="research-object-comparison-table">
+        <thead>
+          <tr>
+            <th>Variant</th>
+            <th>Run</th>
+            <th>Energy drift</th>
+            <th>Norm drift</th>
+            <th>Energy delta</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${researchObject.comparison.rows
+            .map(
+              (row) => `
+                <tr>
+                  <td>${escapeHtml(row.label)}</td>
+                  <td>${escapeHtml(shortRunId(row.runId))}</td>
+                  <td>${escapeHtml(row.energyDrift)}</td>
+                  <td>${escapeHtml(row.normDrift)}</td>
+                  <td>${escapeHtml(row.energyDelta)}</td>
+                </tr>
+              `,
+            )
+            .join("")}
+        </tbody>
+      </table>
+    </div>
+    <div class="research-object-link-row">
+      <a href="${escapeHtml(researchObject.comparison.reportUrl)}" target="_blank" rel="noreferrer">
+        Open comparison report
+      </a>
+      <a href="${escapeHtml(researchObject.comparison.bundleUrl)}" target="_blank" rel="noreferrer">
+        Download comparison bundle
+      </a>
+    </div>
+  `;
+}
+
+function renderResearchObjectSurface(researchObject) {
+  const statusTone = researchObject.status === "Ready" ? "is-success" : "is-warning";
+  els.researchObjectSurface.innerHTML = `
+    <header class="research-object-head">
+      <div>
+        <p class="artifact-list-title">Shareable Report Surface</p>
+        <h4>${escapeHtml(researchObject.scenario.label)} research object</h4>
+        <p>
+          Run ${escapeHtml(researchObject.runId)} exported with evidence status,
+          replay instructions, artifact links, comparison context, and DOI citation metadata.
+        </p>
+      </div>
+      <span class="status-badge ${statusTone}">${escapeHtml(researchObject.status)}</span>
+    </header>
+    <div class="research-object-grid">
+      <section class="research-object-card">
+        <p class="artifact-list-title">Scenario</p>
+        <h5>${escapeHtml(researchObject.scenario.label)}</h5>
+        <p>${escapeHtml(researchObject.scenario.description)}</p>
+        <p class="research-object-boundary">${escapeHtml(researchObject.claimBoundary)}</p>
+      </section>
+      <section class="research-object-card">
+        <p class="artifact-list-title">Metrics</p>
+        <dl class="lab-report-metrics">${researchObjectMetricsMarkup(researchObject)}</dl>
+      </section>
+      <section class="research-object-card">
+        <p class="artifact-list-title">Evidence And Replay</p>
+        <ul class="research-object-evidence-list">${researchObjectEvidenceMarkup(researchObject)}</ul>
+      </section>
+      <section class="research-object-card">
+        <p class="artifact-list-title">Figures And Data</p>
+        <ul class="research-object-artifact-list">${researchObjectArtifactMarkup(researchObject)}</ul>
+      </section>
+      <section class="research-object-card research-object-wide">
+        <p class="artifact-list-title">Guided Interpretation</p>
+        <p>${escapeHtml(researchObject.interpretation.summary)}</p>
+        <div class="lab-interpretation-grid">
+          <article>
+            <p class="artifact-list-title">What It Means</p>
+            <ul>${researchObject.interpretation.means
+              .map((item) => `<li>${escapeHtml(item)}</li>`)
+              .join("")}</ul>
+          </article>
+          <article>
+            <p class="artifact-list-title">What It Does Not Claim</p>
+            <ul>${researchObject.interpretation.nonClaims
+              .map((item) => `<li>${escapeHtml(item)}</li>`)
+              .join("")}</ul>
+          </article>
+        </div>
+      </section>
+      <section class="research-object-card research-object-wide">
+        <p class="artifact-list-title">Guided Comparison</p>
+        ${researchObjectComparisonMarkup(researchObject)}
+      </section>
+      <section class="research-object-card">
+        <p class="artifact-list-title">Replay Instructions</p>
+        <pre><code>${escapeHtml(researchObject.replayCommands.join("\n"))}</code></pre>
+      </section>
+      <section class="research-object-card">
+        <p class="artifact-list-title">Citation</p>
+        <p>
+          Cite the project DOI
+          <a href="https://doi.org/${citationMetadata.conceptDoi}" target="_blank" rel="noreferrer">
+            ${citationMetadata.conceptDoi}
+          </a>
+          or the archived ${citationMetadata.releaseTag} release DOI
+          <a href="https://doi.org/${citationMetadata.releaseDoi}" target="_blank" rel="noreferrer">
+            ${citationMetadata.releaseDoi}
+          </a>.
+        </p>
+        <div class="research-object-link-row">
+          <a href="${citationMetadata.repositoryUrl}" target="_blank" rel="noreferrer">Repository</a>
+          <a href="${citationMetadata.releaseUrl}" target="_blank" rel="noreferrer">GitHub release</a>
+          <a href="${citationMetadata.pypiUrl}" target="_blank" rel="noreferrer">PyPI package</a>
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function renderResearchObjectComposer() {
+  const hasLabResult = Boolean(state.labResult);
+  els.composeResearchObjectButton.disabled = !hasLabResult;
+  els.composeResearchObjectButton.textContent = state.researchObject
+    ? "Recompose Research Object"
+    : "Compose Research Object";
+  els.researchObjectCta.hidden = !state.researchObject;
+  setResearchObjectDownloadEnabled(Boolean(state.researchObject));
+
+  if (!hasLabResult) {
+    els.researchObjectStatus.textContent = "Run showcase first";
+    els.researchObjectStatus.className = "selection-chip";
+    els.researchObjectLede.textContent =
+      "Compose a shareable research object after Lab Mode generates scenario, evidence, replay, artifact, and citation metadata.";
+    els.researchObjectSurface.innerHTML = `
+      <p>
+        Your publication-grade summary will appear here after export, including metrics,
+        figure links, evidence status, replay instructions, and citation metadata.
+      </p>
+    `;
+    return;
+  }
+
+  if (!state.researchObject) {
+    els.researchObjectStatus.textContent = state.labComparisonResult
+      ? "Ready with comparison"
+      : "Ready to compose";
+    els.researchObjectStatus.className = "selection-chip";
+    els.researchObjectLede.textContent = state.labComparisonResult
+      ? "Lab Mode and Guided Comparison are ready. Compose a research object with variant deltas and comparison bundle links."
+      : "Lab Mode is ready. Compose a research object now, or run Guided Comparison first to include variant deltas.";
+    els.researchObjectSurface.innerHTML = `
+      <div class="research-object-placeholder">
+        <strong>Export will include</strong>
+        <ul>
+          <li>Scenario narrative, metrics, and claim boundary.</li>
+          <li>Evidence bundle, verification, replay status, and artifact links.</li>
+          <li>DOI citation block for QS-DMSS ${citationMetadata.releaseTag}.</li>
+          <li>Guided Comparison details if they have been generated.</li>
+        </ul>
+      </div>
+    `;
+    return;
+  }
+
+  els.researchObjectStatus.textContent = "Export composed";
+  els.researchObjectStatus.className = "selection-chip";
+  els.researchObjectLede.textContent =
+    "This research object is ready to share as a reviewer-facing Markdown export or inspect directly in the cockpit.";
+  renderResearchObjectSurface(state.researchObject);
+}
+
+function handleComposeResearchObject() {
+  if (!state.labResult) {
+    return;
+  }
+  clearResearchObject();
+  state.researchObject = buildResearchObject();
+  state.researchObjectDownloadUrl = URL.createObjectURL(
+    new Blob([state.researchObject.markdown], { type: "text/markdown" }),
+  );
+  renderResearchObjectComposer();
+  toast("Research object composed", "Markdown export and citation block are ready.", "success");
+}
+
 function renderLabMode() {
   const scenario = showcaseByName(state.selectedShowcaseName);
   els.labScenarioSummary.textContent =
@@ -638,6 +1131,7 @@ function renderLabMode() {
     setLabLinksEnabled(false);
     renderLabGuidedComparison(state.labComparisonResult);
     renderLabEvidenceExplorer(null);
+    renderResearchObjectComposer();
     return;
   }
 
@@ -672,6 +1166,7 @@ function renderLabMode() {
   setLabLinksEnabled(true);
   renderLabGuidedComparison(state.labComparisonResult);
   renderLabEvidenceExplorer(state.labResult);
+  renderResearchObjectComposer();
 }
 
 function fillForm(config) {
@@ -1384,6 +1879,7 @@ async function handleLaunchLabMode() {
     const payload = await fetchJson(`/api/showcases/${encodeURIComponent(scenarioName)}/run`, {
       method: "POST",
     });
+    clearResearchObject();
     state.labResult = payload;
     state.selectedShowcaseName = payload.scenario.name;
     toast("Lab Mode complete", `Created ${payload.run.summary.run_id}`, "success");
@@ -1423,6 +1919,7 @@ async function handleLaunchLabComparison() {
     const payload = await fetchJson(`/api/showcases/${encodeURIComponent(scenarioName)}/compare`, {
       method: "POST",
     });
+    clearResearchObject();
     state.labComparisonResult = payload;
     state.selectedShowcaseName = payload.scenario.name;
     await refreshRuns();
@@ -1624,11 +2121,13 @@ function bindEvents() {
     state.selectedShowcaseName = event.target.value;
     state.labResult = null;
     state.labComparisonResult = null;
+    clearResearchObject();
     renderLabMode();
   });
 
   els.launchLabButton.addEventListener("click", handleLaunchLabMode);
   els.launchLabComparisonButton.addEventListener("click", handleLaunchLabComparison);
+  els.composeResearchObjectButton.addEventListener("click", handleComposeResearchObject);
   els.labSelectRunButton.addEventListener("click", async () => {
     const runId = state.labResult?.run?.summary?.run_id;
     if (runId) {

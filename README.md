@@ -117,7 +117,7 @@ Builders and sponsors can start with the product direction:
 The current product milestone includes QS-DMSS Lab Mode: a richer
 cockpit/showcase experience for running scenarios, inspecting outputs,
 comparing variants, verifying and replaying evidence, and exporting polished
-reports.
+research objects.
 
 Public builder coordination now lives in
 [issue #57](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57).
@@ -138,7 +138,7 @@ Then open [http://127.0.0.1:8001](http://127.0.0.1:8001) in a browser.
 
 Inside the cockpit you can:
 
-- Use Lab Mode to launch the packaged canonical simulation showcase, read guided interpretation, run a guided variant comparison, inspect the Evidence Explorer, preview generated reports/artifacts, and open the full evidence outputs
+- Use Lab Mode to launch the packaged canonical simulation showcase, read guided interpretation, run a guided variant comparison, inspect the Evidence Explorer, preview generated reports/artifacts, compose a research object export, and open the full evidence outputs
 - Launch a single run from a checked-in or edited config
 - Launch a parameter sweep across interaction strength, timestep, step count, amplitude, width, or seed
 - Launch a template-defined decision campaign that expands into a reproducible multi-parameter run matrix
@@ -348,7 +348,7 @@ research modules can build on a stable execution loop:
 
 The cockpit adds the first browser-native product layer on top of that loop:
 
-`configure -> launch -> inspect -> verify -> replay -> download`
+`configure -> launch -> inspect -> verify/replay -> compose research object`
 
 The experiment registry now makes comparison durable too:
 
@@ -364,4 +364,4 @@ The campaign layer now automates the search plan too:
 
 Lab Mode turns that spine into a reviewer-facing simulation lab:
 
-`choose scenario -> run simulation -> inspect evidence -> compare variants -> verify/replay -> export report`
+`choose scenario -> run simulation -> inspect evidence -> compare variants -> verify/replay -> compose export`

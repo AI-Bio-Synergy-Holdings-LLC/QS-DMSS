@@ -54,7 +54,7 @@ The current public package already has the spine needed for this direction:
 - `qs-dmss benchmarks validate` for packaged regression evidence;
 - `qs-dmss showcase run` for a canonical simulation walkthrough;
 - `qs-dmss verify` and `qs-dmss replay` for evidence integrity;
-- a local cockpit for launch, comparison, export, and bundle download;
+- a local cockpit for launch, comparison, research-object export, and bundle download;
 - GitHub releases, PyPI distribution, and Zenodo archival.
 
 The next phase should make that spine feel like a product.
@@ -75,7 +75,7 @@ Lab Mode should let a user:
 4. compare variants or campaign recommendations;
 5. verify and replay the selected result;
 6. view generated plots and evidence summaries;
-7. export a polished report bundle suitable for sharing, archiving, or review.
+7. compose a polished research object suitable for sharing, archiving, or review.
 
 This does not require inventing a new scientific claim. It makes the current
 claim easier to experience: QS-DMSS turns simulation runs into trustworthy,
