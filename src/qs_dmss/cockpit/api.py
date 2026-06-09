@@ -576,6 +576,7 @@ class CockpitService:
             kind = Path(artifact_name).suffix.lstrip(".") or "file"
             links.append(
                 {
+                    "key": key,
                     "label": key.replace("_", " ").title(),
                     "name": artifact_name,
                     "kind": kind,

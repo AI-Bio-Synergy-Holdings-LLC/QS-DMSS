@@ -36,6 +36,11 @@ const els = {
   labReportPreviewTitle: document.querySelector("#labReportPreviewTitle"),
   labReportPreviewBody: document.querySelector("#labReportPreviewBody"),
   labReportMetrics: document.querySelector("#labReportMetrics"),
+  labInterpretationTitle: document.querySelector("#labInterpretationTitle"),
+  labInterpretationSummary: document.querySelector("#labInterpretationSummary"),
+  labMeaningList: document.querySelector("#labMeaningList"),
+  labNonClaimList: document.querySelector("#labNonClaimList"),
+  labReviewPrompt: document.querySelector("#labReviewPrompt"),
   labEvidenceChecklist: document.querySelector("#labEvidenceChecklist"),
   labArtifactPreview: document.querySelector("#labArtifactPreview"),
   refreshRunsButton: document.querySelector("#refreshRunsButton"),
@@ -376,6 +381,29 @@ function renderEvidenceChecklist(result) {
     .join("");
 }
 
+function renderPlainList(element, items) {
+  element.innerHTML = items.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+}
+
+function renderGuidedInterpretation(report) {
+  const interpretation = report?.interpretation;
+  if (!interpretation) {
+    els.labInterpretationTitle.textContent = "Run showcase first";
+    els.labInterpretationSummary.textContent =
+      "Plain-language scenario interpretation appears here after Lab Mode completes.";
+    renderPlainList(els.labMeaningList, ["Run the showcase to generate interpretation notes."]);
+    renderPlainList(els.labNonClaimList, ["The scientific claim boundary appears here after the run."]);
+    els.labReviewPrompt.textContent = "Reviewer prompts appear here after evidence is generated.";
+    return;
+  }
+
+  els.labInterpretationTitle.textContent = "What the canonical simulation is showing";
+  els.labInterpretationSummary.textContent = interpretation.plain_language_summary;
+  renderPlainList(els.labMeaningList, interpretation.what_this_result_means);
+  renderPlainList(els.labNonClaimList, interpretation.what_this_result_does_not_claim);
+  els.labReviewPrompt.textContent = interpretation.review_prompt;
+}
+
 function parseCsvPreview(text, rowLimit = 4, columnLimit = 5) {
   return text
     .trim()
@@ -420,7 +448,22 @@ async function loadCsvPreview(item, index, runId) {
   }
 }
 
-function renderArtifactPreviews(artifactLinks, runId) {
+function artifactCalloutByKey(callouts) {
+  return new Map((callouts || []).map((item) => [item.artifact_key, item]));
+}
+
+function artifactCalloutMarkup(callout) {
+  if (!callout) return "";
+  return `
+    <div class="lab-artifact-callout">
+      <strong>${escapeHtml(callout.title)}</strong>
+      <p>${escapeHtml(callout.callout)}</p>
+      <span>${escapeHtml(callout.why_it_matters)}</span>
+    </div>
+  `;
+}
+
+function renderArtifactPreviews(artifactLinks, runId, callouts = []) {
   const previewable = artifactLinks.filter(
     (item) => item.previewable || ["csv", "svg"].includes(item.kind),
   );
@@ -429,10 +472,12 @@ function renderArtifactPreviews(artifactLinks, runId) {
     return;
   }
 
+  const calloutMap = artifactCalloutByKey(callouts);
   els.labArtifactPreview.innerHTML = previewable
     .map((item, index) => {
       const title = escapeHtml(item.label);
       const name = escapeHtml(item.name);
+      const callout = artifactCalloutMarkup(calloutMap.get(item.key));
       if (item.kind === "svg") {
         return `
           <figure class="lab-artifact-preview-item">
@@ -440,6 +485,7 @@ function renderArtifactPreviews(artifactLinks, runId) {
               <strong>${title}</strong>
               <span>${name}</span>
             </figcaption>
+            ${callout}
             <img src="${escapeHtml(item.url)}" alt="${title} preview" loading="lazy" />
           </figure>
         `;
@@ -451,6 +497,7 @@ function renderArtifactPreviews(artifactLinks, runId) {
               <strong>${title}</strong>
               <span>${name}</span>
             </header>
+            ${callout}
             <div class="lab-csv-preview" data-csv-index="${index}">
               <p>Loading first rows...</p>
             </div>
@@ -479,6 +526,7 @@ function renderLabEvidenceExplorer(result) {
       "<li>Verification, replay, and bundle status appear after the showcase run.</li>";
     els.labArtifactPreview.innerHTML =
       "<p>SVG plots and CSV first rows appear here after Lab Mode completes.</p>";
+    renderGuidedInterpretation(null);
     return;
   }
 
@@ -486,9 +534,14 @@ function renderLabEvidenceExplorer(result) {
   els.labExplorerStatus.textContent = report.success ? "Research object ready" : "Needs review";
   els.labReportPreviewTitle.textContent = `${report.scenario} report summary`;
   els.labReportPreviewBody.textContent = `${report.scenario_narrative} ${report.claim_boundary}`;
+  renderGuidedInterpretation(report);
   renderMetricPreview(report.metrics);
   renderEvidenceChecklist(result);
-  renderArtifactPreviews(artifactLinks, result.run.summary.run_id);
+  renderArtifactPreviews(
+    artifactLinks,
+    result.run.summary.run_id,
+    report.interpretation?.artifact_callouts || [],
+  );
 }
 
 function renderLabMode() {
