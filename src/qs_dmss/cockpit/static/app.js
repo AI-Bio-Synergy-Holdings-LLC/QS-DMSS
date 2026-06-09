@@ -6,6 +6,7 @@ const state = {
   sweepParameters: [],
   selectedShowcaseName: null,
   labResult: null,
+  labComparisonResult: null,
   selectedRunId: null,
   selectedRun: null,
   selectedExperimentId: null,
@@ -32,6 +33,15 @@ const els = {
   labJsonLink: document.querySelector("#labJsonLink"),
   labSelectRunButton: document.querySelector("#labSelectRunButton"),
   labArtifactLinks: document.querySelector("#labArtifactLinks"),
+  labComparisonStatus: document.querySelector("#labComparisonStatus"),
+  labComparisonSummary: document.querySelector("#labComparisonSummary"),
+  labComparisonMeaningList: document.querySelector("#labComparisonMeaningList"),
+  labComparisonNonClaimList: document.querySelector("#labComparisonNonClaimList"),
+  labComparisonReviewPrompt: document.querySelector("#labComparisonReviewPrompt"),
+  launchLabComparisonButton: document.querySelector("#launchLabComparisonButton"),
+  labComparisonReportLink: document.querySelector("#labComparisonReportLink"),
+  labComparisonBundleLink: document.querySelector("#labComparisonBundleLink"),
+  labComparisonProgressText: document.querySelector("#labComparisonProgressText"),
   labExplorerStatus: document.querySelector("#labExplorerStatus"),
   labReportPreviewTitle: document.querySelector("#labReportPreviewTitle"),
   labReportPreviewBody: document.querySelector("#labReportPreviewBody"),
@@ -308,12 +318,42 @@ function setLabLinksEnabled(enabled) {
   els.labSelectRunButton.disabled = !enabled;
 }
 
+function setLabComparisonLinksEnabled(enabled, result = null) {
+  [
+    [els.labComparisonReportLink, result?.urls?.report, "Open comparison report", "Report after run"],
+    [els.labComparisonBundleLink, result?.urls?.bundle, "Download comparison bundle", "Bundle after run"],
+  ].forEach(([link, href, readyLabel, disabledLabel]) => {
+    if (enabled && href) {
+      link.href = href;
+      link.removeAttribute("aria-disabled");
+      link.removeAttribute("tabindex");
+      link.textContent = readyLabel;
+      link.classList.remove("is-disabled");
+    } else {
+      link.removeAttribute("href");
+      link.setAttribute("aria-disabled", "true");
+      link.setAttribute("tabindex", "-1");
+      link.textContent = disabledLabel;
+      link.classList.add("is-disabled");
+    }
+  });
+}
+
 function setLabProgress(isRunning, message) {
   els.launchLabButton.disabled = isRunning;
   els.launchLabButton.setAttribute("aria-busy", String(isRunning));
   els.launchLabButton.textContent = isRunning ? "Running Lab Mode..." : "Run Lab Mode Showcase";
   els.labProgressShell.hidden = !isRunning;
   els.labProgressText.textContent = message;
+}
+
+function setLabComparisonProgress(isRunning, message) {
+  els.launchLabComparisonButton.disabled = isRunning;
+  els.launchLabComparisonButton.setAttribute("aria-busy", String(isRunning));
+  els.launchLabComparisonButton.textContent = isRunning
+    ? "Running Guided Comparison..."
+    : "Run Guided Comparison";
+  els.labComparisonProgressText.textContent = message;
 }
 
 function renderMetricPreview(metrics) {
@@ -402,6 +442,38 @@ function renderGuidedInterpretation(report) {
   renderPlainList(els.labMeaningList, interpretation.what_this_result_means);
   renderPlainList(els.labNonClaimList, interpretation.what_this_result_does_not_claim);
   els.labReviewPrompt.textContent = interpretation.review_prompt;
+}
+
+function renderLabGuidedComparison(result) {
+  if (!result) {
+    els.labComparisonStatus.textContent = "Not run yet";
+    els.labComparisonStatus.className = "selection-chip";
+    els.labComparisonSummary.textContent =
+      "Run baseline, wider-packet, and stronger-interaction variants with the same deterministic seed, then inspect the evidence deltas and exported comparison report.";
+    renderPlainList(els.labComparisonMeaningList, [
+      "Run Guided Comparison to generate variant deltas.",
+    ]);
+    renderPlainList(els.labComparisonNonClaimList, [
+      "The comparison claim boundary appears after the variants complete.",
+    ]);
+    els.labComparisonReviewPrompt.textContent =
+      "Reviewer prompts appear after the comparison report is generated.";
+    setLabComparisonLinksEnabled(false);
+    return;
+  }
+
+  const guide = result.guide;
+  const runCount = result.runs?.length || result.comparison?.rows?.length || 0;
+  els.labComparisonStatus.textContent = `${runCount} variants compared`;
+  els.labComparisonStatus.className = "selection-chip";
+  els.labComparisonSummary.textContent = guide.plain_language_summary;
+  renderPlainList(els.labComparisonMeaningList, [
+    ...(guide.what_changed || []),
+    ...(guide.what_to_inspect || []),
+  ]);
+  renderPlainList(els.labComparisonNonClaimList, guide.what_this_does_not_claim || []);
+  els.labComparisonReviewPrompt.textContent = guide.review_prompt;
+  setLabComparisonLinksEnabled(true, result);
 }
 
 function parseCsvPreview(text, rowLimit = 4, columnLimit = 5) {
@@ -564,6 +636,7 @@ function renderLabMode() {
       <li>Run the canonical showcase to populate CSV/SVG artifacts and report links.</li>
     `;
     setLabLinksEnabled(false);
+    renderLabGuidedComparison(state.labComparisonResult);
     renderLabEvidenceExplorer(null);
     return;
   }
@@ -597,6 +670,7 @@ function renderLabMode() {
         .join("")
     : "<li>No exported showcase artifacts found.</li>";
   setLabLinksEnabled(true);
+  renderLabGuidedComparison(state.labComparisonResult);
   renderLabEvidenceExplorer(state.labResult);
 }
 
@@ -1330,6 +1404,49 @@ async function handleLaunchLabMode() {
   }
 }
 
+async function handleLaunchLabComparison() {
+  const scenarioName = els.labScenarioSelect.value || state.selectedShowcaseName;
+  if (!scenarioName) {
+    toast("No showcase selected", "Choose a packaged showcase scenario first.", "danger");
+    return;
+  }
+
+  setLabComparisonProgress(
+    true,
+    "Running three deterministic variants and building the comparison evidence bundle.",
+  );
+  els.labComparisonStatus.textContent = "Running";
+  els.labComparisonStatus.className = "selection-chip";
+  setLabComparisonLinksEnabled(false);
+
+  try {
+    const payload = await fetchJson(`/api/showcases/${encodeURIComponent(scenarioName)}/compare`, {
+      method: "POST",
+    });
+    state.labComparisonResult = payload;
+    state.selectedShowcaseName = payload.scenario.name;
+    await refreshRuns();
+    await refreshExperiments();
+    renderLabMode();
+    renderComparison(payload.comparison);
+    renderSelectedExperiment(payload.artifact);
+    setLabComparisonProgress(
+      false,
+      `Comparison complete. Created ${payload.artifact.summary.experiment_id}.`,
+    );
+    toast(
+      "Guided comparison ready",
+      `Compared ${payload.comparison.rows.length} packaged variants`,
+      "success",
+    );
+  } catch (error) {
+    els.labComparisonStatus.textContent = "Failed";
+    els.labComparisonStatus.className = "selection-chip";
+    setLabComparisonProgress(false, "Guided Comparison failed. Review the error and try again.");
+    toast("Guided comparison failed", error.message, "danger");
+  }
+}
+
 async function handleLaunchSweep(event) {
   event.preventDefault();
   const selectedParameter = sweepParameterByPath(els.sweepParameter.value);
@@ -1506,10 +1623,12 @@ function bindEvents() {
   els.labScenarioSelect.addEventListener("change", (event) => {
     state.selectedShowcaseName = event.target.value;
     state.labResult = null;
+    state.labComparisonResult = null;
     renderLabMode();
   });
 
   els.launchLabButton.addEventListener("click", handleLaunchLabMode);
+  els.launchLabComparisonButton.addEventListener("click", handleLaunchLabComparison);
   els.labSelectRunButton.addEventListener("click", async () => {
     const runId = state.labResult?.run?.summary?.run_id;
     if (runId) {

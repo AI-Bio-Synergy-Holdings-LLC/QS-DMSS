@@ -148,6 +148,70 @@
                 </p>
               </div>
 
+              <section class="lab-comparison-card" id="labComparisonPanel">
+                <div class="panel-head compact">
+                  <div>
+                    <p class="artifact-list-title">Guided Comparison</p>
+                    <h3>Compare packaged variants</h3>
+                  </div>
+                  <span class="selection-chip" id="labComparisonStatus">Not run yet</span>
+                </div>
+                <p id="labComparisonSummary">
+                  Run baseline, wider-packet, and stronger-interaction variants with the same
+                  deterministic seed, then inspect the evidence deltas and exported comparison report.
+                </p>
+                <div class="lab-interpretation-grid">
+                  <article>
+                    <p class="artifact-list-title">What Changed</p>
+                    <ul id="labComparisonMeaningList">
+                      <li>Run Guided Comparison to generate variant deltas.</li>
+                    </ul>
+                  </article>
+                  <article>
+                    <p class="artifact-list-title">What This Does Not Claim</p>
+                    <ul id="labComparisonNonClaimList">
+                      <li>The comparison claim boundary appears after the variants complete.</li>
+                    </ul>
+                  </article>
+                </div>
+                <p class="lab-review-prompt" id="labComparisonReviewPrompt">
+                  Reviewer prompts appear after the comparison report is generated.
+                </p>
+                <div class="lab-actions lab-comparison-actions">
+                  <button class="secondary-button teal" id="launchLabComparisonButton" type="button">
+                    Run Guided Comparison
+                  </button>
+                  <a
+                    class="lab-report-link is-disabled"
+                    id="labComparisonReportLink"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-disabled="true"
+                    tabindex="-1"
+                  >
+                    Report after run
+                  </a>
+                  <a
+                    class="lab-report-link is-disabled"
+                    id="labComparisonBundleLink"
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-disabled="true"
+                    tabindex="-1"
+                  >
+                    Bundle after run
+                  </a>
+                </div>
+                <p
+                  class="lab-progress-text"
+                  id="labComparisonProgressText"
+                  role="status"
+                  aria-live="polite"
+                >
+                  Ready to run a three-variant guided comparison.
+                </p>
+              </section>
+
               <div class="artifact-list-shell lab-artifact-shell">
                 <p class="artifact-list-title">Showcase Artifacts</p>
                 <ul class="lab-artifact-list" id="labArtifactLinks">
