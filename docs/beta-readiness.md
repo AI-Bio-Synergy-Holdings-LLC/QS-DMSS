@@ -10,12 +10,12 @@ The intended beta claim is narrow:
 
 ## Current Decision
 
-- Current release target: `v0.4.0` / `0.4.0`
+- Current release target: `v0.5.0` / `0.5.0`
 - Current PyPI classifier target: `Development Status :: 4 - Beta`
 - Promotion basis: `v0.1.5` passed the beta-readiness gate
 - Current Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: `10.5281/zenodo.20500433`
-- `v0.4.0` release DOI: `10.5281/zenodo.20500433`
+- Latest archived release DOI before `v0.5.0` archival: `10.5281/zenodo.20500433`
+- `v0.5.0` release DOI: pending Zenodo archive after the GitHub release is created
 
 The beta classifier is only appropriate for the narrow package/evidence surface
 defined below.
@@ -34,6 +34,8 @@ The beta promise applies to these user-facing workflows:
 - Replaying a generated run with `qs-dmss replay`.
 - Running `qs-dmss benchmarks validate --scenario demo-baseline` from the
   packaged benchmark validation spine.
+- Starting the local cockpit and using Lab Mode for guided interpretation,
+  Evidence Explorer previews, and guided comparison of packaged variants.
 - Publishing traceable wheel and sdist artifacts through GitHub releases and
   PyPI Trusted Publishing.
 - Keeping package metadata, release assets, and citation metadata aligned.
@@ -65,7 +67,8 @@ The beta label does not claim:
 - Reviewer quickstart includes expected output examples for the demo and
   campaign demo.
 - Reviewer quickstart includes a reproducibility review checklist.
-- Citation metadata points to the latest archived release DOI.
+- Citation metadata points to the latest available archived release DOI until a
+  new release-specific DOI is minted.
 - PyPI project URLs include the repository, issues, reviewer quickstart,
   circulation funnel, beta readiness gate, PyPI, and DOI links.
 
@@ -88,3 +91,11 @@ The `v0.3.0` promotion adds the benchmark-validation release surface:
 Avoid expanding the scientific claim in the benchmark-validation promotion.
 The point of `v0.3.0` is to make the benchmark evidence workflow installable,
 not to claim peer-reviewed scientific validation.
+
+The `v0.5.0` product milestone adds the Lab Mode release surface:
+
+- Keeps the PyPI classifier at `Development Status :: 4 - Beta`.
+- Ships guided interpretation, Evidence Explorer previews, and guided
+  comparison through the local cockpit.
+- Preserves the same claim boundary: beta for reproducible package/evidence
+  workflows, not peer-reviewed scientific validation.

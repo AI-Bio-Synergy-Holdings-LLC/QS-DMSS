@@ -114,9 +114,10 @@ Builders and sponsors can start with the product direction:
 - [docs/contributor-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/contributor-roadmap.md)
 - [docs/funding-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/funding-roadmap.md)
 
-The next major product slice is QS-DMSS Lab Mode: a richer cockpit/showcase
-experience for running scenarios, inspecting outputs, comparing variants,
-verifying and replaying evidence, and exporting polished reports.
+The current product milestone includes QS-DMSS Lab Mode: a richer
+cockpit/showcase experience for running scenarios, inspecting outputs,
+comparing variants, verifying and replaying evidence, and exporting polished
+reports.
 
 Public builder coordination now lives in
 [issue #57](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57).
@@ -360,6 +361,6 @@ The campaign layer now automates the search plan too:
 
 `select template -> expand campaign -> run matrix -> score variants -> recommend winner -> reopen bundle`
 
-The next product layer is Lab Mode:
+Lab Mode turns that spine into a reviewer-facing simulation lab:
 
 `choose scenario -> run simulation -> inspect evidence -> compare variants -> verify/replay -> export report`

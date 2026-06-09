@@ -4,11 +4,11 @@ This packet is the shortest path for an external reviewer to understand what
 QS-DMSS is claiming, reproduce the public baseline, and decide where feedback
 would be most useful.
 
-Current public baseline: `v0.4.0` / `qs-dmss==0.4.0`
+Current public baseline: `v0.5.0` / `qs-dmss==0.5.0`
 
-Release DOI: `10.5281/zenodo.20500433`
+Release DOI: pending Zenodo archive for `v0.5.0`
 
-Latest archived release DOI: `10.5281/zenodo.20500433`
+Latest archived release DOI: `10.5281/zenodo.20500433` (`v0.4.0`)
 
 Project DOI: `10.5281/zenodo.20074924`
 
@@ -46,7 +46,7 @@ Use the published PyPI package from a clean environment:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.4.0
+python -m pip install qs-dmss==0.5.0
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo
@@ -73,7 +73,7 @@ cross-platform PyPI and GitHub release-wheel commands.
 
 ## Simulation Showcase Path
 
-The published `v0.4.0` package includes a canonical simulation showcase for
+The published `v0.5.0` package includes a canonical simulation showcase for
 reviewers who want to inspect the actual simulated field output, not just the
 install and benchmark envelopes:
 
@@ -92,6 +92,24 @@ Expected signals:
 
 Use [simulation-showcase.md](simulation-showcase.md) for the detailed path.
 
+## Lab Mode Cockpit Path
+
+`v0.5.0` is the first product milestone where Lab Mode is reviewer-facing:
+
+```powershell
+qs-dmss cockpit --host 127.0.0.1 --port 8001
+```
+
+Open `http://127.0.0.1:8001`, run Lab Mode, then run Guided Comparison.
+Expected signals:
+
+- Lab Mode explains what the canonical simulation result means and what it
+  does not claim.
+- The Evidence Explorer previews key report metrics, verification/replay
+  status, SVG plots, and CSV first rows without leaving the cockpit.
+- Guided Comparison runs three packaged variants, explains evidence deltas in
+  plain language, and exposes a comparison report plus bundle.
+
 ## Review Lanes
 
 Choose the lane that matches the feedback you want to provide.
@@ -103,6 +121,7 @@ Choose the lane that matches the feedback you want to provide.
 | Campaign workflow | `campaigns run-demo`, campaign metadata, recommendation status, experiment bundle | Reproducibility review or feature request |
 | Benchmark workflow | `benchmarks list`, `benchmarks validate`, metric envelope report, replay compatibility | Scientific review or reproducibility review |
 | Simulation showcase | `showcase run`, generated CSV/SVG outputs, replay comparison, scenario narrative | Scientific review or evidence review |
+| Lab Mode guided comparison | Cockpit Lab Mode, Evidence Explorer, guided variant comparison, report/bundle links | Product UX review or evidence review |
 | Documentation | README, reviewer quickstart, evidence glossary, benchmark expectations | Documentation issue |
 | Paper readiness | JOSS paper scaffold, state-of-field comparison, research impact evidence | Scientific review |
 

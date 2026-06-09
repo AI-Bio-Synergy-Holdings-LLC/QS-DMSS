@@ -10,8 +10,9 @@ Last reviewed: 2026-06-01
 
 - Repository: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS`
 - PyPI package: `https://pypi.org/project/qs-dmss/`
-- Latest release target: `v0.4.0`
-- Latest archived release DOI: `10.5281/zenodo.20500433`
+- Latest release target: `v0.5.0`
+- Latest archived release DOI before `v0.5.0` archival: `10.5281/zenodo.20500433`
+- `v0.5.0` release DOI: pending Zenodo archive after the GitHub release is created
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
 - License: Apache-2.0
 - Public install path: `python -m pip install qs-dmss`
@@ -71,7 +72,8 @@ Package URL:
 https://pypi.org/project/qs-dmss/
 
 Preferred citation:
-QS-DMSS v0.4.0, Zenodo version DOI: doi:10.5281/zenodo.20500433.
+QS-DMSS v0.5.0, Zenodo version DOI pending release archival. Until then,
+cite the Zenodo concept DOI: doi:10.5281/zenodo.20074924.
 
 Research paper using the code:
 TODO: add submitted preprint, peer-reviewed paper, or accepted thesis URL.
