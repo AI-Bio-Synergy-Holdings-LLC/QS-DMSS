@@ -15,15 +15,15 @@ Initial PyPI publication completed on `2026-05-05` through GitHub Actions
 Trusted Publishing.
 
 - Initial published version: `0.1.0`
-- Current release target: `0.4.0`
+- Current release target: `0.5.0`
 - PyPI project URL: `https://pypi.org/project/qs-dmss/`
 - Initial publish workflow run:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/actions/runs/25393532837`
 - Initial publish commit: `3cd208ff985041cf95261f8de289e4dd5a14df49`
 - Upload method: Trusted Publishing / GitHub OIDC
 - Current release files:
-  - `qs_dmss-0.4.0-py3-none-any.whl`
-  - `qs_dmss-0.4.0.tar.gz`
+  - `qs_dmss-0.5.0-py3-none-any.whl`
+  - `qs_dmss-0.5.0.tar.gz`
 - Initial published files:
   - `qs_dmss-0.1.0-py3-none-any.whl`
   - `qs_dmss-0.1.0.tar.gz`
@@ -31,7 +31,7 @@ Trusted Publishing.
 Run post-publication smoke validation from a fresh virtual environment:
 
 ```powershell
-python -m pip install --no-cache-dir qs-dmss==0.4.0
+python -m pip install --no-cache-dir qs-dmss==0.5.0
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 qs-dmss benchmarks validate --scenario demo-baseline
@@ -93,7 +93,7 @@ Review, and Reviewer Quickstart before publication.
 - Organization: `AI Bio Synergy Holdings LLC`
 - License: `Apache-2.0`
 - Supported Python range: `>=3.10`
-- CI validation range for `v0.3.x`: Python 3.10 through 3.13 plus Docker smoke
+- CI validation range for `v0.5.x`: Python 3.10 through 3.13 plus Docker smoke
 - Citation metadata: `CITATION.cff`
 
 ## Citation and Archival Metadata
@@ -106,8 +106,9 @@ The current citation metadata includes the Zenodo concept DOI so package-facing
 metadata has a stable citation target:
 
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: `10.5281/zenodo.20500433`
-- Latest archived release record: `https://zenodo.org/records/20500433`
+- Latest archived release DOI before `v0.5.0` archival: `10.5281/zenodo.20500433`
+- Latest archived release record before `v0.5.0` archival: `https://zenodo.org/records/20500433`
+- `v0.5.0` release DOI: pending Zenodo archive after the GitHub release is created
 - Previous archived release DOI for `v0.3.0`: `10.5281/zenodo.20112923`
 - Previous archived release record for `v0.3.0`: `https://zenodo.org/records/20112923`
 - Previous archived release DOI for `v0.2.0`: `10.5281/zenodo.20091602`
@@ -140,7 +141,7 @@ distribution preparation phase:
 - Non-sensitive support intake: GitHub Issues on
   `AI-Bio-Synergy-Holdings-LLC/QS-DMSS`.
 - Sensitive report intake: `SECURITY.md`.
-- Supported release line: `v0.4.x`, beginning with `v0.4.0`.
+- Supported release line: `v0.5.x`, beginning with `v0.5.0`.
 - Supported Python range: package metadata `>=3.10`, with CI validation on
   Python 3.10 through 3.13.
 - Artifact policy: any later PyPI upload of `0.1.0` must use the exact GitHub
@@ -181,7 +182,7 @@ PyPI Trusted Publisher values:
 For future releases, run the GitHub workflow manually from
 Actions -> Publish to PyPI with:
 
-- `tag`: the final release tag, such as `v0.4.0`
+- `tag`: the final release tag, such as `v0.5.0`
 - `confirm`: `publish-to-pypi`
 
 The workflow downloads the GitHub release assets for the requested tag,
@@ -207,13 +208,13 @@ Run these commands from a clean checkout at a future release tag before any
 approved upload:
 
 ```powershell
-git checkout v0.4.0
+git checkout v0.5.0
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip build twine
 python -m build --sdist --wheel
 python -m twine check dist/*
-python -m pip install .\dist\qs_dmss-0.4.0-py3-none-any.whl
+python -m pip install .\dist\qs_dmss-0.5.0-py3-none-any.whl
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 qs-dmss benchmarks validate --scenario demo-baseline
