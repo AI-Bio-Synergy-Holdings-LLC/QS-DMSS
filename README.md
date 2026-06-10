@@ -327,6 +327,7 @@ For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
 - Latest archived release DOI: [v0.5.0 / 10.5281/zenodo.20617028](https://doi.org/10.5281/zenodo.20617028)
+- `v0.6.0` DOI status: pending Zenodo archival after release.
 - Previous archived release DOI: [v0.4.0 / 10.5281/zenodo.20500433](https://doi.org/10.5281/zenodo.20500433)
 - Prior archived release DOI: [v0.3.0 / 10.5281/zenodo.20112923](https://doi.org/10.5281/zenodo.20112923)
 - Earlier archived release DOI: [v0.2.0 / 10.5281/zenodo.20091602](https://doi.org/10.5281/zenodo.20091602)

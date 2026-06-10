@@ -10,12 +10,13 @@ The intended beta claim is narrow:
 
 ## Current Decision
 
-- Current release target: `v0.5.0` / `0.5.0`
+- Current release target: `v0.6.0` / `0.6.0`
 - Current PyPI classifier target: `Development Status :: 4 - Beta`
 - Promotion basis: `v0.1.5` passed the beta-readiness gate
 - Current Zenodo concept DOI: `10.5281/zenodo.20074924`
 - Latest archived release DOI: `10.5281/zenodo.20617028`
 - `v0.5.0` release DOI: `10.5281/zenodo.20617028`
+- `v0.6.0` release DOI: pending Zenodo archival after release
 
 The beta classifier is only appropriate for the narrow package/evidence surface
 defined below.
@@ -98,4 +99,13 @@ The `v0.5.0` product milestone adds the Lab Mode release surface:
 - Ships guided interpretation, Evidence Explorer previews, and guided
   comparison through the local cockpit.
 - Preserves the same claim boundary: beta for reproducible package/evidence
+  workflows, not peer-reviewed scientific validation.
+
+The `v0.6.0` product milestone adds the Publication Export Composer:
+
+- Keeps the PyPI classifier at `Development Status :: 4 - Beta`.
+- Lets Lab Mode compose a reviewer-facing research object with scenario,
+  metrics, evidence status, replay instructions, artifact links, citation/DOI
+  metadata, and a Markdown export.
+- Keeps the same claim boundary: beta for reproducible package/evidence
   workflows, not peer-reviewed scientific validation.

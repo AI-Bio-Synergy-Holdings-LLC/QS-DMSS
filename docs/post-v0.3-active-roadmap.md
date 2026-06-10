@@ -9,8 +9,8 @@ The current QS-DMSS direction is:
 run simulations -> inspect evidence -> compare campaigns -> publish reproducible artifacts
 ```
 
-The stable public package is `qs-dmss==0.5.0`, archived as
-`v0.5.0` with DOI `10.5281/zenodo.20617028`.
+The stable public package is `qs-dmss==0.6.0`. The latest archived release DOI
+remains `v0.5.0` / `10.5281/zenodo.20617028` until Zenodo archives `v0.6.0`.
 
 ## Strategic Shift
 
@@ -39,7 +39,7 @@ different from a generic open simulator.
 The target user flow is:
 
 ```text
-choose scenario -> run simulation -> inspect evidence -> compare variants -> verify/replay -> export report
+choose scenario -> run simulation -> inspect evidence -> compare variants -> verify/replay -> compose export
 ```
 
 The first implementation should focus on the local cockpit and existing
@@ -50,7 +50,7 @@ showcase/campaign/evidence spine:
 - embedded CSV/SVG outputs from showcase artifacts;
 - campaign comparison and recommendation explanation;
 - evidence verification and replay controls;
-- polished report export for a selected run or campaign.
+- Publication Export Composer for a selected Lab Mode research object.
 
 ## Builder Board Tracks
 

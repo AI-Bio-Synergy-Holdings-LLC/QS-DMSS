@@ -27,7 +27,7 @@ verify/replay the evidence without needing private context?
 Install the release package and run the showcase:
 
 ```powershell
-python -m pip install qs-dmss==0.5.0
+python -m pip install qs-dmss==0.6.0
 qs-dmss showcase run --output-root simulation-showcase
 ```
 
@@ -76,17 +76,18 @@ workflow envelopes and replay tolerances.
 
 ## Lab Mode Cockpit Path
 
-`v0.5.0` also exposes the canonical simulation through Lab Mode in the local
+`v0.6.0` also exposes the canonical simulation through Lab Mode in the local
 cockpit:
 
 ```powershell
 qs-dmss cockpit --host 127.0.0.1 --port 8001
 ```
 
-Open `http://127.0.0.1:8001`, run Lab Mode, then run Guided Comparison.
-Expected signals include a plain-language interpretation, an Evidence Explorer,
-SVG/CSV previews, a three-variant comparison table, evidence-status summaries,
-and report/bundle links.
+Open `http://127.0.0.1:8001`, run Lab Mode, run Guided Comparison, then use
+the Publication Export Composer. Expected signals include a plain-language
+interpretation, an Evidence Explorer, SVG/CSV previews, a three-variant
+comparison table, evidence-status summaries, report/bundle links, and a
+downloadable research-object Markdown export.
 
 ## Suggested Reviewer Prompt
 

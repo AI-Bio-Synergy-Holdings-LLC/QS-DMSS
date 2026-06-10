@@ -7,12 +7,12 @@ on:
       package_version:
         description: "Published package version to validate"
         required: true
-        default: "0.5.0"
+        default: "0.6.0"
         type: string
       release_tag:
         description: "GitHub release tag containing the wheel"
         required: true
-        default: "v0.5.0"
+        default: "v0.6.0"
         type: string
 
 permissions:
@@ -45,8 +45,8 @@ jobs:
 
       - name: Run fresh install smoke
         env:
-          PACKAGE_VERSION: ${{ github.event.inputs.package_version || '0.4.0' }}
-          RELEASE_TAG: ${{ github.event.inputs.release_tag || 'v0.4.0' }}
+          PACKAGE_VERSION: ${{ github.event.inputs.package_version || '0.5.0' }}
+          RELEASE_TAG: ${{ github.event.inputs.release_tag || 'v0.5.0' }}
         run: >
           python .github/scripts/fresh_install_smoke.py
           --source ${{ matrix.source }}
@@ -56,8 +56,8 @@ jobs:
 
       - name: Run fresh install smoke
         env:
-          PACKAGE_VERSION: ${{ github.event.inputs.package_version || '0.4.0' }}
-          RELEASE_TAG: ${{ github.event.inputs.release_tag || 'v0.4.0' }}
+          PACKAGE_VERSION: ${{ github.event.inputs.package_version || '0.5.0' }}
+          RELEASE_TAG: ${{ github.event.inputs.release_tag || 'v0.5.0' }}
         run: >
           python .github/scripts/fresh_install_smoke.py
           --source ${{ matrix.source }}

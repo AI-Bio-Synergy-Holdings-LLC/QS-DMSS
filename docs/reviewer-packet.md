@@ -4,9 +4,9 @@ This packet is the shortest path for an external reviewer to understand what
 QS-DMSS is claiming, reproduce the public baseline, and decide where feedback
 would be most useful.
 
-Current public baseline: `v0.5.0` / `qs-dmss==0.5.0`
+Current public baseline: `v0.6.0` / `qs-dmss==0.6.0`
 
-Release DOI: `10.5281/zenodo.20617028`
+Release DOI: pending Zenodo archival after release
 
 Latest archived release DOI: `10.5281/zenodo.20617028` (`v0.5.0`)
 
@@ -46,7 +46,7 @@ Use the published PyPI package from a clean environment:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.5.0
+python -m pip install qs-dmss==0.6.0
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo
@@ -73,7 +73,7 @@ cross-platform PyPI and GitHub release-wheel commands.
 
 ## Simulation Showcase Path
 
-The published `v0.5.0` package includes a canonical simulation showcase for
+The published `v0.6.0` package includes a canonical simulation showcase for
 reviewers who want to inspect the actual simulated field output, not just the
 install and benchmark envelopes:
 
@@ -94,7 +94,16 @@ Use [simulation-showcase.md](simulation-showcase.md) for the detailed path.
 
 ## Lab Mode Cockpit Path
 
-`v0.5.0` is the first product milestone where Lab Mode is reviewer-facing:
+`v0.6.0` is the product milestone where Lab Mode can compose reviewer-facing
+research objects:
+
+- Publication Export Composer creates a Markdown research object with scenario,
+  metrics, evidence status, replay commands, artifact links, and citation/DOI
+  metadata.
+- The Open Collective and Builder Board CTA appears only after a successful
+  export.
+
+`v0.5.0` was the first product milestone where Lab Mode became reviewer-facing:
 
 ```powershell
 qs-dmss cockpit --host 127.0.0.1 --port 8001
@@ -109,6 +118,8 @@ Expected signals:
   status, SVG plots, and CSV first rows without leaving the cockpit.
 - Guided Comparison runs three packaged variants, explains evidence deltas in
   plain language, and exposes a comparison report plus bundle.
+- Publication Export Composer turns the successful Lab Mode run into a
+  downloadable research-object Markdown export.
 
 ## Review Lanes
 
