@@ -94,6 +94,9 @@ The strategic build priorities are:
   replay, and report export.
 - Scenario library with a small number of named, documented, reproducible
   simulation cases.
+- Scenario Library / Campaign Studio metadata that tells users what a packaged
+  scenario is for, what it produces, what it does not claim, and how it can
+  become a configurable campaign study.
 - Publication-grade report exports with figures, metric summaries, manifest
   status, citation metadata, and replay instructions.
 - Campaign Studio for parameter-grid design, decision-profile editing, and

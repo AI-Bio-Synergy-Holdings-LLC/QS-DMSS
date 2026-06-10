@@ -101,6 +101,48 @@
                 </div>
               </div>
 
+              <section class="scenario-library-card" id="scenarioLibraryPanel">
+                <div class="panel-head compact">
+                  <div>
+                    <p class="artifact-list-title">Scenario Library</p>
+                    <h3>Packaged scenario metadata</h3>
+                  </div>
+                  <span class="selection-chip" id="scenarioRuntime">Runtime pending</span>
+                </div>
+                <div class="scenario-badge-row" id="scenarioBadges">
+                  <span class="scenario-badge is-idle">No metadata</span>
+                </div>
+                <div class="scenario-library-grid">
+                  <article>
+                    <p class="artifact-list-title">Purpose</p>
+                    <p id="scenarioPurpose">
+                      Choose a packaged scenario to see purpose, outputs, readiness, and limitations.
+                    </p>
+                  </article>
+                  <article>
+                    <p class="artifact-list-title">Outputs</p>
+                    <ul id="scenarioArtifacts">
+                      <li>Scenario outputs appear here.</li>
+                    </ul>
+                  </article>
+                  <article>
+                    <p class="artifact-list-title">Limitations</p>
+                    <ul id="scenarioLimitations">
+                      <li>Scenario limitations appear here.</li>
+                    </ul>
+                  </article>
+                  <article>
+                    <p class="artifact-list-title">Next Actions</p>
+                    <ul id="scenarioNextActions">
+                      <li>Suggested next actions appear here.</li>
+                    </ul>
+                  </article>
+                </div>
+                <p class="scenario-library-note" id="scenarioComparisonPlan">
+                  Guided comparison metadata appears when a packaged scenario is selected.
+                </p>
+              </section>
+
               <div class="lab-metrics">
                 <article class="compare-card">
                   <span>Evidence</span>
@@ -209,6 +251,28 @@
                   aria-live="polite"
                 >
                   Ready to run a three-variant guided comparison.
+                </p>
+              </section>
+
+              <section class="campaign-studio-card" id="labCampaignStudioPanel">
+                <div class="panel-head compact">
+                  <div>
+                    <p class="artifact-list-title">Campaign Studio</p>
+                    <h3>Scenario exploration contract</h3>
+                  </div>
+                  <span class="selection-chip" id="campaignStudioStatus">Not configured</span>
+                </div>
+                <p id="campaignStudioSummary">
+                  Campaign Studio metadata appears when a campaign-enabled template is available.
+                </p>
+                <p class="scenario-library-note" id="campaignStudioPlan">
+                  No campaign plan available.
+                </p>
+                <ul class="decision-list" id="campaignStudioDimensions">
+                  <li>Campaign capabilities appear here.</li>
+                </ul>
+                <p class="lab-review-prompt" id="campaignStudioBoundary">
+                  Add campaign metadata to make Scenario Library entries launch configurable studies.
                 </p>
               </section>
 

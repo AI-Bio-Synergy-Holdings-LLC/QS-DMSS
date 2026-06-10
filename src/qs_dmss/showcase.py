@@ -27,6 +27,52 @@ RADIAL_DENSITY_SVG = "radial-density-profile.svg"
 MIDPLANE_SVG = "density-midplane.svg"
 DEFAULT_SHOWCASE_NAME = "canonical-simulation"
 
+SHOWCASE_SCENARIO_METADATA: dict[str, dict[str, Any]] = {
+    DEFAULT_SHOWCASE_NAME: {
+        "title": "Canonical Simulation Showcase",
+        "purpose": (
+            "Demonstrate the full QS-DMSS research-object loop with a compact "
+            "Gaussian scalar-field packet: run, verify, replay, inspect CSV/SVG "
+            "artifacts, compare variants, and export a citable report."
+        ),
+        "expected_runtime": "Fast smoke scenario; usually under 30 seconds on a laptop.",
+        "output_artifacts": [
+            {
+                "label": "Evidence bundle",
+                "description": "ZIP bundle with config, run record, metrics, manifest, report, and environment lock.",
+            },
+            {
+                "label": "CSV diagnostics",
+                "description": "Step history, radial density profile, and final midplane density samples.",
+            },
+            {
+                "label": "SVG figures",
+                "description": "Energy history, radial density profile, and final-density midplane visualizations.",
+            },
+            {
+                "label": "Replay comparison",
+                "description": "Deterministic replay evidence with final-density agreement status.",
+            },
+        ],
+        "limitations": [
+            "Small educational/reference scenario, not a peer-reviewed scientific validation claim.",
+            "Optimized for fast inspection rather than high-resolution production physics.",
+            "Uses packaged parameters; domain experts should add calibrated scenarios before scientific use.",
+        ],
+        "readiness_badges": [
+            {"label": "Packaged", "status": "ready"},
+            {"label": "Deterministic", "status": "ready"},
+            {"label": "Replayable", "status": "ready"},
+            {"label": "Report-ready", "status": "ready"},
+        ],
+        "next_actions": [
+            "Run the showcase to create the single-scenario research object.",
+            "Run Guided Comparison to inspect baseline, wider-packet, and stronger-interaction variants.",
+            "Use Campaign Studio as the next builder lane for editable parameter-grid studies.",
+        ],
+    }
+}
+
 
 @dataclass(frozen=True)
 class ShowcaseScenario:
@@ -43,6 +89,25 @@ def showcase_assets_root() -> Path:
 
 def list_showcase_scenarios() -> list[str]:
     return sorted(path.stem for path in showcase_assets_root().glob("*.yaml"))
+
+
+def showcase_scenario_metadata(name: str = DEFAULT_SHOWCASE_NAME) -> dict[str, Any]:
+    scenario_name = safe_filename(name, default=DEFAULT_SHOWCASE_NAME, suffixes=(".yaml",))
+    scenario_stem = Path(scenario_name).stem
+    metadata = SHOWCASE_SCENARIO_METADATA.get(scenario_stem, {})
+    label = scenario_stem.replace("-", " ").title()
+    return {
+        "title": metadata.get("title", label),
+        "purpose": metadata.get(
+            "purpose",
+            "Packaged QS-DMSS scenario for creating a reproducible simulation artifact.",
+        ),
+        "expected_runtime": metadata.get("expected_runtime", "Runtime target not documented yet."),
+        "output_artifacts": list(metadata.get("output_artifacts", [])),
+        "limitations": list(metadata.get("limitations", [])),
+        "readiness_badges": list(metadata.get("readiness_badges", [])),
+        "next_actions": list(metadata.get("next_actions", [])),
+    }
 
 
 def resolve_showcase_scenario(name: str = DEFAULT_SHOWCASE_NAME) -> ShowcaseScenario:
