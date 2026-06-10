@@ -4,7 +4,7 @@ This packet is the shortest path for an external reviewer to understand what
 QS-DMSS is claiming, reproduce the public baseline, and decide where feedback
 would be most useful.
 
-Current public baseline: `v0.6.0` / `qs-dmss==0.6.0`
+Current public baseline: `v0.6.1` / `qs-dmss==0.6.1`
 
 Release DOI: `10.5281/zenodo.20618884`
 
@@ -46,7 +46,7 @@ Use the published PyPI package from a clean environment:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.6.0
+python -m pip install qs-dmss==0.6.1
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo
