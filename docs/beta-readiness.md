@@ -10,7 +10,7 @@ The intended beta claim is narrow:
 
 ## Current Decision
 
-- Current release target: `v0.6.0` / `0.6.0`
+- Current release target: `v0.6.1` / `0.6.1`
 - Current PyPI classifier target: `Development Status :: 4 - Beta`
 - Promotion basis: `v0.1.5` passed the beta-readiness gate
 - Current Zenodo concept DOI: `10.5281/zenodo.20074924`

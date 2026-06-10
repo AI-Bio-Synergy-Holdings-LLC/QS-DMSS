@@ -17,7 +17,7 @@ Primary sources:
 
 Do not submit to JOSS yet.
 
-Prepare the packet, collect reviewer feedback, and use `v0.6.0` as the stable
+Prepare the packet, collect reviewer feedback, and use `v0.6.1` as the stable
 public baseline for Lab Mode, Publication Export Composer, and reproducibility
 review.
 
@@ -39,7 +39,7 @@ workflow is a meaningful contribution to the research community.
 | --- | --- | --- | --- |
 | Public repository and issue workflow | Public GitHub repository, issue templates, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT | Ready | Keep development visible through ordinary issues and PRs |
 | OSI-approved license | Apache-2.0 `LICENSE` file | Ready | No action |
-| Installable package | PyPI `qs-dmss==0.6.0`, release wheel, Trusted Publishing, fresh-install smoke | Ready after release | `v0.6.0` ships Lab Mode guided interpretation, guided comparison, and Publication Export Composer; avoid further package churn unless feedback exposes a blocker |
+| Installable package | PyPI `qs-dmss==0.6.1`, release wheel, Trusted Publishing, fresh-install smoke | Ready after release | `v0.6.0` ships Lab Mode guided interpretation, guided comparison, and Publication Export Composer; `v0.6.1` refreshes public DOI metadata without changing behavior |
 | Tests and CI | Pytest suite, benchmark smoke, wheel smoke, Docker smoke, CodeQL | Ready | Add tests only when behavior changes |
 | Documentation | README, reviewer quickstart, evidence glossary, benchmark docs, contributor map | Ready enough | Use reviewer feedback to patch confusing sections |
 | Example usage | `run-demo`, `campaigns run-demo`, `benchmarks validate` | Ready enough | Add a short tutorial only if reviewers need more context |

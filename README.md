@@ -327,6 +327,7 @@ For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
 - Latest archived release DOI: [v0.6.0 / 10.5281/zenodo.20618884](https://doi.org/10.5281/zenodo.20618884)
+- PyPI metadata refresh: `v0.6.1` republishes this corrected citation metadata without changing simulation behavior.
 - Previous archived release DOI: [v0.5.0 / 10.5281/zenodo.20617028](https://doi.org/10.5281/zenodo.20617028)
 - Earlier archived release DOI: [v0.4.0 / 10.5281/zenodo.20500433](https://doi.org/10.5281/zenodo.20500433)
 - Prior archived release DOI: [v0.3.0 / 10.5281/zenodo.20112923](https://doi.org/10.5281/zenodo.20112923)

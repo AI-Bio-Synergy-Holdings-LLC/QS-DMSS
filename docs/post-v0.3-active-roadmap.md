@@ -9,7 +9,7 @@ The current QS-DMSS direction is:
 run simulations -> inspect evidence -> compare campaigns -> publish reproducible artifacts
 ```
 
-The stable public package is `qs-dmss==0.6.0`. The latest archived release DOI
+The stable public package is `qs-dmss==0.6.1`. The latest archived release DOI
 is `v0.6.0` / `10.5281/zenodo.20618884`.
 
 ## Strategic Shift

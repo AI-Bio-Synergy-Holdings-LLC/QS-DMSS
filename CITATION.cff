@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use QS-DMSS, please cite the software release below."
 type: software
 title: "QS-DMSS: QuantumScalar Dark Matter Simulation Suite"
-version: 0.6.0
+version: 0.6.1
 date-released: 2026-06-10
 license: Apache-2.0
 abstract: "Evidence-first QuantumScalar dark matter simulation software for deterministic runs, decision campaigns, Lab Mode guided interpretation and comparison, publication export composition, canonical simulation showcase artifacts, and reproducible evidence bundles."
@@ -36,7 +36,7 @@ identifiers:
     description: "First archived release DOI for v0.1.3."
 repository-code: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS"
 repository-artifact: "https://pypi.org/project/qs-dmss/"
-url: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.6.0"
+url: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.6.1"
 keywords:
   - dark matter
   - scientific computing
