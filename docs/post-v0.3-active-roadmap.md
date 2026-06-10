@@ -10,7 +10,7 @@ run simulations -> inspect evidence -> compare campaigns -> publish reproducible
 ```
 
 The stable public package is `qs-dmss==0.6.0`. The latest archived release DOI
-remains `v0.5.0` / `10.5281/zenodo.20617028` until Zenodo archives `v0.6.0`.
+is `v0.6.0` / `10.5281/zenodo.20618884`.
 
 ## Strategic Shift
 

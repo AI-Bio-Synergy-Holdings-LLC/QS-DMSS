@@ -6,9 +6,9 @@ would be most useful.
 
 Current public baseline: `v0.6.0` / `qs-dmss==0.6.0`
 
-Release DOI: pending Zenodo archival after release
+Release DOI: `10.5281/zenodo.20618884`
 
-Latest archived release DOI: `10.5281/zenodo.20617028` (`v0.5.0`)
+Latest archived release DOI: `10.5281/zenodo.20618884` (`v0.6.0`)
 
 Project DOI: `10.5281/zenodo.20074924`
 
