@@ -1,6 +1,7 @@
 const state = {
   configs: [],
   showcases: [],
+  campaignStudio: null,
   runs: [],
   experiments: [],
   sweepParameters: [],
@@ -25,6 +26,13 @@ const els = {
   launchLabButton: document.querySelector("#launchLabButton"),
   labScenarioSummary: document.querySelector("#labScenarioSummary"),
   labScenarioMeta: document.querySelector("#labScenarioMeta"),
+  scenarioRuntime: document.querySelector("#scenarioRuntime"),
+  scenarioBadges: document.querySelector("#scenarioBadges"),
+  scenarioPurpose: document.querySelector("#scenarioPurpose"),
+  scenarioArtifacts: document.querySelector("#scenarioArtifacts"),
+  scenarioLimitations: document.querySelector("#scenarioLimitations"),
+  scenarioNextActions: document.querySelector("#scenarioNextActions"),
+  scenarioComparisonPlan: document.querySelector("#scenarioComparisonPlan"),
   labRunId: document.querySelector("#labRunId"),
   labStatus: document.querySelector("#labStatus"),
   labProgressShell: document.querySelector("#labProgressShell"),
@@ -44,6 +52,11 @@ const els = {
   labComparisonReportLink: document.querySelector("#labComparisonReportLink"),
   labComparisonBundleLink: document.querySelector("#labComparisonBundleLink"),
   labComparisonProgressText: document.querySelector("#labComparisonProgressText"),
+  campaignStudioStatus: document.querySelector("#campaignStudioStatus"),
+  campaignStudioSummary: document.querySelector("#campaignStudioSummary"),
+  campaignStudioPlan: document.querySelector("#campaignStudioPlan"),
+  campaignStudioDimensions: document.querySelector("#campaignStudioDimensions"),
+  campaignStudioBoundary: document.querySelector("#campaignStudioBoundary"),
   labExplorerStatus: document.querySelector("#labExplorerStatus"),
   labReportPreviewTitle: document.querySelector("#labReportPreviewTitle"),
   labReportPreviewBody: document.querySelector("#labReportPreviewBody"),
@@ -183,12 +196,12 @@ const toneColorByEvidence = {
 };
 
 const citationMetadata = {
-  packageVersion: "0.5.0",
-  releaseTag: "v0.5.0",
+  packageVersion: "0.6.1",
+  releaseTag: "v0.6.1",
   conceptDoi: "10.5281/zenodo.20074924",
-  releaseDoi: "10.5281/zenodo.20617028",
-  releaseUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.5.0",
-  pypiUrl: "https://pypi.org/project/qs-dmss/0.5.0/",
+  releaseDoi: "10.5281/zenodo.20631860",
+  releaseUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.6.1",
+  pypiUrl: "https://pypi.org/project/qs-dmss/0.6.1/",
   repositoryUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
   openCollectiveUrl: "https://opencollective.com/qs-dmss",
   builderBoardUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57",
@@ -1109,14 +1122,126 @@ function handleComposeResearchObject() {
   toast("Research object composed", "Markdown export and citation block are ready.", "success");
 }
 
+function renderBadgeRow(container, badges, emptyText) {
+  const items = Array.isArray(badges) ? badges : [];
+  container.innerHTML = items.length
+    ? items
+        .map((badge) => {
+          const status = badge.status || "planned";
+          const tone = status === "ready" ? "is-success" : "is-warning";
+          return `<span class="scenario-badge ${tone}">${escapeHtml(badge.label || status)}</span>`;
+        })
+        .join("")
+    : `<span class="scenario-badge is-idle">${escapeHtml(emptyText)}</span>`;
+}
+
+function renderMetadataList(container, items, emptyText) {
+  const values = Array.isArray(items) ? items : [];
+  container.innerHTML = values.length
+    ? values
+        .map((item) => {
+          if (typeof item === "string") {
+            return `<li>${escapeHtml(item)}</li>`;
+          }
+          return `
+            <li>
+              <strong>${escapeHtml(item.label || item.name || "Item")}</strong>
+              ${escapeHtml(item.description || item.value || "")}
+            </li>
+          `;
+        })
+        .join("")
+    : `<li>${escapeHtml(emptyText)}</li>`;
+}
+
+function renderScenarioLibrary(scenario) {
+  if (!scenario) {
+    els.scenarioRuntime.textContent = "No scenario";
+    els.scenarioPurpose.textContent =
+      "Choose a packaged scenario to see purpose, outputs, readiness, and limitations.";
+    renderBadgeRow(els.scenarioBadges, [], "No metadata");
+    renderMetadataList(els.scenarioArtifacts, [], "Scenario outputs appear here.");
+    renderMetadataList(els.scenarioLimitations, [], "Scenario limitations appear here.");
+    renderMetadataList(els.scenarioNextActions, [], "Suggested next actions appear here.");
+    els.scenarioComparisonPlan.textContent =
+      "Guided comparison metadata appears when a packaged scenario is selected.";
+    return;
+  }
+
+  const comparison = scenario.guided_comparison || {};
+  const dimensions = (comparison.dimensions || [])
+    .map((dimension) => dimension.label || dimension.path)
+    .join(", ");
+  const variantLabels = (comparison.variants || [])
+    .map((variant) => variant.label)
+    .join(", ");
+  els.scenarioRuntime.textContent = scenario.expected_runtime || "Runtime target pending";
+  els.scenarioPurpose.textContent = scenario.purpose || scenario.description || "No purpose documented yet.";
+  renderBadgeRow(els.scenarioBadges, scenario.readiness_badges, "Metadata pending");
+  renderMetadataList(
+    els.scenarioArtifacts,
+    scenario.output_artifacts,
+    "No output artifacts documented yet.",
+  );
+  renderMetadataList(
+    els.scenarioLimitations,
+    scenario.limitations,
+    "No scenario limitations documented yet.",
+  );
+  renderMetadataList(
+    els.scenarioNextActions,
+    scenario.next_actions,
+    "No suggested next actions documented yet.",
+  );
+  els.scenarioComparisonPlan.textContent = comparison.planned_run_count
+    ? `${comparison.label}: ${comparison.planned_run_count} packaged variants (${variantLabels}) across ${dimensions}.`
+    : "Guided comparison metadata is not available for this scenario yet.";
+}
+
+function renderCampaignStudioPreview(preview) {
+  if (!preview?.available) {
+    els.campaignStudioStatus.textContent = "Not configured";
+    els.campaignStudioStatus.className = "selection-chip";
+    els.campaignStudioSummary.textContent =
+      preview?.summary || "Campaign Studio metadata appears when a campaign-enabled template is available.";
+    els.campaignStudioPlan.textContent = preview?.current_boundary || "No campaign plan available.";
+    renderMetadataList(
+      els.campaignStudioDimensions,
+      preview?.next_capabilities || [],
+      "Campaign capabilities appear here.",
+    );
+    els.campaignStudioBoundary.textContent =
+      "Add campaign metadata to make Scenario Library entries launch configurable studies.";
+    return;
+  }
+
+  els.campaignStudioStatus.textContent = `${preview.planned_run_count} planned runs`;
+  els.campaignStudioStatus.className = `selection-chip ${toneForStatus("qualified")}`;
+  els.campaignStudioSummary.textContent = preview.summary;
+  els.campaignStudioPlan.textContent =
+    `${preview.label} uses a ${preview.strategy} strategy with ${preview.dimension_count} dimensions and objective "${preview.objective.name}".`;
+  renderMetadataList(
+    els.campaignStudioDimensions,
+    preview.dimensions.map((dimension) => ({
+      label: dimension.label,
+      description: `${dimension.path} | values: ${(dimension.values || []).join(", ")}`,
+    })),
+    "No campaign dimensions documented yet.",
+  );
+  els.campaignStudioBoundary.textContent = preview.current_boundary;
+}
+
 function renderLabMode() {
   const scenario = showcaseByName(state.selectedShowcaseName);
   els.labScenarioSummary.textContent =
+    scenario?.purpose ||
     scenario?.description ||
     "Choose a packaged showcase to create a run, replay, artifacts, and a report.";
   els.labScenarioMeta.textContent = scenario
-    ? `${scenario.grid_label} | ${scenario.steps} steps | ${scenario.claim_boundary}`
+    ? `${scenario.grid_label} | ${scenario.steps} steps | ${scenario.expected_runtime}`
     : "No packaged showcase selected";
+  renderScenarioLibrary(scenario);
+  renderCampaignStudioPreview(state.campaignStudio);
 
   if (!state.labResult) {
     els.labRunId.textContent = "No Lab Mode run yet";
@@ -1798,6 +1923,7 @@ async function hydrate() {
   state.configs = configPayload.items;
   state.sweepParameters = sweepPayload.items;
   state.showcases = showcasePayload.items;
+  state.campaignStudio = showcasePayload.campaign_studio || null;
   state.experiments = experimentPayload.items;
   state.selectedTemplateName = configPayload.default_name || state.configs[0]?.name || null;
   state.selectedShowcaseName = showcasePayload.default_name || state.showcases[0]?.name || null;

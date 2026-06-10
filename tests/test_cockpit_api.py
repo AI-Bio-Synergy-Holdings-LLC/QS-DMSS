@@ -31,6 +31,11 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert 'id="composeResearchObjectButton"' in root.text
     assert 'id="researchObjectSurface"' in root.text
     assert 'id="researchObjectCta" hidden' in root.text
+    assert 'id="scenarioLibraryPanel"' in root.text
+    assert 'id="scenarioBadges"' in root.text
+    assert 'id="scenarioArtifacts"' in root.text
+    assert 'id="labCampaignStudioPanel"' in root.text
+    assert 'id="campaignStudioDimensions"' in root.text
     markdown_link = re.search(r'<a[^>]+id="labMarkdownLink"[^>]*>', root.text)
     json_link = re.search(r'<a[^>]+id="labJsonLink"[^>]*>', root.text)
     research_object_button = re.search(
@@ -132,6 +137,35 @@ def test_cockpit_api_launches_lab_mode_showcase(tmp_path: Path) -> None:
     showcase_body = showcase_payload.json()
     assert showcase_body["default_name"] == "canonical-simulation"
     assert showcase_body["items"][0]["name"] == "canonical-simulation"
+    scenario = showcase_body["items"][0]
+    assert scenario["label"] == "Canonical Simulation Showcase"
+    assert scenario["purpose"].startswith("Demonstrate the full QS-DMSS")
+    assert scenario["expected_runtime"].startswith("Fast smoke")
+    assert {item["label"] for item in scenario["readiness_badges"]} >= {
+        "Packaged",
+        "Replayable",
+    }
+    assert {item["label"] for item in scenario["output_artifacts"]} >= {
+        "Evidence bundle",
+        "SVG figures",
+    }
+    assert scenario["limitations"]
+    assert scenario["guided_comparison"]["planned_run_count"] == 3
+    assert {
+        variant["slug"]
+        for variant in scenario["guided_comparison"]["variants"]
+    } == {
+        "baseline",
+        "wider-packet",
+        "stronger-interaction",
+    }
+    campaign_studio = showcase_body["campaign_studio"]
+    assert campaign_studio["available"] is True
+    assert campaign_studio["label"] == "Stability frontier campaign"
+    assert campaign_studio["planned_run_count"] == 6
+    assert campaign_studio["dimension_count"] == 2
+    assert campaign_studio["objective"]["name"] == "Stability-first recommendation"
+    assert campaign_studio["current_boundary"].startswith("This slice previews")
 
     launch_payload = client.post("/api/showcases/canonical-simulation/run")
     assert launch_payload.status_code == 200

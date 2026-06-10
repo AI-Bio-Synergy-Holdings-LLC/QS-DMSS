@@ -45,6 +45,7 @@ from qs_dmss.showcase import (
     list_showcase_scenarios,
     resolve_showcase_scenario,
     run_simulation_showcase,
+    showcase_scenario_metadata,
 )
 
 
@@ -139,6 +140,87 @@ class CockpitService:
 
     def list_showcases(self) -> list[dict]:
         return [self._build_showcase_summary(name) for name in list_showcase_scenarios()]
+
+    def campaign_studio_preview(self) -> dict:
+        configs = self.list_configs()
+        default_config = configs[0] if configs else None
+        if default_config is None:
+            return {
+                "available": False,
+                "title": "Campaign Studio",
+                "summary": "No packaged config is available for a campaign preview.",
+                "current_boundary": "Add a config with objective and campaign sections to enable Campaign Studio.",
+                "next_capabilities": [
+                    "Scenario-linked campaign templates",
+                    "Editable parameter-grid studies",
+                    "Decision-profile editing",
+                ],
+            }
+
+        config = default_config["config"]
+        try:
+            campaign_plan = build_campaign_plan(config)
+        except ValueError as exc:
+            return {
+                "available": False,
+                "title": "Campaign Studio",
+                "source_config_name": default_config["name"],
+                "summary": str(exc),
+                "current_boundary": "This config can launch a run, but it does not define an automated campaign.",
+                "next_capabilities": [
+                    "Add a campaign section",
+                    "Attach objective constraints",
+                    "Save a comparison research object",
+                ],
+            }
+
+        objective = config.get("objective") or {}
+        constraints = config.get("constraints") or {}
+        ranking = config.get("ranking") or {}
+        return {
+            "available": True,
+            "title": "Campaign Studio",
+            "source_config_name": default_config["name"],
+            "label": campaign_plan["label"],
+            "strategy": campaign_plan["strategy"],
+            "planned_run_count": campaign_plan["planned_run_count"],
+            "dimension_count": campaign_plan["dimension_count"],
+            "dimensions": campaign_plan["dimensions"],
+            "objective": {
+                "name": objective.get("name", "No objective"),
+                "summary": objective.get("summary", "No objective summary provided."),
+                "primary_metric": objective.get("primary_metric"),
+                "goal": objective.get("goal"),
+            },
+            "constraints": [
+                {"name": key, "value": value}
+                for key, value in constraints.items()
+            ],
+            "ranking": {
+                "primary_metric_weight": ranking.get("primary_metric_weight"),
+                "weights": ranking.get("weights", {}),
+            },
+            "readiness_badges": [
+                {"label": "Grid plan", "status": "ready"},
+                {"label": "Objective scoring", "status": "ready"},
+                {"label": "Evidence bundle", "status": "ready"},
+                {"label": "Editor", "status": "planned"},
+            ],
+            "summary": (
+                "A packaged decision campaign can already expand a template into a "
+                "multi-run search matrix, score every run, and save a comparison bundle."
+            ),
+            "current_boundary": (
+                "This slice previews the campaign contract; editing the grid and decision "
+                "profile directly in Lab Mode is the next Campaign Studio build."
+            ),
+            "next_capabilities": [
+                "Edit campaign dimensions before launch",
+                "Choose or tune the decision profile",
+                "Attach campaign metadata to exported research objects",
+            ],
+            "launch_endpoint": "/api/campaigns",
+        }
 
     def get_run_detail(self, run_id: str) -> dict:
         run_dir = self._get_run_dir(run_id)
@@ -616,9 +698,11 @@ class CockpitService:
     def _build_showcase_summary(self, scenario: str) -> dict:
         selected = self._resolve_showcase_scenario(scenario)
         config = load_config(selected.config_path)
+        metadata = showcase_scenario_metadata(selected.name)
+        guided_variants = self._guided_comparison_variants(config.to_dict())
         return {
             "name": selected.name,
-            "label": selected.name.replace("-", " ").title(),
+            "label": metadata["title"],
             "config_name": selected.config_path.name,
             "run_name": config.run.name,
             "grid_label": self._format_grid_label(config.engine.grid_shape),
@@ -631,6 +715,30 @@ class CockpitService:
             "claim_boundary": (
                 "Workflow demonstration only; not peer-reviewed scientific validation."
             ),
+            "purpose": metadata["purpose"],
+            "expected_runtime": metadata["expected_runtime"],
+            "output_artifacts": metadata["output_artifacts"],
+            "limitations": metadata["limitations"],
+            "readiness_badges": metadata["readiness_badges"],
+            "next_actions": metadata["next_actions"],
+            "guided_comparison": {
+                "label": "Packaged variant comparison",
+                "strategy": "packaged-variants",
+                "planned_run_count": len(guided_variants),
+                "dimensions": self._guided_comparison_dimensions(),
+                "variants": [
+                    {
+                        "slug": variant["slug"],
+                        "label": variant["label"],
+                        "description": variant["description"],
+                    }
+                    for variant in guided_variants
+                ],
+                "purpose": (
+                    "Compare curated variants with a shared seed so the cockpit can explain "
+                    "evidence deltas without requiring manual YAML edits."
+                ),
+            },
         }
 
     def _build_showcase_artifact_links(self, scenario: str, report: dict) -> list[dict]:
@@ -943,6 +1051,7 @@ def create_app(
         return {
             "items": items,
             "default_name": DEFAULT_SHOWCASE_NAME,
+            "campaign_studio": service.campaign_studio_preview(),
         }
 
     @app.post("/api/showcases/{scenario}/run")
