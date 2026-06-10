@@ -271,6 +271,38 @@
                 <ul class="decision-list" id="campaignStudioDimensions">
                   <li>Campaign capabilities appear here.</li>
                 </ul>
+                <form class="campaign-studio-editor" id="campaignStudioEditor">
+                  <p class="artifact-list-title">Editable Parameter Grid</p>
+                  <div id="campaignStudioFields">
+                    <p>Campaign grid controls appear here.</p>
+                  </div>
+                  <p
+                    class="campaign-studio-feedback"
+                    id="campaignStudioFeedback"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    Edit grid values to preview the planned run count.
+                  </p>
+                  <div class="lab-actions lab-comparison-actions">
+                    <button
+                      class="secondary-button teal"
+                      id="launchCampaignStudioButton"
+                      type="submit"
+                      disabled
+                    >
+                      Launch Edited Campaign
+                    </button>
+                    <button
+                      class="ghost-button"
+                      id="resetCampaignStudioButton"
+                      type="button"
+                      disabled
+                    >
+                      Reset Packaged Grid
+                    </button>
+                  </div>
+                </form>
                 <p class="lab-review-prompt" id="campaignStudioBoundary">
                   Add campaign metadata to make Scenario Library entries launch configurable studies.
                 </p>

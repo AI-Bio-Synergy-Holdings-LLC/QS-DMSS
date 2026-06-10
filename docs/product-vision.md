@@ -99,8 +99,8 @@ The strategic build priorities are:
   become a configurable campaign study.
 - Publication-grade report exports with figures, metric summaries, manifest
   status, citation metadata, and replay instructions.
-- Campaign Studio for parameter-grid design, decision-profile editing, and
-  recommendation inspection.
+- Campaign Studio for editable parameter-grid design, later decision-profile
+  editing, and recommendation inspection.
 - Evidence Explorer for opening bundles, viewing manifests, comparing digests,
   and understanding replay status.
 - Contributor extension points for new scenarios, metrics, reports, and solver

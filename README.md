@@ -121,8 +121,8 @@ research objects.
 
 Public builder coordination now lives in
 [issue #57](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57).
-The active Scenario Library / Campaign Studio metadata slice is tracked in
-[issue #73](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/73).
+The active Campaign Studio editable-grid slice is tracked in
+[issue #75](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/75).
 
 Review paths remain available for people who want to validate the public
 package:
@@ -142,7 +142,7 @@ Inside the cockpit you can:
 
 - Use Lab Mode to launch the packaged canonical simulation showcase, read guided interpretation, run a guided variant comparison, inspect the Evidence Explorer, preview generated reports/artifacts, compose a research object export, and open the full evidence outputs
 - Inspect Scenario Library metadata for packaged scenarios, including purpose, expected runtime, artifacts, readiness, limitations, and suggested next actions
-- Preview the Campaign Studio contract for the bundled decision campaign before running the full search matrix
+- Edit the Campaign Studio parameter grid for the bundled decision campaign, preview planned runs, and launch the edited campaign through the existing evidence/recommendation workflow
 - Launch a single run from a checked-in or edited config
 - Launch a parameter sweep across interaction strength, timestep, step count, amplitude, width, or seed
 - Launch a template-defined decision campaign that expands into a reproducible multi-parameter run matrix

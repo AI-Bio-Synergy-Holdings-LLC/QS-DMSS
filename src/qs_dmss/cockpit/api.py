@@ -183,6 +183,7 @@ class CockpitService:
             "source_config_name": default_config["name"],
             "label": campaign_plan["label"],
             "strategy": campaign_plan["strategy"],
+            "max_runs": config.get("campaign", {}).get("max_runs", campaign_plan["planned_run_count"]),
             "planned_run_count": campaign_plan["planned_run_count"],
             "dimension_count": campaign_plan["dimension_count"],
             "dimensions": campaign_plan["dimensions"],
@@ -204,20 +205,21 @@ class CockpitService:
                 {"label": "Grid plan", "status": "ready"},
                 {"label": "Objective scoring", "status": "ready"},
                 {"label": "Evidence bundle", "status": "ready"},
-                {"label": "Editor", "status": "planned"},
+                {"label": "Grid editor", "status": "ready"},
+                {"label": "Objective editor", "status": "planned"},
             ],
             "summary": (
                 "A packaged decision campaign can already expand a template into a "
                 "multi-run search matrix, score every run, and save a comparison bundle."
             ),
             "current_boundary": (
-                "This slice previews the campaign contract; editing the grid and decision "
-                "profile directly in Lab Mode is the next Campaign Studio build."
+                "This first editor changes campaign grid values only; objective, constraints, "
+                "and ranking stay read-only until a later Campaign Studio build."
             ),
             "next_capabilities": [
-                "Edit campaign dimensions before launch",
                 "Choose or tune the decision profile",
                 "Attach campaign metadata to exported research objects",
+                "Save reusable scenario-linked campaign templates",
             ],
             "launch_endpoint": "/api/campaigns",
         }
