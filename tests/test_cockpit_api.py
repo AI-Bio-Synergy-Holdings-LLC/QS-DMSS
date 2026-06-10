@@ -27,14 +27,32 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert 'id="launchLabComparisonButton"' in root.text
     assert 'id="labComparisonSummary"' in root.text
     assert 'id="labComparisonMeaningList"' in root.text
+    assert 'id="researchObjectExportPanel"' in root.text
+    assert 'id="composeResearchObjectButton"' in root.text
+    assert 'id="researchObjectSurface"' in root.text
+    assert 'id="researchObjectCta" hidden' in root.text
     markdown_link = re.search(r'<a[^>]+id="labMarkdownLink"[^>]*>', root.text)
     json_link = re.search(r'<a[^>]+id="labJsonLink"[^>]*>', root.text)
+    research_object_button = re.search(
+        r'<button[^>]+id="composeResearchObjectButton"[^>]*>',
+        root.text,
+    )
+    research_object_download = re.search(
+        r'<a[^>]+id="researchObjectDownloadLink"[^>]*>',
+        root.text,
+    )
     assert markdown_link is not None
     assert json_link is not None
+    assert research_object_button is not None
+    assert research_object_download is not None
+    assert "disabled" in research_object_button.group(0)
     for report_link in (markdown_link.group(0), json_link.group(0)):
         assert "href=" not in report_link
         assert 'aria-disabled="true"' in report_link
         assert 'tabindex="-1"' in report_link
+    assert "href=" not in research_object_download.group(0)
+    assert 'aria-disabled="true"' in research_object_download.group(0)
+    assert 'tabindex="-1"' in research_object_download.group(0)
 
     config_payload = client.get("/api/configs")
     assert config_payload.status_code == 200
