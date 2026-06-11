@@ -4,13 +4,13 @@ This path validates QS-DMSS from a published distribution without a source
 checkout. It is intended for reviewers who need a fast productization smoke
 test.
 
-Release: `v0.6.1`
+Release: `v0.7.0`
 
 PyPI:
 `https://pypi.org/project/qs-dmss/`
 
 Wheel:
-`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.6.1/qs_dmss-0.6.1-py3-none-any.whl`
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.7.0/qs_dmss-0.7.0-py3-none-any.whl`
 
 ## PyPI Install
 
@@ -49,16 +49,16 @@ Use this path when validating the GitHub release asset directly.
 Windows PowerShell:
 
 ```powershell
-$release = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.6.1"
-Invoke-WebRequest "$release/qs_dmss-0.6.1-py3-none-any.whl" -OutFile "qs_dmss-0.6.1-py3-none-any.whl"
-python -m pip install .\qs_dmss-0.6.1-py3-none-any.whl
+$release = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.7.0"
+Invoke-WebRequest "$release/qs_dmss-0.7.0-py3-none-any.whl" -OutFile "qs_dmss-0.7.0-py3-none-any.whl"
+python -m pip install .\qs_dmss-0.7.0-py3-none-any.whl
 ```
 
 Linux/macOS Bash:
 
 ```bash
-release="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.6.1"
-python -m pip install "$release/qs_dmss-0.6.1-py3-none-any.whl"
+release="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.7.0"
+python -m pip install "$release/qs_dmss-0.7.0-py3-none-any.whl"
 ```
 
 ## Expected Signals
@@ -136,7 +136,7 @@ suite.
 ```powershell
 git clone https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS.git
 cd QS-DMSS
-git checkout v0.6.1
+git checkout v0.7.0
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip

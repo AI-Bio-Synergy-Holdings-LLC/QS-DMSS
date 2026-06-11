@@ -123,8 +123,8 @@ Public builder coordination now lives in
 [issue #57](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57).
 The latest Campaign Studio product slices on `main` add scenario metadata,
 editable parameter grids, decision-profile editing, and scoring-contract
-preview. The next release decision is whether these merged capabilities should
-be packaged as a `v0.7.0` milestone.
+preview. These merged capabilities are prepared as the `v0.7.0` Campaign
+Studio milestone.
 
 Review paths remain available for people who want to validate the public
 package:
@@ -332,6 +332,7 @@ use it when archiving GitHub releases.
 For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
+- v0.7.0 release DOI: pending Zenodo archive after the GitHub release is created
 - Latest archived release DOI: [v0.6.1 / 10.5281/zenodo.20631860](https://doi.org/10.5281/zenodo.20631860)
 - Previous archived release DOI: [v0.6.0 / 10.5281/zenodo.20618884](https://doi.org/10.5281/zenodo.20618884)
 - Earlier archived release DOI: [v0.5.0 / 10.5281/zenodo.20617028](https://doi.org/10.5281/zenodo.20617028)

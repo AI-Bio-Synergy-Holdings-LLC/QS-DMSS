@@ -5,7 +5,7 @@ review contacts. It is intentionally conservative: do not scrape anonymous
 traffic, do not infer identities from downloads or clones, and do not collect
 private contact details in public repository files.
 
-Current public baseline: `qs-dmss==0.6.1` / GitHub release `v0.6.1`
+Current public baseline target: `qs-dmss==0.7.0` / GitHub release `v0.7.0`
 
 Primary opt-in discussion:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`

@@ -4,9 +4,9 @@ This packet is the shortest path for an external reviewer to understand what
 QS-DMSS is claiming, reproduce the public baseline, and decide where feedback
 would be most useful.
 
-Current public baseline: `v0.6.1` / `qs-dmss==0.6.1`
+Current public baseline: `v0.7.0` / `qs-dmss==0.7.0`
 
-Release DOI: `10.5281/zenodo.20631860`
+Release DOI: pending Zenodo archive after the `v0.7.0` GitHub release
 
 Latest archived release DOI: `10.5281/zenodo.20631860` (`v0.6.1`)
 
@@ -46,7 +46,7 @@ Use the published PyPI package from a clean environment:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.6.1
+python -m pip install qs-dmss==0.7.0
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo
@@ -93,6 +93,14 @@ Expected signals:
 Use [simulation-showcase.md](simulation-showcase.md) for the detailed path.
 
 ## Lab Mode Cockpit Path
+
+`v0.7.0` is the product milestone where Campaign Studio becomes configurable:
+
+- Scenario Library metadata explains packaged campaign scenarios, readiness,
+  runtime expectations, artifacts, limitations, and next actions.
+- Campaign Studio lets reviewers edit the packaged parameter grid and decision
+  profile, preview the scoring contract, and launch the edited objective-driven
+  campaign through the evidence/recommendation pipeline.
 
 `v0.6.0` is the product milestone where Lab Mode can compose reviewer-facing
 research objects:

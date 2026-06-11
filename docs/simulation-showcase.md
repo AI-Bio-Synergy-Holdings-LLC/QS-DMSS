@@ -27,7 +27,7 @@ verify/replay the evidence without needing private context?
 Install the release package and run the showcase:
 
 ```powershell
-python -m pip install qs-dmss==0.6.1
+python -m pip install qs-dmss==0.7.0
 qs-dmss showcase run --output-root simulation-showcase
 ```
 

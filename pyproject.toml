@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qs-dmss"
-version = "0.6.1"
-description = "Evidence-first simulation lab for the QuantumScalar Dark Matter Simulation Suite with Lab Mode guided interpretation, guided comparison, publication export composition, and reproducible evidence bundles."
+version = "0.7.0"
+description = "Evidence-first simulation lab for the QuantumScalar Dark Matter Simulation Suite with Lab Mode, Campaign Studio decision profiles, publication export composition, and reproducible evidence bundles."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"

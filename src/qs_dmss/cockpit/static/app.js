@@ -205,12 +205,12 @@ const toneColorByEvidence = {
 };
 
 const citationMetadata = {
-  packageVersion: "0.6.1",
-  releaseTag: "v0.6.1",
+  packageVersion: "0.7.0",
+  releaseTag: "v0.7.0",
   conceptDoi: "10.5281/zenodo.20074924",
   releaseDoi: "10.5281/zenodo.20631860",
-  releaseUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.6.1",
-  pypiUrl: "https://pypi.org/project/qs-dmss/0.6.1/",
+  releaseUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.7.0",
+  pypiUrl: "https://pypi.org/project/qs-dmss/0.7.0/",
   repositoryUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
   openCollectiveUrl: "https://opencollective.com/qs-dmss",
   builderBoardUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57",
@@ -899,7 +899,7 @@ function buildResearchObjectMarkdown(researchObject) {
     "## Citation",
     "",
     `Project DOI: https://doi.org/${citationMetadata.conceptDoi}`,
-    `Release DOI: https://doi.org/${citationMetadata.releaseDoi}`,
+    `Latest archived release DOI: https://doi.org/${citationMetadata.releaseDoi}`,
     `Repository: ${citationMetadata.repositoryUrl}`,
     `Release: ${citationMetadata.releaseUrl}`,
     `PyPI: ${citationMetadata.pypiUrl}`,
@@ -1120,7 +1120,7 @@ function renderResearchObjectSurface(researchObject) {
           <a href="https://doi.org/${citationMetadata.conceptDoi}" target="_blank" rel="noreferrer">
             ${citationMetadata.conceptDoi}
           </a>
-          or the archived ${citationMetadata.releaseTag} release DOI
+          or the latest archived release DOI
           <a href="https://doi.org/${citationMetadata.releaseDoi}" target="_blank" rel="noreferrer">
             ${citationMetadata.releaseDoi}
           </a>.
@@ -1172,7 +1172,7 @@ function renderResearchObjectComposer() {
         <ul>
           <li>Scenario narrative, metrics, and claim boundary.</li>
           <li>Evidence bundle, verification, replay status, and artifact links.</li>
-          <li>DOI citation block for QS-DMSS ${citationMetadata.releaseTag}.</li>
+          <li>DOI citation block for QS-DMSS ${citationMetadata.releaseTag} and the latest archived DOI.</li>
           <li>Guided Comparison details if they have been generated.</li>
         </ul>
       </div>
