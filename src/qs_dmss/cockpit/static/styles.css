@@ -640,10 +640,32 @@ h2 {
   background: rgba(255, 253, 248, 0.58);
 }
 
-#campaignStudioFields {
+.campaign-studio-editor-section {
+  display: grid;
+  gap: 10px;
+}
+
+.campaign-studio-field {
+  min-width: 0;
+}
+
+#campaignStudioFields,
+#campaignStudioDecisionFields {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
+}
+
+.campaign-studio-field input,
+.campaign-studio-field textarea,
+.campaign-studio-field select {
+  min-width: 0;
+  width: 100%;
+}
+
+.campaign-studio-field textarea {
+  min-height: 92px;
+  resize: vertical;
 }
 
 .campaign-studio-field small {
@@ -651,6 +673,54 @@ h2 {
   font-size: 0.82rem;
   font-weight: 700;
   line-height: 1.4;
+}
+
+.campaign-studio-toggle {
+  align-self: end;
+}
+
+.campaign-studio-toggle input {
+  width: auto;
+  min-height: auto;
+  margin-right: 8px;
+}
+
+.campaign-studio-toggle label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+  gap: 6px;
+  line-height: 1.4;
+}
+
+.campaign-studio-contract {
+  display: grid;
+  gap: 8px;
+  padding: 13px 14px;
+  border: 1px dashed rgba(21, 57, 61, 0.18);
+  border-radius: 16px;
+  background: rgba(235, 247, 244, 0.62);
+  color: var(--teal);
+  font-weight: 800;
+  line-height: 1.55;
+}
+
+.campaign-studio-contract ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.campaign-studio-contract li {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.campaign-studio-contract strong {
+  color: var(--teal);
 }
 
 .campaign-studio-feedback {
@@ -1851,6 +1921,7 @@ tbody tr.is-selected {
   .lab-artifact-list,
   .lab-research-grid,
   #campaignStudioFields,
+  #campaignStudioDecisionFields,
   .scenario-library-grid,
   .research-object-grid {
     grid-template-columns: 1fr;

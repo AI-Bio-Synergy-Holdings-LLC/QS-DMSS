@@ -29,7 +29,12 @@ from qs_dmss.experiment import (
     persist_failed_campaign_artifact,
     persist_experiment_artifact,
 )
-from qs_dmss.io.config import load_config, parse_config
+from qs_dmss.io.config import (
+    SUPPORTED_DECISION_METRICS,
+    SUPPORTED_OBJECTIVE_GOALS,
+    load_config,
+    parse_config,
+)
 from qs_dmss.paths import (
     contained_path,
     configs_root,
@@ -175,7 +180,7 @@ class CockpitService:
             }
 
         objective = config.get("objective") or {}
-        constraints = config.get("constraints") or {}
+        constraints = {"require_verification": True, **(config.get("constraints") or {})}
         ranking = config.get("ranking") or {}
         return {
             "available": True,
@@ -192,7 +197,11 @@ class CockpitService:
                 "summary": objective.get("summary", "No objective summary provided."),
                 "primary_metric": objective.get("primary_metric"),
                 "goal": objective.get("goal"),
+                "target_value": objective.get("target_value"),
+                "supported_metrics": list(SUPPORTED_DECISION_METRICS),
+                "supported_goals": list(SUPPORTED_OBJECTIVE_GOALS),
             },
+            "constraint_values": constraints,
             "constraints": [
                 {"name": key, "value": value}
                 for key, value in constraints.items()
@@ -206,20 +215,20 @@ class CockpitService:
                 {"label": "Objective scoring", "status": "ready"},
                 {"label": "Evidence bundle", "status": "ready"},
                 {"label": "Grid editor", "status": "ready"},
-                {"label": "Objective editor", "status": "planned"},
+                {"label": "Objective editor", "status": "ready"},
             ],
             "summary": (
                 "A packaged decision campaign can already expand a template into a "
                 "multi-run search matrix, score every run, and save a comparison bundle."
             ),
             "current_boundary": (
-                "This first editor changes campaign grid values only; objective, constraints, "
-                "and ranking stay read-only until a later Campaign Studio build."
+                "Campaign Studio now edits grid values and the decision profile; saved reusable "
+                "templates remain planned for a later Campaign Studio build."
             ),
             "next_capabilities": [
-                "Choose or tune the decision profile",
                 "Attach campaign metadata to exported research objects",
                 "Save reusable scenario-linked campaign templates",
+                "Save reusable decision-profile presets",
             ],
             "launch_endpoint": "/api/campaigns",
         }

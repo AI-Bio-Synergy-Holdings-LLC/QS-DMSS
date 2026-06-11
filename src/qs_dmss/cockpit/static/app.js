@@ -3,6 +3,7 @@ const state = {
   showcases: [],
   campaignStudio: null,
   campaignStudioValues: {},
+  campaignStudioDecisionValues: {},
   runs: [],
   experiments: [],
   sweepParameters: [],
@@ -59,6 +60,8 @@ const els = {
   campaignStudioDimensions: document.querySelector("#campaignStudioDimensions"),
   campaignStudioEditor: document.querySelector("#campaignStudioEditor"),
   campaignStudioFields: document.querySelector("#campaignStudioFields"),
+  campaignStudioDecisionFields: document.querySelector("#campaignStudioDecisionFields"),
+  campaignStudioScoringContract: document.querySelector("#campaignStudioScoringContract"),
   campaignStudioFeedback: document.querySelector("#campaignStudioFeedback"),
   launchCampaignStudioButton: document.querySelector("#launchCampaignStudioButton"),
   resetCampaignStudioButton: document.querySelector("#resetCampaignStudioButton"),
@@ -214,6 +217,34 @@ const citationMetadata = {
   composerIssueUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/67",
 };
 
+const decisionMetricOptions = ["energy_drift", "norm_drift", "max_density", "elapsed_seconds"];
+const objectiveGoalOptions = ["minimize", "minimize_abs", "maximize", "target"];
+const constraintEditorFields = [
+  {
+    key: "max_abs_energy_drift",
+    label: "Max Absolute Energy Drift",
+    hint: "Optional non-negative threshold.",
+    min: 0,
+  },
+  {
+    key: "max_abs_norm_drift",
+    label: "Max Absolute Norm Drift",
+    hint: "Optional non-negative threshold.",
+    min: 0,
+  },
+  {
+    key: "min_max_density",
+    label: "Minimum Peak Density",
+    hint: "Optional lower bound for final density.",
+  },
+  {
+    key: "max_elapsed_seconds",
+    label: "Max Elapsed Seconds",
+    hint: "Optional non-negative runtime threshold.",
+    min: 0,
+  },
+];
+
 function cloneJson(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -275,6 +306,30 @@ function formatRunCount(count) {
   const numeric = Number(count);
   if (!Number.isFinite(numeric)) return "0 planned runs";
   return `${numeric} planned ${numeric === 1 ? "run" : "runs"}`;
+}
+
+function parseEditorNumber(rawValue, label, errors, options = {}) {
+  const text = String(rawValue ?? "").trim();
+  if (!text) {
+    if (options.optional) {
+      return null;
+    }
+    errors.push(`${label} is required.`);
+    return null;
+  }
+
+  const numeric = Number(text);
+  if (!Number.isFinite(numeric)) {
+    errors.push(`${label} must be numeric.`);
+    return null;
+  }
+  if (options.integer && !Number.isInteger(numeric)) {
+    errors.push(`${label} must be an integer.`);
+  }
+  if (options.min !== undefined && numeric < options.min) {
+    errors.push(`${label} must be at least ${options.min}.`);
+  }
+  return numeric;
 }
 
 function shortRunId(value) {
@@ -1239,6 +1294,122 @@ function ensureCampaignStudioValues(preview = state.campaignStudio) {
   state.campaignStudioValues = nextValues;
 }
 
+function defaultCampaignStudioDecisionValues(preview = state.campaignStudio) {
+  const objective = preview?.objective || {};
+  const constraints = preview?.constraint_values || {};
+  const ranking = preview?.ranking || {};
+  const weights = ranking.weights || {};
+  const defaults = {
+    objective_name: objective.name || "",
+    objective_summary: objective.summary || "",
+    primary_metric: objective.primary_metric || decisionMetricOptions[0],
+    goal: objective.goal || "minimize_abs",
+    target_value: objective.target_value ?? "",
+    max_runs: preview?.max_runs ?? preview?.planned_run_count ?? 2,
+    require_verification: constraints.require_verification ?? true,
+    primary_metric_weight: ranking.primary_metric_weight ?? 2,
+  };
+
+  constraintEditorFields.forEach((field) => {
+    defaults[field.key] = constraints[field.key] ?? "";
+  });
+  decisionMetricOptions.forEach((metric) => {
+    defaults[`weight_${metric}`] = weights[metric] ?? 0;
+  });
+  return defaults;
+}
+
+function ensureCampaignStudioDecisionValues(preview = state.campaignStudio) {
+  const defaults = defaultCampaignStudioDecisionValues(preview);
+  const nextValues = {};
+  Object.entries(defaults).forEach(([key, value]) => {
+    nextValues[key] = state.campaignStudioDecisionValues[key] ?? value;
+  });
+  state.campaignStudioDecisionValues = nextValues;
+}
+
+function campaignStudioDecisionProfile(preview, errors) {
+  ensureCampaignStudioDecisionValues(preview);
+  const values = state.campaignStudioDecisionValues;
+  const objectiveName = String(values.objective_name || "").trim();
+  const objectiveSummary = String(values.objective_summary || "").trim();
+  const supportedMetrics = preview?.objective?.supported_metrics || decisionMetricOptions;
+  const supportedGoals = preview?.objective?.supported_goals || objectiveGoalOptions;
+  const primaryMetric = String(values.primary_metric || "").trim();
+  const goal = String(values.goal || "").trim();
+
+  if (!objectiveName) {
+    errors.push("Objective name is required.");
+  }
+  if (!supportedMetrics.includes(primaryMetric)) {
+    errors.push(`Primary metric must be one of: ${supportedMetrics.join(", ")}.`);
+  }
+  if (!supportedGoals.includes(goal)) {
+    errors.push(`Objective goal must be one of: ${supportedGoals.join(", ")}.`);
+  }
+
+  const targetValue = goal === "target"
+    ? parseEditorNumber(values.target_value, "Target value", errors)
+    : null;
+  const constraints = {
+    require_verification: Boolean(values.require_verification),
+  };
+  constraintEditorFields.forEach((field) => {
+    const parsed = parseEditorNumber(values[field.key], field.label, errors, {
+      optional: true,
+      min: field.min,
+    });
+    if (parsed !== null) {
+      constraints[field.key] = parsed;
+    }
+  });
+
+  const primaryMetricWeight = parseEditorNumber(
+    values.primary_metric_weight,
+    "Primary metric boost",
+    errors,
+    { min: 0 },
+  );
+  const weights = {};
+  decisionMetricOptions.forEach((metric) => {
+    weights[metric] = parseEditorNumber(
+      values[`weight_${metric}`],
+      `${metric} weight`,
+      errors,
+      { min: 0 },
+    ) ?? 0;
+  });
+  const effectiveWeightTotal = Object.entries(weights).reduce(
+    (total, [metric, weight]) => (
+      total + weight + (metric === primaryMetric ? (primaryMetricWeight ?? 0) : 0)
+    ),
+    0,
+  );
+  if (effectiveWeightTotal <= 0) {
+    errors.push("At least one ranking weight or primary metric boost must be greater than zero.");
+  }
+
+  const objective = {
+    name: objectiveName,
+    summary: objectiveSummary,
+    primary_metric: primaryMetric,
+    goal,
+  };
+  if (targetValue !== null) {
+    objective.target_value = targetValue;
+  }
+
+  return {
+    objective,
+    constraints,
+    ranking: {
+      primary_metric_weight: primaryMetricWeight ?? 0,
+      weights,
+    },
+    effectiveWeightTotal,
+  };
+}
+
 function campaignStudioBaseConfig() {
   const sourceName = state.campaignStudio?.source_config_name;
   return configByName(sourceName)?.config || configByName(state.selectedTemplateName)?.config || null;
@@ -1276,7 +1447,13 @@ function campaignStudioDraft(preview = state.campaignStudio) {
     (total, dimension) => total * Math.max(dimension.values.length, 0),
     dimensions.length ? 1 : 0,
   );
-  const maxRuns = Number(preview.max_runs || plannedRuns || 0);
+  const decisionProfile = campaignStudioDecisionProfile(preview, errors);
+  const maxRuns = parseEditorNumber(
+    state.campaignStudioDecisionValues.max_runs,
+    "Max runs",
+    errors,
+    { integer: true, min: 2 },
+  ) ?? 0;
   if (plannedRuns < 2) {
     errors.push("Campaign Studio needs at least two planned runs.");
   }
@@ -1289,6 +1466,7 @@ function campaignStudioDraft(preview = state.campaignStudio) {
     plannedRuns,
     maxRuns,
     dimensions,
+    decisionProfile,
     errors,
   };
 }
@@ -1309,6 +1487,9 @@ function campaignStudioConfigFromDraft(draft) {
       values: [...dimension.values],
     })),
   };
+  config.objective = draft.decisionProfile.objective;
+  config.constraints = draft.decisionProfile.constraints;
+  config.ranking = draft.decisionProfile.ranking;
   return config;
 }
 
@@ -1340,26 +1521,205 @@ function renderCampaignStudioFields(preview) {
     .join("");
 }
 
+function optionMarkup(options, selectedValue) {
+  return options
+    .map((option) => `
+      <option value="${escapeHtml(option)}" ${option === selectedValue ? "selected" : ""}>
+        ${escapeHtml(option)}
+      </option>
+    `)
+    .join("");
+}
+
+function renderCampaignStudioDecisionFields(preview) {
+  if (!preview?.available) {
+    els.campaignStudioDecisionFields.innerHTML =
+      "<p>No editable decision profile is available.</p>";
+    return;
+  }
+
+  ensureCampaignStudioDecisionValues(preview);
+  const values = state.campaignStudioDecisionValues;
+  const supportedMetrics = preview.objective?.supported_metrics || decisionMetricOptions;
+  const supportedGoals = preview.objective?.supported_goals || objectiveGoalOptions;
+  const constraintFields = constraintEditorFields
+    .map((field) => `
+      <label class="field campaign-studio-field">
+        <span>${escapeHtml(field.label)}</span>
+        <input
+          type="number"
+          step="any"
+          ${field.min !== undefined ? `min="${escapeHtml(field.min)}"` : ""}
+          value="${escapeHtml(values[field.key])}"
+          data-campaign-profile="${escapeHtml(field.key)}"
+          aria-label="${escapeHtml(field.label)} constraint"
+        />
+        <small>${escapeHtml(field.hint)}</small>
+      </label>
+    `)
+    .join("");
+  const rankingFields = decisionMetricOptions
+    .map((metric) => `
+      <label class="field campaign-studio-field">
+        <span>${escapeHtml(metric)} weight</span>
+        <input
+          type="number"
+          min="0"
+          step="0.1"
+          value="${escapeHtml(values[`weight_${metric}`])}"
+          data-campaign-profile="${escapeHtml(`weight_${metric}`)}"
+          aria-label="${escapeHtml(metric)} ranking weight"
+        />
+        <small>Non-negative contribution to the recommendation score.</small>
+      </label>
+    `)
+    .join("");
+
+  els.campaignStudioDecisionFields.innerHTML = `
+    <label class="field campaign-studio-field">
+      <span>Objective Name</span>
+      <input
+        type="text"
+        value="${escapeHtml(values.objective_name)}"
+        data-campaign-profile="objective_name"
+        aria-label="Objective name"
+      />
+      <small>Shown in evidence bundles and comparison reports.</small>
+    </label>
+    <label class="field campaign-studio-field">
+      <span>Objective Summary</span>
+      <textarea
+        data-campaign-profile="objective_summary"
+        aria-label="Objective summary"
+      >${escapeHtml(values.objective_summary)}</textarea>
+      <small>Plain-language reason for this scoring profile.</small>
+    </label>
+    <label class="field campaign-studio-field">
+      <span>Primary Metric</span>
+      <select data-campaign-profile="primary_metric" aria-label="Primary metric">
+        ${optionMarkup(supportedMetrics, values.primary_metric)}
+      </select>
+      <small>The metric QS-DMSS emphasizes in the recommendation.</small>
+    </label>
+    <label class="field campaign-studio-field">
+      <span>Goal</span>
+      <select data-campaign-profile="goal" aria-label="Objective goal">
+        ${optionMarkup(supportedGoals, values.goal)}
+      </select>
+      <small>Use target when a specific numeric target matters.</small>
+    </label>
+    <label class="field campaign-studio-field">
+      <span>Target Value</span>
+      <input
+        type="number"
+        step="any"
+        value="${escapeHtml(values.target_value)}"
+        data-campaign-profile="target_value"
+        aria-label="Target value"
+      />
+      <small>Required only when goal is target.</small>
+    </label>
+    <label class="field campaign-studio-field">
+      <span>Max Runs</span>
+      <input
+        type="number"
+        min="2"
+        step="1"
+        value="${escapeHtml(values.max_runs)}"
+        data-campaign-profile="max_runs"
+        aria-label="Campaign max runs"
+      />
+      <small>Safety cap before launching the edited campaign.</small>
+    </label>
+    ${constraintFields}
+    <div class="field campaign-studio-field campaign-studio-toggle">
+      <span>Evidence Verification</span>
+      <label>
+        <input
+          type="checkbox"
+          ${values.require_verification ? "checked" : ""}
+          data-campaign-profile="require_verification"
+          aria-label="Require evidence verification"
+        />
+        Require verification success
+      </label>
+      <small>When enabled, failed evidence verification disqualifies a run.</small>
+    </div>
+    <label class="field campaign-studio-field">
+      <span>Primary Metric Boost</span>
+      <input
+        type="number"
+        min="0"
+        step="0.1"
+        value="${escapeHtml(values.primary_metric_weight)}"
+        data-campaign-profile="primary_metric_weight"
+        aria-label="Primary metric boost"
+      />
+      <small>Extra weight added to the selected primary metric.</small>
+    </label>
+    ${rankingFields}
+  `;
+}
+
+function renderCampaignStudioScoringContract(draft) {
+  if (!draft?.decisionProfile) {
+    els.campaignStudioScoringContract.textContent = "Scoring contract preview appears here.";
+    return;
+  }
+  const profile = draft.decisionProfile;
+  const activeConstraints = Object.entries(profile.constraints)
+    .filter(([key]) => key !== "require_verification")
+    .map(([key, value]) => `${key}: ${value}`);
+  if (profile.constraints.require_verification) {
+    activeConstraints.push("require_verification: true");
+  }
+  const positiveWeights = Object.entries(profile.ranking.weights)
+    .filter(([, value]) => Number(value) > 0)
+    .map(([metric, value]) => `${metric}: ${value}`);
+  const targetText = profile.objective.target_value !== undefined
+    ? ` target ${profile.objective.target_value}`
+    : "";
+
+  els.campaignStudioScoringContract.innerHTML = `
+    <strong>Scoring Contract Preview</strong>
+    <ul>
+      <li>Objective: ${escapeHtml(profile.objective.name || "Unnamed objective")}</li>
+      <li>Primary metric: ${escapeHtml(profile.objective.primary_metric)} · ${escapeHtml(profile.objective.goal)}${escapeHtml(targetText)}</li>
+      <li>Constraints: ${escapeHtml(activeConstraints.join(" · ") || "none")}</li>
+      <li>Weights: ${escapeHtml(positiveWeights.join(" · ") || "none")} · primary boost ${escapeHtml(profile.ranking.primary_metric_weight)}</li>
+      <li>Launch envelope: ${escapeHtml(formatRunCount(draft.plannedRuns))} with max ${escapeHtml(draft.maxRuns)}</li>
+    </ul>
+  `;
+}
+
 function updateCampaignStudioEditorState(preview = state.campaignStudio) {
   const draft = campaignStudioDraft(preview);
   if (!preview?.available) {
     els.campaignStudioStatus.textContent = "Not configured";
     els.campaignStudioStatus.className = "selection-chip";
     els.campaignStudioFeedback.textContent = draft.errors[0];
+    renderCampaignStudioScoringContract(draft);
     els.launchCampaignStudioButton.disabled = true;
     els.resetCampaignStudioButton.disabled = true;
     return draft;
   }
 
+  const hasGridError = draft.errors.some((error) => (
+    error.includes("needs at least one value") ||
+    error.includes("needs at least two planned runs") ||
+    error.includes("plans") ||
+    error.includes("Max runs")
+  ));
   els.campaignStudioStatus.textContent = draft.valid
     ? formatRunCount(draft.plannedRuns)
-    : "Grid needs review";
+    : hasGridError ? "Grid needs review" : "Profile needs review";
   els.campaignStudioStatus.className = `selection-chip ${toneForStatus(draft.valid ? "qualified" : "failed")}`;
   els.campaignStudioPlan.textContent =
-    `${preview.label} uses a ${preview.strategy} strategy with ${draft.dimensions.length} editable dimensions, ${formatRunCount(draft.plannedRuns)}, and max ${draft.maxRuns}. Objective "${preview.objective.name}" stays read-only.`;
+    `${preview.label} uses a ${preview.strategy} strategy with ${draft.dimensions.length} editable dimensions, ${formatRunCount(draft.plannedRuns)}, max ${draft.maxRuns}, and objective "${draft.decisionProfile.objective.name}".`;
   els.campaignStudioFeedback.textContent = draft.valid
-    ? `Ready to launch ${draft.plannedRuns} campaign variants through the existing campaign endpoint.`
+    ? `Ready to launch ${draft.plannedRuns} variants optimized for ${draft.decisionProfile.objective.primary_metric} (${draft.decisionProfile.objective.goal}).`
     : draft.errors[0];
+  renderCampaignStudioScoringContract(draft);
   els.launchCampaignStudioButton.disabled = !draft.valid;
   els.resetCampaignStudioButton.disabled = false;
   return draft;
@@ -1380,6 +1740,9 @@ function renderCampaignStudioPreview(preview) {
     els.campaignStudioBoundary.textContent =
       "Add campaign metadata to make Scenario Library entries launch configurable studies.";
     els.campaignStudioFields.innerHTML = "<p>No editable campaign dimensions are available.</p>";
+    els.campaignStudioDecisionFields.innerHTML =
+      "<p>No editable decision profile is available.</p>";
+    els.campaignStudioScoringContract.textContent = "Scoring contract preview appears here.";
     els.campaignStudioFeedback.textContent = "Campaign Studio is not configured.";
     els.launchCampaignStudioButton.disabled = true;
     els.resetCampaignStudioButton.disabled = true;
@@ -1396,6 +1759,7 @@ function renderCampaignStudioPreview(preview) {
     "No campaign dimensions documented yet.",
   );
   renderCampaignStudioFields(preview);
+  renderCampaignStudioDecisionFields(preview);
   updateCampaignStudioEditorState(preview);
   els.campaignStudioBoundary.textContent = preview.current_boundary;
 }
@@ -2244,14 +2608,14 @@ async function handleLaunchCampaignStudio(event) {
   const draft = campaignStudioDraft();
   if (!draft.valid) {
     updateCampaignStudioEditorState();
-    toast("Campaign grid needs review", draft.errors[0], "danger");
+    toast("Campaign Studio needs review", draft.errors[0], "danger");
     return;
   }
 
   els.launchCampaignStudioButton.disabled = true;
   els.launchCampaignStudioButton.textContent = "Launching...";
   els.campaignStudioFeedback.textContent =
-    "Running the edited campaign grid and saving a recommendation bundle.";
+    "Running the edited campaign and saving an objective-driven recommendation bundle.";
   let completedPayload = null;
 
   try {
@@ -2273,7 +2637,7 @@ async function handleLaunchCampaignStudio(event) {
       await selectRun(payload.runs[0].run_id);
     }
     els.campaignStudioFeedback.textContent =
-      `Edited campaign launched: ${payload.campaign.planned_run_count} variants, recommended ${shortRunId(payload.campaign.recommended_run_id)}.`;
+      `Edited decision campaign launched: ${payload.campaign.planned_run_count} variants, recommended ${shortRunId(payload.campaign.recommended_run_id)}.`;
   } catch (error) {
     updateCampaignStudioEditorState();
     toast("Campaign Studio failed", error.message, "danger");
@@ -2282,7 +2646,7 @@ async function handleLaunchCampaignStudio(event) {
     const finalDraft = updateCampaignStudioEditorState();
     if (completedPayload) {
       els.campaignStudioFeedback.textContent =
-        `Edited campaign launched: ${completedPayload.campaign.planned_run_count} variants, recommended ${shortRunId(completedPayload.campaign.recommended_run_id)}.`;
+        `Edited decision campaign launched: ${completedPayload.campaign.planned_run_count} variants, recommended ${shortRunId(completedPayload.campaign.recommended_run_id)}.`;
       els.launchCampaignStudioButton.disabled = !finalDraft.valid;
     }
   }
@@ -2480,10 +2844,29 @@ function bindEvents() {
     state.campaignStudioValues[input.dataset.campaignPath] = input.value;
     updateCampaignStudioEditorState();
   });
+  els.campaignStudioDecisionFields.addEventListener("input", (event) => {
+    const input = event.target.closest("[data-campaign-profile]");
+    if (!input) {
+      return;
+    }
+    state.campaignStudioDecisionValues[input.dataset.campaignProfile] =
+      input.type === "checkbox" ? input.checked : input.value;
+    updateCampaignStudioEditorState();
+  });
+  els.campaignStudioDecisionFields.addEventListener("change", (event) => {
+    const input = event.target.closest("[data-campaign-profile]");
+    if (!input) {
+      return;
+    }
+    state.campaignStudioDecisionValues[input.dataset.campaignProfile] =
+      input.type === "checkbox" ? input.checked : input.value;
+    updateCampaignStudioEditorState();
+  });
   els.resetCampaignStudioButton.addEventListener("click", () => {
     state.campaignStudioValues = defaultCampaignStudioValues();
+    state.campaignStudioDecisionValues = defaultCampaignStudioDecisionValues();
     renderCampaignStudioPreview(state.campaignStudio);
-    toast("Campaign grid reset", "Packaged campaign values restored.", "success");
+    toast("Campaign Studio reset", "Packaged grid and decision profile restored.", "success");
   });
   els.composeResearchObjectButton.addEventListener("click", handleComposeResearchObject);
   els.labSelectRunButton.addEventListener("click", async () => {
