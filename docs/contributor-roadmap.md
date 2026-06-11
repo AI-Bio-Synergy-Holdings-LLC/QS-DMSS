@@ -72,8 +72,10 @@ design and explain.
 
 High-value work:
 
-- visual parameter-grid builder;
-- decision-profile editor;
+- refine the visual parameter-grid builder;
+- refine the decision-profile editor and scoring-contract preview;
+- reusable campaign template presets;
+- reusable decision-profile presets;
 - campaign recommendation explanation panel;
 - sensitivity summaries across variants;
 - exportable campaign report.

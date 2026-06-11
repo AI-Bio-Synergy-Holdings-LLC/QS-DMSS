@@ -121,8 +121,10 @@ research objects.
 
 Public builder coordination now lives in
 [issue #57](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57).
-The active Campaign Studio decision-profile editor slice is tracked in
-[issue #77](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/77).
+The latest Campaign Studio product slices on `main` add scenario metadata,
+editable parameter grids, decision-profile editing, and scoring-contract
+preview. The next release decision is whether these merged capabilities should
+be packaged as a `v0.7.0` milestone.
 
 Review paths remain available for people who want to validate the public
 package:
