@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import re
 from pathlib import Path
 
@@ -38,6 +39,8 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert 'id="campaignStudioDimensions"' in root.text
     assert 'id="campaignStudioEditor"' in root.text
     assert 'id="campaignStudioFields"' in root.text
+    assert 'id="campaignStudioDecisionFields"' in root.text
+    assert 'id="campaignStudioScoringContract"' in root.text
     assert 'id="launchCampaignStudioButton"' in root.text
     assert 'id="resetCampaignStudioButton"' in root.text
     markdown_link = re.search(r'<a[^>]+id="labMarkdownLink"[^>]*>', root.text)
@@ -170,11 +173,19 @@ def test_cockpit_api_launches_lab_mode_showcase(tmp_path: Path) -> None:
     assert campaign_studio["planned_run_count"] == 6
     assert campaign_studio["dimension_count"] == 2
     assert campaign_studio["objective"]["name"] == "Stability-first recommendation"
+    assert campaign_studio["objective"]["supported_metrics"] == [
+        "energy_drift",
+        "norm_drift",
+        "max_density",
+        "elapsed_seconds",
+    ]
+    assert campaign_studio["constraint_values"]["require_verification"] is True
+    assert campaign_studio["ranking"]["weights"]["energy_drift"] == 1.0
     assert {item["label"] for item in campaign_studio["readiness_badges"]} >= {
         "Grid editor",
         "Objective editor",
     }
-    assert campaign_studio["current_boundary"].startswith("This first editor")
+    assert campaign_studio["current_boundary"].startswith("Campaign Studio now edits")
 
     launch_payload = client.post("/api/showcases/canonical-simulation/run")
     assert launch_payload.status_code == 200
@@ -490,6 +501,88 @@ def test_cockpit_api_launch_campaign_with_edited_grid(tmp_path: Path) -> None:
     experiment = experiment_detail.json()
     assert experiment["comparison"]["shared_experiment"]["dimensions"][0]["path"] == "engine.g_int"
     assert experiment["summary"]["run_count"] == 2
+
+
+def test_cockpit_api_launch_campaign_with_edited_decision_profile(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    config_item = client.get("/api/configs").json()["items"][0]
+    edited_config = deepcopy(config_item["config"])
+    edited_config["objective"] = {
+        "name": "Density-first cockpit recommendation",
+        "summary": "Prefer the variant that produces the strongest peak density in the fast demo.",
+        "primary_metric": "max_density",
+        "goal": "maximize",
+    }
+    edited_config["constraints"] = {
+        "max_abs_energy_drift": 0.5,
+        "max_abs_norm_drift": 0.5,
+        "min_max_density": 0.1,
+        "max_elapsed_seconds": 10.0,
+        "require_verification": False,
+    }
+    edited_config["ranking"] = {
+        "primary_metric_weight": 3.0,
+        "weights": {
+            "energy_drift": 0.0,
+            "norm_drift": 0.0,
+            "max_density": 1.0,
+            "elapsed_seconds": 0.0,
+        },
+    }
+    edited_config["campaign"] = dict(edited_config["campaign"])
+    edited_config["campaign"]["max_runs"] = 4
+    edited_config["campaign"]["dimensions"] = [
+        {"path": "engine.g_int", "values": [0.02, 0.08]},
+        {"path": "engine.time_step", "values": [0.02]},
+    ]
+
+    campaign_payload = client.post(
+        "/api/campaigns",
+        json={"config": edited_config, "source_name": "campaign-studio.yaml"},
+    )
+    assert campaign_payload.status_code == 200
+    campaign = campaign_payload.json()
+    run_ids = {run["run_id"] for run in campaign["runs"]}
+    decision = campaign["comparison"]["decision"]
+
+    assert campaign["campaign"]["planned_run_count"] == 2
+    assert decision["available"] is True
+    assert decision["profile"]["objective"]["name"] == "Density-first cockpit recommendation"
+    assert decision["profile"]["objective"]["primary_metric"] == "max_density"
+    assert decision["profile"]["objective"]["goal"] == "maximize"
+    assert decision["profile"]["constraints"]["require_verification"] is False
+    assert decision["profile"]["ranking"]["primary_metric_weight"] == 3.0
+    assert decision["profile"]["ranking"]["weights"]["max_density"] == 1.0
+    assert decision["recommended_run_id"] in run_ids
+    assert campaign["artifact"]["summary"]["recommended_run_id"] == decision["recommended_run_id"]
+
+    run_detail = client.get(f"/api/runs/{campaign['runs'][0]['run_id']}")
+    assert run_detail.status_code == 200
+    detail = run_detail.json()
+    assert detail["run_record"]["decision_profile"]["objective"]["name"] == (
+        "Density-first cockpit recommendation"
+    )
+
+
+def test_cockpit_api_rejects_invalid_edited_decision_profile(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    config_item = client.get("/api/configs").json()["items"][0]
+    edited_config = deepcopy(config_item["config"])
+    edited_config["objective"] = dict(edited_config["objective"])
+    edited_config["objective"]["primary_metric"] = "unknown_metric"
+
+    campaign_payload = client.post(
+        "/api/campaigns",
+        json={"config": edited_config, "source_name": "campaign-studio.yaml"},
+    )
+    assert campaign_payload.status_code == 400
+    assert "objective.primary_metric" in campaign_payload.json()["detail"]
 
 
 def test_cockpit_api_rejects_too_small_edited_campaign_grid(tmp_path: Path) -> None:
