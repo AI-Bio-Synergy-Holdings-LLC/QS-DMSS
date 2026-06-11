@@ -2,6 +2,7 @@ const state = {
   configs: [],
   showcases: [],
   campaignStudio: null,
+  campaignStudioValues: {},
   runs: [],
   experiments: [],
   sweepParameters: [],
@@ -56,6 +57,11 @@ const els = {
   campaignStudioSummary: document.querySelector("#campaignStudioSummary"),
   campaignStudioPlan: document.querySelector("#campaignStudioPlan"),
   campaignStudioDimensions: document.querySelector("#campaignStudioDimensions"),
+  campaignStudioEditor: document.querySelector("#campaignStudioEditor"),
+  campaignStudioFields: document.querySelector("#campaignStudioFields"),
+  campaignStudioFeedback: document.querySelector("#campaignStudioFeedback"),
+  launchCampaignStudioButton: document.querySelector("#launchCampaignStudioButton"),
+  resetCampaignStudioButton: document.querySelector("#resetCampaignStudioButton"),
   campaignStudioBoundary: document.querySelector("#campaignStudioBoundary"),
   labExplorerStatus: document.querySelector("#labExplorerStatus"),
   labReportPreviewTitle: document.querySelector("#labReportPreviewTitle"),
@@ -265,6 +271,12 @@ function formatScore(value) {
   return numeric.toFixed(3);
 }
 
+function formatRunCount(count) {
+  const numeric = Number(count);
+  if (!Number.isFinite(numeric)) return "0 planned runs";
+  return `${numeric} planned ${numeric === 1 ? "run" : "runs"}`;
+}
+
 function shortRunId(value) {
   if (!value) return "-";
   return String(value).slice(-8);
@@ -292,7 +304,18 @@ async function fetchJson(url, options) {
 
   if (!response.ok) {
     const text = await response.text();
-    throw new Error(text || `Request failed: ${response.status}`);
+    let message = text;
+    try {
+      const parsed = JSON.parse(text);
+      if (typeof parsed.detail === "string") {
+        message = parsed.detail;
+      } else if (parsed.detail?.message) {
+        message = parsed.detail.message;
+      }
+    } catch {
+      message = text;
+    }
+    throw new Error(message || `Request failed: ${response.status}`);
   }
 
   return response.json();
@@ -1198,6 +1221,150 @@ function renderScenarioLibrary(scenario) {
     : "Guided comparison metadata is not available for this scenario yet.";
 }
 
+function defaultCampaignStudioValues(preview = state.campaignStudio) {
+  return Object.fromEntries(
+    (preview?.dimensions || []).map((dimension) => [
+      dimension.path,
+      (dimension.values || []).map(String).join(", "),
+    ]),
+  );
+}
+
+function ensureCampaignStudioValues(preview = state.campaignStudio) {
+  const defaults = defaultCampaignStudioValues(preview);
+  const nextValues = {};
+  Object.entries(defaults).forEach(([path, value]) => {
+    nextValues[path] = state.campaignStudioValues[path] ?? value;
+  });
+  state.campaignStudioValues = nextValues;
+}
+
+function campaignStudioBaseConfig() {
+  const sourceName = state.campaignStudio?.source_config_name;
+  return configByName(sourceName)?.config || configByName(state.selectedTemplateName)?.config || null;
+}
+
+function campaignStudioDraft(preview = state.campaignStudio) {
+  if (!preview?.available) {
+    return {
+      valid: false,
+      plannedRuns: 0,
+      maxRuns: 0,
+      dimensions: [],
+      errors: ["Campaign Studio is not configured."],
+    };
+  }
+
+  ensureCampaignStudioValues(preview);
+  const errors = [];
+  const dimensions = (preview.dimensions || []).map((dimension) => {
+    const rawValue = state.campaignStudioValues[dimension.path] || "";
+    const values = parseSweepValues(rawValue);
+    if (!values.length) {
+      errors.push(`${dimension.label || dimension.path} needs at least one value.`);
+    }
+    return {
+      path: dimension.path,
+      label: dimension.label || parameterLabel(dimension.path),
+      description: dimension.description || "",
+      value_type: dimension.value_type,
+      values,
+    };
+  });
+
+  const plannedRuns = dimensions.reduce(
+    (total, dimension) => total * Math.max(dimension.values.length, 0),
+    dimensions.length ? 1 : 0,
+  );
+  const maxRuns = Number(preview.max_runs || plannedRuns || 0);
+  if (plannedRuns < 2) {
+    errors.push("Campaign Studio needs at least two planned runs.");
+  }
+  if (maxRuns > 0 && plannedRuns > maxRuns) {
+    errors.push(`Campaign Studio plans ${plannedRuns} runs, exceeding max ${maxRuns}.`);
+  }
+
+  return {
+    valid: errors.length === 0,
+    plannedRuns,
+    maxRuns,
+    dimensions,
+    errors,
+  };
+}
+
+function campaignStudioConfigFromDraft(draft) {
+  const baseConfig = campaignStudioBaseConfig();
+  if (!baseConfig) {
+    throw new Error("No campaign-enabled base config is available.");
+  }
+  const config = cloneJson(baseConfig);
+  config.campaign = {
+    ...(config.campaign || {}),
+    label: state.campaignStudio?.label || config.campaign?.label || "Campaign Studio grid",
+    strategy: state.campaignStudio?.strategy || config.campaign?.strategy || "grid",
+    max_runs: draft.maxRuns || config.campaign?.max_runs || draft.plannedRuns,
+    dimensions: draft.dimensions.map((dimension) => ({
+      path: dimension.path,
+      values: [...dimension.values],
+    })),
+  };
+  return config;
+}
+
+function renderCampaignStudioFields(preview) {
+  const dimensions = preview?.dimensions || [];
+  if (!dimensions.length) {
+    els.campaignStudioFields.innerHTML = "<p>No editable campaign dimensions are available.</p>";
+    return;
+  }
+
+  ensureCampaignStudioValues(preview);
+  els.campaignStudioFields.innerHTML = dimensions
+    .map((dimension) => {
+      const label = dimension.label || parameterLabel(dimension.path);
+      const rawValue = state.campaignStudioValues[dimension.path] || "";
+      return `
+        <label class="field campaign-studio-field">
+          <span>${escapeHtml(label)}</span>
+          <input
+            type="text"
+            value="${escapeHtml(rawValue)}"
+            data-campaign-path="${escapeHtml(dimension.path)}"
+            aria-label="${escapeHtml(label)} campaign values"
+          />
+          <small>${escapeHtml(dimension.path)} | comma-separated ${escapeHtml(dimension.value_type || "numeric")} values</small>
+        </label>
+      `;
+    })
+    .join("");
+}
+
+function updateCampaignStudioEditorState(preview = state.campaignStudio) {
+  const draft = campaignStudioDraft(preview);
+  if (!preview?.available) {
+    els.campaignStudioStatus.textContent = "Not configured";
+    els.campaignStudioStatus.className = "selection-chip";
+    els.campaignStudioFeedback.textContent = draft.errors[0];
+    els.launchCampaignStudioButton.disabled = true;
+    els.resetCampaignStudioButton.disabled = true;
+    return draft;
+  }
+
+  els.campaignStudioStatus.textContent = draft.valid
+    ? formatRunCount(draft.plannedRuns)
+    : "Grid needs review";
+  els.campaignStudioStatus.className = `selection-chip ${toneForStatus(draft.valid ? "qualified" : "failed")}`;
+  els.campaignStudioPlan.textContent =
+    `${preview.label} uses a ${preview.strategy} strategy with ${draft.dimensions.length} editable dimensions, ${formatRunCount(draft.plannedRuns)}, and max ${draft.maxRuns}. Objective "${preview.objective.name}" stays read-only.`;
+  els.campaignStudioFeedback.textContent = draft.valid
+    ? `Ready to launch ${draft.plannedRuns} campaign variants through the existing campaign endpoint.`
+    : draft.errors[0];
+  els.launchCampaignStudioButton.disabled = !draft.valid;
+  els.resetCampaignStudioButton.disabled = false;
+  return draft;
+}
+
 function renderCampaignStudioPreview(preview) {
   if (!preview?.available) {
     els.campaignStudioStatus.textContent = "Not configured";
@@ -1212,14 +1379,14 @@ function renderCampaignStudioPreview(preview) {
     );
     els.campaignStudioBoundary.textContent =
       "Add campaign metadata to make Scenario Library entries launch configurable studies.";
+    els.campaignStudioFields.innerHTML = "<p>No editable campaign dimensions are available.</p>";
+    els.campaignStudioFeedback.textContent = "Campaign Studio is not configured.";
+    els.launchCampaignStudioButton.disabled = true;
+    els.resetCampaignStudioButton.disabled = true;
     return;
   }
 
-  els.campaignStudioStatus.textContent = `${preview.planned_run_count} planned runs`;
-  els.campaignStudioStatus.className = `selection-chip ${toneForStatus("qualified")}`;
   els.campaignStudioSummary.textContent = preview.summary;
-  els.campaignStudioPlan.textContent =
-    `${preview.label} uses a ${preview.strategy} strategy with ${preview.dimension_count} dimensions and objective "${preview.objective.name}".`;
   renderMetadataList(
     els.campaignStudioDimensions,
     preview.dimensions.map((dimension) => ({
@@ -1228,6 +1395,8 @@ function renderCampaignStudioPreview(preview) {
     })),
     "No campaign dimensions documented yet.",
   );
+  renderCampaignStudioFields(preview);
+  updateCampaignStudioEditorState(preview);
   els.campaignStudioBoundary.textContent = preview.current_boundary;
 }
 
@@ -2070,6 +2239,55 @@ async function handleLaunchLabComparison() {
   }
 }
 
+async function handleLaunchCampaignStudio(event) {
+  event.preventDefault();
+  const draft = campaignStudioDraft();
+  if (!draft.valid) {
+    updateCampaignStudioEditorState();
+    toast("Campaign grid needs review", draft.errors[0], "danger");
+    return;
+  }
+
+  els.launchCampaignStudioButton.disabled = true;
+  els.launchCampaignStudioButton.textContent = "Launching...";
+  els.campaignStudioFeedback.textContent =
+    "Running the edited campaign grid and saving a recommendation bundle.";
+  let completedPayload = null;
+
+  try {
+    const payload = await fetchJson("/api/campaigns", {
+      method: "POST",
+      body: JSON.stringify({
+        config: campaignStudioConfigFromDraft(draft),
+        source_name: "campaign-studio.yaml",
+      }),
+    });
+    completedPayload = payload;
+    toast("Campaign Studio complete", `Created ${payload.runs.length} edited-grid runs`, "success");
+    state.selectedRunIds = payload.campaign.run_ids;
+    await refreshRuns();
+    await refreshExperiments();
+    renderComparison(payload.comparison);
+    renderSelectedExperiment(payload.artifact);
+    if (payload.runs[0]) {
+      await selectRun(payload.runs[0].run_id);
+    }
+    els.campaignStudioFeedback.textContent =
+      `Edited campaign launched: ${payload.campaign.planned_run_count} variants, recommended ${shortRunId(payload.campaign.recommended_run_id)}.`;
+  } catch (error) {
+    updateCampaignStudioEditorState();
+    toast("Campaign Studio failed", error.message, "danger");
+  } finally {
+    els.launchCampaignStudioButton.textContent = "Launch Edited Campaign";
+    const finalDraft = updateCampaignStudioEditorState();
+    if (completedPayload) {
+      els.campaignStudioFeedback.textContent =
+        `Edited campaign launched: ${completedPayload.campaign.planned_run_count} variants, recommended ${shortRunId(completedPayload.campaign.recommended_run_id)}.`;
+      els.launchCampaignStudioButton.disabled = !finalDraft.valid;
+    }
+  }
+}
+
 async function handleLaunchSweep(event) {
   event.preventDefault();
   const selectedParameter = sweepParameterByPath(els.sweepParameter.value);
@@ -2253,6 +2471,20 @@ function bindEvents() {
 
   els.launchLabButton.addEventListener("click", handleLaunchLabMode);
   els.launchLabComparisonButton.addEventListener("click", handleLaunchLabComparison);
+  els.campaignStudioEditor.addEventListener("submit", handleLaunchCampaignStudio);
+  els.campaignStudioFields.addEventListener("input", (event) => {
+    const input = event.target.closest("[data-campaign-path]");
+    if (!input) {
+      return;
+    }
+    state.campaignStudioValues[input.dataset.campaignPath] = input.value;
+    updateCampaignStudioEditorState();
+  });
+  els.resetCampaignStudioButton.addEventListener("click", () => {
+    state.campaignStudioValues = defaultCampaignStudioValues();
+    renderCampaignStudioPreview(state.campaignStudio);
+    toast("Campaign grid reset", "Packaged campaign values restored.", "success");
+  });
   els.composeResearchObjectButton.addEventListener("click", handleComposeResearchObject);
   els.labSelectRunButton.addEventListener("click", async () => {
     const runId = state.labResult?.run?.summary?.run_id;

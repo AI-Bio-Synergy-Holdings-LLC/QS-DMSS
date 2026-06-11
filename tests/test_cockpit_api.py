@@ -36,6 +36,10 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert 'id="scenarioArtifacts"' in root.text
     assert 'id="labCampaignStudioPanel"' in root.text
     assert 'id="campaignStudioDimensions"' in root.text
+    assert 'id="campaignStudioEditor"' in root.text
+    assert 'id="campaignStudioFields"' in root.text
+    assert 'id="launchCampaignStudioButton"' in root.text
+    assert 'id="resetCampaignStudioButton"' in root.text
     markdown_link = re.search(r'<a[^>]+id="labMarkdownLink"[^>]*>', root.text)
     json_link = re.search(r'<a[^>]+id="labJsonLink"[^>]*>', root.text)
     research_object_button = re.search(
@@ -162,10 +166,15 @@ def test_cockpit_api_launches_lab_mode_showcase(tmp_path: Path) -> None:
     campaign_studio = showcase_body["campaign_studio"]
     assert campaign_studio["available"] is True
     assert campaign_studio["label"] == "Stability frontier campaign"
+    assert campaign_studio["max_runs"] == 6
     assert campaign_studio["planned_run_count"] == 6
     assert campaign_studio["dimension_count"] == 2
     assert campaign_studio["objective"]["name"] == "Stability-first recommendation"
-    assert campaign_studio["current_boundary"].startswith("This slice previews")
+    assert {item["label"] for item in campaign_studio["readiness_badges"]} >= {
+        "Grid editor",
+        "Objective editor",
+    }
+    assert campaign_studio["current_boundary"].startswith("This first editor")
 
     launch_payload = client.post("/api/showcases/canonical-simulation/run")
     assert launch_payload.status_code == 200
@@ -438,6 +447,70 @@ def test_cockpit_api_launch_campaign(tmp_path: Path) -> None:
     assert experiment["comparison"]["shared_experiment"]["kind"] == "campaign"
     assert len(experiment["comparison"]["shared_experiment"]["dimensions"]) == 2
     assert "QS-DMSS Experiment Report" in client.get(experiment["urls"]["report"]).text
+
+
+def test_cockpit_api_launch_campaign_with_edited_grid(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    config_item = client.get("/api/configs").json()["items"][0]
+    edited_config = config_item["config"]
+    edited_config["campaign"] = dict(edited_config["campaign"])
+    edited_config["campaign"]["max_runs"] = 4
+    edited_config["campaign"]["dimensions"] = [
+        {"path": "engine.g_int", "values": [0.02, 0.08]},
+        {"path": "engine.time_step", "values": [0.02]},
+    ]
+
+    campaign_payload = client.post(
+        "/api/campaigns",
+        json={"config": edited_config, "source_name": "campaign-studio.yaml"},
+    )
+    assert campaign_payload.status_code == 200
+    campaign = campaign_payload.json()
+    assert campaign["campaign"]["planned_run_count"] == 2
+    assert campaign["campaign"]["dimensions"][0]["values"] == [0.02, 0.08]
+    assert campaign["campaign"]["dimensions"][1]["values"] == [0.02]
+    assert len(campaign["runs"]) == 2
+    assert campaign["comparison"]["decision"]["available"] is True
+    assert campaign["artifact"]["summary"]["recommended_run_id"] == campaign["campaign"]["recommended_run_id"]
+
+    run_detail = client.get(f"/api/runs/{campaign['runs'][0]['run_id']}")
+    assert run_detail.status_code == 200
+    detail = run_detail.json()
+    assert detail["run_record"]["source_config_name"] == "campaign-studio.yaml"
+    assert detail["run_record"]["experiment"]["variant_label"] in {
+        "Interaction=0.02 | Time Step=0.02",
+        "Interaction=0.08 | Time Step=0.02",
+    }
+
+    experiment_detail = client.get(f"/api/experiments/{campaign['campaign']['id']}")
+    assert experiment_detail.status_code == 200
+    experiment = experiment_detail.json()
+    assert experiment["comparison"]["shared_experiment"]["dimensions"][0]["path"] == "engine.g_int"
+    assert experiment["summary"]["run_count"] == 2
+
+
+def test_cockpit_api_rejects_too_small_edited_campaign_grid(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    config_item = client.get("/api/configs").json()["items"][0]
+    edited_config = config_item["config"]
+    edited_config["campaign"] = dict(edited_config["campaign"])
+    edited_config["campaign"]["dimensions"] = [
+        {"path": "engine.g_int", "values": [0.02]},
+        {"path": "engine.time_step", "values": [0.02]},
+    ]
+
+    campaign_payload = client.post(
+        "/api/campaigns",
+        json={"config": edited_config, "source_name": "campaign-studio.yaml"},
+    )
+    assert campaign_payload.status_code == 400
+    assert campaign_payload.json()["detail"] == "Campaign requires at least two planned runs"
 
 
 def test_cockpit_api_campaign_failure_persists_failed_artifact(
