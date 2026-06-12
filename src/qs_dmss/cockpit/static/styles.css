@@ -749,6 +749,110 @@ h2 {
   margin: 0;
 }
 
+.campaign-study-template-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.campaign-study-template-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid rgba(21, 57, 61, 0.12);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(217, 109, 46, 0.1), transparent 34%),
+    rgba(255, 253, 248, 0.72);
+  box-shadow: 0 14px 30px rgba(21, 57, 61, 0.06);
+  cursor: pointer;
+}
+
+.campaign-study-template-card:hover,
+.campaign-study-template-card:focus-visible,
+.campaign-study-template-card.is-selected {
+  border-color: rgba(42, 106, 106, 0.34);
+  outline: 3px solid rgba(42, 106, 106, 0.16);
+  outline-offset: 2px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(42, 106, 106, 0.15), transparent 34%),
+    rgba(255, 253, 248, 0.9);
+}
+
+.campaign-study-template-card.is-empty {
+  cursor: default;
+}
+
+.campaign-study-template-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.campaign-study-template-card h5,
+.campaign-study-template-card p {
+  margin: 0;
+}
+
+.campaign-study-template-card p {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.campaign-study-template-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.campaign-study-template-meta div {
+  min-width: 0;
+  padding: 9px 10px;
+  border: 1px solid rgba(21, 57, 61, 0.08);
+  border-radius: 13px;
+  background: rgba(255, 252, 246, 0.72);
+}
+
+.campaign-study-template-meta dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.campaign-study-template-meta dd {
+  margin: 3px 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-weight: 800;
+}
+
+.campaign-study-template-last-run {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid rgba(42, 106, 106, 0.13);
+  border-radius: 15px;
+  background: rgba(235, 247, 244, 0.62);
+  color: var(--teal);
+  font-weight: 800;
+}
+
+.campaign-study-template-last-run span {
+  color: var(--muted);
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+.campaign-study-template-last-run.is-empty {
+  border-style: dashed;
+  background: rgba(255, 251, 244, 0.7);
+}
+
 .campaign-study-import-label {
   cursor: pointer;
 }
@@ -1954,6 +2058,7 @@ tbody tr.is-selected {
   .lab-research-grid,
   #campaignStudioFields,
   #campaignStudioDecisionFields,
+  .campaign-study-template-meta,
   .scenario-library-grid,
   .research-object-grid {
     grid-template-columns: 1fr;

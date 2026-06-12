@@ -80,6 +80,7 @@ class SweepRequest(BaseModel):
 class LaunchCampaignRequest(BaseModel):
     config: dict
     source_name: str = "campaign.yaml"
+    study_template_id: str | None = None
 
 
 class CampaignStudyTemplateRequest(BaseModel):
@@ -499,6 +500,12 @@ class CockpitService:
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+        study_template_path = None
+        if payload.study_template_id:
+            study_template_path = self._get_campaign_study_template_path(
+                payload.study_template_id,
+            )
+
         run_dirs: list[Path] = []
         summaries: list[dict] = []
         details: list[dict] = []
@@ -568,21 +575,33 @@ class CockpitService:
             experiment_id=campaign_plan["id"],
             kind="campaign",
         )
+        artifact = self._build_experiment_detail(artifact_outputs.experiment_dir)
+        campaign_summary = {
+            "id": campaign_plan["id"],
+            "label": campaign_plan["label"],
+            "strategy": campaign_plan["strategy"],
+            "dimension_count": campaign_plan["dimension_count"],
+            "planned_run_count": campaign_plan["planned_run_count"],
+            "dimensions": campaign_plan["dimensions"],
+            "run_ids": [summary["run_id"] for summary in summaries],
+            "recommended_run_id": (comparison.get("decision") or {}).get("recommended_run_id"),
+        }
+        study_template = None
+        if study_template_path is not None:
+            study_template = self._record_campaign_study_last_run(
+                study_template_path,
+                campaign_summary=campaign_summary,
+                comparison=comparison,
+                artifact=artifact,
+                run_count=len(summaries),
+            )
 
         return {
-            "campaign": {
-                "id": campaign_plan["id"],
-                "label": campaign_plan["label"],
-                "strategy": campaign_plan["strategy"],
-                "dimension_count": campaign_plan["dimension_count"],
-                "planned_run_count": campaign_plan["planned_run_count"],
-                "dimensions": campaign_plan["dimensions"],
-                "run_ids": [summary["run_id"] for summary in summaries],
-                "recommended_run_id": (comparison.get("decision") or {}).get("recommended_run_id"),
-            },
+            "campaign": campaign_summary,
             "runs": summaries,
             "comparison": comparison,
-            "artifact": self._build_experiment_detail(artifact_outputs.experiment_dir),
+            "artifact": artifact,
+            "study_template": study_template,
         }
 
     def bundle_path(self, run_id: str) -> Path:
@@ -820,6 +839,43 @@ class CockpitService:
             record["imported_from_template_id"] = str(template["imported_from_template_id"])
         return record
 
+    def _record_campaign_study_last_run(
+        self,
+        path: Path,
+        *,
+        campaign_summary: dict,
+        comparison: dict,
+        artifact: dict,
+        run_count: int,
+    ) -> dict:
+        record = self._read_json(path)
+        decision = comparison.get("decision") or {}
+        now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        last_run = {
+            "ran_at": now,
+            "status": "completed",
+            "campaign_id": campaign_summary["id"],
+            "campaign_label": campaign_summary["label"],
+            "strategy": campaign_summary["strategy"],
+            "planned_run_count": campaign_summary["planned_run_count"],
+            "run_count": run_count,
+            "run_ids": campaign_summary["run_ids"],
+            "recommended_run_id": campaign_summary.get("recommended_run_id"),
+            "decision_status": decision.get("status"),
+            "recommended_score": decision.get("recommended_score"),
+            "reason": decision.get("reason"),
+            "experiment_id": artifact["summary"]["experiment_id"],
+            "experiment_report_url": artifact["urls"]["report"],
+            "experiment_bundle_url": artifact["urls"]["bundle"],
+        }
+        record["last_run"] = last_run
+        record["updated_at"] = now
+        path.write_text(
+            json.dumps(record, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        return self._build_campaign_study_detail(path)
+
     def _campaign_study_urls(self, template_id: str) -> dict:
         return {
             "detail": f"/api/campaign-studies/{template_id}",
@@ -844,6 +900,10 @@ class CockpitService:
             "objective_name": objective.get("name"),
             "primary_metric": objective.get("primary_metric"),
             "goal": objective.get("goal"),
+            "imported": bool(record.get("imported_from_template_id")),
+            "imported_from_template_id": record.get("imported_from_template_id"),
+            "exportable": True,
+            "last_run": record.get("last_run"),
             "urls": self._campaign_study_urls(template_id),
         }
 
