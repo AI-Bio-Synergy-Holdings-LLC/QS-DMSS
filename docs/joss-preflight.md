@@ -39,7 +39,7 @@ workflow is a meaningful contribution to the research community.
 | --- | --- | --- | --- |
 | Public repository and issue workflow | Public GitHub repository, issue templates, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT | Ready | Keep development visible through ordinary issues and PRs |
 | OSI-approved license | Apache-2.0 `LICENSE` file | Ready | No action |
-| Installable package | PyPI `qs-dmss==0.7.0`, release wheel, Trusted Publishing, fresh-install smoke | Ready after release | `v0.7.0` ships Scenario Library metadata plus editable Campaign Studio grids and decision profiles; `v0.6.1` remains the latest archived DOI until Zenodo mints the v0.7.0 DOI |
+| Installable package | PyPI `qs-dmss==0.7.0`, release wheel, Trusted Publishing, fresh-install smoke | Ready after release | `v0.7.0` ships Scenario Library metadata plus editable Campaign Studio grids and decision profiles; Zenodo archived the release as doi:10.5281/zenodo.20671389 |
 | Tests and CI | Pytest suite, benchmark smoke, wheel smoke, Docker smoke, CodeQL | Ready | Add tests only when behavior changes |
 | Documentation | README, reviewer quickstart, evidence glossary, benchmark docs, contributor map | Ready enough | Use reviewer feedback to patch confusing sections |
 | Example usage | `run-demo`, `campaigns run-demo`, `benchmarks validate` | Ready enough | Add a short tutorial only if reviewers need more context |

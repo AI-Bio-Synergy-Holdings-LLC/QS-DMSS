@@ -14,7 +14,7 @@ specific GitHub issue, pull request, or reproducibility signal.
 - GitHub repository: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS`
 - PyPI package: `https://pypi.org/project/qs-dmss/`
 - Latest release: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases`
-- Latest archived Zenodo release DOI: `10.5281/zenodo.20631860` (`v0.6.1`)
+- Latest archived Zenodo release DOI: `10.5281/zenodo.20671389` (`v0.7.0`)
 - Open Collective: `https://opencollective.com/qs-dmss`
 - Review sprint hub: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
 - Reviewer opt-in discussion: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
