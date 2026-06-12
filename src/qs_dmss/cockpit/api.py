@@ -55,6 +55,9 @@ from qs_dmss.showcase import (
 )
 
 
+GENERIC_COCKPIT_ERROR_DETAIL = "Cockpit request failed; check server logs for details."
+
+
 class LaunchRunRequest(BaseModel):
     config: dict
     source_name: str = "cockpit.yaml"
@@ -1313,11 +1316,20 @@ def create_app(
 
     @app.get("/api/showcases")
     def showcases() -> dict:
-        items = service.list_showcases()
+        try:
+            items = service.list_showcases()
+            campaign_studio = service.campaign_studio_preview()
+        except HTTPException:
+            raise
+        except Exception:
+            raise HTTPException(
+                status_code=500,
+                detail=GENERIC_COCKPIT_ERROR_DETAIL,
+            ) from None
         return {
             "items": items,
             "default_name": DEFAULT_SHOWCASE_NAME,
-            "campaign_studio": service.campaign_studio_preview(),
+            "campaign_studio": campaign_studio,
         }
 
     @app.post("/api/showcases/{scenario}/run")

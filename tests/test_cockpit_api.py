@@ -256,6 +256,33 @@ def test_cockpit_api_launches_lab_mode_showcase(tmp_path: Path) -> None:
     assert artifact_payload.status_code == 200
 
 
+def test_cockpit_api_showcases_hides_internal_exception_details(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+
+    def broken_campaign_studio_preview(self) -> dict:
+        raise RuntimeError("internal secret path C:\\private\\qs-dmss")
+
+    monkeypatch.setattr(
+        cockpit_api.CockpitService,
+        "campaign_studio_preview",
+        broken_campaign_studio_preview,
+    )
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    showcase_payload = client.get("/api/showcases")
+
+    assert showcase_payload.status_code == 500
+    assert showcase_payload.json() == {
+        "detail": cockpit_api.GENERIC_COCKPIT_ERROR_DETAIL
+    }
+    assert "internal secret path" not in showcase_payload.text
+    assert "Traceback" not in showcase_payload.text
+
+
 def test_cockpit_api_launches_guided_showcase_comparison(tmp_path: Path) -> None:
     repo_root = Path(__file__).resolve().parents[1]
     app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
