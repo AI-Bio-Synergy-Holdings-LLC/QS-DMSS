@@ -730,6 +730,38 @@ h2 {
   line-height: 1.55;
 }
 
+.campaign-study-template-panel {
+  display: grid;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid rgba(42, 106, 106, 0.14);
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(42, 106, 106, 0.12), transparent 32%),
+    rgba(235, 247, 244, 0.46);
+}
+
+.campaign-study-template-panel h4 {
+  margin: 0;
+}
+
+.campaign-study-template-select {
+  margin: 0;
+}
+
+.campaign-study-import-label {
+  cursor: pointer;
+}
+
+.campaign-study-import-label input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
 .lab-comparison-actions {
   display: flex;
   flex-wrap: wrap;

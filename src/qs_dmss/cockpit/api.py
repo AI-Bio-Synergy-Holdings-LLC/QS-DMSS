@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
@@ -79,6 +80,10 @@ class SweepRequest(BaseModel):
 class LaunchCampaignRequest(BaseModel):
     config: dict
     source_name: str = "campaign.yaml"
+
+
+class CampaignStudyTemplateRequest(BaseModel):
+    template: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -216,22 +221,62 @@ class CockpitService:
                 {"label": "Evidence bundle", "status": "ready"},
                 {"label": "Grid editor", "status": "ready"},
                 {"label": "Objective editor", "status": "ready"},
+                {"label": "Study templates", "status": "ready"},
             ],
             "summary": (
                 "A packaged decision campaign can already expand a template into a "
-                "multi-run search matrix, score every run, and save a comparison bundle."
+                "multi-run search matrix, score every run, save reusable study templates, "
+                "and export a comparison bundle."
             ),
             "current_boundary": (
-                "Campaign Studio now edits grid values and the decision profile; saved reusable "
-                "templates remain planned for a later Campaign Studio build."
+                "Campaign Studio now edits, saves, reopens, imports, and exports reusable "
+                "campaign study templates with the scoring contract attached."
             ),
             "next_capabilities": [
-                "Attach campaign metadata to exported research objects",
-                "Save reusable scenario-linked campaign templates",
-                "Save reusable decision-profile presets",
+                "Richer template library metadata",
+                "Template-to-publication export provenance",
+                "Team-shared study template registries",
             ],
             "launch_endpoint": "/api/campaigns",
         }
+
+    def list_campaign_study_templates(self) -> list[dict]:
+        return [
+            self._build_campaign_study_summary(self._read_json(path))
+            for path in self._list_campaign_study_template_paths()
+        ]
+
+    def get_campaign_study_template(self, template_id: str) -> dict:
+        path = self._get_campaign_study_template_path(template_id)
+        return self._build_campaign_study_detail(path)
+
+    def campaign_study_template_path(self, template_id: str) -> Path:
+        return self._get_campaign_study_template_path(template_id)
+
+    def save_campaign_study_template(self, payload: CampaignStudyTemplateRequest) -> dict:
+        try:
+            record = self._normalize_campaign_study_template(payload.template)
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+        path = contained_path(
+            self._campaign_studies_root(create=True),
+            f"{record['template_id']}.json",
+        )
+        path.write_text(
+            json.dumps(record, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        return self._build_campaign_study_detail(path)
+
+    def import_campaign_study_template(self, payload: CampaignStudyTemplateRequest) -> dict:
+        template = dict(payload.template)
+        imported_from = template.get("template_id")
+        if imported_from:
+            template["imported_from_template_id"] = str(imported_from)
+        return self.save_campaign_study_template(
+            CampaignStudyTemplateRequest(template=template),
+        )
 
     def get_run_detail(self, run_id: str) -> dict:
         run_dir = self._get_run_dir(run_id)
@@ -659,6 +704,156 @@ class CockpitService:
         if create:
             output_root.mkdir(parents=True, exist_ok=True)
         return output_root
+
+    def _campaign_studies_root(self, *, create: bool = False) -> Path:
+        studies_root = self.experiments_root / "campaign-studies"
+        if create:
+            studies_root.mkdir(parents=True, exist_ok=True)
+        return studies_root
+
+    def _list_campaign_study_template_paths(self) -> list[Path]:
+        studies_root = self._campaign_studies_root()
+        if not studies_root.exists():
+            return []
+        return sorted(
+            [
+                path
+                for path in studies_root.glob("*.json")
+                if path.is_file()
+            ],
+            key=lambda path: path.stat().st_mtime,
+            reverse=True,
+        )
+
+    def _get_campaign_study_template_path(self, template_id: str) -> Path:
+        template_name = safe_filename(
+            template_id,
+            default="campaign-study",
+            suffixes=(".json",),
+        )
+        path = contained_path(self._campaign_studies_root(), template_name)
+        if not path.exists() or not path.is_file():
+            raise HTTPException(status_code=404, detail="Campaign study template not found")
+        return path
+
+    def _campaign_study_template_id(self, label: str) -> str:
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
+        stem = safe_filename(
+            label.lower().replace(" ", "-"),
+            default="campaign-study",
+        )
+        base_id = f"{stem}-{timestamp}"
+        template_id = base_id
+        index = 2
+        studies_root = self._campaign_studies_root(create=True)
+        while contained_path(studies_root, f"{template_id}.json").exists():
+            template_id = f"{base_id}-{index}"
+            index += 1
+        return template_id
+
+    def _normalize_campaign_study_template(self, template: dict[str, Any]) -> dict:
+        if not isinstance(template, dict):
+            raise ValueError("Campaign study template must be an object")
+        raw_config = template.get("config")
+        if not isinstance(raw_config, dict):
+            raise ValueError("Campaign study template requires a config object")
+
+        config = parse_config(raw_config).to_dict()
+        campaign_plan = build_campaign_plan(config)
+        objective = config.get("objective") or {}
+        constraints = {"require_verification": True, **(config.get("constraints") or {})}
+        ranking = config.get("ranking") or {}
+        label = str(
+            template.get("label")
+            or campaign_plan["label"]
+            or "Campaign Studio study template"
+        ).strip()
+        if not label:
+            label = "Campaign Studio study template"
+        description = str(
+            template.get("description")
+            or objective.get("summary")
+            or "Reusable Campaign Studio study template."
+        ).strip()
+        source_config_name = self._safe_source_name(
+            str(template.get("source_config_name") or "campaign-study.yaml")
+        )
+        now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        campaign = {
+            "label": campaign_plan["label"],
+            "strategy": campaign_plan["strategy"],
+            "max_runs": config.get("campaign", {}).get(
+                "max_runs",
+                campaign_plan["planned_run_count"],
+            ),
+            "planned_run_count": campaign_plan["planned_run_count"],
+            "dimension_count": campaign_plan["dimension_count"],
+            "dimensions": campaign_plan["dimensions"],
+        }
+        scoring_contract = {
+            "objective": objective,
+            "constraints": constraints,
+            "ranking": {
+                "primary_metric_weight": ranking.get("primary_metric_weight"),
+                "weights": ranking.get("weights", {}),
+            },
+            "planned_run_count": campaign_plan["planned_run_count"],
+            "max_runs": campaign["max_runs"],
+        }
+
+        record: dict[str, Any] = {
+            "schema_version": 1,
+            "template_id": self._campaign_study_template_id(label),
+            "label": label,
+            "description": description,
+            "created_at": now,
+            "updated_at": now,
+            "source_config_name": source_config_name,
+            "campaign": campaign,
+            "objective": objective,
+            "constraints": constraints,
+            "ranking": scoring_contract["ranking"],
+            "scoring_contract": scoring_contract,
+            "config": config,
+        }
+        if template.get("imported_from_template_id"):
+            record["imported_from_template_id"] = str(template["imported_from_template_id"])
+        return record
+
+    def _campaign_study_urls(self, template_id: str) -> dict:
+        return {
+            "detail": f"/api/campaign-studies/{template_id}",
+            "download": f"/api/campaign-studies/{template_id}/download",
+        }
+
+    def _build_campaign_study_summary(self, record: dict) -> dict:
+        template_id = record["template_id"]
+        campaign = record.get("campaign") or {}
+        objective = record.get("objective") or {}
+        return {
+            "template_id": template_id,
+            "label": record.get("label", template_id),
+            "description": record.get("description", ""),
+            "created_at": record.get("created_at"),
+            "updated_at": record.get("updated_at"),
+            "source_config_name": record.get("source_config_name"),
+            "campaign_label": campaign.get("label"),
+            "strategy": campaign.get("strategy"),
+            "planned_run_count": campaign.get("planned_run_count"),
+            "dimension_count": campaign.get("dimension_count"),
+            "objective_name": objective.get("name"),
+            "primary_metric": objective.get("primary_metric"),
+            "goal": objective.get("goal"),
+            "urls": self._campaign_study_urls(template_id),
+        }
+
+    def _build_campaign_study_detail(self, path: Path) -> dict:
+        record = self._read_json(path)
+        return {
+            "summary": self._build_campaign_study_summary(record),
+            "template": record,
+            "urls": self._campaign_study_urls(record["template_id"]),
+        }
 
     def _read_json(self, path: Path) -> dict:
         return json.loads(path.read_text(encoding="utf-8"))
@@ -1120,6 +1315,31 @@ def create_app(
     @app.get("/api/experiments/{experiment_id}")
     def experiment_detail(experiment_id: str) -> dict:
         return service.get_experiment_detail(experiment_id)
+
+    @app.get("/api/campaign-studies")
+    def campaign_studies() -> dict:
+        return {"items": service.list_campaign_study_templates()}
+
+    @app.post("/api/campaign-studies")
+    def save_campaign_study(payload: CampaignStudyTemplateRequest) -> dict:
+        return service.save_campaign_study_template(payload)
+
+    @app.post("/api/campaign-studies/import")
+    def import_campaign_study(payload: CampaignStudyTemplateRequest) -> dict:
+        return service.import_campaign_study_template(payload)
+
+    @app.get("/api/campaign-studies/{template_id}")
+    def campaign_study_detail(template_id: str) -> dict:
+        return service.get_campaign_study_template(template_id)
+
+    @app.get("/api/campaign-studies/{template_id}/download")
+    def campaign_study_download(template_id: str) -> FileResponse:
+        template_path = service.campaign_study_template_path(template_id)
+        return FileResponse(
+            template_path,
+            media_type="application/json",
+            filename=template_path.name,
+        )
 
     @app.post("/api/sweeps")
     def launch_sweep(payload: SweepRequest) -> dict:

@@ -43,6 +43,13 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert 'id="campaignStudioScoringContract"' in root.text
     assert 'id="launchCampaignStudioButton"' in root.text
     assert 'id="resetCampaignStudioButton"' in root.text
+    assert 'id="campaignStudyTemplatePanel"' in root.text
+    assert 'id="campaignStudyTemplateSelect"' in root.text
+    assert 'id="saveCampaignStudyTemplateButton"' in root.text
+    assert 'id="loadCampaignStudyTemplateButton"' in root.text
+    assert 'id="runCampaignStudyTemplateButton"' in root.text
+    assert 'id="downloadCampaignStudyTemplateLink"' in root.text
+    assert 'id="importCampaignStudyTemplateInput"' in root.text
     markdown_link = re.search(r'<a[^>]+id="labMarkdownLink"[^>]*>', root.text)
     json_link = re.search(r'<a[^>]+id="labJsonLink"[^>]*>', root.text)
     research_object_button = re.search(
@@ -184,8 +191,9 @@ def test_cockpit_api_launches_lab_mode_showcase(tmp_path: Path) -> None:
     assert {item["label"] for item in campaign_studio["readiness_badges"]} >= {
         "Grid editor",
         "Objective editor",
+        "Study templates",
     }
-    assert campaign_studio["current_boundary"].startswith("Campaign Studio now edits")
+    assert campaign_studio["current_boundary"].startswith("Campaign Studio now edits, saves")
 
     launch_payload = client.post("/api/showcases/canonical-simulation/run")
     assert launch_payload.status_code == 200
@@ -565,6 +573,113 @@ def test_cockpit_api_launch_campaign_with_edited_decision_profile(tmp_path: Path
     assert detail["run_record"]["decision_profile"]["objective"]["name"] == (
         "Density-first cockpit recommendation"
     )
+
+
+def test_cockpit_api_saves_imports_and_launches_campaign_study_templates(
+    tmp_path: Path,
+) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    empty_templates = client.get("/api/campaign-studies")
+    assert empty_templates.status_code == 200
+    assert empty_templates.json()["items"] == []
+
+    config_item = client.get("/api/configs").json()["items"][0]
+    edited_config = deepcopy(config_item["config"])
+    edited_config["objective"] = {
+        "name": "Reusable density-first study",
+        "summary": "Prefer the run with stronger peak density while preserving evidence.",
+        "primary_metric": "max_density",
+        "goal": "maximize",
+    }
+    edited_config["constraints"] = {
+        "require_verification": True,
+        "max_abs_energy_drift": 0.5,
+        "max_abs_norm_drift": 0.5,
+    }
+    edited_config["ranking"] = {
+        "primary_metric_weight": 3.0,
+        "weights": {
+            "energy_drift": 0.0,
+            "norm_drift": 0.0,
+            "max_density": 1.0,
+            "elapsed_seconds": 0.0,
+        },
+    }
+    edited_config["campaign"] = dict(edited_config["campaign"])
+    edited_config["campaign"]["max_runs"] = 4
+    edited_config["campaign"]["dimensions"] = [
+        {"path": "engine.g_int", "values": [0.02, 0.08]},
+        {"path": "engine.time_step", "values": [0.02]},
+    ]
+
+    save_payload = client.post(
+        "/api/campaign-studies",
+        json={
+            "template": {
+                "label": "Density-first reusable study",
+                "description": "A two-run imported/exportable Campaign Studio design.",
+                "source_config_name": "../campaign-study",
+                "config": edited_config,
+            },
+        },
+    )
+    assert save_payload.status_code == 200
+    saved = save_payload.json()
+    template_id = saved["summary"]["template_id"]
+    assert saved["summary"]["planned_run_count"] == 2
+    assert saved["summary"]["objective_name"] == "Reusable density-first study"
+    assert saved["summary"]["primary_metric"] == "max_density"
+    assert saved["summary"]["source_config_name"] == "campaign-study.yaml"
+    assert saved["template"]["scoring_contract"]["objective"]["goal"] == "maximize"
+    assert saved["template"]["campaign"]["dimensions"][0]["values"] == [0.02, 0.08]
+    assert saved["urls"]["download"].endswith("/download")
+    assert (tmp_path / "experiments" / "campaign-studies" / f"{template_id}.json").exists()
+
+    listed = client.get("/api/campaign-studies")
+    assert listed.status_code == 200
+    assert listed.json()["items"][0]["template_id"] == template_id
+
+    detail = client.get(f"/api/campaign-studies/{template_id}")
+    assert detail.status_code == 200
+    assert detail.json()["template"]["config"]["objective"]["name"] == (
+        "Reusable density-first study"
+    )
+
+    download = client.get(f"/api/campaign-studies/{template_id}/download")
+    assert download.status_code == 200
+    assert download.headers["content-type"].startswith("application/json")
+    exported_template = download.json()
+    assert exported_template["template_id"] == template_id
+
+    imported_payload = client.post(
+        "/api/campaign-studies/import",
+        json={"template": exported_template},
+    )
+    assert imported_payload.status_code == 200
+    imported = imported_payload.json()
+    assert imported["summary"]["template_id"] != template_id
+    assert imported["template"]["imported_from_template_id"] == template_id
+    assert imported["template"]["config"] == exported_template["config"]
+
+    campaign_payload = client.post(
+        "/api/campaigns",
+        json={
+            "config": saved["template"]["config"],
+            "source_name": saved["summary"]["source_config_name"],
+        },
+    )
+    assert campaign_payload.status_code == 200
+    campaign = campaign_payload.json()
+    assert campaign["campaign"]["planned_run_count"] == 2
+    assert campaign["comparison"]["decision"]["profile"]["objective"]["name"] == (
+        "Reusable density-first study"
+    )
+    assert campaign["campaign"]["recommended_run_id"] in {
+        run["run_id"] for run in campaign["runs"]
+    }
 
 
 def test_cockpit_api_rejects_invalid_edited_decision_profile(tmp_path: Path) -> None:
