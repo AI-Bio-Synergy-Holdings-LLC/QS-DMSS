@@ -332,8 +332,8 @@ use it when archiving GitHub releases.
 For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
-- v0.7.0 release DOI: pending Zenodo archive after the GitHub release is created
-- Latest archived release DOI: [v0.6.1 / 10.5281/zenodo.20631860](https://doi.org/10.5281/zenodo.20631860)
+- Latest archived release DOI: [v0.7.0 / 10.5281/zenodo.20671389](https://doi.org/10.5281/zenodo.20671389)
+- Previous archived release DOI: [v0.6.1 / 10.5281/zenodo.20631860](https://doi.org/10.5281/zenodo.20631860)
 - Previous archived release DOI: [v0.6.0 / 10.5281/zenodo.20618884](https://doi.org/10.5281/zenodo.20618884)
 - Earlier archived release DOI: [v0.5.0 / 10.5281/zenodo.20617028](https://doi.org/10.5281/zenodo.20617028)
 - Older archived release DOI: [v0.4.0 / 10.5281/zenodo.20500433](https://doi.org/10.5281/zenodo.20500433)
