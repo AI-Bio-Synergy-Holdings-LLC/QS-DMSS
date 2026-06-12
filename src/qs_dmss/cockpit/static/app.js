@@ -74,6 +74,7 @@ const els = {
   campaignStudyTemplateStatus: document.querySelector("#campaignStudyTemplateStatus"),
   campaignStudyTemplateSummary: document.querySelector("#campaignStudyTemplateSummary"),
   campaignStudyTemplateSelect: document.querySelector("#campaignStudyTemplateSelect"),
+  campaignStudyTemplateCards: document.querySelector("#campaignStudyTemplateCards"),
   saveCampaignStudyTemplateButton: document.querySelector("#saveCampaignStudyTemplateButton"),
   loadCampaignStudyTemplateButton: document.querySelector("#loadCampaignStudyTemplateButton"),
   runCampaignStudyTemplateButton: document.querySelector("#runCampaignStudyTemplateButton"),
@@ -798,6 +799,91 @@ function setCampaignStudyTemplateDownloadEnabled(summary) {
   link.classList.add("is-disabled");
 }
 
+function campaignStudyTemplateLastRunMarkup(item) {
+  const lastRun = item.last_run;
+  if (!lastRun) {
+    return `
+      <div class="campaign-study-template-last-run is-empty">
+        <strong>No run provenance yet</strong>
+        <span>Run this saved template to attach a recommendation, report, and bundle.</span>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="campaign-study-template-last-run">
+      <strong>Last run ${escapeHtml(formatTimestamp(lastRun.ran_at))}</strong>
+      <span>
+        Recommended ${escapeHtml(shortRunId(lastRun.recommended_run_id))}
+        from ${escapeHtml(lastRun.run_count || item.planned_run_count || "-")} runs.
+      </span>
+      <span>${escapeHtml(lastRun.reason || "Recommendation rationale was not recorded.")}</span>
+      <div class="research-object-link-row">
+        <a href="${escapeHtml(lastRun.experiment_report_url || "#")}" target="_blank" rel="noreferrer">
+          Open last report
+        </a>
+        <a href="${escapeHtml(lastRun.experiment_bundle_url || "#")}" target="_blank" rel="noreferrer">
+          Download last bundle
+        </a>
+      </div>
+    </div>
+  `;
+}
+
+function campaignStudyTemplateCardMarkup(item, selected) {
+  const importStatus = item.imported
+    ? `Imported from ${shortRunId(item.imported_from_template_id)}`
+    : "Local template";
+  const exportStatus = item.exportable ? "Export-ready JSON" : "Export pending";
+  return `
+    <article
+      class="campaign-study-template-card ${selected ? "is-selected" : ""}"
+      data-study-template-id="${escapeHtml(item.template_id)}"
+      role="button"
+      tabindex="0"
+      aria-pressed="${selected ? "true" : "false"}"
+    >
+      <div class="campaign-study-template-card-head">
+        <div>
+          <p class="artifact-list-title">${escapeHtml(importStatus)}</p>
+          <h5>${escapeHtml(item.label)}</h5>
+        </div>
+        <span class="scenario-badge ${selected ? "is-success" : "is-warning"}">
+          ${selected ? "Selected" : "Reusable"}
+        </span>
+      </div>
+      <p>${escapeHtml(item.description || "Reusable Campaign Studio study template.")}</p>
+      <dl class="campaign-study-template-meta">
+        <div>
+          <dt>Objective</dt>
+          <dd>${escapeHtml(item.objective_name || "Not documented")}</dd>
+        </div>
+        <div>
+          <dt>Metric / goal</dt>
+          <dd>${escapeHtml(item.primary_metric || "-")} / ${escapeHtml(item.goal || "-")}</dd>
+        </div>
+        <div>
+          <dt>Plan</dt>
+          <dd>${escapeHtml(formatRunCount(item.planned_run_count))}</dd>
+        </div>
+        <div>
+          <dt>Created</dt>
+          <dd>${escapeHtml(formatTimestamp(item.created_at))}</dd>
+        </div>
+        <div>
+          <dt>Source</dt>
+          <dd>${escapeHtml(item.source_config_name || "campaign-study.yaml")}</dd>
+        </div>
+        <div>
+          <dt>Portability</dt>
+          <dd>${escapeHtml(exportStatus)}</dd>
+        </div>
+      </dl>
+      ${campaignStudyTemplateLastRunMarkup(item)}
+    </article>
+  `;
+}
+
 function renderCampaignStudyTemplates() {
   const summaries = state.campaignStudyTemplates || [];
   const selected = selectedCampaignStudyTemplateSummary();
@@ -825,6 +911,30 @@ function renderCampaignStudyTemplates() {
   if (state.selectedCampaignStudyTemplateId) {
     els.campaignStudyTemplateSelect.value = state.selectedCampaignStudyTemplateId;
   }
+  els.campaignStudyTemplateCards.innerHTML = summaries.length
+    ? summaries
+        .map((item) => (
+          campaignStudyTemplateCardMarkup(
+            item,
+            item.template_id === state.selectedCampaignStudyTemplateId,
+          )
+        ))
+        .join("")
+    : `
+        <article class="campaign-study-template-card is-empty">
+          <p class="artifact-list-title">Portable campaign design</p>
+          <h5>No saved study templates yet</h5>
+          <p>
+            Save the edited grid and decision profile to create a reusable local
+            JSON study. The JSON can be imported by another QS-DMSS user to rerun
+            the same campaign design and inspect the same scoring contract.
+          </p>
+          <p>
+            After a saved template runs, this library will show the latest
+            recommendation, experiment report, and evidence bundle links.
+          </p>
+        </article>
+      `;
 
   const draft = state.campaignStudio?.available
     ? campaignStudioDraft(state.campaignStudio)
@@ -834,11 +944,11 @@ function renderCampaignStudyTemplates() {
   els.runCampaignStudyTemplateButton.disabled = !selected;
   setCampaignStudyTemplateDownloadEnabled(selected);
   els.campaignStudyTemplateSummary.textContent = selected
-    ? `${selected.label}: ${formatRunCount(selected.planned_run_count)} scored by ${selected.primary_metric} (${selected.goal}).`
-    : "Save edited grids and decision profiles as reusable local JSON templates.";
+    ? `${selected.label}: ${formatRunCount(selected.planned_run_count)} scored by ${selected.primary_metric} (${selected.goal}). ${selected.last_run ? `Last run recommended ${shortRunId(selected.last_run.recommended_run_id)}.` : "Run it once to attach provenance."}`
+    : "Save edited grids and decision profiles as reusable local JSON templates that another user can import and rerun.";
   els.campaignStudyTemplateFeedback.textContent = selected
-    ? `Selected template ${selected.template_id}. Load it to edit, run it directly, or download JSON for another user.`
-    : "Templates preserve the grid, scoring contract, and launchable campaign config.";
+    ? `Selected template ${selected.template_id}. Load it to edit, run it directly, or download portable JSON for another user.`
+    : "Templates preserve the grid, scoring contract, launchable campaign config, and latest run provenance.";
 }
 
 async function refreshCampaignStudyTemplates() {
@@ -2957,16 +3067,26 @@ async function runCampaignStudioConfig({
       body: JSON.stringify({
         config,
         source_name: sourceName,
+        ...(studyTemplate?.template_id ? { study_template_id: studyTemplate.template_id } : {}),
       }),
     });
     completedPayload = payload;
     clearResearchObject();
-    state.lastCampaignStudyTemplate = studyTemplate;
+    if (payload.study_template) {
+      state.selectedCampaignStudyTemplateId = payload.study_template.summary.template_id;
+      state.activeCampaignStudyTemplate = payload.study_template.template;
+      state.lastCampaignStudyTemplate = payload.study_template.template;
+    } else {
+      state.lastCampaignStudyTemplate = studyTemplate;
+    }
     state.lastCampaignStudioResult = payload;
     toast(successTitle, `Created ${payload.runs.length} scored campaign runs`, "success");
     state.selectedRunIds = payload.campaign.run_ids;
     await refreshRuns();
     await refreshExperiments();
+    if (payload.study_template) {
+      await refreshCampaignStudyTemplates();
+    }
     renderComparison(payload.comparison);
     renderSelectedExperiment(payload.artifact);
     if (payload.runs[0]) {
@@ -3316,6 +3436,29 @@ function bindEvents() {
   });
   els.campaignStudyTemplateSelect.addEventListener("change", (event) => {
     state.selectedCampaignStudyTemplateId = event.target.value || null;
+    renderCampaignStudyTemplates();
+  });
+  els.campaignStudyTemplateCards.addEventListener("click", (event) => {
+    if (event.target.closest("a")) {
+      return;
+    }
+    const card = event.target.closest("[data-study-template-id]");
+    if (!card) {
+      return;
+    }
+    state.selectedCampaignStudyTemplateId = card.dataset.studyTemplateId;
+    renderCampaignStudyTemplates();
+  });
+  els.campaignStudyTemplateCards.addEventListener("keydown", (event) => {
+    if (!["Enter", " "].includes(event.key)) {
+      return;
+    }
+    const card = event.target.closest("[data-study-template-id]");
+    if (!card) {
+      return;
+    }
+    event.preventDefault();
+    state.selectedCampaignStudyTemplateId = card.dataset.studyTemplateId;
     renderCampaignStudyTemplates();
   });
   els.saveCampaignStudyTemplateButton.addEventListener("click", handleSaveCampaignStudyTemplate);

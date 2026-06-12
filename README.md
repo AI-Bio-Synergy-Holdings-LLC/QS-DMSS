@@ -24,7 +24,7 @@ peer-reviewed scientific validation.
 - Experiment registry with saved comparison reports and bundles
 - Objective-driven decision profiles with ranked recommendations
 - Template-defined decision campaigns across multi-parameter search grids
-- Reusable Campaign Studio study templates for preserving and sharing campaign designs
+- Reusable Campaign Studio study templates for preserving, rerunning, and sharing campaign designs
 - Run ledger with stable run IDs and config digests
 - Evidence bundle with artifacts, metrics, manifest, and HTML report
 - Replay and verification commands for reproducibility checks
@@ -43,7 +43,7 @@ evidence-first simulation lab:
 - A local cockpit for launch, inspection, verification, replay, and bundle download
 - Sweep support for exploring one parameter across multiple deterministic runs
 - Decision campaign support for expanding a template into a multi-parameter grid automatically
-- Campaign Studio study templates that save, reopen, import, and export edited grids and scoring contracts
+- Campaign Studio study templates that save, reopen, import, export, and display edited grids, scoring contracts, and last-run provenance
 - Comparison tooling for energy drift, norm drift, density, and runtime deltas
 - Decision profiles that score runs against an explicit objective, constraint set, and ranking policy
 - Durable experiment exports with copied run evidence, comparison JSON, report HTML, manifest, and bundle ZIP
@@ -125,9 +125,10 @@ Public builder coordination now lives in
 [issue #57](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57).
 The latest Campaign Studio product slices on `main` add scenario metadata,
 editable parameter grids, decision-profile editing, and scoring-contract
-preview. The next product slice adds reusable study templates so campaign
-designs can be saved locally, reopened, rerun, imported, exported, and attached
-to research-object provenance.
+preview. The current product slice adds reusable study-template library cards
+so campaign designs can be saved locally, reopened, rerun, imported/exported,
+and inspected with last-run provenance before they are attached to
+research-object exports.
 
 Review paths remain available for people who want to validate the public
 package:
@@ -148,7 +149,7 @@ Inside the cockpit you can:
 - Use Lab Mode to launch the packaged canonical simulation showcase, read guided interpretation, run a guided variant comparison, inspect the Evidence Explorer, preview generated reports/artifacts, compose a research object export, and open the full evidence outputs
 - Inspect Scenario Library metadata for packaged scenarios, including purpose, expected runtime, artifacts, readiness, limitations, and suggested next actions
 - Edit the Campaign Studio parameter grid and decision profile for the bundled decision campaign, preview the scoring contract, and launch the edited campaign through the existing evidence/recommendation workflow
-- Save Campaign Studio edits as local study templates, reload or rerun saved templates, and import/export the study JSON so another user can reproduce the same campaign design
+- Save Campaign Studio edits as local study templates, inspect visible template cards with objective/run metadata, reload or rerun saved templates, and import/export the study JSON so another user can reproduce the same campaign design
 - Launch a single run from a checked-in or edited config
 - Launch a parameter sweep across interaction strength, timestep, step count, amplitude, width, or seed
 - Launch a template-defined decision campaign that expands into a reproducible multi-parameter run matrix

@@ -31,23 +31,26 @@ The full strategy now lives in:
 - [contributor-roadmap.md](contributor-roadmap.md)
 - [funding-roadmap.md](funding-roadmap.md)
 
-## Current Active Slice: Campaign Studio Study Templates
+## Current Active Slice: Campaign Studio Template Library
 
 Lab Mode and Campaign Studio now make QS-DMSS feel meaningfully different from
-a generic open simulator. The next product slice should preserve campaign
-designs as reusable research objects, not one-off cockpit edits.
+a generic open simulator. The current product-polish slice should make saved
+campaign designs feel like reusable research assets, not only JSON behind a
+dropdown.
 
 The target user flow is:
 
 ```text
-choose scenario -> edit campaign -> save study template -> rerun/import/export -> compose research object
+choose scenario -> edit campaign -> save study template -> inspect card -> rerun/import/export -> compose research object
 ```
 
 The current implementation should focus on the local cockpit and existing
 showcase/campaign/evidence spine:
 
 - save edited Campaign Studio grids and decision profiles as local templates;
+- display templates as visible cards with objective, metric, plan, source, and portability metadata;
 - reopen and rerun saved campaign templates from the cockpit;
+- record last-run provenance, recommendation, report, and bundle links after execution;
 - import/export template JSON so another user can reproduce the campaign design;
 - attach scoring contract, campaign metadata, and recommendation rationale to
   exported research objects;

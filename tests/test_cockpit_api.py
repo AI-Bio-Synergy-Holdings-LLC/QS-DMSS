@@ -45,6 +45,7 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert 'id="resetCampaignStudioButton"' in root.text
     assert 'id="campaignStudyTemplatePanel"' in root.text
     assert 'id="campaignStudyTemplateSelect"' in root.text
+    assert 'id="campaignStudyTemplateCards"' in root.text
     assert 'id="saveCampaignStudyTemplateButton"' in root.text
     assert 'id="loadCampaignStudyTemplateButton"' in root.text
     assert 'id="runCampaignStudyTemplateButton"' in root.text
@@ -669,6 +670,7 @@ def test_cockpit_api_saves_imports_and_launches_campaign_study_templates(
         json={
             "config": saved["template"]["config"],
             "source_name": saved["summary"]["source_config_name"],
+            "study_template_id": template_id,
         },
     )
     assert campaign_payload.status_code == 200
@@ -680,6 +682,30 @@ def test_cockpit_api_saves_imports_and_launches_campaign_study_templates(
     assert campaign["campaign"]["recommended_run_id"] in {
         run["run_id"] for run in campaign["runs"]
     }
+    assert campaign["study_template"]["summary"]["template_id"] == template_id
+    assert campaign["study_template"]["summary"]["last_run"]["status"] == "completed"
+    assert campaign["study_template"]["summary"]["last_run"]["recommended_run_id"] == (
+        campaign["campaign"]["recommended_run_id"]
+    )
+    assert campaign["study_template"]["summary"]["last_run"]["experiment_report_url"].endswith(
+        "/report"
+    )
+    assert campaign["study_template"]["summary"]["last_run"]["experiment_bundle_url"].endswith(
+        "/bundle"
+    )
+
+    updated_detail = client.get(f"/api/campaign-studies/{template_id}")
+    assert updated_detail.status_code == 200
+    last_run = updated_detail.json()["template"]["last_run"]
+    assert last_run["experiment_id"] == campaign["artifact"]["summary"]["experiment_id"]
+    assert last_run["run_count"] == 2
+    assert last_run["recommended_run_id"] == campaign["campaign"]["recommended_run_id"]
+
+    updated_list = client.get("/api/campaign-studies")
+    assert updated_list.status_code == 200
+    assert updated_list.json()["items"][0]["last_run"]["experiment_id"] == (
+        campaign["artifact"]["summary"]["experiment_id"]
+    )
 
 
 def test_cockpit_api_rejects_invalid_edited_decision_profile(tmp_path: Path) -> None:
