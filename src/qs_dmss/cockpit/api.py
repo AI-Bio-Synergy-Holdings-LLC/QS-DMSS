@@ -7,8 +7,8 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any
 
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -1287,6 +1287,17 @@ def create_app(
         title="QS-DMSS Cockpit",
         summary="Local-first API and browser cockpit for deterministic runs and evidence bundles.",
     )
+
+    @app.exception_handler(Exception)
+    async def unhandled_exception_handler(
+        _request: Request,
+        _exc: Exception,
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=500,
+            content={"detail": GENERIC_COCKPIT_ERROR_DETAIL},
+        )
+
     app.mount("/static", StaticFiles(directory=service.static_root), name="static")
 
     @app.get("/")
