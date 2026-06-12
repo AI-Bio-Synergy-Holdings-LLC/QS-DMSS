@@ -4,6 +4,11 @@ const state = {
   campaignStudio: null,
   campaignStudioValues: {},
   campaignStudioDecisionValues: {},
+  campaignStudyTemplates: [],
+  selectedCampaignStudyTemplateId: null,
+  activeCampaignStudyTemplate: null,
+  lastCampaignStudyTemplate: null,
+  lastCampaignStudioResult: null,
   runs: [],
   experiments: [],
   sweepParameters: [],
@@ -66,6 +71,15 @@ const els = {
   launchCampaignStudioButton: document.querySelector("#launchCampaignStudioButton"),
   resetCampaignStudioButton: document.querySelector("#resetCampaignStudioButton"),
   campaignStudioBoundary: document.querySelector("#campaignStudioBoundary"),
+  campaignStudyTemplateStatus: document.querySelector("#campaignStudyTemplateStatus"),
+  campaignStudyTemplateSummary: document.querySelector("#campaignStudyTemplateSummary"),
+  campaignStudyTemplateSelect: document.querySelector("#campaignStudyTemplateSelect"),
+  saveCampaignStudyTemplateButton: document.querySelector("#saveCampaignStudyTemplateButton"),
+  loadCampaignStudyTemplateButton: document.querySelector("#loadCampaignStudyTemplateButton"),
+  runCampaignStudyTemplateButton: document.querySelector("#runCampaignStudyTemplateButton"),
+  downloadCampaignStudyTemplateLink: document.querySelector("#downloadCampaignStudyTemplateLink"),
+  importCampaignStudyTemplateInput: document.querySelector("#importCampaignStudyTemplateInput"),
+  campaignStudyTemplateFeedback: document.querySelector("#campaignStudyTemplateFeedback"),
   labExplorerStatus: document.querySelector("#labExplorerStatus"),
   labReportPreviewTitle: document.querySelector("#labReportPreviewTitle"),
   labReportPreviewBody: document.querySelector("#labReportPreviewBody"),
@@ -756,6 +770,94 @@ function setResearchObjectDownloadEnabled(enabled) {
   link.classList.add("is-disabled");
 }
 
+function selectedCampaignStudyTemplateSummary() {
+  return (
+    state.campaignStudyTemplates.find(
+      (item) => item.template_id === state.selectedCampaignStudyTemplateId,
+    ) || null
+  );
+}
+
+function setCampaignStudyTemplateDownloadEnabled(summary) {
+  const link = els.downloadCampaignStudyTemplateLink;
+  if (summary?.urls?.download) {
+    link.href = summary.urls.download;
+    link.download = `${summary.template_id}.json`;
+    link.removeAttribute("aria-disabled");
+    link.removeAttribute("tabindex");
+    link.textContent = "Download JSON";
+    link.classList.remove("is-disabled");
+    return;
+  }
+
+  link.removeAttribute("href");
+  link.removeAttribute("download");
+  link.setAttribute("aria-disabled", "true");
+  link.setAttribute("tabindex", "-1");
+  link.textContent = "Download JSON";
+  link.classList.add("is-disabled");
+}
+
+function renderCampaignStudyTemplates() {
+  const summaries = state.campaignStudyTemplates || [];
+  const selected = selectedCampaignStudyTemplateSummary();
+  els.campaignStudyTemplateStatus.textContent = summaries.length
+    ? `${summaries.length} saved`
+    : "No templates";
+  els.campaignStudyTemplateStatus.className = `selection-chip ${toneForStatus(
+    summaries.length ? "qualified" : "idle",
+  )}`;
+  els.campaignStudyTemplateSelect.innerHTML = summaries.length
+    ? summaries
+        .map(
+          (item) => `
+            <option
+              value="${escapeHtml(item.template_id)}"
+              ${item.template_id === state.selectedCampaignStudyTemplateId ? "selected" : ""}
+            >
+              ${escapeHtml(item.label)} (${escapeHtml(formatRunCount(item.planned_run_count))})
+            </option>
+          `,
+        )
+        .join("")
+    : '<option value="">No saved templates yet</option>';
+
+  if (state.selectedCampaignStudyTemplateId) {
+    els.campaignStudyTemplateSelect.value = state.selectedCampaignStudyTemplateId;
+  }
+
+  const draft = state.campaignStudio?.available
+    ? campaignStudioDraft(state.campaignStudio)
+    : { valid: false };
+  els.saveCampaignStudyTemplateButton.disabled = !draft.valid;
+  els.loadCampaignStudyTemplateButton.disabled = !selected;
+  els.runCampaignStudyTemplateButton.disabled = !selected;
+  setCampaignStudyTemplateDownloadEnabled(selected);
+  els.campaignStudyTemplateSummary.textContent = selected
+    ? `${selected.label}: ${formatRunCount(selected.planned_run_count)} scored by ${selected.primary_metric} (${selected.goal}).`
+    : "Save edited grids and decision profiles as reusable local JSON templates.";
+  els.campaignStudyTemplateFeedback.textContent = selected
+    ? `Selected template ${selected.template_id}. Load it to edit, run it directly, or download JSON for another user.`
+    : "Templates preserve the grid, scoring contract, and launchable campaign config.";
+}
+
+async function refreshCampaignStudyTemplates() {
+  const payload = await fetchJson("/api/campaign-studies");
+  state.campaignStudyTemplates = payload.items || [];
+  if (
+    state.selectedCampaignStudyTemplateId &&
+    !state.campaignStudyTemplates.some(
+      (item) => item.template_id === state.selectedCampaignStudyTemplateId,
+    )
+  ) {
+    state.selectedCampaignStudyTemplateId = null;
+  }
+  if (!state.selectedCampaignStudyTemplateId && state.campaignStudyTemplates[0]) {
+    state.selectedCampaignStudyTemplateId = state.campaignStudyTemplates[0].template_id;
+  }
+  renderCampaignStudyTemplates();
+}
+
 function metricRowsForResearchObject(metrics) {
   return [
     ["Norm drift", formatScientific(metrics.norm_drift)],
@@ -889,6 +991,43 @@ function buildResearchObjectMarkdown(researchObject) {
     );
   }
 
+  if (researchObject.campaignStudy.available) {
+    const study = researchObject.campaignStudy;
+    const contract = study.scoringContract || {};
+    const objective = contract.objective || {};
+    const constraints = Object.entries(contract.constraints || {})
+      .map(([key, value]) => `${key}: ${value}`)
+      .join("; ");
+    const weights = Object.entries(contract.ranking?.weights || {})
+      .map(([key, value]) => `${key}: ${value}`)
+      .join("; ");
+    lines.push(
+      "## Campaign Study Template",
+      "",
+      `Template: ${study.label}`,
+      `Template ID: ${study.templateId}`,
+      `Source config: ${study.sourceConfigName}`,
+      `Description: ${study.description}`,
+      "",
+      "### Scoring Contract",
+      "",
+      `Objective: ${objective.name || "Not documented"}`,
+      `Primary metric: ${objective.primary_metric || "Not documented"} (${objective.goal || "not documented"})`,
+      `Constraints: ${constraints || "none"}`,
+      `Weights: ${weights || "none"}; primary boost ${contract.ranking?.primary_metric_weight ?? "not documented"}`,
+      `Launch envelope: ${contract.planned_run_count || "-"} planned runs, max ${contract.max_runs || "-"}`,
+      "",
+      "### Recommendation",
+      "",
+      `Status: ${study.recommendation.status}`,
+      `Recommended run: ${study.recommendation.recommendedRunId || "Not available"}`,
+      `Reason: ${study.recommendation.reason}`,
+      study.reportUrl ? `Campaign report: ${study.reportUrl}` : "",
+      study.bundleUrl ? `Campaign bundle: ${study.bundleUrl}` : "",
+      "",
+    );
+  }
+
   lines.push(
     "## Replay Instructions",
     "",
@@ -949,6 +1088,7 @@ function buildResearchObject() {
       reportUrl: comparison?.urls?.report || "",
       bundleUrl: comparison?.urls?.bundle || "",
     },
+    campaignStudy: campaignStudyForResearchObject(),
     replayCommands: [
       `qs-dmss verify "${report.run.run_dir}"`,
       `qs-dmss replay "${report.run.run_dir}" --output-root "replays"`,
@@ -1054,6 +1194,71 @@ function researchObjectComparisonMarkup(researchObject) {
   `;
 }
 
+function researchObjectCampaignStudyMarkup(researchObject) {
+  const study = researchObject.campaignStudy;
+  if (!study.available) {
+    return `
+      <p>
+        Campaign Studio has not been run yet. Run or load a saved study template to attach
+        campaign metadata, scoring contract, and recommendation rationale.
+      </p>
+    `;
+  }
+
+  const contract = study.scoringContract || {};
+  const objective = contract.objective || {};
+  const constraintText = Object.entries(contract.constraints || {})
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(" | ");
+  const weightText = Object.entries(contract.ranking?.weights || {})
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(" | ");
+  return `
+    <p>${escapeHtml(study.description)}</p>
+    <dl class="lab-report-metrics">
+      <div>
+        <dt>Template</dt>
+        <dd>${escapeHtml(study.label)}</dd>
+      </div>
+      <div>
+        <dt>Template ID</dt>
+        <dd>${escapeHtml(study.templateId)}</dd>
+      </div>
+      <div>
+        <dt>Objective</dt>
+        <dd>${escapeHtml(objective.name || "Not documented")}</dd>
+      </div>
+      <div>
+        <dt>Primary Metric</dt>
+        <dd>${escapeHtml(objective.primary_metric || "-")} / ${escapeHtml(objective.goal || "-")}</dd>
+      </div>
+      <div>
+        <dt>Launch Envelope</dt>
+        <dd>${escapeHtml(contract.planned_run_count || "-")} planned, max ${escapeHtml(contract.max_runs || "-")}</dd>
+      </div>
+      <div>
+        <dt>Recommendation</dt>
+        <dd>${escapeHtml(shortRunId(study.recommendation.recommendedRunId))} (${escapeHtml(study.recommendation.status)})</dd>
+      </div>
+    </dl>
+    <p><strong>Constraints:</strong> ${escapeHtml(constraintText || "none")}</p>
+    <p><strong>Weights:</strong> ${escapeHtml(weightText || "none")} | primary boost ${escapeHtml(contract.ranking?.primary_metric_weight ?? "-")}</p>
+    <p><strong>Recommendation rationale:</strong> ${escapeHtml(study.recommendation.reason)}</p>
+    <div class="research-object-link-row">
+      ${
+        study.reportUrl
+          ? `<a href="${escapeHtml(study.reportUrl)}" target="_blank" rel="noreferrer">Open campaign report</a>`
+          : ""
+      }
+      ${
+        study.bundleUrl
+          ? `<a href="${escapeHtml(study.bundleUrl)}" target="_blank" rel="noreferrer">Download campaign bundle</a>`
+          : ""
+      }
+    </div>
+  `;
+}
+
 function renderResearchObjectSurface(researchObject) {
   const statusTone = researchObject.status === "Ready" ? "is-success" : "is-warning";
   els.researchObjectSurface.innerHTML = `
@@ -1108,6 +1313,10 @@ function renderResearchObjectSurface(researchObject) {
       <section class="research-object-card research-object-wide">
         <p class="artifact-list-title">Guided Comparison</p>
         ${researchObjectComparisonMarkup(researchObject)}
+      </section>
+      <section class="research-object-card research-object-wide">
+        <p class="artifact-list-title">Campaign Study Template</p>
+        ${researchObjectCampaignStudyMarkup(researchObject)}
       </section>
       <section class="research-object-card">
         <p class="artifact-list-title">Replay Instructions</p>
@@ -1174,6 +1383,7 @@ function renderResearchObjectComposer() {
           <li>Evidence bundle, verification, replay status, and artifact links.</li>
           <li>DOI citation block for QS-DMSS ${citationMetadata.releaseTag} and the latest archived DOI.</li>
           <li>Guided Comparison details if they have been generated.</li>
+          <li>Campaign Studio study template, scoring contract, and recommendation rationale if a campaign has been run.</li>
         </ul>
       </div>
     `;
@@ -1493,6 +1703,119 @@ function campaignStudioConfigFromDraft(draft) {
   return config;
 }
 
+function campaignStudyTemplateFromDraft(draft) {
+  const config = campaignStudioConfigFromDraft(draft);
+  const objective = draft.decisionProfile.objective;
+  return {
+    label: `${state.campaignStudio?.label || "Campaign Studio"} - ${objective.primary_metric} ${draft.plannedRuns}-run study`,
+    description:
+      objective.summary ||
+      "Reusable Campaign Studio study template created from the cockpit editor.",
+    source_config_name: "campaign-study.yaml",
+    campaign: {
+      label: config.campaign.label,
+      strategy: config.campaign.strategy,
+      max_runs: config.campaign.max_runs,
+      planned_run_count: draft.plannedRuns,
+      dimension_count: draft.dimensions.length,
+      dimensions: draft.dimensions,
+    },
+    objective,
+    constraints: draft.decisionProfile.constraints,
+    ranking: draft.decisionProfile.ranking,
+    scoring_contract: {
+      objective,
+      constraints: draft.decisionProfile.constraints,
+      ranking: draft.decisionProfile.ranking,
+      planned_run_count: draft.plannedRuns,
+      max_runs: draft.maxRuns,
+    },
+    config,
+  };
+}
+
+function campaignStudyDecisionValuesFromConfig(config) {
+  const objective = config.objective || {};
+  const constraints = config.constraints || {};
+  const ranking = config.ranking || {};
+  const weights = ranking.weights || {};
+  const values = {
+    objective_name: objective.name || "",
+    objective_summary: objective.summary || "",
+    primary_metric: objective.primary_metric || decisionMetricOptions[0],
+    goal: objective.goal || "minimize_abs",
+    target_value: objective.target_value ?? "",
+    max_runs: config.campaign?.max_runs ?? state.campaignStudio?.max_runs ?? 2,
+    require_verification: constraints.require_verification ?? true,
+    primary_metric_weight: ranking.primary_metric_weight ?? 0,
+  };
+  constraintEditorFields.forEach((field) => {
+    values[field.key] = constraints[field.key] ?? "";
+  });
+  decisionMetricOptions.forEach((metric) => {
+    values[`weight_${metric}`] = weights[metric] ?? 0;
+  });
+  return values;
+}
+
+function applyCampaignStudyTemplate(template) {
+  const config = template?.config;
+  if (!config?.campaign?.dimensions) {
+    throw new Error("Selected study template does not include a campaign config.");
+  }
+  state.campaignStudioValues = Object.fromEntries(
+    config.campaign.dimensions.map((dimension) => [
+      dimension.path,
+      (dimension.values || []).map(String).join(", "),
+    ]),
+  );
+  state.campaignStudioDecisionValues = campaignStudyDecisionValuesFromConfig(config);
+  state.activeCampaignStudyTemplate = template;
+  renderCampaignStudioPreview(state.campaignStudio);
+}
+
+function campaignStudyForResearchObject() {
+  const template = state.lastCampaignStudyTemplate || state.activeCampaignStudyTemplate;
+  const campaignResult = state.lastCampaignStudioResult;
+  const decision = campaignResult?.comparison?.decision || campaignResult?.artifact?.decision || null;
+  const campaign = template?.campaign || campaignResult?.campaign || null;
+  const scoringContract = template?.scoring_contract || {
+    objective: template?.objective || decision?.profile?.objective || null,
+    constraints: template?.constraints || decision?.profile?.constraints || null,
+    ranking: template?.ranking || decision?.profile?.ranking || null,
+    planned_run_count: campaign?.planned_run_count || null,
+    max_runs: campaign?.max_runs || null,
+  };
+  const recommendation = decision
+    ? {
+        available: Boolean(decision.available),
+        status: decision.status || "unknown",
+        recommendedRunId: decision.recommended_run_id || campaignResult?.campaign?.recommended_run_id,
+        reason: decision.reason || "Recommendation rationale not available.",
+        score: decision.recommended_score,
+      }
+    : {
+        available: false,
+        status: "not run",
+        recommendedRunId: null,
+        reason: "Run a Campaign Studio template to attach recommendation rationale.",
+        score: null,
+      };
+
+  return {
+    available: Boolean(template || campaignResult),
+    templateId: template?.template_id || "unsaved-campaign-studio-draft",
+    label: template?.label || campaign?.label || "Campaign Studio study",
+    description: template?.description || "Campaign Studio design used for objective-driven comparison.",
+    sourceConfigName: template?.source_config_name || "campaign-study.yaml",
+    campaign,
+    scoringContract,
+    recommendation,
+    reportUrl: campaignResult?.artifact?.urls?.report || "",
+    bundleUrl: campaignResult?.artifact?.urls?.bundle || "",
+  };
+}
+
 function renderCampaignStudioFields(preview) {
   const dimensions = preview?.dimensions || [];
   if (!dimensions.length) {
@@ -1701,6 +2024,7 @@ function updateCampaignStudioEditorState(preview = state.campaignStudio) {
     renderCampaignStudioScoringContract(draft);
     els.launchCampaignStudioButton.disabled = true;
     els.resetCampaignStudioButton.disabled = true;
+    renderCampaignStudyTemplates();
     return draft;
   }
 
@@ -1722,6 +2046,7 @@ function updateCampaignStudioEditorState(preview = state.campaignStudio) {
   renderCampaignStudioScoringContract(draft);
   els.launchCampaignStudioButton.disabled = !draft.valid;
   els.resetCampaignStudioButton.disabled = false;
+  renderCampaignStudyTemplates();
   return draft;
 }
 
@@ -2447,17 +2772,26 @@ function renderExperimentPlaceholder() {
 }
 
 async function hydrate() {
-  const [configPayload, sweepPayload, showcasePayload, experimentPayload] = await Promise.all([
+  const [
+    configPayload,
+    sweepPayload,
+    showcasePayload,
+    experimentPayload,
+    campaignStudyPayload,
+  ] = await Promise.all([
     fetchJson("/api/configs"),
     fetchJson("/api/sweeps/parameters"),
     fetchJson("/api/showcases"),
     fetchJson("/api/experiments"),
+    fetchJson("/api/campaign-studies"),
   ]);
   state.configs = configPayload.items;
   state.sweepParameters = sweepPayload.items;
   state.showcases = showcasePayload.items;
   state.campaignStudio = showcasePayload.campaign_studio || null;
   state.experiments = experimentPayload.items;
+  state.campaignStudyTemplates = campaignStudyPayload.items || [];
+  state.selectedCampaignStudyTemplateId = state.campaignStudyTemplates[0]?.template_id || null;
   state.selectedTemplateName = configPayload.default_name || state.configs[0]?.name || null;
   state.selectedShowcaseName = showcasePayload.default_name || state.showcases[0]?.name || null;
   renderConfigOptions();
@@ -2603,31 +2937,33 @@ async function handleLaunchLabComparison() {
   }
 }
 
-async function handleLaunchCampaignStudio(event) {
-  event.preventDefault();
-  const draft = campaignStudioDraft();
-  if (!draft.valid) {
-    updateCampaignStudioEditorState();
-    toast("Campaign Studio needs review", draft.errors[0], "danger");
-    return;
-  }
-
+async function runCampaignStudioConfig({
+  config,
+  sourceName,
+  studyTemplate = null,
+  pendingMessage,
+  successTitle,
+}) {
   els.launchCampaignStudioButton.disabled = true;
+  els.runCampaignStudyTemplateButton.disabled = true;
   els.launchCampaignStudioButton.textContent = "Launching...";
-  els.campaignStudioFeedback.textContent =
-    "Running the edited campaign and saving an objective-driven recommendation bundle.";
+  els.runCampaignStudyTemplateButton.textContent = "Running...";
+  els.campaignStudioFeedback.textContent = pendingMessage;
   let completedPayload = null;
 
   try {
     const payload = await fetchJson("/api/campaigns", {
       method: "POST",
       body: JSON.stringify({
-        config: campaignStudioConfigFromDraft(draft),
-        source_name: "campaign-studio.yaml",
+        config,
+        source_name: sourceName,
       }),
     });
     completedPayload = payload;
-    toast("Campaign Studio complete", `Created ${payload.runs.length} edited-grid runs`, "success");
+    clearResearchObject();
+    state.lastCampaignStudyTemplate = studyTemplate;
+    state.lastCampaignStudioResult = payload;
+    toast(successTitle, `Created ${payload.runs.length} scored campaign runs`, "success");
     state.selectedRunIds = payload.campaign.run_ids;
     await refreshRuns();
     await refreshExperiments();
@@ -2638,17 +2974,126 @@ async function handleLaunchCampaignStudio(event) {
     }
     els.campaignStudioFeedback.textContent =
       `Edited decision campaign launched: ${payload.campaign.planned_run_count} variants, recommended ${shortRunId(payload.campaign.recommended_run_id)}.`;
+    renderResearchObjectComposer();
   } catch (error) {
     updateCampaignStudioEditorState();
     toast("Campaign Studio failed", error.message, "danger");
   } finally {
     els.launchCampaignStudioButton.textContent = "Launch Edited Campaign";
+    els.runCampaignStudyTemplateButton.textContent = "Run Saved Template";
     const finalDraft = updateCampaignStudioEditorState();
     if (completedPayload) {
       els.campaignStudioFeedback.textContent =
         `Edited decision campaign launched: ${completedPayload.campaign.planned_run_count} variants, recommended ${shortRunId(completedPayload.campaign.recommended_run_id)}.`;
       els.launchCampaignStudioButton.disabled = !finalDraft.valid;
     }
+  }
+}
+
+async function handleLaunchCampaignStudio(event) {
+  event.preventDefault();
+  const draft = campaignStudioDraft();
+  if (!draft.valid) {
+    updateCampaignStudioEditorState();
+    toast("Campaign Studio needs review", draft.errors[0], "danger");
+    return;
+  }
+
+  const studyTemplate = campaignStudyTemplateFromDraft(draft);
+  await runCampaignStudioConfig({
+    config: studyTemplate.config,
+    sourceName: studyTemplate.source_config_name,
+    studyTemplate,
+    pendingMessage:
+      "Running the edited campaign and saving an objective-driven recommendation bundle.",
+    successTitle: "Campaign Studio complete",
+  });
+}
+
+async function handleSaveCampaignStudyTemplate() {
+  const draft = campaignStudioDraft();
+  if (!draft.valid) {
+    updateCampaignStudioEditorState();
+    toast("Template needs review", draft.errors[0], "danger");
+    return;
+  }
+
+  els.saveCampaignStudyTemplateButton.disabled = true;
+  els.saveCampaignStudyTemplateButton.textContent = "Saving...";
+  try {
+    const payload = await fetchJson("/api/campaign-studies", {
+      method: "POST",
+      body: JSON.stringify({ template: campaignStudyTemplateFromDraft(draft) }),
+    });
+    state.selectedCampaignStudyTemplateId = payload.summary.template_id;
+    state.activeCampaignStudyTemplate = payload.template;
+    await refreshCampaignStudyTemplates();
+    toast("Study template saved", `${payload.summary.label} is ready to reopen or export.`, "success");
+  } catch (error) {
+    toast("Save failed", error.message, "danger");
+  } finally {
+    els.saveCampaignStudyTemplateButton.textContent = "Save Study Template";
+    updateCampaignStudioEditorState();
+  }
+}
+
+async function loadCampaignStudyTemplateDetail(templateId = state.selectedCampaignStudyTemplateId) {
+  if (!templateId) {
+    throw new Error("Select a saved study template first.");
+  }
+  return fetchJson(`/api/campaign-studies/${encodeURIComponent(templateId)}`);
+}
+
+async function handleLoadCampaignStudyTemplate() {
+  try {
+    const payload = await loadCampaignStudyTemplateDetail();
+    state.selectedCampaignStudyTemplateId = payload.summary.template_id;
+    applyCampaignStudyTemplate(payload.template);
+    toast("Study template loaded", `${payload.summary.label} is ready to edit or run.`, "success");
+  } catch (error) {
+    toast("Load failed", error.message, "danger");
+  }
+}
+
+async function handleRunCampaignStudyTemplate() {
+  try {
+    const payload = await loadCampaignStudyTemplateDetail();
+    state.selectedCampaignStudyTemplateId = payload.summary.template_id;
+    applyCampaignStudyTemplate(payload.template);
+    await runCampaignStudioConfig({
+      config: payload.template.config,
+      sourceName: payload.summary.source_config_name || "campaign-study.yaml",
+      studyTemplate: payload.template,
+      pendingMessage:
+        "Running the saved study template and attaching its scoring contract to the recommendation bundle.",
+      successTitle: "Saved study launched",
+    });
+  } catch (error) {
+    toast("Saved study failed", error.message, "danger");
+  }
+}
+
+async function handleImportCampaignStudyTemplate(event) {
+  const file = event.target.files?.[0];
+  if (!file) {
+    return;
+  }
+
+  try {
+    const template = JSON.parse(await file.text());
+    const payload = await fetchJson("/api/campaign-studies/import", {
+      method: "POST",
+      body: JSON.stringify({ template }),
+    });
+    state.selectedCampaignStudyTemplateId = payload.summary.template_id;
+    state.activeCampaignStudyTemplate = payload.template;
+    await refreshCampaignStudyTemplates();
+    applyCampaignStudyTemplate(payload.template);
+    toast("Study template imported", `${payload.summary.label} is ready to rerun.`, "success");
+  } catch (error) {
+    toast("Import failed", error.message, "danger");
+  } finally {
+    event.target.value = "";
   }
 }
 
@@ -2865,9 +3310,18 @@ function bindEvents() {
   els.resetCampaignStudioButton.addEventListener("click", () => {
     state.campaignStudioValues = defaultCampaignStudioValues();
     state.campaignStudioDecisionValues = defaultCampaignStudioDecisionValues();
+    state.activeCampaignStudyTemplate = null;
     renderCampaignStudioPreview(state.campaignStudio);
     toast("Campaign Studio reset", "Packaged grid and decision profile restored.", "success");
   });
+  els.campaignStudyTemplateSelect.addEventListener("change", (event) => {
+    state.selectedCampaignStudyTemplateId = event.target.value || null;
+    renderCampaignStudyTemplates();
+  });
+  els.saveCampaignStudyTemplateButton.addEventListener("click", handleSaveCampaignStudyTemplate);
+  els.loadCampaignStudyTemplateButton.addEventListener("click", handleLoadCampaignStudyTemplate);
+  els.runCampaignStudyTemplateButton.addEventListener("click", handleRunCampaignStudyTemplate);
+  els.importCampaignStudyTemplateInput.addEventListener("change", handleImportCampaignStudyTemplate);
   els.composeResearchObjectButton.addEventListener("click", handleComposeResearchObject);
   els.labSelectRunButton.addEventListener("click", async () => {
     const runId = state.labResult?.run?.summary?.run_id;

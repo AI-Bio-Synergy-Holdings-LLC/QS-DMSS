@@ -31,26 +31,27 @@ The full strategy now lives in:
 - [contributor-roadmap.md](contributor-roadmap.md)
 - [funding-roadmap.md](funding-roadmap.md)
 
-## Current Active Slice: QS-DMSS Lab Mode
+## Current Active Slice: Campaign Studio Study Templates
 
-Lab Mode is the first product slice that can make QS-DMSS feel meaningfully
-different from a generic open simulator.
+Lab Mode and Campaign Studio now make QS-DMSS feel meaningfully different from
+a generic open simulator. The next product slice should preserve campaign
+designs as reusable research objects, not one-off cockpit edits.
 
 The target user flow is:
 
 ```text
-choose scenario -> run simulation -> inspect evidence -> compare variants -> verify/replay -> compose export
+choose scenario -> edit campaign -> save study template -> rerun/import/export -> compose research object
 ```
 
-The first implementation should focus on the local cockpit and existing
+The current implementation should focus on the local cockpit and existing
 showcase/campaign/evidence spine:
 
-- scenario launcher for packaged scenarios;
-- run status and metric summary;
-- embedded CSV/SVG outputs from showcase artifacts;
-- campaign comparison and recommendation explanation;
-- evidence verification and replay controls;
-- Publication Export Composer for a selected Lab Mode research object.
+- save edited Campaign Studio grids and decision profiles as local templates;
+- reopen and rerun saved campaign templates from the cockpit;
+- import/export template JSON so another user can reproduce the campaign design;
+- attach scoring contract, campaign metadata, and recommendation rationale to
+  exported research objects;
+- keep releases paused unless a meaningful product/runtime milestone lands.
 
 ## Builder Board Tracks
 

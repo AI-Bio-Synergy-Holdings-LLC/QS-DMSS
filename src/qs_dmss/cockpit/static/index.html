@@ -316,6 +316,74 @@
                     </button>
                   </div>
                 </form>
+                <section class="campaign-study-template-panel" id="campaignStudyTemplatePanel">
+                  <div class="panel-head compact">
+                    <div>
+                      <p class="artifact-list-title">Study Templates</p>
+                      <h4>Save and share this campaign design</h4>
+                    </div>
+                    <span class="selection-chip" id="campaignStudyTemplateStatus">No templates</span>
+                  </div>
+                  <p class="scenario-library-note" id="campaignStudyTemplateSummary">
+                    Save edited grids and decision profiles as reusable local JSON templates.
+                  </p>
+                  <label class="field campaign-study-template-select">
+                    <span>Saved Study Template</span>
+                    <select id="campaignStudyTemplateSelect" aria-label="Saved campaign study template">
+                      <option value="">No saved templates yet</option>
+                    </select>
+                  </label>
+                  <div class="lab-actions lab-comparison-actions">
+                    <button
+                      class="ghost-button"
+                      id="saveCampaignStudyTemplateButton"
+                      type="button"
+                      disabled
+                    >
+                      Save Study Template
+                    </button>
+                    <button
+                      class="ghost-button"
+                      id="loadCampaignStudyTemplateButton"
+                      type="button"
+                      disabled
+                    >
+                      Load Template
+                    </button>
+                    <button
+                      class="secondary-button teal"
+                      id="runCampaignStudyTemplateButton"
+                      type="button"
+                      disabled
+                    >
+                      Run Saved Template
+                    </button>
+                    <a
+                      class="lab-report-link is-disabled"
+                      id="downloadCampaignStudyTemplateLink"
+                      aria-disabled="true"
+                      tabindex="-1"
+                    >
+                      Download JSON
+                    </a>
+                    <label class="ghost-button campaign-study-import-label">
+                      Import JSON
+                      <input
+                        id="importCampaignStudyTemplateInput"
+                        type="file"
+                        accept="application/json,.json"
+                      />
+                    </label>
+                  </div>
+                  <p
+                    class="campaign-studio-feedback"
+                    id="campaignStudyTemplateFeedback"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    Templates preserve the grid, scoring contract, and launchable campaign config.
+                  </p>
+                </section>
                 <p class="lab-review-prompt" id="campaignStudioBoundary">
                   Add campaign metadata to make Scenario Library entries launch configurable studies.
                 </p>
