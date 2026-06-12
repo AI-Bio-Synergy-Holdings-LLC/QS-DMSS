@@ -283,6 +283,33 @@ def test_cockpit_api_showcases_hides_internal_exception_details(
     assert "Traceback" not in showcase_payload.text
 
 
+def test_cockpit_api_global_exception_handler_hides_internal_exception_details(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+
+    def broken_launch_showcase(self, scenario: str) -> dict:
+        raise RuntimeError(f"sensitive scenario failure for {scenario}")
+
+    monkeypatch.setattr(
+        cockpit_api.CockpitService,
+        "launch_showcase",
+        broken_launch_showcase,
+    )
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app, raise_server_exceptions=False)
+
+    showcase_payload = client.post("/api/showcases/canonical-simulation/run")
+
+    assert showcase_payload.status_code == 500
+    assert showcase_payload.json() == {
+        "detail": cockpit_api.GENERIC_COCKPIT_ERROR_DETAIL
+    }
+    assert "sensitive scenario failure" not in showcase_payload.text
+    assert "Traceback" not in showcase_payload.text
+
+
 def test_cockpit_api_launches_guided_showcase_comparison(tmp_path: Path) -> None:
     repo_root = Path(__file__).resolve().parents[1]
     app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
