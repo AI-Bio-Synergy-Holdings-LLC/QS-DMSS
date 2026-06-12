@@ -10,11 +10,12 @@ The intended beta claim is narrow:
 
 ## Current Decision
 
-- Current release target: `v0.6.1` / `0.6.1`
+- Current release target: `v0.7.0` / `0.7.0`
 - Current PyPI classifier target: `Development Status :: 4 - Beta`
 - Promotion basis: `v0.1.5` passed the beta-readiness gate
 - Current Zenodo concept DOI: `10.5281/zenodo.20074924`
 - Latest archived release DOI: `10.5281/zenodo.20631860`
+- `v0.7.0` release DOI: pending Zenodo archive after the GitHub release
 - `v0.6.1` release DOI: `10.5281/zenodo.20631860`
 - `v0.6.0` release DOI: `10.5281/zenodo.20618884`
 - `v0.5.0` release DOI: `10.5281/zenodo.20617028`
@@ -38,6 +39,9 @@ The beta promise applies to these user-facing workflows:
   packaged benchmark validation spine.
 - Starting the local cockpit and using Lab Mode for guided interpretation,
   Evidence Explorer previews, and guided comparison of packaged variants.
+- Using Campaign Studio to inspect packaged scenario metadata, edit the
+  parameter grid, edit the decision profile, preview the scoring contract, and
+  launch an objective-driven campaign through the cockpit.
 - Publishing traceable wheel and sdist artifacts through GitHub releases and
   PyPI Trusted Publishing.
 - Keeping package metadata, release assets, and citation metadata aligned.
@@ -108,5 +112,16 @@ The `v0.6.0` product milestone adds the Publication Export Composer:
 - Lets Lab Mode compose a reviewer-facing research object with scenario,
   metrics, evidence status, replay instructions, artifact links, citation/DOI
   metadata, and a Markdown export.
+- Keeps the same claim boundary: beta for reproducible package/evidence
+  workflows, not peer-reviewed scientific validation.
+
+The `v0.7.0` product milestone adds Campaign Studio configurability:
+
+- Keeps the PyPI classifier at `Development Status :: 4 - Beta`.
+- Ships Scenario Library metadata, editable Campaign Studio parameter grids,
+  editable decision profiles, and scoring-contract preview in the local
+  cockpit.
+- Keeps using the existing campaign/evidence/recommendation pipeline rather
+  than expanding the scientific claim.
 - Keeps the same claim boundary: beta for reproducible package/evidence
   workflows, not peer-reviewed scientific validation.

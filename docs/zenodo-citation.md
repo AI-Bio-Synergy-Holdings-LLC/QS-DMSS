@@ -4,12 +4,12 @@ QS-DMSS uses `CITATION.cff` as its canonical citation metadata file.
 
 ## Current Status
 
-- Public baseline: `v0.6.1`
-- Current package metadata target: `v0.6.1` / `0.6.1`
+- Public baseline: `v0.7.0`
+- Current package metadata target: `v0.7.0` / `0.7.0`
 - Citation metadata file: `CITATION.cff`
-- DOI status: `v0.6.1` archived by Zenodo
-- PyPI metadata refresh: `v0.6.1` republishes corrected citation metadata
-  without changing simulation behavior
+- DOI status: `v0.7.0` pending Zenodo archive after the GitHub release
+- PyPI metadata refresh: `v0.7.0` publishes the Campaign Studio milestone while
+  retaining the latest archived release DOI until the v0.7.0 DOI exists
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
 - Latest archived release DOI: `10.5281/zenodo.20631860` (`v0.6.1`)
 - Latest archived release record: `https://zenodo.org/records/20631860`
