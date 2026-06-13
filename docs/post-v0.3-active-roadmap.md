@@ -31,30 +31,34 @@ The full strategy now lives in:
 - [contributor-roadmap.md](contributor-roadmap.md)
 - [funding-roadmap.md](funding-roadmap.md)
 
-## Current Active Slice: v0.8.0 Release Readiness
+## Current Active Slice: Self-Interaction Study Template
 
 Lab Mode and Campaign Studio now make QS-DMSS feel meaningfully different from
-a generic open simulator. The Campaign Studio Template Library product-polish
-slice has landed; the current slice is release readiness for `v0.8.0`.
+a generic open simulator. `v0.8.0` has shipped the Campaign Studio Template
+Library polish, and PR #90 clarified the scientific scope and tangible-utility
+lane. The current slice turns that positioning into a packaged runnable study.
 
 The target user flow is:
 
 ```text
-choose scenario -> edit campaign -> save study template -> inspect card -> rerun/import/export -> compose research object
+select Self-Interaction Sweep -> run engine.g_int campaign -> inspect guidance -> export research object
 ```
 
 The current implementation should focus on the local cockpit and existing
 showcase/campaign/evidence spine:
 
-- save edited Campaign Studio grids and decision profiles as local templates;
-- display templates as visible cards with objective, metric, plan, source, and portability metadata;
-- reopen and rerun saved campaign templates from the cockpit;
-- record last-run provenance, recommendation, report, and bundle links after execution;
-- import/export template JSON so another user can reproduce the campaign design;
-- attach scoring contract, campaign metadata, and recommendation rationale to
-  exported research objects;
-- cut `v0.8.0` only after release-prep CI is green, GitHub code scanning stays
-  clean, and the release artifacts pass build/Twine checks.
+- ship a packaged `Self-Interaction Sweep` Campaign Studio template focused on
+  `engine.g_int`;
+- show purpose, expected runtime, metrics, limitations, and non-claims in the
+  template library before a user edits YAML;
+- run the packaged template through the existing campaign/recommendation
+  pipeline without writing inside installed package assets;
+- record local last-run provenance, recommendation, report, and bundle links
+  after execution;
+- attach the scoring contract, campaign metadata, guided interpretation, and
+  recommendation rationale to exported research objects;
+- keep package releases paused until the template feels like a meaningful
+  `v0.9.0` product milestone.
 
 ## Builder Board Tracks
 

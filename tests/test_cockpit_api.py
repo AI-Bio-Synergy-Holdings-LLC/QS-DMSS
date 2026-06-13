@@ -51,6 +51,9 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert 'id="runCampaignStudyTemplateButton"' in root.text
     assert 'id="downloadCampaignStudyTemplateLink"' in root.text
     assert 'id="importCampaignStudyTemplateInput"' in root.text
+    assert 'id="campaignStudyGuide"' in root.text
+    assert 'id="campaignStudyGuideChangedList"' in root.text
+    assert 'id="campaignStudyGuideMetricList"' in root.text
     markdown_link = re.search(r'<a[^>]+id="labMarkdownLink"[^>]*>', root.text)
     json_link = re.search(r'<a[^>]+id="labJsonLink"[^>]*>', root.text)
     research_object_button = re.search(
@@ -662,9 +665,13 @@ def test_cockpit_api_saves_imports_and_launches_campaign_study_templates(
     app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
     client = TestClient(app)
 
-    empty_templates = client.get("/api/campaign-studies")
-    assert empty_templates.status_code == 200
-    assert empty_templates.json()["items"] == []
+    initial_templates = client.get("/api/campaign-studies")
+    assert initial_templates.status_code == 200
+    assert [
+        item["template_id"]
+        for item in initial_templates.json()["items"]
+    ] == ["self-interaction-sweep"]
+    assert initial_templates.json()["items"][0]["packaged"] is True
 
     config_item = client.get("/api/configs").json()["items"][0]
     edited_config = deepcopy(config_item["config"])
@@ -720,7 +727,8 @@ def test_cockpit_api_saves_imports_and_launches_campaign_study_templates(
 
     listed = client.get("/api/campaign-studies")
     assert listed.status_code == 200
-    assert listed.json()["items"][0]["template_id"] == template_id
+    listed_items = listed.json()["items"]
+    assert any(item["template_id"] == template_id for item in listed_items)
 
     detail = client.get(f"/api/campaign-studies/{template_id}")
     assert detail.status_code == 200
@@ -782,9 +790,91 @@ def test_cockpit_api_saves_imports_and_launches_campaign_study_templates(
 
     updated_list = client.get("/api/campaign-studies")
     assert updated_list.status_code == 200
-    assert updated_list.json()["items"][0]["last_run"]["experiment_id"] == (
+    updated_summary = next(
+        item for item in updated_list.json()["items"] if item["template_id"] == template_id
+    )
+    assert updated_summary["last_run"]["experiment_id"] == (
         campaign["artifact"]["summary"]["experiment_id"]
     )
+
+
+def test_cockpit_api_lists_and_runs_packaged_self_interaction_study_template(
+    tmp_path: Path,
+) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    templates_payload = client.get("/api/campaign-studies")
+    assert templates_payload.status_code == 200
+    templates = templates_payload.json()["items"]
+    packaged = next(
+        item for item in templates if item["template_id"] == "self-interaction-sweep"
+    )
+    assert packaged["label"] == "Self-Interaction Sweep"
+    assert packaged["packaged"] is True
+    assert packaged["origin"] == "packaged"
+    assert "engine.g_int" in packaged["description"]
+    assert packaged["expected_runtime"].startswith("Fast laptop/CI campaign")
+    assert [metric["label"] for metric in packaged["metrics"]] == [
+        "Energy drift",
+        "Norm drift",
+        "Max density",
+        "Elapsed seconds",
+    ]
+    assert packaged["limitations"]
+    assert packaged["non_claims"]
+    assert packaged["interpretation"]["what_changed"][0].startswith("Only engine.g_int")
+    assert not (tmp_path / "experiments" / "campaign-studies").exists()
+
+    detail_payload = client.get("/api/campaign-studies/self-interaction-sweep")
+    assert detail_payload.status_code == 200
+    detail = detail_payload.json()
+    template = detail["template"]
+    assert template["config"]["campaign"]["dimensions"] == [
+        {"path": "engine.g_int", "values": [0.0, 0.02, 0.05, 0.08, 0.12]}
+    ]
+    assert template["campaign"]["planned_run_count"] == 5
+
+    campaign_payload = client.post(
+        "/api/campaigns",
+        json={
+            "config": template["config"],
+            "source_name": template["source_config_name"],
+            "study_template_id": template["template_id"],
+        },
+    )
+    assert campaign_payload.status_code == 200
+    campaign = campaign_payload.json()
+    assert campaign["campaign"]["label"] == "Self-interaction tangible utility sweep"
+    assert campaign["campaign"]["planned_run_count"] == 5
+    assert campaign["campaign"]["dimensions"][0]["path"] == "engine.g_int"
+    assert len(campaign["runs"]) == 5
+    assert campaign["comparison"]["decision"]["available"] is True
+    assert campaign["guide"]["title"] == "Self-Interaction Sweep guided interpretation"
+    assert any("Energy drift span" in item for item in campaign["guide"]["what_changed"])
+    assert any("Max density" in item for item in campaign["guide"]["metric_meanings"])
+    assert campaign["guide"]["what_this_does_not_claim"]
+    assert campaign["artifact"]["summary"]["kind"] == "campaign"
+    assert campaign["artifact"]["summary"]["run_count"] == 5
+    assert campaign["study_template"]["summary"]["template_id"] == "self-interaction-sweep"
+    assert campaign["study_template"]["summary"]["last_run"]["status"] == "completed"
+
+    local_template = tmp_path / "experiments" / "campaign-studies" / "self-interaction-sweep.json"
+    assert local_template.exists()
+    local_payload = client.get("/api/campaign-studies/self-interaction-sweep")
+    assert local_payload.status_code == 200
+    assert local_payload.json()["summary"]["last_run"]["experiment_id"] == (
+        campaign["artifact"]["summary"]["experiment_id"]
+    )
+
+    report_payload = client.get(campaign["artifact"]["urls"]["report"])
+    assert report_payload.status_code == 200
+    assert "QS-DMSS Experiment Report" in report_payload.text
+
+    bundle_payload = client.get(campaign["artifact"]["urls"]["bundle"])
+    assert bundle_payload.status_code == 200
+    assert bundle_payload.headers["content-type"].startswith("application/zip")
 
 
 def test_cockpit_api_rejects_invalid_edited_decision_profile(tmp_path: Path) -> None:
