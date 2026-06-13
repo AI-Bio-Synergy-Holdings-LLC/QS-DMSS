@@ -33,17 +33,11 @@ Before tagging `v0.8.0`, validate:
 .\.venv\Scripts\python.exe -m twine check dist/*
 ```
 
-After GitHub release publication, run the fresh-install smoke workflow against:
-
-- package version: `0.8.0`
-- release tag: `v0.8.0`
+Post-release fresh-install smoke passed on Linux, macOS, and Windows for both
+PyPI `0.8.0` and the GitHub release wheel from `v0.8.0`.
 
 ## Citation Status
 
 - Project DOI: `10.5281/zenodo.20074924`
-- Latest currently archived release DOI: `10.5281/zenodo.20671389` (`v0.7.0`)
-- `v0.8.0` release DOI: pending Zenodo archival after the GitHub release
-
-After Zenodo archives `v0.8.0`, update the GitHub release notes, `CITATION.cff`,
-README citation text, `codemeta.json`, and citation docs with the new version
-DOI.
+- `v0.8.0` release DOI: `10.5281/zenodo.20673804`
+- Zenodo record: `https://zenodo.org/records/20673804`

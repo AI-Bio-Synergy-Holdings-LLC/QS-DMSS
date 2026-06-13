@@ -7,14 +7,16 @@ QS-DMSS uses `CITATION.cff` as its canonical citation metadata file.
 - Public baseline: `v0.8.0` release target
 - Current package metadata target: `v0.8.0` / `0.8.0`
 - Citation metadata file: `CITATION.cff`
-- DOI status: `v0.8.0` pending Zenodo archival after the GitHub release
-- PyPI metadata status: `v0.8.0` pending publication; package-facing DOI
-  metadata keeps the concept DOI and latest currently archived release DOI until
-  Zenodo mints the `v0.8.0` DOI
+- DOI status: `v0.8.0` archived by Zenodo
+- PyPI metadata status: `v0.8.0` published; package-facing DOI metadata keeps
+  the concept DOI and latest archived release DOI visible.
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: `10.5281/zenodo.20671389` (`v0.7.0`)
-- Latest archived release record: `https://zenodo.org/records/20671389`
-- `v0.8.0` release DOI: pending Zenodo archival after release
+- Latest archived release DOI: `10.5281/zenodo.20673804` (`v0.8.0`)
+- Latest archived release record: `https://zenodo.org/records/20673804`
+- `v0.8.0` release DOI: `10.5281/zenodo.20673804`
+- `v0.8.0` release record: `https://zenodo.org/records/20673804`
+- Previous archived release DOI for `v0.7.0`: `10.5281/zenodo.20671389`
+- Previous archived release record for `v0.7.0`: `https://zenodo.org/records/20671389`
 - Previous archived release DOI for `v0.6.1`: `10.5281/zenodo.20631860`
 - Previous archived release record for `v0.6.1`: `https://zenodo.org/records/20631860`
 - Previous archived release DOI for `v0.6.0`: `10.5281/zenodo.20618884`
@@ -58,12 +60,8 @@ Use the version DOI when citing the exact first archived release artifacts:
 Use the latest known version DOI when citing the current archived release:
 
 ```text
-10.5281/zenodo.20671389
+10.5281/zenodo.20673804
 ```
-
-After `v0.8.0` is archived, update this file, `CITATION.cff`, `codemeta.json`,
-README citation text, GitHub release notes, and package-facing docs with the new
-version DOI.
 
 `CITATION.cff` stores the concept DOI in the root `doi` field so GitHub and
 PyPI package metadata can point to a stable citation target across releases. It

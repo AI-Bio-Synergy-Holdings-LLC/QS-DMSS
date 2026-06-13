@@ -5,7 +5,7 @@
   "name": "QS-DMSS",
   "description": "Evidence-first simulation lab for the QuantumScalar Dark Matter Simulation Suite, with deterministic runs, configurable Campaign Studio study templates and decision profiles, Lab Mode guided interpretation and comparison, publication export composition, canonical simulation showcase artifacts, and reproducible evidence bundles.",
   "identifier": "https://doi.org/10.5281/zenodo.20074924",
-  "citation": "https://doi.org/10.5281/zenodo.20671389",
+  "citation": "https://doi.org/10.5281/zenodo.20673804",
   "codeRepository": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
   "issueTracker": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues",
   "downloadUrl": "https://pypi.org/project/qs-dmss/",
