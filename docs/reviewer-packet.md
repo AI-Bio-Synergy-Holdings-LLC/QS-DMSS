@@ -14,6 +14,9 @@ Project DOI: `10.5281/zenodo.20074924`
 
 Open Collective: `https://opencollective.com/qs-dmss`
 
+Scientific scope and tangible utility guide:
+[`scientific-scope-and-utility.md`](scientific-scope-and-utility.md)
+
 Active external review sprint:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
 

@@ -16,6 +16,28 @@ bundled, verified, replayable, comparable, citable, and ready to share.
 QS-DMSS is beta for reproducible package/evidence workflows; it is not
 peer-reviewed scientific validation.
 
+## Tangible Utility Summary
+
+QS-DMSS is a classical, NumPy-first reference lab for small deterministic
+Schrodinger-Poisson-style quantum scalar dark matter experiments. Its strongest
+public lane is not high-performance cosmological discovery; it is making
+simulation studies fast to set up, easy to inspect, reproducible, comparable,
+and citable.
+
+- Rapid sandbox studies for parameters such as the self-interaction term
+  `engine.g_int`, timestep, packet width, amplitude, and random seed.
+- Local Python package, CLI, cockpit, and JSON API paths that avoid HPC or
+  cluster infrastructure for small reference runs.
+- Evidence bundles, manifests, replay, verification, reports, and Zenodo/PyPI
+  metadata that turn runs into portable research objects.
+- Campaign Studio study templates for preserving, rerunning, importing,
+  exporting, and explaining reproducible parameter-grid designs.
+
+See
+[docs/scientific-scope-and-utility.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/scientific-scope-and-utility.md)
+for the scientific scope, non-claims, and a concrete self-interaction campaign
+study using `engine.g_int`.
+
 - Installable Python package
 - Bundled demo assets for installed-package smoke testing
 - Config-driven simulation CLI
@@ -112,6 +134,7 @@ qs-dmss run configs/demo.yaml
 
 Builders and sponsors can start with the product direction:
 
+- [docs/scientific-scope-and-utility.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/scientific-scope-and-utility.md)
 - [docs/product-vision.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/product-vision.md)
 - [docs/contributor-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/contributor-roadmap.md)
 - [docs/funding-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/funding-roadmap.md)
