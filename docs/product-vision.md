@@ -32,6 +32,23 @@ The scientific boundary remains honest: QS-DMSS is not claiming peer-reviewed
 physical validation today. The build direction is to make every claim more
 inspectable, reproducible, and ready for serious review.
 
+## Scientific And Utility Lane
+
+QS-DMSS is strongest when it is explicit about what it is and is not. The
+current build is a classical, NumPy-first, small-scale reference lab for
+Schrodinger-Poisson-style studies. It should be used for sandbox studies,
+education, reproducibility, API/cockpit workflows, decision campaigns, and
+publication-grade research objects.
+
+It should not be framed as an AMR/MPI/GPU cosmological production solver or a
+quantum-computing algorithm. The practical user benefit is that a small
+simulation study can be run, swept across parameters such as `engine.g_int`,
+verified, replayed, compared, exported, and cited without a heavy infrastructure
+stack.
+
+The public scope and concrete self-interaction campaign guide live in
+[`scientific-scope-and-utility.md`](scientific-scope-and-utility.md).
+
 ## Who It Should Become Useful For
 
 QS-DMSS should grow toward four public audiences:
