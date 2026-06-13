@@ -9,8 +9,9 @@ The current QS-DMSS direction is:
 run simulations -> inspect evidence -> compare campaigns -> publish reproducible artifacts
 ```
 
-The stable public package is `qs-dmss==0.7.0`. The latest archived release DOI
-is `v0.7.0` / `10.5281/zenodo.20671389`.
+The release target is `qs-dmss==0.8.0`. The latest currently archived release
+DOI remains `v0.7.0` / `10.5281/zenodo.20671389` until Zenodo archives
+`v0.8.0`.
 
 ## Strategic Shift
 
@@ -31,12 +32,11 @@ The full strategy now lives in:
 - [contributor-roadmap.md](contributor-roadmap.md)
 - [funding-roadmap.md](funding-roadmap.md)
 
-## Current Active Slice: Campaign Studio Template Library
+## Current Active Slice: v0.8.0 Release Readiness
 
 Lab Mode and Campaign Studio now make QS-DMSS feel meaningfully different from
-a generic open simulator. The current product-polish slice should make saved
-campaign designs feel like reusable research assets, not only JSON behind a
-dropdown.
+a generic open simulator. The Campaign Studio Template Library product-polish
+slice has landed; the current slice is release readiness for `v0.8.0`.
 
 The target user flow is:
 
@@ -54,7 +54,8 @@ showcase/campaign/evidence spine:
 - import/export template JSON so another user can reproduce the campaign design;
 - attach scoring contract, campaign metadata, and recommendation rationale to
   exported research objects;
-- keep releases paused unless a meaningful product/runtime milestone lands.
+- cut `v0.8.0` only after release-prep CI is green, GitHub code scanning stays
+  clean, and the release artifacts pass build/Twine checks.
 
 ## Builder Board Tracks
 
