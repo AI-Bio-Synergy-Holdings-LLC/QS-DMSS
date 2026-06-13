@@ -174,12 +174,12 @@ class CockpitService:
         config = default_config["config"]
         try:
             campaign_plan = build_campaign_plan(config)
-        except ValueError as exc:
+        except ValueError:
             return {
                 "available": False,
                 "title": "Campaign Studio",
                 "source_config_name": default_config["name"],
-                "summary": str(exc),
+                "summary": "The default config is not a launchable campaign study yet.",
                 "current_boundary": "This config can launch a run, but it does not define an automated campaign.",
                 "next_capabilities": [
                     "Add a campaign section",
