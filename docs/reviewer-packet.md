@@ -4,9 +4,9 @@ This packet is the shortest path for an external reviewer to understand what
 QS-DMSS is claiming, reproduce the public baseline, and decide where feedback
 would be most useful.
 
-Current public baseline: `v0.7.0` / `qs-dmss==0.7.0`
+Current public baseline: `v0.8.0` / `qs-dmss==0.8.0`
 
-Release DOI: `10.5281/zenodo.20671389`
+Release DOI: pending Zenodo archival after the `v0.8.0` GitHub release
 
 Latest archived release DOI: `10.5281/zenodo.20671389` (`v0.7.0`)
 
@@ -46,7 +46,7 @@ Use the published PyPI package from a clean environment:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.7.0
+python -m pip install qs-dmss==0.8.0
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo
@@ -94,7 +94,16 @@ Use [simulation-showcase.md](simulation-showcase.md) for the detailed path.
 
 ## Lab Mode Cockpit Path
 
-`v0.7.0` is the product milestone where Campaign Studio becomes configurable:
+`v0.8.0` is the product milestone where Campaign Studio study templates become
+visible reusable research assets:
+
+- Saved study templates appear as cards with objective, metric, planned runs,
+  source config, portability, and import/export status.
+- Running a saved template records last-run provenance: recommendation, report,
+  and bundle links.
+- The public repository now has zero open GitHub code-scanning alerts.
+
+`v0.7.0` was the product milestone where Campaign Studio became configurable:
 
 - Scenario Library metadata explains packaged campaign scenarios, readiness,
   runtime expectations, artifacts, limitations, and next actions.
