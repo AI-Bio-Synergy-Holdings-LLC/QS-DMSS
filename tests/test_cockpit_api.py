@@ -283,6 +283,31 @@ def test_cockpit_api_showcases_hides_internal_exception_details(
     assert "Traceback" not in showcase_payload.text
 
 
+def test_cockpit_api_campaign_studio_preview_hides_validation_details(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+
+    def broken_campaign_plan(config: dict) -> dict:
+        raise ValueError("sensitive campaign validation path C:\\private\\plan.yaml")
+
+    monkeypatch.setattr(cockpit_api, "build_campaign_plan", broken_campaign_plan)
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    showcase_payload = client.get("/api/showcases")
+
+    assert showcase_payload.status_code == 200
+    campaign_studio = showcase_payload.json()["campaign_studio"]
+    assert campaign_studio["available"] is False
+    assert campaign_studio["summary"] == (
+        "The default config is not a launchable campaign study yet."
+    )
+    assert "sensitive campaign validation path" not in showcase_payload.text
+    assert "Traceback" not in showcase_payload.text
+
+
 def test_cockpit_api_global_exception_handler_hides_internal_exception_details(
     tmp_path: Path,
     monkeypatch,
