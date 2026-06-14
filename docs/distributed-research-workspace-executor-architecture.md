@@ -228,9 +228,10 @@ Guardrails:
    adapter with file-backed job records for local runs and replay runs.
 3. Complete: expose local job records in the cockpit/API as run and
    campaign-variant provenance.
-4. Next: add campaign-level and research-object-export job records where the
-   job represents a multi-run artifact rather than one simulation run.
-5. Add workspace export/import with collaborators and annotations.
+4. Complete: add campaign-level and research-object-export job records where
+   the job represents a multi-run artifact or persisted publication export
+   rather than one simulation run.
+5. Next: add workspace export/import with collaborators and annotations.
 6. Add `DryRunSlurmExecutor` that produces a reviewable batch script and request
    bundle without submission.
 7. Add real Slurm submit/status/collect behind an explicit opt-in profile.
