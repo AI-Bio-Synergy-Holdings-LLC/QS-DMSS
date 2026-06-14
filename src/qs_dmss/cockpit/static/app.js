@@ -161,6 +161,7 @@ const els = {
   experimentRecommended: document.querySelector("#experimentRecommended"),
   experimentDecisionStatus: document.querySelector("#experimentDecisionStatus"),
   experimentBundleSize: document.querySelector("#experimentBundleSize"),
+  experimentJobId: document.querySelector("#experimentJobId"),
   experimentRegistryBody: document.querySelector("#experimentRegistryBody"),
   toastRegion: document.querySelector("#toastRegion"),
   fields: {
@@ -816,7 +817,7 @@ function renderLabEvidenceExplorer(result) {
 }
 
 function clearResearchObject() {
-  if (state.researchObjectDownloadUrl) {
+  if (state.researchObjectDownloadUrl?.startsWith("blob:")) {
     URL.revokeObjectURL(state.researchObjectDownloadUrl);
   }
   state.researchObject = null;
@@ -827,7 +828,7 @@ function setResearchObjectDownloadEnabled(enabled) {
   const link = els.researchObjectDownloadLink;
   if (enabled && state.researchObjectDownloadUrl && state.researchObject) {
     link.href = state.researchObjectDownloadUrl;
-    link.download = state.researchObject.fileName;
+    link.download = state.researchObject.export?.file_name || state.researchObject.fileName;
     link.removeAttribute("aria-disabled");
     link.removeAttribute("tabindex");
     link.textContent = "Download Markdown";
@@ -1693,6 +1694,7 @@ function researchObjectCampaignStudyMarkup(researchObject) {
 
 function renderResearchObjectSurface(researchObject) {
   const statusTone = researchObject.status === "Ready" ? "is-success" : "is-warning";
+  const exportJob = jobSummary(researchObject.executionJob);
   els.researchObjectSurface.innerHTML = `
     <header class="research-object-head">
       <div>
@@ -1772,6 +1774,20 @@ function renderResearchObjectSurface(researchObject) {
           <a href="${citationMetadata.pypiUrl}" target="_blank" rel="noreferrer">PyPI package</a>
         </div>
       </section>
+      <section class="research-object-card">
+        <p class="artifact-list-title">Export Provenance</p>
+        ${
+          exportJob
+            ? `
+              <div>${jobCellMarkup(exportJob)}</div>
+              <p>
+                Persisted as ${escapeHtml(researchObject.export?.file_name || researchObject.fileName)}
+                with job lifecycle and artifact roles in the local registry.
+              </p>
+            `
+            : "<p>Compose the research object to persist export job provenance.</p>"
+        }
+      </section>
     </div>
   `;
 }
@@ -1833,17 +1849,35 @@ function renderResearchObjectComposer() {
   renderResearchObjectSurface(state.researchObject);
 }
 
-function handleComposeResearchObject() {
+async function handleComposeResearchObject() {
   if (!state.labResult && !state.lastCampaignStudioResult) {
     return;
   }
   clearResearchObject();
-  state.researchObject = buildResearchObject();
-  state.researchObjectDownloadUrl = URL.createObjectURL(
-    new Blob([state.researchObject.markdown], { type: "text/markdown" }),
-  );
-  renderResearchObjectComposer();
-  toast("Research object composed", "Markdown export and citation block are ready.", "success");
+  const researchObject = buildResearchObject();
+  els.composeResearchObjectButton.disabled = true;
+  els.composeResearchObjectButton.textContent = "Exporting...";
+
+  try {
+    const payload = await fetchJson("/api/research-objects/export", {
+      method: "POST",
+      body: JSON.stringify({ research_object: researchObject }),
+    });
+    state.researchObject = payload.research_object;
+    state.researchObject.executionJob = payload.execution_job;
+    state.researchObject.export = payload.export;
+    state.researchObjectDownloadUrl = payload.export.download_url;
+    renderResearchObjectComposer();
+    toast(
+      "Research object exported",
+      `Markdown persisted with job ${shortRunId(payload.execution_job?.summary?.job_id)}.`,
+      "success",
+    );
+  } catch (error) {
+    clearResearchObject();
+    renderResearchObjectComposer();
+    toast("Research object export failed", error.message, "danger");
+  }
 }
 
 function renderBadgeRow(container, badges, emptyText) {
@@ -2925,7 +2959,7 @@ function renderExperimentRegistry() {
   if (!state.experiments.length) {
     els.experimentRegistryBody.innerHTML = `
       <tr>
-        <td colspan="6">No experiments saved yet.</td>
+        <td colspan="7">No experiments saved yet.</td>
       </tr>
     `;
     return;
@@ -2942,6 +2976,7 @@ function renderExperimentRegistry() {
         <tr class="${selected}" data-experiment-id="${experiment.experiment_id}">
           <td>${label}</td>
           <td>${experiment.kind}</td>
+          <td>${jobCellMarkup(experiment.execution_job)}</td>
           <td>${shortRunId(experiment.recommended_run_id)}</td>
           <td>${experiment.run_count}</td>
           <td>${formatTimestamp(experiment.created_at)}</td>
@@ -3254,6 +3289,7 @@ function renderSelectedExperiment(detail) {
   els.experimentRecommended.textContent = shortRunId(detail.summary.recommended_run_id);
   els.experimentDecisionStatus.textContent = detail.summary.decision_status || "-";
   els.experimentBundleSize.textContent = detail.summary.bundle_size_label;
+  els.experimentJobId.textContent = jobLabel(detail.execution_job || detail.summary.execution_job);
   els.experimentBundleLink.href = detail.urls.bundle;
   els.experimentBundleLink.setAttribute("download", "");
   setExperimentActionsEnabled(true);
@@ -3272,6 +3308,7 @@ function renderExperimentPlaceholder() {
   els.experimentRecommended.textContent = "-";
   els.experimentDecisionStatus.textContent = "-";
   els.experimentBundleSize.textContent = "-";
+  els.experimentJobId.textContent = "-";
   els.experimentBundleLink.href = "#";
   setExperimentActionsEnabled(false);
   renderExperimentRegistry();

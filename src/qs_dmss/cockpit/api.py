@@ -15,7 +15,14 @@ from pydantic import BaseModel
 from qs_dmss.app import execute_run, replay_run as replay_existing_run
 from qs_dmss.decision import evaluate_run_decision
 from qs_dmss.evidence.verify import verify_run_path
-from qs_dmss.execution import LocalJobRegistry
+from qs_dmss.execution import (
+    ExecutionArtifact,
+    ExecutionJobHandle,
+    ExecutionJobResult,
+    ExecutionJobSpec,
+    JobState,
+    LocalJobRegistry,
+)
 from qs_dmss.experiment import (
     apply_parameter_values,
     apply_sweep_value,
@@ -90,6 +97,10 @@ class LaunchCampaignRequest(BaseModel):
 
 class CampaignStudyTemplateRequest(BaseModel):
     template: dict[str, Any]
+
+
+class ResearchObjectExportRequest(BaseModel):
+    research_object: dict[str, Any]
 
 
 @dataclass(frozen=True)
@@ -394,49 +405,78 @@ class CockpitService:
         variants = self._guided_comparison_variants(base_config)
         experiment_id = create_experiment_id("guided-comparison")
         experiment_label = f"{selected.name.replace('-', ' ').title()} guided comparison"
+        parent_handle = self._start_parent_job(
+            config=base_config,
+            source_name=f"{selected.name}-guided-comparison",
+            experiment={
+                "id": experiment_id,
+                "kind": "guided-comparison",
+                "label": experiment_label,
+                "planned_run_count": len(variants),
+            },
+            labels=("experiment", "guided-comparison", "multi-run"),
+            metadata={
+                "scenario": selected.name,
+                "variant_count": len(variants),
+            },
+            message="Local guided comparison job started.",
+        )
 
         run_dirs: list[Path] = []
         summaries: list[dict] = []
         details: list[dict] = []
-        with TemporaryDirectory() as temp_dir:
-            temp_root = Path(temp_dir)
-            for ordinal, variant in enumerate(variants, start=1):
-                variant_config = self._guided_comparison_config(
-                    base_config,
-                    variant["values"],
-                )
-                temp_config_dir = temp_root / f"variant-{ordinal:02d}"
-                temp_config_dir.mkdir(parents=True, exist_ok=True)
-                temp_path = self._temp_source_path(
-                    temp_config_dir,
-                    f"{selected.name}-{variant['slug']}.yaml",
-                )
-                outputs = execute_run(
-                    config=parse_config(variant_config),
-                    source_config_path=temp_path,
-                    output_root=self.output_root,
-                    experiment=self._guided_comparison_context(
-                        experiment_id=experiment_id,
-                        label=experiment_label,
-                        dimensions=dimensions,
-                        variant=variant,
-                        ordinal=ordinal,
-                        total_runs=len(variants),
-                    ),
-                )
-                run_dirs.append(outputs.run_dir)
-                detail = self._build_run_detail(outputs.run_dir)
-                details.append(detail)
-                summaries.append(detail["summary"])
+        try:
+            with TemporaryDirectory() as temp_dir:
+                temp_root = Path(temp_dir)
+                for ordinal, variant in enumerate(variants, start=1):
+                    variant_config = self._guided_comparison_config(
+                        base_config,
+                        variant["values"],
+                    )
+                    temp_config_dir = temp_root / f"variant-{ordinal:02d}"
+                    temp_config_dir.mkdir(parents=True, exist_ok=True)
+                    temp_path = self._temp_source_path(
+                        temp_config_dir,
+                        f"{selected.name}-{variant['slug']}.yaml",
+                    )
+                    outputs = execute_run(
+                        config=parse_config(variant_config),
+                        source_config_path=temp_path,
+                        output_root=self.output_root,
+                        experiment=self._guided_comparison_context(
+                            experiment_id=experiment_id,
+                            label=experiment_label,
+                            dimensions=dimensions,
+                            variant=variant,
+                            ordinal=ordinal,
+                            total_runs=len(variants),
+                        ),
+                    )
+                    run_dirs.append(outputs.run_dir)
+                    detail = self._build_run_detail(outputs.run_dir)
+                    details.append(detail)
+                    summaries.append(detail["summary"])
 
-        artifact_outputs = persist_experiment_artifact(
-            run_dirs=run_dirs,
-            run_details=details,
-            experiments_root=self.experiments_root,
-            label=experiment_label,
-            experiment_id=experiment_id,
-            kind="guided-comparison",
-        )
+            artifact_outputs = persist_experiment_artifact(
+                run_dirs=run_dirs,
+                run_details=details,
+                experiments_root=self.experiments_root,
+                label=experiment_label,
+                experiment_id=experiment_id,
+                kind="guided-comparison",
+                execution_job=self._job_reference(parent_handle),
+            )
+            self._complete_experiment_job(
+                parent_handle,
+                experiment_id=artifact_outputs.experiment_id,
+                experiment_dir=artifact_outputs.experiment_dir,
+                bundle_path=artifact_outputs.bundle_path,
+                run_details=details,
+                message="Guided comparison job completed.",
+            )
+        except Exception as exc:
+            self._job_registry().fail(parent_handle, exc)
+            raise
         artifact_detail = self._build_experiment_detail(artifact_outputs.experiment_dir)
 
         return {
@@ -445,6 +485,7 @@ class CockpitService:
             "guide": self._build_guided_comparison_guide(artifact_detail["comparison"]),
             "runs": summaries,
             "artifact": artifact_detail,
+            "execution_job": artifact_detail["execution_job"],
             "urls": artifact_detail["urls"],
         }
 
@@ -464,6 +505,21 @@ class CockpitService:
         if len(run_ids) < 2:
             raise HTTPException(status_code=400, detail="Select at least two runs to save an experiment")
 
+        experiment_id = create_experiment_id("comparison")
+        experiment_label = payload.label or f"{len(run_ids)}-run comparison"
+        parent_handle = self._start_parent_job(
+            config={},
+            source_name="manual-comparison",
+            experiment={
+                "id": experiment_id,
+                "kind": "comparison",
+                "label": experiment_label,
+                "planned_run_count": len(run_ids),
+            },
+            labels=("experiment", "comparison", "multi-run"),
+            metadata={"run_ids": run_ids},
+            message="Local comparison artifact job started.",
+        )
         try:
             run_dirs = [self._get_run_dir(run_id) for run_id in run_ids]
             details = [self._build_run_detail(run_dir) for run_dir in run_dirs]
@@ -471,12 +527,26 @@ class CockpitService:
                 run_dirs=run_dirs,
                 run_details=details,
                 experiments_root=self.experiments_root,
-                label=payload.label,
+                label=experiment_label,
+                experiment_id=experiment_id,
                 kind="comparison",
+                execution_job=self._job_reference(parent_handle),
+            )
+            self._complete_experiment_job(
+                parent_handle,
+                experiment_id=outputs.experiment_id,
+                experiment_dir=outputs.experiment_dir,
+                bundle_path=outputs.bundle_path,
+                run_details=details,
+                message="Comparison artifact job completed.",
             )
             return self._build_experiment_detail(outputs.experiment_dir)
         except ValueError as exc:
+            self._job_registry().fail(parent_handle, exc)
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except Exception as exc:
+            self._job_registry().fail(parent_handle, exc)
+            raise
 
     def launch_sweep(self, payload: SweepRequest) -> dict:
         try:
@@ -488,44 +558,76 @@ class CockpitService:
 
         experiment_id = create_experiment_id("sweep")
         experiment_label = payload.experiment_name or f"{base_config['run']['name']} {parameter.label} sweep"
+        parent_handle = self._start_parent_job(
+            config=base_config,
+            source_name=payload.source_name,
+            experiment={
+                "id": experiment_id,
+                "kind": "sweep",
+                "label": experiment_label,
+                "parameter_path": parameter.path,
+                "planned_run_count": len(values),
+            },
+            labels=("experiment", "sweep", "multi-run"),
+            metadata={
+                "parameter_path": parameter.path,
+                "values": values,
+                "planned_run_count": len(values),
+            },
+            message="Local sweep job started.",
+        )
 
         run_dirs: list[Path] = []
         summaries: list[dict] = []
         details: list[dict] = []
-        with TemporaryDirectory() as temp_dir:
-            temp_root = Path(temp_dir)
-            for index, value in enumerate(values, start=1):
-                varied_config = apply_sweep_value(base_config, parameter.path, value)
-                temp_config_dir = temp_root / f"run-{index:02d}"
-                temp_config_dir.mkdir(parents=True, exist_ok=True)
-                temp_path = self._temp_source_path(temp_config_dir, payload.source_name)
-                outputs = execute_run(
-                    config=parse_config(varied_config),
-                    source_config_path=temp_path,
-                    output_root=self.output_root,
-                    experiment=build_experiment_context(
-                        experiment_id=experiment_id,
-                        label=experiment_label,
-                        parameter=parameter,
-                        value=value,
-                        ordinal=index,
-                        total_runs=len(values),
-                    ),
-                )
-                run_dirs.append(outputs.run_dir)
-                detail = self._build_run_detail(outputs.run_dir)
-                details.append(detail)
-                summaries.append(detail["summary"])
+        try:
+            with TemporaryDirectory() as temp_dir:
+                temp_root = Path(temp_dir)
+                for index, value in enumerate(values, start=1):
+                    varied_config = apply_sweep_value(base_config, parameter.path, value)
+                    temp_config_dir = temp_root / f"run-{index:02d}"
+                    temp_config_dir.mkdir(parents=True, exist_ok=True)
+                    temp_path = self._temp_source_path(temp_config_dir, payload.source_name)
+                    outputs = execute_run(
+                        config=parse_config(varied_config),
+                        source_config_path=temp_path,
+                        output_root=self.output_root,
+                        experiment=build_experiment_context(
+                            experiment_id=experiment_id,
+                            label=experiment_label,
+                            parameter=parameter,
+                            value=value,
+                            ordinal=index,
+                            total_runs=len(values),
+                        ),
+                    )
+                    run_dirs.append(outputs.run_dir)
+                    detail = self._build_run_detail(outputs.run_dir)
+                    details.append(detail)
+                    summaries.append(detail["summary"])
 
-        comparison = build_run_comparison(details)
-        artifact_outputs = persist_experiment_artifact(
-            run_dirs=run_dirs,
-            run_details=details,
-            experiments_root=self.experiments_root,
-            label=experiment_label,
-            experiment_id=experiment_id,
-            kind="sweep",
-        )
+            comparison = build_run_comparison(details)
+            artifact_outputs = persist_experiment_artifact(
+                run_dirs=run_dirs,
+                run_details=details,
+                experiments_root=self.experiments_root,
+                label=experiment_label,
+                experiment_id=experiment_id,
+                kind="sweep",
+                execution_job=self._job_reference(parent_handle),
+            )
+            self._complete_experiment_job(
+                parent_handle,
+                experiment_id=artifact_outputs.experiment_id,
+                experiment_dir=artifact_outputs.experiment_dir,
+                bundle_path=artifact_outputs.bundle_path,
+                run_details=details,
+                message="Sweep artifact job completed.",
+            )
+        except Exception as exc:
+            self._job_registry().fail(parent_handle, exc)
+            raise
+        artifact = self._build_experiment_detail(artifact_outputs.experiment_dir)
 
         return {
             "experiment": {
@@ -538,7 +640,8 @@ class CockpitService:
             },
             "runs": summaries,
             "comparison": comparison,
-            "artifact": self._build_experiment_detail(artifact_outputs.experiment_dir),
+            "artifact": artifact,
+            "execution_job": artifact["execution_job"],
         }
 
     def launch_campaign(self, payload: LaunchCampaignRequest) -> dict:
@@ -559,6 +662,24 @@ class CockpitService:
         run_dirs: list[Path] = []
         summaries: list[dict] = []
         details: list[dict] = []
+        parent_handle = self._start_parent_job(
+            config=base_config,
+            source_name=payload.source_name,
+            experiment={
+                "id": campaign_plan["id"],
+                "kind": "campaign",
+                "label": campaign_plan["label"],
+                "strategy": campaign_plan["strategy"],
+                "planned_run_count": campaign_plan["planned_run_count"],
+            },
+            labels=("experiment", "campaign", "multi-run"),
+            metadata={
+                "dimension_count": campaign_plan["dimension_count"],
+                "planned_run_count": campaign_plan["planned_run_count"],
+                "study_template_id": payload.study_template_id,
+            },
+            message="Local campaign job started.",
+        )
         try:
             with TemporaryDirectory() as temp_dir:
                 temp_root = Path(temp_dir)
@@ -592,9 +713,21 @@ class CockpitService:
                     run_details=details,
                     experiments_root=self.experiments_root,
                     error=exc,
+                    execution_job=self._job_reference(parent_handle),
+                )
+                self._complete_experiment_job(
+                    parent_handle,
+                    experiment_id=failure_outputs.experiment_id,
+                    experiment_dir=failure_outputs.experiment_dir,
+                    bundle_path=failure_outputs.bundle_path,
+                    run_details=details,
+                    state="failed",
+                    message="Campaign job failed; partial artifact was saved.",
+                    error=exc,
                 )
                 failure_detail = self._build_experiment_detail(failure_outputs.experiment_dir)
             except Exception as persist_exc:
+                self._job_registry().fail(parent_handle, persist_exc)
                 raise HTTPException(
                     status_code=500,
                     detail={
@@ -616,15 +749,28 @@ class CockpitService:
                 },
             ) from exc
 
-        comparison = build_run_comparison(details)
-        artifact_outputs = persist_experiment_artifact(
-            run_dirs=run_dirs,
-            run_details=details,
-            experiments_root=self.experiments_root,
-            label=campaign_plan["label"],
-            experiment_id=campaign_plan["id"],
-            kind="campaign",
-        )
+        try:
+            comparison = build_run_comparison(details)
+            artifact_outputs = persist_experiment_artifact(
+                run_dirs=run_dirs,
+                run_details=details,
+                experiments_root=self.experiments_root,
+                label=campaign_plan["label"],
+                experiment_id=campaign_plan["id"],
+                kind="campaign",
+                execution_job=self._job_reference(parent_handle),
+            )
+            self._complete_experiment_job(
+                parent_handle,
+                experiment_id=artifact_outputs.experiment_id,
+                experiment_dir=artifact_outputs.experiment_dir,
+                bundle_path=artifact_outputs.bundle_path,
+                run_details=details,
+                message="Campaign job completed.",
+            )
+        except Exception as exc:
+            self._job_registry().fail(parent_handle, exc)
+            raise
         artifact = self._build_experiment_detail(artifact_outputs.experiment_dir)
         campaign_summary = {
             "id": campaign_plan["id"],
@@ -652,7 +798,124 @@ class CockpitService:
             "comparison": comparison,
             "guide": self._build_campaign_study_guide(study_template_record, comparison),
             "artifact": artifact,
+            "execution_job": artifact["execution_job"],
             "study_template": study_template,
+        }
+
+    def export_research_object(self, payload: ResearchObjectExportRequest) -> dict:
+        research_object = dict(payload.research_object)
+        markdown = str(research_object.get("markdown") or "").strip()
+        if not markdown:
+            raise HTTPException(status_code=400, detail="Research object markdown is required")
+
+        file_name = safe_filename(
+            str(research_object.get("fileName") or "qs-dmss-research-object.md"),
+            default="qs-dmss-research-object.md",
+            suffixes=(".md",),
+        )
+        export_id = create_experiment_id("research-object")
+        scenario = research_object.get("scenario") or {}
+        label = str(scenario.get("label") or research_object.get("runId") or export_id)
+        export_dir = self._research_object_export_dir(export_id, create=True)
+        markdown_path = export_dir / "research-object.md"
+        source_json_path = export_dir / "research-object.json"
+        parent_handle = self._start_parent_job(
+            config={},
+            source_name=file_name,
+            experiment={
+                "id": export_id,
+                "kind": "research-object-export",
+                "label": label,
+            },
+            labels=("research-object", "export"),
+            metadata={
+                "file_name": file_name,
+                "run_id": research_object.get("runId"),
+                "scenario": scenario,
+                "campaign_study_available": bool(
+                    (research_object.get("campaignStudy") or {}).get("available")
+                ),
+            },
+            message="Local research-object export job started.",
+        )
+
+        try:
+            export_provenance = (
+                "\n## Export Provenance\n\n"
+                f"Executor job: `{parent_handle.job_id}`\n\n"
+                f"Backend: `{parent_handle.backend}`\n\n"
+                f"Registry: `{parent_handle.status_uri}`\n"
+            )
+            persisted_markdown = f"{markdown}\n{export_provenance}\n"
+            research_object["markdown"] = persisted_markdown
+            research_object["export"] = {
+                "id": export_id,
+                "file_name": file_name,
+                "created_at": datetime.now(timezone.utc).isoformat(),
+            }
+            markdown_path.write_text(persisted_markdown, encoding="utf-8")
+            source_json_path.write_text(
+                json.dumps(research_object, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            registry = self._job_registry()
+            registry.update(
+                parent_handle,
+                "collecting",
+                message="Collecting research-object export artifacts.",
+                progress=0.9,
+                metadata={
+                    "export_id": export_id,
+                    "markdown_path": str(markdown_path),
+                    "source_json_path": str(source_json_path),
+                },
+            )
+            result = ExecutionJobResult(
+                handle=ExecutionJobHandle(
+                    job_id=parent_handle.job_id,
+                    backend=parent_handle.backend,
+                    state="succeeded",
+                    status_uri=parent_handle.status_uri,
+                ),
+                state="succeeded",
+                experiment_id=export_id,
+                experiment_dir=export_dir,
+                artifacts=(
+                    ExecutionArtifact(
+                        role="research_object",
+                        path=markdown_path,
+                        media_type="text/markdown",
+                        label="Research object Markdown",
+                    ),
+                    ExecutionArtifact(
+                        role="other",
+                        path=source_json_path,
+                        media_type="application/json",
+                        label="Research object source JSON",
+                    ),
+                ),
+            )
+            registry.complete(
+                parent_handle,
+                result,
+                message="Research-object export job completed.",
+            )
+        except Exception as exc:
+            self._job_registry().fail(parent_handle, exc)
+            raise
+
+        job_detail = self._build_job_detail(self._get_job_record(parent_handle.job_id))
+        export = {
+            "id": export_id,
+            "file_name": file_name,
+            "markdown_path": str(markdown_path),
+            "source_json_path": str(source_json_path),
+            "download_url": f"/api/research-objects/{export_id}/download",
+        }
+        return {
+            "research_object": research_object,
+            "export": export,
+            "execution_job": job_detail,
         }
 
     def bundle_path(self, run_id: str) -> Path:
@@ -682,6 +945,21 @@ class CockpitService:
         if not report_path.exists():
             raise HTTPException(status_code=404, detail="Experiment report not found")
         return report_path
+
+    def research_object_markdown_path(self, export_id: str) -> tuple[Path, str]:
+        export_dir = self._research_object_export_dir(export_id)
+        metadata_path = export_dir / "research-object.json"
+        markdown_path = export_dir / "research-object.md"
+        if not metadata_path.exists() or not markdown_path.exists():
+            raise HTTPException(status_code=404, detail="Research object export not found")
+        metadata = self._read_json(metadata_path)
+        export = metadata.get("export") or {}
+        file_name = safe_filename(
+            str(export.get("file_name") or "qs-dmss-research-object.md"),
+            default="qs-dmss-research-object.md",
+            suffixes=(".md",),
+        )
+        return markdown_path, file_name
 
     def showcase_markdown_path(self, scenario: str) -> Path:
         report_path = self._showcase_output_root(
@@ -759,11 +1037,127 @@ class CockpitService:
             raise HTTPException(status_code=404, detail="Experiment not found")
         return experiment_dir
 
+    def _job_registry(self) -> LocalJobRegistry:
+        return LocalJobRegistry(self.jobs_root)
+
     def _get_job_record(self, job_id: str) -> dict:
         try:
-            return LocalJobRegistry(self.jobs_root).get(job_id)
+            return self._job_registry().get(job_id)
         except (FileNotFoundError, ValueError) as exc:
             raise HTTPException(status_code=404, detail="Execution job not found") from exc
+
+    def _job_reference(self, handle: ExecutionJobHandle) -> dict[str, str | None]:
+        return {
+            "job_id": handle.job_id,
+            "backend": handle.backend,
+            "registry_path": handle.status_uri,
+        }
+
+    def _start_parent_job(
+        self,
+        *,
+        config: dict[str, Any] | None,
+        source_name: str,
+        experiment: dict[str, Any],
+        labels: tuple[str, ...],
+        metadata: dict[str, Any],
+        message: str,
+    ) -> ExecutionJobHandle:
+        registry = self._job_registry()
+        handle = registry.create(
+            ExecutionJobSpec(
+                config=config or {},
+                source_name=source_name,
+                output_root=self.output_root,
+                experiment=experiment,
+                labels=labels,
+                metadata=metadata,
+            )
+        )
+        registry.update(handle, "running", message=message, progress=0.1)
+        return handle
+
+    def _child_job_ids_from_details(self, run_details: list[dict]) -> list[str]:
+        child_job_ids: list[str] = []
+        for detail in run_details:
+            summary = self._build_execution_job_summary(
+                detail.get("run_record", {}).get("execution_job")
+            )
+            if summary and summary.get("job_id"):
+                child_job_ids.append(str(summary["job_id"]))
+        return child_job_ids
+
+    def _complete_experiment_job(
+        self,
+        handle: ExecutionJobHandle,
+        *,
+        experiment_id: str,
+        experiment_dir: Path,
+        bundle_path: Path,
+        run_details: list[dict],
+        state: JobState = "succeeded",
+        message: str = "Experiment artifact job completed.",
+        error: BaseException | str | None = None,
+    ) -> dict:
+        registry = self._job_registry()
+        child_job_ids = self._child_job_ids_from_details(run_details)
+        registry.update(
+            handle,
+            "collecting",
+            message="Collecting experiment artifact outputs.",
+            progress=0.9,
+            metadata={
+                "child_job_ids": child_job_ids,
+                "experiment_id": experiment_id,
+                "run_count": len(run_details),
+            },
+        )
+        result = ExecutionJobResult(
+            handle=ExecutionJobHandle(
+                job_id=handle.job_id,
+                backend=handle.backend,
+                state=state,
+                status_uri=handle.status_uri,
+            ),
+            state=state,
+            experiment_id=experiment_id,
+            experiment_dir=experiment_dir,
+            artifacts=(
+                ExecutionArtifact(
+                    role="experiment_directory",
+                    path=experiment_dir,
+                    label="Experiment directory",
+                ),
+                ExecutionArtifact(
+                    role="comparison",
+                    path=experiment_dir / "comparison.json",
+                    media_type="application/json",
+                    label="Comparison data",
+                ),
+                ExecutionArtifact(
+                    role="evidence_bundle",
+                    path=bundle_path,
+                    media_type="application/zip",
+                    label="Experiment evidence bundle",
+                ),
+                ExecutionArtifact(
+                    role="report",
+                    path=experiment_dir / "report.html",
+                    media_type="text/html",
+                    label="Experiment report",
+                ),
+                ExecutionArtifact(
+                    role="manifest",
+                    path=experiment_dir / "manifest.sha256.json",
+                    media_type="application/json",
+                    label="Experiment manifest",
+                ),
+            ),
+            metrics={"run_count": len(run_details), "child_job_count": len(child_job_ids)},
+            error=str(error) if error else None,
+        )
+        registry.complete(handle, result, message=message)
+        return self._build_job_detail(self._get_job_record(handle.job_id))
 
     def _missing_job_summary(self, reference: dict, message: str) -> dict:
         return {
@@ -779,6 +1173,9 @@ class CockpitService:
             "labels": [],
             "source_name": None,
             "run_id": None,
+            "experiment_id": None,
+            "metadata": {},
+            "child_job_ids": [],
             "artifact_roles": [],
             "lifecycle_states": [],
             "url": (
@@ -793,6 +1190,10 @@ class CockpitService:
         result = record.get("result") or {}
         artifacts = result.get("artifacts") or []
         lifecycle = record.get("lifecycle") or []
+        metadata = {
+            **(spec.get("metadata") or {}),
+            **(record.get("metadata") or {}),
+        }
         return {
             "available": True,
             "job_id": record["job_id"],
@@ -806,6 +1207,9 @@ class CockpitService:
             "labels": spec.get("labels") or [],
             "source_name": spec.get("source_name"),
             "run_id": result.get("run_id"),
+            "experiment_id": result.get("experiment_id") or metadata.get("experiment_id"),
+            "metadata": metadata,
+            "child_job_ids": metadata.get("child_job_ids") or [],
             "artifact_roles": [
                 artifact.get("role")
                 for artifact in artifacts
@@ -871,6 +1275,29 @@ class CockpitService:
         if create:
             output_root.mkdir(parents=True, exist_ok=True)
         return output_root
+
+    def _research_objects_root(self, *, create: bool = False) -> Path:
+        export_root = self.experiments_root / "research-objects"
+        if create:
+            export_root.mkdir(parents=True, exist_ok=True)
+        return export_root
+
+    def _research_object_export_dir(
+        self,
+        export_id: str,
+        *,
+        create: bool = False,
+    ) -> Path:
+        export_root = self._research_objects_root(create=create)
+        export_dir = contained_path(
+            export_root,
+            safe_filename(export_id, default="research-object"),
+        )
+        if create:
+            export_dir.mkdir(parents=True, exist_ok=False)
+        if not export_dir.exists() or not export_dir.is_dir():
+            raise HTTPException(status_code=404, detail="Research object export not found")
+        return export_dir
 
     def _campaign_studies_root(self, *, create: bool = False) -> Path:
         studies_root = self.experiments_root / "campaign-studies"
@@ -1534,6 +1961,9 @@ class CockpitService:
     def _build_experiment_summary(self, experiment_dir: Path) -> dict:
         experiment_record = self._read_json(experiment_dir / "experiment.json")
         bundle_path = experiment_dir / "evidence_bundle.zip"
+        execution_job = self._build_execution_job_summary(
+            experiment_record.get("execution_job"),
+        )
         return {
             "experiment_id": experiment_record["experiment_id"],
             "label": experiment_record["label"],
@@ -1550,25 +1980,33 @@ class CockpitService:
             "recommended_run_id": (experiment_record.get("decision") or {}).get("recommended_run_id"),
             "bundle_size_bytes": bundle_path.stat().st_size,
             "bundle_size_label": self._format_bytes(bundle_path.stat().st_size),
+            "execution_job": execution_job,
         }
 
     def _build_experiment_detail(self, experiment_dir: Path) -> dict:
         experiment_record = self._read_json(experiment_dir / "experiment.json")
         comparison = self._read_json(experiment_dir / "comparison.json")
         manifest = self._read_json(experiment_dir / "manifest.sha256.json")
+        execution_job = self._build_execution_job_detail(
+            experiment_record.get("execution_job"),
+        )
+        urls = {
+            "bundle": f"/api/experiments/{experiment_record['experiment_id']}/bundle",
+            "report": f"/api/experiments/{experiment_record['experiment_id']}/report",
+        }
+        if execution_job and execution_job["summary"].get("job_id"):
+            urls["job"] = f"/api/jobs/{execution_job['summary']['job_id']}"
         return {
             "summary": self._build_experiment_summary(experiment_dir),
             "experiment_record": experiment_record,
+            "execution_job": execution_job,
             "comparison": comparison,
             "decision": comparison.get("decision"),
             "evidence": {
                 "file_count": len(manifest.get("files", [])),
                 "artifact_paths": [entry["path"] for entry in manifest.get("files", [])],
             },
-            "urls": {
-                "bundle": f"/api/experiments/{experiment_record['experiment_id']}/bundle",
-                "report": f"/api/experiments/{experiment_record['experiment_id']}/report",
-            },
+            "urls": urls,
         }
 
 
@@ -1735,6 +2173,19 @@ def create_app(
     @app.post("/api/campaigns")
     def launch_campaign(payload: LaunchCampaignRequest) -> dict:
         return service.launch_campaign(payload)
+
+    @app.post("/api/research-objects/export")
+    def export_research_object(payload: ResearchObjectExportRequest) -> dict:
+        return service.export_research_object(payload)
+
+    @app.get("/api/research-objects/{export_id}/download")
+    def research_object_download(export_id: str) -> FileResponse:
+        markdown_path, file_name = service.research_object_markdown_path(export_id)
+        return FileResponse(
+            markdown_path,
+            media_type="text/markdown",
+            filename=file_name,
+        )
 
     @app.post("/api/runs/{run_id}/verify")
     def verify_run(run_id: str) -> dict:

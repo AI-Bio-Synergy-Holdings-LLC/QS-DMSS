@@ -56,6 +56,7 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert 'id="campaignStudyGuideMetricList"' in root.text
     assert 'id="statusJobId"' in root.text
     assert 'id="statusJobBackend"' in root.text
+    assert 'id="experimentJobId"' in root.text
     assert 'id="jobProvenancePanel"' in root.text
     assert 'id="jobProvenanceTitle"' in root.text
     assert 'id="jobProvenanceLifecycle"' in root.text
@@ -391,6 +392,15 @@ def test_cockpit_api_launches_guided_showcase_comparison(tmp_path: Path) -> None
     assert guided["artifact"]["summary"]["kind"] == "guided-comparison"
     assert guided["artifact"]["summary"]["run_count"] == 3
     assert guided["artifact"]["summary"]["experiment_id"].startswith("guided-comparison-")
+    parent_job = guided["execution_job"]["summary"]
+    assert parent_job["state"] == "succeeded"
+    assert parent_job["experiment_id"] == guided["artifact"]["summary"]["experiment_id"]
+    assert set(parent_job["child_job_ids"]) == {
+        row["execution_job"]["job_id"] for row in guided["comparison"]["rows"]
+    }
+    assert {"experiment_directory", "comparison", "evidence_bundle", "report"}.issubset(
+        set(parent_job["artifact_roles"])
+    )
     assert guided["urls"]["report"].endswith("/report")
     assert guided["urls"]["bundle"].endswith("/bundle")
 
@@ -449,6 +459,9 @@ def test_cockpit_api_launch_sweep_and_compare(tmp_path: Path) -> None:
     assert sweep["artifact"]["summary"]["kind"] == "sweep"
     assert sweep["artifact"]["summary"]["run_count"] == 2
     assert sweep["artifact"]["summary"]["recommended_run_id"] == sweep["comparison"]["decision"]["recommended_run_id"]
+    assert sweep["execution_job"]["summary"]["experiment_id"] == sweep["experiment"]["id"]
+    assert sweep["execution_job"]["summary"]["metadata"]["parameter_path"] == "engine.g_int"
+    assert len(sweep["execution_job"]["summary"]["child_job_ids"]) == 2
 
     runs_payload = client.get("/api/runs")
     assert runs_payload.status_code == 200
@@ -572,6 +585,11 @@ def test_cockpit_api_launch_campaign(tmp_path: Path) -> None:
     assert campaign["artifact"]["summary"]["recommended_run_id"] == campaign["campaign"]["recommended_run_id"]
     assert campaign["comparison"]["shared_experiment"]["kind"] == "campaign"
     assert campaign["comparison"]["shared_experiment"]["dimension_count"] == 2
+    parent_job = campaign["execution_job"]["summary"]
+    assert parent_job["state"] == "succeeded"
+    assert parent_job["experiment_id"] == campaign["campaign"]["id"]
+    assert parent_job["metadata"]["planned_run_count"] == 6
+    assert len(parent_job["child_job_ids"]) == 6
     assert all(
         row["execution_job"]["state"] == "succeeded"
         for row in campaign["comparison"]["rows"]
@@ -590,6 +608,9 @@ def test_cockpit_api_launch_campaign(tmp_path: Path) -> None:
     assert experiment_detail.status_code == 200
     experiment = experiment_detail.json()
     assert experiment["summary"]["kind"] == "campaign"
+    assert experiment["summary"]["execution_job"]["job_id"] == parent_job["job_id"]
+    assert experiment["experiment_record"]["execution_job"]["job_id"] == parent_job["job_id"]
+    assert experiment["urls"]["job"].endswith(parent_job["job_id"])
     assert experiment["comparison"]["shared_experiment"]["kind"] == "campaign"
     assert len(experiment["comparison"]["shared_experiment"]["dimensions"]) == 2
     assert "QS-DMSS Experiment Report" in client.get(experiment["urls"]["report"]).text
@@ -921,6 +942,55 @@ def test_cockpit_api_lists_and_runs_packaged_self_interaction_study_template(
     assert bundle_payload.headers["content-type"].startswith("application/zip")
 
 
+def test_cockpit_api_exports_research_object_with_job_record(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    export_payload = client.post(
+        "/api/research-objects/export",
+        json={
+            "research_object": {
+                "fileName": "../portable-research-object",
+                "markdown": "# Portable Research Object\n\nEvidence-ready export.\n",
+                "runId": "campaign-20260101T000000Z-demo",
+                "scenario": {"label": "Portable Campaign Study"},
+                "campaignStudy": {"available": True},
+            },
+        },
+    )
+
+    assert export_payload.status_code == 200
+    export = export_payload.json()
+    export_id = export["export"]["id"]
+    job = export["execution_job"]["summary"]
+    assert export["export"]["file_name"] == "portable-research-object.md"
+    assert export["export"]["download_url"].endswith(f"/{export_id}/download")
+    assert job["state"] == "succeeded"
+    assert job["experiment_id"] == export_id
+    assert job["metadata"]["file_name"] == "portable-research-object.md"
+    assert "research_object" in job["artifact_roles"]
+    assert "Export Provenance" in export["research_object"]["markdown"]
+    assert job["job_id"] in export["research_object"]["markdown"]
+
+    job_payload = client.get(f"/api/jobs/{job['job_id']}")
+    assert job_payload.status_code == 200
+    assert job_payload.json()["result"]["experiment_id"] == export_id
+
+    download_payload = client.get(export["export"]["download_url"])
+    assert download_payload.status_code == 200
+    assert download_payload.headers["content-type"].startswith("text/markdown")
+    assert "Portable Research Object" in download_payload.text
+    assert "Export Provenance" in download_payload.text
+
+    blank_payload = client.post(
+        "/api/research-objects/export",
+        json={"research_object": {"fileName": "empty.md", "markdown": "   "}},
+    )
+    assert blank_payload.status_code == 400
+    assert blank_payload.json()["detail"] == "Research object markdown is required"
+
+
 def test_cockpit_api_rejects_invalid_edited_decision_profile(tmp_path: Path) -> None:
     repo_root = Path(__file__).resolve().parents[1]
     app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
@@ -997,6 +1067,11 @@ def test_cockpit_api_campaign_failure_persists_failed_artifact(
     assert experiment["summary"]["status"] == "failed"
     assert experiment["summary"]["kind"] == "campaign"
     assert experiment["summary"]["run_count"] == 1
+    assert experiment["summary"]["execution_job"]["state"] == "failed"
+    assert experiment["summary"]["execution_job"]["experiment_id"] == (
+        failure_detail["experiment_id"]
+    )
+    assert len(experiment["summary"]["execution_job"]["child_job_ids"]) == 1
     assert experiment["experiment_record"]["failure"]["completed_run_count"] == 1
     assert experiment["experiment_record"]["failure"]["planned_run_count"] == 6
     assert experiment["comparison"]["status"] == "failed"

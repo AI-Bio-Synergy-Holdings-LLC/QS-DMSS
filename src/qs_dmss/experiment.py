@@ -653,6 +653,7 @@ def _failure_rows(run_details: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 "max_density": metrics["max_density"],
                 "bundle_size_label": detail["evidence"]["bundle_size_label"],
                 "verification_success": detail["verification"]["success"],
+                "execution_job": _comparison_execution_job(detail),
             }
         )
     return rows
@@ -741,6 +742,7 @@ def persist_failed_campaign_artifact(
     run_details: list[dict[str, Any]],
     experiments_root: Path,
     error: BaseException,
+    execution_job: dict[str, Any] | None = None,
 ) -> ExperimentOutputs:
     if len(run_dirs) != len(run_details):
         raise ValueError("Run directory count must match run detail count")
@@ -810,6 +812,7 @@ def persist_failed_campaign_artifact(
         "decision": decision,
         "failure": failure,
         "runs": run_entries,
+        "execution_job": execution_job,
         "artifacts": {
             "experiment": "experiment.json",
             "comparison": "comparison.json",
@@ -845,6 +848,7 @@ def persist_experiment_artifact(
     label: str | None = None,
     experiment_id: str | None = None,
     kind: str = "comparison",
+    execution_job: dict[str, Any] | None = None,
 ) -> ExperimentOutputs:
     if len(run_dirs) < 2:
         raise ValueError("At least two runs are required to persist an experiment")
@@ -897,6 +901,7 @@ def persist_experiment_artifact(
         "highlights": comparison["highlights"],
         "decision": comparison.get("decision"),
         "runs": run_entries,
+        "execution_job": execution_job,
         "artifacts": {
             "experiment": "experiment.json",
             "comparison": "comparison.json",
