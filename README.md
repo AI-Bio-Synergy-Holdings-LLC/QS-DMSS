@@ -165,6 +165,7 @@ Builders and sponsors can start with the product direction:
 - [docs/contributor-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/contributor-roadmap.md)
 - [docs/funding-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/funding-roadmap.md)
 - [docs/distributed-research-workspace-executor-architecture.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/distributed-research-workspace-executor-architecture.md)
+- [docs/slurm-site-policy-feedback.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/slurm-site-policy-feedback.md)
 
 The current product milestone includes QS-DMSS Lab Mode: a richer
 cockpit/showcase experience for running scenarios, inspecting outputs,
@@ -187,7 +188,11 @@ export/import with collaborators and annotations plus a dry-run Slurm request
 bundle generator that writes reviewable scheduler artifacts without calling
 `sbatch`, SSH, or a remote scheduler. This documents the path toward shared
 research workspaces, executor contracts, job lifecycle tracking, artifact
-collection, and scheduler guardrails.
+collection, and scheduler guardrails. HPC administrators and research
+computing reviewers can use the
+[Slurm site-policy feedback packet](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/slurm-site-policy-feedback.md)
+to review the generated bundle shape before any real submit/status/collect
+connector is attempted.
 
 Review paths remain available for people who want to validate the public
 package:

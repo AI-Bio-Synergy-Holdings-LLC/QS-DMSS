@@ -209,6 +209,9 @@ The current Slurm prototype is deliberately review-only. It creates a local
 draft job record and request bundle, but never calls `sbatch`, `squeue`, SSH, or
 any remote scheduler command.
 
+Site-policy review packet:
+[docs/slurm-site-policy-feedback.md](slurm-site-policy-feedback.md)
+
 CLI:
 
 ```bash
