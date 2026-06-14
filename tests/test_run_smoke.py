@@ -22,6 +22,9 @@ def test_run_bundle_and_replay_are_reproducible(tmp_path: Path) -> None:
     )
     assert first_run.run_dir.exists()
     assert first_run.bundle_path.exists()
+    assert first_run.job_id is not None
+    assert first_run.job_record_path == tmp_path / "jobs" / first_run.job_id / "job.json"
+    assert first_run.job_record_path.exists()
 
     first_result = verify_run_path(first_run.run_dir)
     assert first_result.success, first_result.errors
@@ -44,6 +47,39 @@ def test_run_bundle_and_replay_are_reproducible(tmp_path: Path) -> None:
     replay_record = json.loads((replayed_run.run_dir / "run.json").read_text(encoding="utf-8"))
     assert replay_record["replayed_from"] == first_record["run_id"]
     assert first_record["decision_profile"]["objective"]["name"] == "Stability-first recommendation"
+    assert first_record["execution_job"]["job_id"] == first_run.job_id
+    assert first_record["execution_job"]["backend"] == "local"
+    assert first_record["execution_job"]["registry_path"] == str(first_run.job_record_path)
+    assert replay_record["execution_job"]["job_id"] == replayed_run.job_id
+
+    first_job_record = json.loads(first_run.job_record_path.read_text(encoding="utf-8"))
+    assert first_job_record["state"] == "succeeded"
+    assert first_job_record["backend"] == "local"
+    assert first_job_record["spec"]["source_name"] == "demo.yaml"
+    assert first_job_record["spec"]["labels"] == ["run"]
+    assert first_job_record["result"]["run_id"] == first_run.run_id
+    assert first_job_record["result"]["run_dir"] == str(first_run.run_dir)
+    assert {
+        artifact["role"] for artifact in first_job_record["result"]["artifacts"]
+    } >= {
+        "run_directory",
+        "evidence_bundle",
+        "report",
+        "metrics",
+        "manifest",
+    }
+    assert [
+        event["state"] for event in first_job_record["lifecycle"]
+    ] == [
+        "submitted",
+        "running",
+        "collecting",
+        "succeeded",
+    ]
+
+    replay_job_record = json.loads(replayed_run.job_record_path.read_text(encoding="utf-8"))
+    assert replay_job_record["spec"]["labels"] == ["run", "replay"]
+    assert replay_job_record["spec"]["metadata"]["replayed_from"] == first_run.run_id
 
     report_html = (first_run.run_dir / "report.html").read_text(encoding="utf-8")
     assert "Decision Profile" in report_html

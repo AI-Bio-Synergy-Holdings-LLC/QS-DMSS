@@ -74,6 +74,9 @@ evidence-first simulation lab:
 - Comparison tooling for energy drift, norm drift, density, and runtime deltas
 - Decision profiles that score runs against an explicit objective, constraint set, and ranking policy
 - Durable experiment exports with copied run evidence, comparison JSON, report HTML, manifest, and bundle ZIP
+- LocalExecutor job records under `jobs/<job_id>/job.json` that preserve
+  submitted config metadata, run/replay lifecycle state, and returned artifact
+  roles for future collaboration and HPC connector work
 - Evidence artifacts:
   - `config.yaml`
   - `run.json`
