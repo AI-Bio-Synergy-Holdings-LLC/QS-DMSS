@@ -7,12 +7,12 @@ on:
       package_version:
         description: "Published package version to validate"
         required: true
-        default: "0.8.0"
+        default: "0.9.0"
         type: string
       release_tag:
         description: "GitHub release tag containing the wheel"
         required: true
-        default: "v0.8.0"
+        default: "v0.9.0"
         type: string
 
 permissions:

@@ -167,10 +167,11 @@ Builders and sponsors can start with the product direction:
 - [docs/distributed-research-workspace-executor-architecture.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/distributed-research-workspace-executor-architecture.md)
 - [docs/slurm-site-policy-feedback.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/slurm-site-policy-feedback.md)
 
-The current product milestone includes QS-DMSS Lab Mode: a richer
-cockpit/showcase experience for running scenarios, inspecting outputs,
-comparing variants, verifying and replaying evidence, and exporting polished
-research objects.
+The current product milestone includes QS-DMSS Lab Mode plus an installable
+dry-run Slurm review target: a richer cockpit/showcase experience for running
+scenarios, inspecting outputs, comparing variants, verifying and replaying
+evidence, exporting polished research objects, and generating reviewable HPC
+request bundles that never submit jobs.
 
 Public builder coordination now lives in
 [issue #57](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57).
