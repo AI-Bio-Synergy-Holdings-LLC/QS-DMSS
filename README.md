@@ -189,6 +189,8 @@ Inside the cockpit you can:
 - Select the packaged Self-Interaction Sweep study template to inspect purpose, expected runtime, metrics, limitations, non-claims, and guided interpretation for an `engine.g_int` campaign
 - Edit the Campaign Studio parameter grid and decision profile for the bundled decision campaign, preview the scoring contract, and launch the edited campaign through the existing evidence/recommendation workflow
 - Save Campaign Studio edits as local study templates, inspect visible template cards with objective/run metadata, reload or rerun saved templates, and import/export the study JSON so another user can reproduce the same campaign design
+- Inspect LocalExecutor job provenance for selected runs and campaign variants,
+  including job ID, backend, lifecycle state, and returned artifact roles
 - Launch a single run from a checked-in or edited config
 - Launch a parameter sweep across interaction strength, timestep, step count, amplitude, width, or seed
 - Launch a template-defined decision campaign that expands into a reproducible multi-parameter run matrix

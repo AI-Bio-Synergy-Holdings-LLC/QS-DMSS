@@ -54,6 +54,12 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert 'id="campaignStudyGuide"' in root.text
     assert 'id="campaignStudyGuideChangedList"' in root.text
     assert 'id="campaignStudyGuideMetricList"' in root.text
+    assert 'id="statusJobId"' in root.text
+    assert 'id="statusJobBackend"' in root.text
+    assert 'id="jobProvenancePanel"' in root.text
+    assert 'id="jobProvenanceTitle"' in root.text
+    assert 'id="jobProvenanceLifecycle"' in root.text
+    assert 'id="jobProvenanceArtifacts"' in root.text
     markdown_link = re.search(r'<a[^>]+id="labMarkdownLink"[^>]*>', root.text)
     json_link = re.search(r'<a[^>]+id="labJsonLink"[^>]*>', root.text)
     research_object_button = re.search(
@@ -89,10 +95,36 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert launch_payload.status_code == 200
     created_run = launch_payload.json()
     run_id = created_run["summary"]["run_id"]
+    execution_job = created_run["execution_job"]["summary"]
+    job_id = execution_job["job_id"]
+    assert execution_job["available"] is True
+    assert execution_job["backend"] == "local"
+    assert execution_job["state"] == "succeeded"
+    assert execution_job["run_id"] == run_id
+    assert {"evidence_bundle", "manifest", "metrics", "report"}.issubset(
+        set(execution_job["artifact_roles"])
+    )
+    assert created_run["urls"]["job"].endswith("/job")
 
     runs_payload = client.get("/api/runs")
     assert runs_payload.status_code == 200
-    assert runs_payload.json()["items"][0]["run_id"] == run_id
+    listed_run = runs_payload.json()["items"][0]
+    assert listed_run["run_id"] == run_id
+    assert listed_run["execution_job"]["job_id"] == job_id
+
+    run_job_payload = client.get(f"/api/runs/{run_id}/job")
+    assert run_job_payload.status_code == 200
+    run_job = run_job_payload.json()
+    assert run_job["summary"]["job_id"] == job_id
+    assert run_job["summary"]["state"] == "succeeded"
+    assert run_job["result"]["run_id"] == run_id
+    assert {"submitted", "running", "collecting", "succeeded"}.issubset(
+        {event["state"] for event in run_job["lifecycle"]}
+    )
+
+    job_payload = client.get(f"/api/jobs/{job_id}")
+    assert job_payload.status_code == 200
+    assert job_payload.json()["summary"]["run_id"] == run_id
 
     verify_payload = client.post(f"/api/runs/{run_id}/verify")
     assert verify_payload.status_code == 200
@@ -350,6 +382,10 @@ def test_cockpit_api_launches_guided_showcase_comparison(tmp_path: Path) -> None
     assert guided["scenario"]["name"] == "canonical-simulation"
     assert len(guided["runs"]) == 3
     assert len(guided["comparison"]["rows"]) == 3
+    assert all(
+        row["execution_job"]["state"] == "succeeded"
+        for row in guided["comparison"]["rows"]
+    )
     assert guided["comparison"]["shared_experiment"]["kind"] == "guided-comparison"
     assert guided["comparison"]["shared_experiment"]["strategy"] == "packaged-variants"
     assert guided["artifact"]["summary"]["kind"] == "guided-comparison"
@@ -427,6 +463,10 @@ def test_cockpit_api_launch_sweep_and_compare(tmp_path: Path) -> None:
     comparison = compare_payload.json()
     assert comparison["baseline_run_id"] == sweep["runs"][0]["run_id"]
     assert len(comparison["rows"]) == 2
+    assert all(
+        row["execution_job"]["backend"] == "local"
+        for row in comparison["rows"]
+    )
     assert comparison["highlights"]["lowest_abs_energy_drift_run_id"] in {
         run["run_id"] for run in sweep["runs"]
     }
@@ -532,6 +572,10 @@ def test_cockpit_api_launch_campaign(tmp_path: Path) -> None:
     assert campaign["artifact"]["summary"]["recommended_run_id"] == campaign["campaign"]["recommended_run_id"]
     assert campaign["comparison"]["shared_experiment"]["kind"] == "campaign"
     assert campaign["comparison"]["shared_experiment"]["dimension_count"] == 2
+    assert all(
+        row["execution_job"]["state"] == "succeeded"
+        for row in campaign["comparison"]["rows"]
+    )
 
     run_detail = client.get(f"/api/runs/{campaign['runs'][0]['run_id']}")
     assert run_detail.status_code == 200

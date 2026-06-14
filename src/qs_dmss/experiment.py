@@ -447,6 +447,19 @@ def _metric_range(rows: list[dict[str, Any]], key: str) -> dict[str, Any]:
     }
 
 
+def _comparison_execution_job(detail: dict[str, Any]) -> dict[str, Any] | None:
+    execution_job = detail.get("execution_job")
+    if isinstance(execution_job, dict):
+        summary = execution_job.get("summary")
+        if isinstance(summary, dict):
+            return summary
+
+    summary_job = (detail.get("summary") or {}).get("execution_job")
+    if isinstance(summary_job, dict):
+        return summary_job
+    return None
+
+
 def build_run_comparison(run_details: list[dict[str, Any]]) -> dict[str, Any]:
     if len(run_details) < 2:
         raise ValueError("At least two runs are required for comparison")
@@ -479,6 +492,7 @@ def build_run_comparison(run_details: list[dict[str, Any]]) -> dict[str, Any]:
                 "max_density": metrics["max_density"],
                 "bundle_size_label": detail["evidence"]["bundle_size_label"],
                 "verification_success": detail["verification"]["success"],
+                "execution_job": _comparison_execution_job(detail),
                 "delta_from_baseline": {
                     "energy_drift": round(
                         metrics["energy_drift"] - baseline_metrics["energy_drift"],

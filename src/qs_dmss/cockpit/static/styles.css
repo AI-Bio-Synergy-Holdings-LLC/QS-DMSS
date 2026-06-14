@@ -1550,6 +1550,42 @@ dd {
   color: var(--teal);
 }
 
+.job-provenance-panel {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(135deg, rgba(42, 106, 106, 0.08), rgba(156, 139, 82, 0.08)),
+    rgba(255, 253, 248, 0.74);
+}
+
+.job-provenance-panel h3 {
+  margin: 4px 0 6px;
+  font-size: 1.1rem;
+}
+
+.job-provenance-panel p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.job-provenance-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.job-provenance-grid div {
+  min-width: 0;
+}
+
+.job-provenance-grid dd {
+  overflow-wrap: anywhere;
+}
+
 .chart-stack {
   display: grid;
   gap: 16px;
@@ -1856,16 +1892,24 @@ tbody tr.is-selected {
 
 .compare-run span,
 .compare-parameter,
-.compare-delta {
+.compare-delta,
+.job-provenance-mini {
   color: var(--muted);
   font-size: 0.88rem;
 }
 
 .compare-parameter strong,
-.compare-delta strong {
+.compare-delta strong,
+.job-provenance-mini strong {
   display: block;
   color: var(--text);
   font-size: 0.96rem;
+}
+
+.job-provenance-chip {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 800;
 }
 
 .recommendation-shell {
