@@ -81,6 +81,7 @@ Likely outcomes:
 
 - plugin architecture for scenarios, metrics, or report templates;
 - alternative compute backend exploration;
+- Distributed Research Workspace and HPC executor prototypes;
 - larger validation scenario suite;
 - hosted documentation or gallery infrastructure;
 - workshop/tutorial materials for research-software communities.
@@ -96,6 +97,8 @@ Builder coordination:
 4. Evidence Explorer for bundles, manifests, and replay status.
 5. Campaign Studio for parameter search and objective tuning.
 6. Research paper/JOSS packet grounded in generated evidence.
+7. Distributed Research Workspace and executor architecture for future
+   collaboration and HPC connector work.
 
 ## What Funders Should Expect
 
