@@ -1,0 +1,68 @@
+name: HPC Site-Policy Review
+description: Review the dry-run Slurm request bundle before real scheduler connector work.
+title: "[HPC Site-Policy Review]: "
+labels:
+  - review-wanted
+  - hpc
+  - slurm
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reviewing the QS-DMSS dry-run Slurm request bundle. QS-DMSS does not submit scheduler jobs today; this issue is for reviewing generated artifacts before any real Slurm/SSH/PBS connector work.
+
+        Please do not include secrets, private hostnames, usernames, unpublished allocation IDs, scheduler tokens, or private filesystem paths.
+  - type: textarea
+    id: reviewer_context
+    attributes:
+      label: Reviewer Context
+      description: What kind of site or role does this feedback represent?
+      placeholder: "University Slurm cluster admin, RSE supporting shared HPC users, lab workstation maintainer, etc."
+    validations:
+      required: true
+  - type: textarea
+    id: reviewed_artifacts
+    attributes:
+      label: Reviewed Artifacts
+      description: Which generated files did you inspect?
+      placeholder: |
+        qs-dmss executors slurm-dry-run configs/demo.yaml --request-root dry-run-jobs --job-name qs-demo
+        request-bundle/slurm-job.sh
+        request-bundle/request-bundle.json
+        job.json
+    validations:
+      required: true
+  - type: textarea
+    id: blockers
+    attributes:
+      label: Policy Blockers
+      description: What would prevent this bundle shape from being acceptable at your site?
+      placeholder: "Example: account must be required; stdout/stderr must go to scratch; module loads must be site-profile driven."
+    validations:
+      required: false
+  - type: textarea
+    id: recommendations
+    attributes:
+      label: Recommended Changes
+      description: What should QS-DMSS change before any real submit/status/collect connector exists?
+    validations:
+      required: true
+  - type: textarea
+    id: state_artifacts
+    attributes:
+      label: State Mapping And Artifact Return
+      description: Which scheduler states, IDs, logs, and output paths should QS-DMSS preserve?
+    validations:
+      required: false
+  - type: dropdown
+    id: readiness
+    attributes:
+      label: Connector Readiness Signal
+      description: Based on this review, what should happen next?
+      options:
+        - Keep dry-run only; policy shape needs more work.
+        - Add named site profiles before any real submission.
+        - Add stricter validation before any real submission.
+        - Dry-run shape is acceptable for a guarded SlurmExecutor prototype.
+    validations:
+      required: true

@@ -3,6 +3,9 @@ contact_links:
   - name: Reviewer install quickstart
     url: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-wheel-quickstart.md
     about: Start here if you want to install QS-DMSS and run the public demo path before opening an issue.
+  - name: Slurm site-policy feedback packet
+    url: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/slurm-site-policy-feedback.md
+    about: Review the dry-run Slurm request bundle before real scheduler connector work.
   - name: Circulation and review funnel
     url: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/circulation-funnel.md
     about: Use this guide to choose a scientific, reproducibility, documentation, or contributor review path.
