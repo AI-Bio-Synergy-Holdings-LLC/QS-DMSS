@@ -4,11 +4,11 @@ This packet is the shortest path for an external reviewer to understand what
 QS-DMSS is claiming, reproduce the public baseline, and decide where feedback
 would be most useful.
 
-Current public baseline: `v0.8.0` / `qs-dmss==0.8.0`
+Current public baseline: `v0.9.0` / `qs-dmss==0.9.0`
 
-Release DOI: `10.5281/zenodo.20673804`
+Release DOI: `10.5281/zenodo.20693736`
 
-Latest archived release DOI: `10.5281/zenodo.20673804` (`v0.8.0`)
+Latest archived release DOI: `10.5281/zenodo.20693736` (`v0.9.0`)
 
 Project DOI: `10.5281/zenodo.20074924`
 
@@ -49,7 +49,7 @@ Use the published PyPI package from a clean environment:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.8.0
+python -m pip install qs-dmss==0.9.0
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo
@@ -96,6 +96,9 @@ Expected signals:
 Use [simulation-showcase.md](simulation-showcase.md) for the detailed path.
 
 ## Lab Mode Cockpit Path
+
+`v0.9.0` is the product milestone where the dry-run Slurm request-bundle review
+path becomes installable from PyPI without real scheduler submission.
 
 `v0.8.0` is the product milestone where Campaign Studio study templates become
 visible reusable research assets:

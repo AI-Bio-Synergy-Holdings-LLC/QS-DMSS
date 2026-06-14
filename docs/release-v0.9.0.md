@@ -60,9 +60,8 @@ and the GitHub release wheel from `v0.9.0`.
 ## Citation Status
 
 - Project DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI at release prep: `10.5281/zenodo.20673804`
-  (`v0.8.0`)
-- `v0.9.0` release DOI: pending Zenodo archive after the GitHub release
+- `v0.9.0` release DOI: `10.5281/zenodo.20693736`
+- `v0.9.0` release record: `https://zenodo.org/records/20693736`
 
-After Zenodo archives `v0.9.0`, update CITATION.cff, README citation text,
-Codemeta, and citation docs in a tiny DOI metadata PR.
+CITATION.cff, README citation text, Codemeta, and citation docs have been
+updated after the Zenodo archive completed.
