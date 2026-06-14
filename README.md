@@ -143,6 +143,7 @@ Builders and sponsors can start with the product direction:
 - [docs/product-vision.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/product-vision.md)
 - [docs/contributor-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/contributor-roadmap.md)
 - [docs/funding-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/funding-roadmap.md)
+- [docs/distributed-research-workspace-executor-architecture.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/distributed-research-workspace-executor-architecture.md)
 
 The current product milestone includes QS-DMSS Lab Mode: a richer
 cockpit/showcase experience for running scenarios, inspecting outputs,
@@ -157,6 +158,12 @@ reusable study-template cards, and a packaged Self-Interaction Sweep template.
 That template gives fresh users one concrete `engine.g_int` campaign they can
 run, inspect, rerun, export, and critique without first designing a study from
 scratch.
+
+Distributed collaboration and HPC connectors are possible future platform
+layers, but they are not shipped runtime behavior yet. The architecture seam is
+documented as a local-first path toward shared research workspaces, executor
+contracts, job lifecycle tracking, artifact collection, and scheduler
+guardrails.
 
 Review paths remain available for people who want to validate the public
 package:

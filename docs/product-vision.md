@@ -119,6 +119,9 @@ The strategic build priorities are:
 - Campaign Studio for editable parameter-grid design, decision-profile editing,
   scoring-contract preview, recommendation inspection, reusable study-template
   save/load, and portable campaign-design import/export.
+- Distributed Research Workspace / Executor architecture for future
+  collaboration objects, job lifecycle tracking, artifact collection, and HPC
+  connector boundaries without weakening the local-first trust model.
 - Evidence Explorer for opening bundles, viewing manifests, comparing digests,
   and understanding replay status.
 - Contributor extension points for new scenarios, metrics, reports, and solver
