@@ -250,7 +250,7 @@ const citationMetadata = {
   packageVersion: "0.9.0",
   releaseTag: "v0.9.0",
   conceptDoi: "10.5281/zenodo.20074924",
-  releaseDoi: "10.5281/zenodo.20673804",
+  releaseDoi: "10.5281/zenodo.20693736",
   releaseUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.9.0",
   pypiUrl: "https://pypi.org/project/qs-dmss/0.9.0/",
   repositoryUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",

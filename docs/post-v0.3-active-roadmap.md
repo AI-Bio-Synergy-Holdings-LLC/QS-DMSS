@@ -9,8 +9,8 @@ The current QS-DMSS direction is:
 run simulations -> inspect evidence -> compare campaigns -> publish reproducible artifacts
 ```
 
-The current public baseline is `qs-dmss==0.8.0`, archived by Zenodo as
-`v0.8.0` / `10.5281/zenodo.20673804`.
+The current public baseline is `qs-dmss==0.9.0`, archived by Zenodo as
+`v0.9.0` / `10.5281/zenodo.20693736`.
 
 ## Strategic Shift
 
@@ -34,7 +34,8 @@ The full strategy now lives in:
 ## Current Active Slice: Self-Interaction Study Template
 
 Lab Mode and Campaign Studio now make QS-DMSS feel meaningfully different from
-a generic open simulator. `v0.8.0` has shipped the Campaign Studio Template
+a generic open simulator. `v0.9.0` has shipped the dry-run Slurm review target,
+and `v0.8.0` shipped the Campaign Studio Template
 Library polish, and PR #90 clarified the scientific scope and tangible-utility
 lane. The current slice turns that positioning into a packaged runnable study.
 

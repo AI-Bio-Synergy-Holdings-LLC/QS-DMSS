@@ -63,8 +63,8 @@ def test_public_discovery_metadata_is_present() -> None:
     }:
         assert label in urls
 
-    assert urls["Latest Archived Release DOI"] == "https://doi.org/10.5281/zenodo.20673804"
-    assert urls["Zenodo"] == "https://zenodo.org/records/20673804"
+    assert urls["Latest Archived Release DOI"] == "https://doi.org/10.5281/zenodo.20693736"
+    assert urls["Zenodo"] == "https://zenodo.org/records/20693736"
 
 
 def test_codemeta_release_metadata_is_aligned() -> None:
@@ -75,5 +75,5 @@ def test_codemeta_release_metadata_is_aligned() -> None:
 
     assert codemeta["softwareVersion"] == declared_version
     assert codemeta["version"] == declared_version
-    assert codemeta["citation"] == "https://doi.org/10.5281/zenodo.20673804"
+    assert codemeta["citation"] == "https://doi.org/10.5281/zenodo.20693736"
     assert codemeta["releaseNotes"].endswith(f"/releases/tag/v{declared_version}")

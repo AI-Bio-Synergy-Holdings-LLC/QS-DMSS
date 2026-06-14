@@ -17,7 +17,7 @@ Primary sources:
 
 Do not submit to JOSS yet.
 
-Prepare the packet, collect reviewer feedback, and use `v0.8.0` as the stable
+Prepare the packet, collect reviewer feedback, and use `v0.9.0` as the stable
 public baseline for Lab Mode, Campaign Studio, Publication Export Composer, and reproducibility
 review.
 
@@ -39,7 +39,7 @@ workflow is a meaningful contribution to the research community.
 | --- | --- | --- | --- |
 | Public repository and issue workflow | Public GitHub repository, issue templates, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT | Ready | Keep development visible through ordinary issues and PRs |
 | OSI-approved license | Apache-2.0 `LICENSE` file | Ready | No action |
-| Installable package | PyPI `qs-dmss==0.8.0`, release wheel, Trusted Publishing, fresh-install smoke | Ready | `v0.8.0` ships Campaign Studio Template Library cards, last-run provenance, a clean public code-scanning posture, and Zenodo DOI `10.5281/zenodo.20673804` |
+| Installable package | PyPI `qs-dmss==0.9.0`, release wheel, Trusted Publishing, fresh-install smoke | Ready | `v0.9.0` ships the dry-run Slurm review target, preserves the Campaign Studio Template Library milestone, and has Zenodo DOI `10.5281/zenodo.20693736` |
 | Tests and CI | Pytest suite, benchmark smoke, wheel smoke, Docker smoke, CodeQL | Ready | Add tests only when behavior changes |
 | Documentation | README, reviewer quickstart, evidence glossary, benchmark docs, contributor map | Ready enough | Use reviewer feedback to patch confusing sections |
 | Example usage | `run-demo`, `campaigns run-demo`, `benchmarks validate` | Ready enough | Add a short tutorial only if reviewers need more context |
