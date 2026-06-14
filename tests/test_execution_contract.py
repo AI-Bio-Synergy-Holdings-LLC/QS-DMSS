@@ -8,6 +8,7 @@ from qs_dmss.execution import (
     ExecutionJobSpec,
     ExecutionJobStatus,
     ExecutorCapabilities,
+    LocalJobRegistry,
     ResearchWorkspaceRef,
 )
 
@@ -90,3 +91,46 @@ def test_executor_capabilities_describe_scheduler_without_credentials() -> None:
     assert capabilities.supports_campaigns is True
     assert capabilities.requires_credentials is True
     assert capabilities.notes == ("dry-run first",)
+
+
+def test_local_job_registry_records_lifecycle(tmp_path: Path) -> None:
+    registry = LocalJobRegistry(tmp_path / "jobs")
+    spec = ExecutionJobSpec(
+        config={"run": {"name": "demo"}},
+        source_name="demo.yaml",
+        output_root=tmp_path / "runs",
+        labels=("run",),
+    )
+
+    handle = registry.create(spec)
+    running = registry.update(
+        handle,
+        "running",
+        message="Running locally.",
+        progress=0.5,
+    )
+    result = ExecutionJobResult(
+        handle=handle,
+        state="succeeded",
+        run_id="demo-run",
+        run_dir=tmp_path / "runs" / "demo-run",
+        artifacts=(
+            ExecutionArtifact(
+                role="evidence_bundle",
+                path=tmp_path / "runs" / "demo-run" / "evidence_bundle.zip",
+            ),
+        ),
+    )
+    registry.complete(handle, result)
+
+    record = registry.get(handle.job_id)
+    assert running.state == "running"
+    assert record["state"] == "succeeded"
+    assert record["spec"]["source_name"] == "demo.yaml"
+    assert record["spec"]["output_root"] == str(tmp_path / "runs")
+    assert record["result"]["run_id"] == "demo-run"
+    assert [event["state"] for event in record["lifecycle"]] == [
+        "submitted",
+        "running",
+        "succeeded",
+    ]

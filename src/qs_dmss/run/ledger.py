@@ -54,6 +54,20 @@ def _resolve_output_root(
     return (source_config_path.parent / output_root).resolve()
 
 
+def resolve_run_output_root(
+    config: SimulationConfig,
+    source_config_path: Path,
+    output_root_override: Path | None = None,
+) -> Path:
+    repo_root = discover_repo_root(source_config_path.resolve().parent)
+    return _resolve_output_root(
+        config,
+        source_config_path,
+        repo_root,
+        output_root_override,
+    )
+
+
 def prepare_run_workspace(
     config: SimulationConfig,
     source_config_path: Path,
@@ -61,10 +75,9 @@ def prepare_run_workspace(
     replayed_from: str | None = None,
 ) -> RunWorkspace:
     repo_root = discover_repo_root(source_config_path.resolve().parent)
-    output_root = _resolve_output_root(
+    output_root = resolve_run_output_root(
         config,
         source_config_path,
-        repo_root,
         output_root_override,
     )
     output_root.mkdir(parents=True, exist_ok=True)
@@ -106,6 +119,7 @@ def create_run_record(
     elapsed_seconds: float,
     metrics: dict,
     experiment: dict | None = None,
+    execution_job: dict | None = None,
 ) -> dict:
     decision_profile = decision_profile_from_config(config)
     run_record = {
@@ -147,6 +161,8 @@ def create_run_record(
     }
     if experiment is not None:
         run_record["experiment"] = experiment
+    if execution_job is not None:
+        run_record["execution_job"] = execution_job
     if decision_profile is not None:
         run_record["decision_profile"] = decision_profile
     return run_record

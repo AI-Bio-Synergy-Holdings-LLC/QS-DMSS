@@ -104,6 +104,33 @@ The first implementation should be `LocalExecutor`, a thin adapter over the
 existing runner. That proves the seam without changing behavior. Remote
 executors should come after local parity is tested.
 
+## Local Executor Implementation
+
+The first implementation slice keeps execution synchronous and local while
+recording job lifecycle metadata by default.
+
+Local runs now follow this shape:
+
+```text
+ExecutionJobSpec -> LocalExecutor -> local runner -> evidence bundle
+                              \-> jobs/<job_id>/job.json
+```
+
+The local job record is a file-backed lifecycle record with:
+
+- submitted config and source name;
+- labels such as `run`, `replay`, `campaign`, or `guided-comparison`;
+- state transitions from `submitted` to `running` to `collecting` to
+  `succeeded`;
+- returned artifact roles such as run directory, evidence bundle, report,
+  metrics, and manifest;
+- failure metadata if a local run raises before completion.
+
+Each generated `run.json` includes an `execution_job` reference with the local
+job ID, backend, and registry path. The evidence bundle remains the trusted
+research object; the registry is a local coordination layer for later
+collaboration and HPC work.
+
 ## Job Lifecycle
 
 Use one lifecycle vocabulary for local and remote execution:
@@ -196,14 +223,17 @@ Guardrails:
 
 ## Recommended Build Slices
 
-1. Add this architecture and internal interface sketch.
-2. Implement `LocalExecutor` as the default cockpit/CLI execution adapter.
-3. Add a local job registry that records job lifecycle state for runs,
-   campaigns, and research-object exports.
-4. Add workspace export/import with collaborators and annotations.
-5. Add `DryRunSlurmExecutor` that produces a reviewable batch script and request
+1. Complete: add this architecture and internal interface sketch.
+2. Complete: implement `LocalExecutor` as the default cockpit/CLI execution
+   adapter with file-backed job records for local runs and replay runs.
+3. Next: expose local job records in the cockpit as run and campaign-variant
+   provenance.
+4. Next: add campaign-level and research-object-export job records where the
+   job represents a multi-run artifact rather than one simulation run.
+5. Add workspace export/import with collaborators and annotations.
+6. Add `DryRunSlurmExecutor` that produces a reviewable batch script and request
    bundle without submission.
-6. Add real Slurm submit/status/collect behind an explicit opt-in profile.
+7. Add real Slurm submit/status/collect behind an explicit opt-in profile.
 
 ## Success Standard
 
