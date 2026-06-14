@@ -226,8 +226,8 @@ Guardrails:
 1. Complete: add this architecture and internal interface sketch.
 2. Complete: implement `LocalExecutor` as the default cockpit/CLI execution
    adapter with file-backed job records for local runs and replay runs.
-3. Next: expose local job records in the cockpit as run and campaign-variant
-   provenance.
+3. Complete: expose local job records in the cockpit/API as run and
+   campaign-variant provenance.
 4. Next: add campaign-level and research-object-export job records where the
    job represents a multi-run artifact rather than one simulation run.
 5. Add workspace export/import with collaborators and annotations.

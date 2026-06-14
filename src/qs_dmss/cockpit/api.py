@@ -15,6 +15,7 @@ from pydantic import BaseModel
 from qs_dmss.app import execute_run, replay_run as replay_existing_run
 from qs_dmss.decision import evaluate_run_decision
 from qs_dmss.evidence.verify import verify_run_path
+from qs_dmss.execution import LocalJobRegistry
 from qs_dmss.experiment import (
     apply_parameter_values,
     apply_sweep_value,
@@ -96,6 +97,7 @@ class CockpitService:
     repo_root: Path
     output_root: Path
     experiments_root: Path
+    jobs_root: Path
     config_root: Path
     static_root: Path
 
@@ -113,12 +115,16 @@ class CockpitService:
             resolved_repo_root,
             resolved_output_root,
         )
+        resolved_jobs_root = LocalJobRegistry.for_output_root(
+            resolved_output_root
+        ).jobs_root
         resolved_output_root.mkdir(parents=True, exist_ok=True)
         resolved_experiments_root.mkdir(parents=True, exist_ok=True)
         return cls(
             repo_root=resolved_repo_root,
             output_root=resolved_output_root,
             experiments_root=resolved_experiments_root,
+            jobs_root=resolved_jobs_root,
             config_root=configs_root(resolved_repo_root),
             static_root=Path(__file__).resolve().parent / "static",
         )
@@ -312,6 +318,18 @@ class CockpitService:
     def get_run_detail(self, run_id: str) -> dict:
         run_dir = self._get_run_dir(run_id)
         return self._build_run_detail(run_dir)
+
+    def get_run_job_detail(self, run_id: str) -> dict:
+        run_dir = self._get_run_dir(run_id)
+        run_record = self._read_json(run_dir / "run.json")
+        reference = run_record.get("execution_job")
+        detail = self._build_execution_job_detail(reference)
+        if detail is None:
+            raise HTTPException(status_code=404, detail="Run has no execution job provenance")
+        return detail
+
+    def get_job_detail(self, job_id: str) -> dict:
+        return self._build_job_detail(self._get_job_record(job_id))
 
     def get_experiment_detail(self, experiment_id: str) -> dict:
         experiment_dir = self._get_experiment_dir(experiment_id)
@@ -740,6 +758,103 @@ class CockpitService:
         if not experiment_dir.exists() or not (experiment_dir / "experiment.json").exists():
             raise HTTPException(status_code=404, detail="Experiment not found")
         return experiment_dir
+
+    def _get_job_record(self, job_id: str) -> dict:
+        try:
+            return LocalJobRegistry(self.jobs_root).get(job_id)
+        except (FileNotFoundError, ValueError) as exc:
+            raise HTTPException(status_code=404, detail="Execution job not found") from exc
+
+    def _missing_job_summary(self, reference: dict, message: str) -> dict:
+        return {
+            "available": False,
+            "job_id": reference.get("job_id"),
+            "backend": reference.get("backend"),
+            "registry_path": reference.get("registry_path"),
+            "state": "unavailable",
+            "message": message,
+            "created_at": None,
+            "updated_at": None,
+            "progress": None,
+            "labels": [],
+            "source_name": None,
+            "run_id": None,
+            "artifact_roles": [],
+            "lifecycle_states": [],
+            "url": (
+                f"/api/jobs/{reference['job_id']}"
+                if reference.get("job_id")
+                else None
+            ),
+        }
+
+    def _build_job_summary(self, record: dict) -> dict:
+        spec = record.get("spec") or {}
+        result = record.get("result") or {}
+        artifacts = result.get("artifacts") or []
+        lifecycle = record.get("lifecycle") or []
+        return {
+            "available": True,
+            "job_id": record["job_id"],
+            "backend": record["backend"],
+            "registry_path": str(self.jobs_root / record["job_id"] / "job.json"),
+            "state": record["state"],
+            "message": record.get("message", ""),
+            "created_at": record.get("created_at"),
+            "updated_at": record.get("updated_at"),
+            "progress": record.get("progress"),
+            "labels": spec.get("labels") or [],
+            "source_name": spec.get("source_name"),
+            "run_id": result.get("run_id"),
+            "artifact_roles": [
+                artifact.get("role")
+                for artifact in artifacts
+                if artifact.get("role")
+            ],
+            "lifecycle_states": [
+                event.get("state")
+                for event in lifecycle
+                if event.get("state")
+            ],
+            "url": f"/api/jobs/{record['job_id']}",
+        }
+
+    def _build_job_detail(self, record: dict) -> dict:
+        return {
+            "summary": self._build_job_summary(record),
+            "spec": record.get("spec") or {},
+            "lifecycle": record.get("lifecycle") or [],
+            "result": record.get("result") or {},
+            "record": record,
+        }
+
+    def _build_execution_job_summary(self, reference: dict | None) -> dict | None:
+        if not isinstance(reference, dict) or not reference.get("job_id"):
+            return None
+        try:
+            return self._build_job_summary(self._get_job_record(str(reference["job_id"])))
+        except HTTPException:
+            return self._missing_job_summary(
+                reference,
+                "Local job record is not available for this run.",
+            )
+
+    def _build_execution_job_detail(self, reference: dict | None) -> dict | None:
+        if not isinstance(reference, dict) or not reference.get("job_id"):
+            return None
+        try:
+            return self._build_job_detail(self._get_job_record(str(reference["job_id"])))
+        except HTTPException:
+            return {
+                "summary": self._missing_job_summary(
+                    reference,
+                    "Local job record is not available for this run.",
+                ),
+                "spec": {},
+                "lifecycle": [],
+                "result": {},
+                "record": None,
+            }
 
     def _resolve_showcase_scenario(self, scenario: str):
         try:
@@ -1348,6 +1463,9 @@ class CockpitService:
         config = load_config(run_dir / "config.yaml")
         experiment = run_record.get("experiment")
         bundle_path = run_dir / "evidence_bundle.zip"
+        execution_job = self._build_execution_job_summary(
+            run_record.get("execution_job"),
+        )
         return {
             "run_id": run_record["run_id"],
             "name": run_record["name"],
@@ -1364,6 +1482,7 @@ class CockpitService:
             "bundle_size_bytes": bundle_path.stat().st_size,
             "bundle_size_label": self._format_bytes(bundle_path.stat().st_size),
             "experiment": experiment,
+            "execution_job": execution_job,
         }
 
     def _build_run_detail(self, run_dir: Path) -> dict:
@@ -1378,11 +1497,22 @@ class CockpitService:
             metrics,
             verification_success=verification.success,
         )
+        execution_job = self._build_execution_job_detail(
+            run_record.get("execution_job"),
+        )
+
+        urls = {
+            "bundle": f"/api/runs/{run_record['run_id']}/bundle",
+            "report": f"/api/runs/{run_record['run_id']}/report",
+        }
+        if execution_job and execution_job["summary"].get("job_id"):
+            urls["job"] = f"/api/runs/{run_record['run_id']}/job"
 
         return {
             "summary": self._build_run_summary(run_dir),
             "config": config.to_dict(),
             "run_record": run_record,
+            "execution_job": execution_job,
             "metrics": metrics,
             "latest_snapshot": metrics["history"][-1],
             "decision": decision,
@@ -1398,10 +1528,7 @@ class CockpitService:
                 "categories": self._evidence_categories(manifest),
                 "artifact_paths": [entry["path"] for entry in manifest.get("files", [])],
             },
-            "urls": {
-                "bundle": f"/api/runs/{run_record['run_id']}/bundle",
-                "report": f"/api/runs/{run_record['run_id']}/report",
-            },
+            "urls": urls,
         }
 
     def _build_experiment_summary(self, experiment_dir: Path) -> dict:
@@ -1479,6 +1606,7 @@ def create_app(
             "repo_root": str(service.repo_root),
             "output_root": str(service.output_root),
             "experiments_root": str(service.experiments_root),
+            "jobs_root": str(service.jobs_root),
         }
 
     @app.get("/api/configs")
@@ -1546,6 +1674,14 @@ def create_app(
     @app.get("/api/runs/{run_id}")
     def run_detail(run_id: str) -> dict:
         return service.get_run_detail(run_id)
+
+    @app.get("/api/runs/{run_id}/job")
+    def run_job_detail(run_id: str) -> dict:
+        return service.get_run_job_detail(run_id)
+
+    @app.get("/api/jobs/{job_id}")
+    def job_detail(job_id: str) -> dict:
+        return service.get_job_detail(job_id)
 
     @app.post("/api/runs")
     def launch_run(payload: LaunchRunRequest) -> dict:

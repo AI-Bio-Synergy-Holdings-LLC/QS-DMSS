@@ -796,6 +796,14 @@
                 <dt>Verified</dt>
                 <dd id="statusVerified">Pending</dd>
               </div>
+              <div>
+                <dt>Executor Job</dt>
+                <dd id="statusJobId">-</dd>
+              </div>
+              <div>
+                <dt>Executor</dt>
+                <dd id="statusJobBackend">-</dd>
+              </div>
             </dl>
           </section>
 
@@ -812,6 +820,30 @@
               <span>Config Digest</span>
               <code id="detailDigest">-</code>
             </div>
+
+            <section class="job-provenance-panel" id="jobProvenancePanel">
+              <div>
+                <p class="artifact-list-title">Local Job Provenance</p>
+                <h3 id="jobProvenanceTitle">No execution job selected</h3>
+                <p id="jobProvenanceSummary">
+                  Local executor job lifecycle and artifact roles appear after selecting a run.
+                </p>
+              </div>
+              <dl class="job-provenance-grid">
+                <div>
+                  <dt>Lifecycle</dt>
+                  <dd id="jobProvenanceLifecycle">-</dd>
+                </div>
+                <div>
+                  <dt>Artifacts</dt>
+                  <dd id="jobProvenanceArtifacts">-</dd>
+                </div>
+                <div>
+                  <dt>Registry</dt>
+                  <dd id="jobProvenanceRegistry">-</dd>
+                </div>
+              </dl>
+            </section>
 
             <div class="chart-stack">
               <article class="metric-card">
@@ -879,6 +911,7 @@
                     <th>Grid</th>
                     <th>Steps</th>
                     <th>Status</th>
+                    <th>Job</th>
                     <th>Completed</th>
                   </tr>
                 </thead>
@@ -935,6 +968,7 @@
                   <tr>
                     <th>Run</th>
                     <th>Variant</th>
+                    <th>Job</th>
                     <th>Rank</th>
                     <th>Score</th>
                     <th>Qualified</th>
@@ -946,7 +980,7 @@
                 </thead>
                 <tbody id="comparisonTableBody">
                   <tr>
-                    <td colspan="9">Select at least two runs to compare.</td>
+                    <td colspan="10">Select at least two runs to compare.</td>
                   </tr>
                 </tbody>
               </table>

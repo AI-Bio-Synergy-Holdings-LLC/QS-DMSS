@@ -187,9 +187,16 @@ const els = {
   statusElapsed: document.querySelector("#statusElapsed"),
   statusSteps: document.querySelector("#statusSteps"),
   statusVerified: document.querySelector("#statusVerified"),
+  statusJobId: document.querySelector("#statusJobId"),
+  statusJobBackend: document.querySelector("#statusJobBackend"),
   detailTitle: document.querySelector("#detailTitle"),
   detailChip: document.querySelector("#detailChip"),
   detailDigest: document.querySelector("#detailDigest"),
+  jobProvenanceTitle: document.querySelector("#jobProvenanceTitle"),
+  jobProvenanceSummary: document.querySelector("#jobProvenanceSummary"),
+  jobProvenanceLifecycle: document.querySelector("#jobProvenanceLifecycle"),
+  jobProvenanceArtifacts: document.querySelector("#jobProvenanceArtifacts"),
+  jobProvenanceRegistry: document.querySelector("#jobProvenanceRegistry"),
   energyDriftValue: document.querySelector("#energyDriftValue"),
   normDriftValue: document.querySelector("#normDriftValue"),
   energyChart: document.querySelector("#energyChart"),
@@ -357,6 +364,64 @@ function parseEditorNumber(rawValue, label, errors, options = {}) {
 function shortRunId(value) {
   if (!value) return "-";
   return String(value).slice(-8);
+}
+
+function jobSummary(detailOrSummary) {
+  if (!detailOrSummary) return null;
+  if (detailOrSummary.summary) return detailOrSummary.summary;
+  return detailOrSummary;
+}
+
+function jobLabel(job) {
+  const summary = jobSummary(job);
+  if (!summary?.job_id) return "No job";
+  return `${shortRunId(summary.job_id)} / ${summary.state || "unknown"}`;
+}
+
+function jobBackendLabel(job) {
+  const summary = jobSummary(job);
+  if (!summary?.backend) return "-";
+  return `${summary.backend}${summary.available === false ? " unavailable" : ""}`;
+}
+
+function jobCellMarkup(job) {
+  const summary = jobSummary(job);
+  if (!summary?.job_id) {
+    return '<span class="job-provenance-chip is-empty">No job</span>';
+  }
+  return `
+    <div class="job-provenance-mini">
+      <strong>${escapeHtml(shortRunId(summary.job_id))}</strong>
+      <span>${escapeHtml(summary.backend || "local")} / ${escapeHtml(summary.state || "unknown")}</span>
+    </div>
+  `;
+}
+
+function renderJobProvenance(jobDetail) {
+  const summary = jobSummary(jobDetail);
+  if (!summary?.job_id) {
+    els.jobProvenanceTitle.textContent = "No execution job selected";
+    els.jobProvenanceSummary.textContent =
+      "Local executor job lifecycle and artifact roles appear after selecting a run.";
+    els.jobProvenanceLifecycle.textContent = "-";
+    els.jobProvenanceArtifacts.textContent = "-";
+    els.jobProvenanceRegistry.textContent = "-";
+    return;
+  }
+
+  const lifecycleStates = summary.lifecycle_states?.length
+    ? summary.lifecycle_states.join(" -> ")
+    : "Lifecycle unavailable";
+  const artifactRoles = summary.artifact_roles?.length
+    ? summary.artifact_roles.join(", ")
+    : "Artifacts unavailable";
+  els.jobProvenanceTitle.textContent = `${summary.backend || "local"} job ${shortRunId(summary.job_id)}`;
+  els.jobProvenanceSummary.textContent = summary.available === false
+    ? summary.message || "Local job record is not available for this run."
+    : summary.message || "Local executor job record is available for this run.";
+  els.jobProvenanceLifecycle.textContent = lifecycleStates;
+  els.jobProvenanceArtifacts.textContent = artifactRoles;
+  els.jobProvenanceRegistry.textContent = summary.registry_path || summary.url || "-";
 }
 
 function toast(title, body, tone = "neutral") {
@@ -2799,7 +2864,7 @@ function renderRunsTable() {
   if (!state.runs.length) {
     els.runsTableBody.innerHTML = `
       <tr>
-        <td colspan="8">No runs yet. Launch the first deterministic run from the cockpit.</td>
+        <td colspan="9">No runs yet. Launch the first deterministic run from the cockpit.</td>
       </tr>
     `;
     updateSelectionChip();
@@ -2830,6 +2895,7 @@ function renderRunsTable() {
           <td>${run.grid_label}</td>
           <td>${run.steps.toLocaleString()}</td>
           <td><span class="status-pill ${tone}">${run.status}</span></td>
+          <td>${jobCellMarkup(run.execution_job)}</td>
           <td>${formatTimestamp(run.finished_at)}</td>
         </tr>
       `;
@@ -2986,6 +3052,8 @@ function renderSelectedRun(detail) {
   els.statusVerified.textContent = detail.verification.success
     ? `Verified (${detail.verification.checked_files})`
     : "Pending";
+  els.statusJobId.textContent = jobLabel(detail.execution_job);
+  els.statusJobBackend.textContent = jobBackendLabel(detail.execution_job);
 
   els.detailTitle.textContent = detail.summary.name;
   els.detailChip.textContent = detail.run_record.experiment?.parameter_value_label
@@ -3015,6 +3083,7 @@ function renderSelectedRun(detail) {
   els.reportFrame.src = detail.urls.report;
   els.reportHeading.textContent = `Evidence Report - ${detail.summary.run_id}`;
 
+  renderJobProvenance(detail.execution_job);
   renderEvidence(detail);
   renderRunsTable();
 }
@@ -3062,7 +3131,7 @@ function renderComparison(comparison) {
     els.compareFastestRun.textContent = "-";
     els.comparisonTableBody.innerHTML = `
       <tr>
-        <td colspan="9">Select at least two runs to compare.</td>
+        <td colspan="10">Select at least two runs to compare.</td>
       </tr>
     `;
     return;
@@ -3093,6 +3162,7 @@ function renderComparison(comparison) {
             <span>${row.parameter_label || "Manual selection"}</span>
           </div>
         </td>
+        <td>${jobCellMarkup(row.execution_job)}</td>
         <td>${row.decision_rank ?? "-"}</td>
         <td>${formatScore(row.decision_score)}</td>
         <td>${row.decision_qualified === undefined ? "-" : row.decision_qualified ? "yes" : "no"}</td>
