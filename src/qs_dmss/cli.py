@@ -200,6 +200,85 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Optional run output directory override used for generated campaign runs.",
     )
 
+    executors_parser = subparsers.add_parser(
+        "executors",
+        help="Generate review-only executor request artifacts.",
+    )
+    executors_subparsers = executors_parser.add_subparsers(
+        dest="executors_command",
+        required=True,
+    )
+
+    slurm_dry_run_parser = executors_subparsers.add_parser(
+        "slurm-dry-run",
+        help="Generate a Slurm request bundle without submitting to a scheduler.",
+    )
+    slurm_dry_run_parser.add_argument("config", help="Path to a YAML config file.")
+    slurm_dry_run_parser.add_argument(
+        "--request-root",
+        help="Optional directory for the dry-run job registry and request bundle.",
+    )
+    slurm_dry_run_parser.add_argument(
+        "--job-name",
+        default="qs-dmss-dry-run",
+        help="SBATCH job name for the generated script.",
+    )
+    slurm_dry_run_parser.add_argument(
+        "--time",
+        dest="time_limit",
+        default="00:10:00",
+        help="SBATCH time limit for the generated script.",
+    )
+    slurm_dry_run_parser.add_argument(
+        "--nodes",
+        type=int,
+        default=1,
+        help="SBATCH node count for the generated script.",
+    )
+    slurm_dry_run_parser.add_argument(
+        "--ntasks",
+        type=int,
+        default=1,
+        help="SBATCH task count for the generated script.",
+    )
+    slurm_dry_run_parser.add_argument(
+        "--cpus-per-task",
+        type=int,
+        default=1,
+        help="SBATCH CPUs per task for the generated script.",
+    )
+    slurm_dry_run_parser.add_argument(
+        "--mem",
+        default="2G",
+        help="SBATCH memory directive for the generated script.",
+    )
+    slurm_dry_run_parser.add_argument(
+        "--partition",
+        help="Optional SBATCH partition directive.",
+    )
+    slurm_dry_run_parser.add_argument(
+        "--account",
+        help="Optional SBATCH account directive.",
+    )
+    slurm_dry_run_parser.add_argument(
+        "--qos",
+        help="Optional SBATCH QoS directive.",
+    )
+    slurm_dry_run_parser.add_argument(
+        "--python-module",
+        help="Optional environment module to load before running qs-dmss.",
+    )
+    slurm_dry_run_parser.add_argument(
+        "--qs-dmss-command",
+        default="qs-dmss",
+        help="Command used inside the generated Slurm script.",
+    )
+    slurm_dry_run_parser.add_argument(
+        "--slurm-output-root",
+        default="runs",
+        help="Output root argument embedded in the generated Slurm script.",
+    )
+
     return parser
 
 
@@ -415,6 +494,70 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Reason: {payload['comparison']['decision']['reason']}")
         print(f"Bundle: {service.experiments_root / payload['campaign']['id'] / 'evidence_bundle.zip'}")
         return 0
+
+    if args.command == "executors":
+        if args.executors_command == "slurm-dry-run":
+            from qs_dmss.execution import (
+                DryRunSlurmExecutor,
+                ExecutionJobSpec,
+                LocalJobRegistry,
+                SlurmDryRunOptions,
+            )
+            from qs_dmss.io.config import load_config
+
+            config_path = Path(args.config).resolve()
+            try:
+                config = load_config(config_path)
+            except (FileNotFoundError, ValueError) as exc:
+                print(exc)
+                return 1
+
+            request_root = (
+                Path(args.request_root).resolve()
+                if args.request_root
+                else Path.cwd() / "jobs"
+            )
+            executor = DryRunSlurmExecutor(
+                LocalJobRegistry(request_root),
+                options=SlurmDryRunOptions(
+                    job_name=args.job_name,
+                    time_limit=args.time_limit,
+                    nodes=args.nodes,
+                    ntasks=args.ntasks,
+                    cpus_per_task=args.cpus_per_task,
+                    memory=args.mem,
+                    partition=args.partition,
+                    account=args.account,
+                    qos=args.qos,
+                    python_module=args.python_module,
+                    qs_dmss_command=args.qs_dmss_command,
+                    output_root=args.slurm_output_root,
+                ),
+            )
+            handle = executor.submit(
+                ExecutionJobSpec(
+                    config=config.to_dict(),
+                    source_name=config_path.name,
+                    output_root=Path(args.slurm_output_root),
+                    labels=("dry-run", "slurm"),
+                    metadata={"source_config_path": str(config_path)},
+                )
+            )
+            result = executor.collect(handle)
+            request_bundle = next(
+                artifact
+                for artifact in result.artifacts
+                if artifact.role == "request_bundle" and artifact.path is not None
+            )
+            request_dir = request_bundle.path.parent
+            print("Slurm dry-run request bundle created.")
+            print("No scheduler job was submitted.")
+            print(f"Job ID: {handle.job_id}")
+            print(f"Job record: {handle.status_uri}")
+            print(f"Request bundle: {request_bundle.path}")
+            print(f"Review directory: {request_dir}")
+            print(f"Review script before any manual submission: {request_dir / 'slurm-job.sh'}")
+            return 0
 
     parser.error(f"Unsupported command: {args.command}")
     return 2

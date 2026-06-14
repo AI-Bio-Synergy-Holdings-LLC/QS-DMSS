@@ -76,6 +76,8 @@ evidence-first simulation lab:
   concrete tangible-utility demo after install
 - Local workspace export/import for portable collaboration handoffs with
   collaborator and annotation metadata
+- Dry-run Slurm request bundles that emit reviewable scheduler artifacts
+  without submitting jobs
 - Comparison tooling for energy drift, norm drift, density, and runtime deltas
 - Decision profiles that score runs against an explicit objective, constraint set, and ranking policy
 - Durable experiment exports with copied run evidence, comparison JSON, report HTML, manifest, and bundle ZIP
@@ -139,6 +141,16 @@ This writes a human-readable `simulation-showcase/simulation-showcase.md`
 walkthrough, CSV tables, SVG plots, verified run evidence, and replay evidence
 for the packaged canonical simulation scenario.
 
+Generate a review-only Slurm request bundle without submitting to a scheduler:
+
+```powershell
+qs-dmss executors slurm-dry-run configs/demo.yaml --request-root dry-run-jobs --job-name qs-demo
+```
+
+This writes `job.json`, `request-bundle/request-bundle.json`,
+`request-bundle/slurm-job.sh`, a copied config, and review instructions. The
+job state remains `draft`; QS-DMSS does not call `sbatch`.
+
 For source development, install the checked-out repository in editable mode:
 
 ```powershell
@@ -171,9 +183,11 @@ scratch.
 Distributed collaboration and HPC connectors are possible future platform
 layers, but live collaboration and scheduler submission are not shipped runtime
 behavior yet. The current local-first seam supports portable workspace
-export/import with collaborators and annotations, then documents the path toward
-shared research workspaces, executor contracts, job lifecycle tracking,
-artifact collection, and scheduler guardrails.
+export/import with collaborators and annotations plus a dry-run Slurm request
+bundle generator that writes reviewable scheduler artifacts without calling
+`sbatch`, SSH, or a remote scheduler. This documents the path toward shared
+research workspaces, executor contracts, job lifecycle tracking, artifact
+collection, and scheduler guardrails.
 
 Review paths remain available for people who want to validate the public
 package:
@@ -202,6 +216,8 @@ Inside the cockpit you can:
 - Export or import a portable research workspace JSON with selected run,
   experiment, study-template, research-object, job, collaborator, and annotation
   metadata
+- Generate a dry-run Slurm request bundle from a config for review before any
+  manual HPC submission
 - Launch a single run from a checked-in or edited config
 - Launch a parameter sweep across interaction strength, timestep, step count, amplitude, width, or seed
 - Launch a template-defined decision campaign that expands into a reproducible multi-parameter run matrix
