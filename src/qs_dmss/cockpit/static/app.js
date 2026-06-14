@@ -18,6 +18,8 @@ const state = {
   labComparisonResult: null,
   researchObject: null,
   researchObjectDownloadUrl: null,
+  workspaceExport: null,
+  workspaceDownloadUrl: null,
   selectedRunId: null,
   selectedRun: null,
   selectedExperimentId: null,
@@ -105,6 +107,16 @@ const els = {
   researchObjectDownloadLink: document.querySelector("#researchObjectDownloadLink"),
   researchObjectSurface: document.querySelector("#researchObjectSurface"),
   researchObjectCta: document.querySelector("#researchObjectCta"),
+  workspaceExportStatus: document.querySelector("#workspaceExportStatus"),
+  workspaceExportSummary: document.querySelector("#workspaceExportSummary"),
+  workspaceCollaboratorName: document.querySelector("#workspaceCollaboratorName"),
+  workspaceCollaboratorRole: document.querySelector("#workspaceCollaboratorRole"),
+  workspaceCollaboratorAffiliation: document.querySelector("#workspaceCollaboratorAffiliation"),
+  workspaceAnnotationText: document.querySelector("#workspaceAnnotationText"),
+  exportWorkspaceButton: document.querySelector("#exportWorkspaceButton"),
+  workspaceDownloadLink: document.querySelector("#workspaceDownloadLink"),
+  workspaceImportInput: document.querySelector("#workspaceImportInput"),
+  workspaceExportFeedback: document.querySelector("#workspaceExportFeedback"),
   refreshRunsButton: document.querySelector("#refreshRunsButton"),
   refreshExperimentsButton: document.querySelector("#refreshExperimentsButton"),
   compareButton: document.querySelector("#compareButton"),
@@ -842,6 +854,151 @@ function setResearchObjectDownloadEnabled(enabled) {
   link.setAttribute("tabindex", "-1");
   link.textContent = "Download after compose";
   link.classList.add("is-disabled");
+}
+
+function setWorkspaceDownloadEnabled(enabled) {
+  const link = els.workspaceDownloadLink;
+  if (enabled && state.workspaceDownloadUrl && state.workspaceExport) {
+    const workspaceId = state.workspaceExport.summary?.workspace_id || "workspace";
+    link.href = state.workspaceDownloadUrl;
+    link.download = `${workspaceId}.json`;
+    link.removeAttribute("aria-disabled");
+    link.removeAttribute("tabindex");
+    link.textContent = "Download Workspace JSON";
+    link.classList.remove("is-disabled");
+    return;
+  }
+
+  link.removeAttribute("href");
+  link.removeAttribute("download");
+  link.setAttribute("aria-disabled", "true");
+  link.setAttribute("tabindex", "-1");
+  link.textContent = "Download after export";
+  link.classList.add("is-disabled");
+}
+
+function currentWorkspaceResourceIds() {
+  const runIds = new Set(state.selectedRunIds || []);
+  if (state.selectedRunId) runIds.add(state.selectedRunId);
+  if (state.labResult?.run?.summary?.run_id) {
+    runIds.add(state.labResult.run.summary.run_id);
+  }
+  if (state.lastCampaignStudioResult?.campaign?.run_ids) {
+    state.lastCampaignStudioResult.campaign.run_ids.forEach((runId) => runIds.add(runId));
+  }
+
+  const experimentIds = new Set();
+  if (state.selectedExperimentId) experimentIds.add(state.selectedExperimentId);
+  if (state.selectedExperiment?.summary?.experiment_id) {
+    experimentIds.add(state.selectedExperiment.summary.experiment_id);
+  }
+  if (state.labComparisonResult?.artifact?.summary?.experiment_id) {
+    experimentIds.add(state.labComparisonResult.artifact.summary.experiment_id);
+  }
+  if (state.lastCampaignStudioResult?.artifact?.summary?.experiment_id) {
+    experimentIds.add(state.lastCampaignStudioResult.artifact.summary.experiment_id);
+  }
+
+  const templateIds = new Set();
+  if (state.selectedCampaignStudyTemplateId) {
+    templateIds.add(state.selectedCampaignStudyTemplateId);
+  }
+  if (state.activeCampaignStudyTemplate?.template_id) {
+    templateIds.add(state.activeCampaignStudyTemplate.template_id);
+  }
+  if (state.lastCampaignStudyTemplate?.template_id) {
+    templateIds.add(state.lastCampaignStudyTemplate.template_id);
+  }
+
+  const researchObjectIds = new Set();
+  if (state.researchObject?.export?.id) {
+    researchObjectIds.add(state.researchObject.export.id);
+  }
+
+  return {
+    run_ids: [...runIds].filter(Boolean),
+    experiment_ids: [...experimentIds].filter(Boolean),
+    campaign_study_template_ids: [...templateIds].filter(Boolean),
+    research_object_ids: [...researchObjectIds].filter(Boolean),
+  };
+}
+
+function buildWorkspacePayload() {
+  const resourceIds = currentWorkspaceResourceIds();
+  const collaboratorName = els.workspaceCollaboratorName.value.trim();
+  const collaboratorRole = els.workspaceCollaboratorRole.value.trim() || "reviewer";
+  const collaboratorAffiliation = els.workspaceCollaboratorAffiliation.value.trim();
+  const collaborators = collaboratorName
+    ? [
+        {
+          display_name: collaboratorName,
+          role: collaboratorRole,
+          ...(collaboratorAffiliation ? { affiliation: collaboratorAffiliation } : {}),
+        },
+      ]
+    : [];
+
+  const annotationText = els.workspaceAnnotationText.value.trim();
+  const annotationTarget = resourceIds.experiment_ids[0]
+    ? { target_type: "experiment", target_id: resourceIds.experiment_ids[0] }
+    : resourceIds.run_ids[0]
+      ? { target_type: "run", target_id: resourceIds.run_ids[0] }
+      : { target_type: "workspace", target_id: "workspace" };
+  const annotations = annotationText
+    ? [
+        {
+          ...annotationTarget,
+          text: annotationText,
+          tags: ["cockpit", "handoff"],
+        },
+      ]
+    : [];
+
+  const title = state.lastCampaignStudioResult
+    ? "QS-DMSS Campaign Studio workspace"
+    : state.labComparisonResult
+      ? "QS-DMSS guided comparison workspace"
+      : state.labResult
+        ? "QS-DMSS Lab Mode workspace"
+        : "QS-DMSS workspace";
+
+  return {
+    title,
+    description:
+      "Portable QS-DMSS workspace snapshot with evidence references, collaborator metadata, and review annotations.",
+    collaborators,
+    annotations,
+    ...resourceIds,
+  };
+}
+
+function renderWorkspaceExport(detail) {
+  state.workspaceExport = detail;
+  state.workspaceDownloadUrl = detail?.urls?.download || detail?.summary?.urls?.download || null;
+  setWorkspaceDownloadEnabled(Boolean(state.workspaceDownloadUrl));
+
+  if (!detail?.summary) {
+    els.workspaceExportStatus.textContent = "Not exported";
+    els.workspaceExportSummary.textContent =
+      "Export the current Lab Mode or Campaign Studio context as a portable JSON workspace with collaborator and annotation metadata.";
+    return;
+  }
+
+  const summary = detail.summary;
+  const resourceCount =
+    summary.run_count +
+    summary.experiment_count +
+    summary.campaign_study_template_count +
+    summary.research_object_count;
+  const warningText = summary.warning_count
+    ? ` ${summary.warning_count} stale reference(s) were skipped.`
+    : "";
+  els.workspaceExportStatus.textContent = "Workspace ready";
+  els.workspaceExportSummary.textContent =
+    `${summary.title} captures ${resourceCount} resource references, ${summary.collaborator_count} collaborator record(s), ${summary.annotation_count} annotation(s), and ${summary.job_count} job provenance record(s).${warningText}`;
+  els.workspaceExportFeedback.textContent = summary.imported_from_workspace_id
+    ? `Imported from ${shortRunId(summary.imported_from_workspace_id)}. Included campaign study templates were installed locally when available.`
+    : `Exported ${summary.workspace_id}. Share the JSON to hand off the same study design and evidence context.${warningText}`;
 }
 
 function selectedCampaignStudyTemplateSummary() {
@@ -1877,6 +2034,61 @@ async function handleComposeResearchObject() {
     clearResearchObject();
     renderResearchObjectComposer();
     toast("Research object export failed", error.message, "danger");
+  }
+}
+
+async function handleExportWorkspace() {
+  const payload = buildWorkspacePayload();
+  els.exportWorkspaceButton.disabled = true;
+  els.exportWorkspaceButton.textContent = "Exporting...";
+  els.workspaceExportStatus.textContent = "Exporting";
+
+  try {
+    const response = await fetchJson("/api/workspaces/export", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    renderWorkspaceExport(response);
+    toast(
+      "Workspace exported",
+      `${response.summary.workspace_id} is ready to download or hand off.`,
+      "success",
+    );
+  } catch (error) {
+    els.workspaceExportStatus.textContent = "Export failed";
+    toast("Workspace export failed", error.message, "danger");
+  } finally {
+    els.exportWorkspaceButton.disabled = false;
+    els.exportWorkspaceButton.textContent = "Export Workspace";
+  }
+}
+
+async function handleImportWorkspace(event) {
+  const [file] = event.target.files || [];
+  if (!file) {
+    return;
+  }
+  els.workspaceExportStatus.textContent = "Importing";
+
+  try {
+    const parsed = JSON.parse(await file.text());
+    const workspace = parsed.workspace || parsed;
+    const payload = await fetchJson("/api/workspaces/import", {
+      method: "POST",
+      body: JSON.stringify({ workspace }),
+    });
+    renderWorkspaceExport(payload);
+    await refreshCampaignStudyTemplates();
+    toast(
+      "Workspace imported",
+      `${payload.summary.workspace_id} installed ${payload.imported_campaign_studies?.length || 0} study template(s).`,
+      "success",
+    );
+  } catch (error) {
+    els.workspaceExportStatus.textContent = "Import failed";
+    toast("Workspace import failed", error.message, "danger");
+  } finally {
+    event.target.value = "";
   }
 }
 
@@ -3906,6 +4118,8 @@ function bindEvents() {
   els.runCampaignStudyTemplateButton.addEventListener("click", handleRunCampaignStudyTemplate);
   els.importCampaignStudyTemplateInput.addEventListener("change", handleImportCampaignStudyTemplate);
   els.composeResearchObjectButton.addEventListener("click", handleComposeResearchObject);
+  els.exportWorkspaceButton.addEventListener("click", handleExportWorkspace);
+  els.workspaceImportInput.addEventListener("change", handleImportWorkspace);
   els.labSelectRunButton.addEventListener("click", async () => {
     const runId = state.labResult?.run?.summary?.run_id;
     if (runId) {

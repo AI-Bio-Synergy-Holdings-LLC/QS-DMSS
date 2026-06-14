@@ -64,15 +64,26 @@ experiments/
   workspaces/
     <workspace_id>/
       workspace.json
-      collaborators.json
-      annotations.jsonl
-      study-templates/
-      jobs/
-      exports/
 ```
 
 This supports asynchronous collaboration by export/import or Git-backed sharing
-before introducing accounts or a server database.
+before introducing accounts or a server database. The current local
+implementation embeds collaborators, annotations, selected run and experiment
+summaries, Campaign Studio study templates, research-object references, and job
+summaries in `workspace.json`; copied binary evidence payloads can be layered on
+later as a bundle format.
+
+Current local API:
+
+- `GET /api/workspaces`
+- `GET /api/workspaces/{workspace_id}`
+- `GET /api/workspaces/{workspace_id}/download`
+- `POST /api/workspaces/export`
+- `POST /api/workspaces/import`
+
+Importing a workspace preserves the source workspace ID and installs included
+Campaign Studio study templates as local templates so another researcher can
+reopen, edit, rerun, and export the study design.
 
 ## Executor Contract
 
@@ -231,8 +242,8 @@ Guardrails:
 4. Complete: add campaign-level and research-object-export job records where
    the job represents a multi-run artifact or persisted publication export
    rather than one simulation run.
-5. Next: add workspace export/import with collaborators and annotations.
-6. Add `DryRunSlurmExecutor` that produces a reviewable batch script and request
+5. Complete: add workspace export/import with collaborators and annotations.
+6. Next: add `DryRunSlurmExecutor` that produces a reviewable batch script and request
    bundle without submission.
 7. Add real Slurm submit/status/collect behind an explicit opt-in profile.
 

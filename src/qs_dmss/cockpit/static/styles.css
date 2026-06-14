@@ -1050,6 +1050,16 @@ h2 {
   align-items: stretch;
 }
 
+.workspace-export-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.workspace-annotation-field {
+  grid-column: 1 / -1;
+}
+
 .research-object-actions .lab-report-link {
   display: inline-flex;
   align-items: center;
@@ -1433,7 +1443,8 @@ h2 {
 }
 
 .field input,
-.field select {
+.field select,
+.field textarea {
   width: 100%;
   min-height: 52px;
   padding: 0 16px;
@@ -1443,8 +1454,15 @@ h2 {
   color: var(--text);
 }
 
+.field textarea {
+  padding-block: 14px;
+  line-height: 1.45;
+  resize: vertical;
+}
+
 .field input:focus-visible,
 .field select:focus-visible,
+.field textarea:focus-visible,
 .toggle-field input:focus-visible {
   outline: 3px solid var(--focus-ring);
   outline-offset: 3px;
@@ -2255,6 +2273,10 @@ tbody tr.is-selected {
   }
 
   .lab-report-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .workspace-export-grid {
     grid-template-columns: 1fr;
   }
 

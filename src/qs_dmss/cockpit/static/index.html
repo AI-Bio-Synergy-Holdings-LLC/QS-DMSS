@@ -573,6 +573,85 @@
                   </div>
                 </aside>
               </section>
+
+              <section class="research-object-export workspace-export" id="workspaceExportPanel">
+                <div class="panel-head compact">
+                  <div>
+                    <p class="panel-kicker">Research Workspace</p>
+                    <h3>Portable Workspace Snapshot</h3>
+                  </div>
+                  <span class="selection-chip" id="workspaceExportStatus">Not exported</span>
+                </div>
+                <p class="research-object-lede" id="workspaceExportSummary">
+                  Export the current Lab Mode or Campaign Studio context as a portable JSON
+                  workspace with collaborator and annotation metadata.
+                </p>
+                <div class="workspace-export-grid">
+                  <label class="field">
+                    <span>Collaborator</span>
+                    <input
+                      id="workspaceCollaboratorName"
+                      name="workspaceCollaboratorName"
+                      type="text"
+                      placeholder="Reviewer, labmate, or local user"
+                    />
+                  </label>
+                  <label class="field">
+                    <span>Role</span>
+                    <input
+                      id="workspaceCollaboratorRole"
+                      name="workspaceCollaboratorRole"
+                      type="text"
+                      value="reviewer"
+                    />
+                  </label>
+                  <label class="field">
+                    <span>Affiliation / location</span>
+                    <input
+                      id="workspaceCollaboratorAffiliation"
+                      name="workspaceCollaboratorAffiliation"
+                      type="text"
+                      placeholder="Institution, team, or site"
+                    />
+                  </label>
+                  <label class="field workspace-annotation-field">
+                    <span>Workspace annotation</span>
+                    <textarea
+                      id="workspaceAnnotationText"
+                      name="workspaceAnnotationText"
+                      rows="3"
+                      placeholder="Example: Please inspect the recommended campaign run and evidence bundle."
+                    ></textarea>
+                  </label>
+                </div>
+                <div class="lab-actions research-object-actions">
+                  <button class="primary-button" id="exportWorkspaceButton" type="button">
+                    Export Workspace
+                  </button>
+                  <a
+                    class="lab-report-link is-disabled"
+                    id="workspaceDownloadLink"
+                    aria-disabled="true"
+                    tabindex="-1"
+                  >
+                    Download after export
+                  </a>
+                  <label class="ghost-button" for="workspaceImportInput">
+                    Import Workspace JSON
+                  </label>
+                  <input
+                    id="workspaceImportInput"
+                    name="workspaceImportInput"
+                    type="file"
+                    accept="application/json"
+                    hidden
+                  />
+                </div>
+                <p class="scenario-library-note" id="workspaceExportFeedback">
+                  Workspace snapshots preserve selected run, experiment, study template,
+                  research-object, job, collaborator, and annotation references.
+                </p>
+              </section>
             </div>
           </section>
 

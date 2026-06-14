@@ -32,6 +32,9 @@ and citable.
   metadata that turn runs into portable research objects.
 - Campaign Studio study templates for preserving, rerunning, importing,
   exporting, and explaining reproducible parameter-grid designs.
+- Portable workspace snapshots for handing off selected runs, experiments,
+  study templates, research-object exports, job provenance, collaborators, and
+  annotations as local JSON.
 - A packaged `Self-Interaction Sweep` study template focused on `engine.g_int`,
   with purpose, runtime target, metrics, limitations, non-claims, and guided
   interpretation visible in the cockpit before a user edits any YAML.
@@ -71,6 +74,8 @@ evidence-first simulation lab:
 - Campaign Studio study templates that save, reopen, import, export, and display edited grids, scoring contracts, and last-run provenance
 - A packaged Self-Interaction Sweep template that turns `engine.g_int` into a
   concrete tangible-utility demo after install
+- Local workspace export/import for portable collaboration handoffs with
+  collaborator and annotation metadata
 - Comparison tooling for energy drift, norm drift, density, and runtime deltas
 - Decision profiles that score runs against an explicit objective, constraint set, and ranking policy
 - Durable experiment exports with copied run evidence, comparison JSON, report HTML, manifest, and bundle ZIP
@@ -164,10 +169,11 @@ run, inspect, rerun, export, and critique without first designing a study from
 scratch.
 
 Distributed collaboration and HPC connectors are possible future platform
-layers, but they are not shipped runtime behavior yet. The architecture seam is
-documented as a local-first path toward shared research workspaces, executor
-contracts, job lifecycle tracking, artifact collection, and scheduler
-guardrails.
+layers, but live collaboration and scheduler submission are not shipped runtime
+behavior yet. The current local-first seam supports portable workspace
+export/import with collaborators and annotations, then documents the path toward
+shared research workspaces, executor contracts, job lifecycle tracking,
+artifact collection, and scheduler guardrails.
 
 Review paths remain available for people who want to validate the public
 package:
@@ -193,6 +199,9 @@ Inside the cockpit you can:
 - Inspect LocalExecutor job provenance for selected runs, campaign variants,
   saved experiment artifacts, and persisted research-object exports, including
   job ID, backend, lifecycle state, child jobs, and returned artifact roles
+- Export or import a portable research workspace JSON with selected run,
+  experiment, study-template, research-object, job, collaborator, and annotation
+  metadata
 - Launch a single run from a checked-in or edited config
 - Launch a parameter sweep across interaction strength, timestep, step count, amplitude, width, or seed
 - Launch a template-defined decision campaign that expands into a reproducible multi-parameter run matrix

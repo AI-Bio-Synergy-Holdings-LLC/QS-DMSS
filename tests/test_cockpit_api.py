@@ -32,6 +32,12 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert 'id="composeResearchObjectButton"' in root.text
     assert 'id="researchObjectSurface"' in root.text
     assert 'id="researchObjectCta" hidden' in root.text
+    assert 'id="workspaceExportPanel"' in root.text
+    assert 'id="workspaceCollaboratorName"' in root.text
+    assert 'id="workspaceAnnotationText"' in root.text
+    assert 'id="exportWorkspaceButton"' in root.text
+    assert 'id="workspaceDownloadLink"' in root.text
+    assert 'id="workspaceImportInput"' in root.text
     assert 'id="scenarioLibraryPanel"' in root.text
     assert 'id="scenarioBadges"' in root.text
     assert 'id="scenarioArtifacts"' in root.text
@@ -989,6 +995,156 @@ def test_cockpit_api_exports_research_object_with_job_record(tmp_path: Path) -> 
     )
     assert blank_payload.status_code == 400
     assert blank_payload.json()["detail"] == "Research object markdown is required"
+
+
+def test_cockpit_api_exports_and_imports_workspace_metadata(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    config_item = client.get("/api/configs").json()["items"][0]
+    sweep_payload = client.post(
+        "/api/sweeps",
+        json={
+            "config": config_item["config"],
+            "parameter_path": "engine.g_int",
+            "values": [0.02, 0.05],
+            "source_name": "workspace-sweep.yaml",
+            "experiment_name": "workspace interaction sweep",
+        },
+    )
+    assert sweep_payload.status_code == 200
+    sweep = sweep_payload.json()
+
+    research_payload = client.post(
+        "/api/research-objects/export",
+        json={
+            "research_object": {
+                "fileName": "workspace-research-object.md",
+                "markdown": "# Workspace Research Object\n\nEvidence context.\n",
+                "runId": sweep["runs"][0]["run_id"],
+                "scenario": {"label": "Workspace Interaction Sweep"},
+                "campaignStudy": {"available": True},
+            },
+        },
+    )
+    assert research_payload.status_code == 200
+    research_object = research_payload.json()
+
+    workspace_payload = client.post(
+        "/api/workspaces/export",
+        json={
+            "title": "Portable reviewer workspace",
+            "description": "Handoff with run, experiment, template, and research object.",
+            "collaborators": [
+                {
+                    "display_name": "Ada Reviewer",
+                    "role": "reviewer",
+                    "affiliation": "Remote lab",
+                    "location_label": "EU",
+                }
+            ],
+            "annotations": [
+                {
+                    "target_type": "experiment",
+                    "target_id": sweep["experiment"]["id"],
+                    "text": "Please inspect the recommendation rationale.",
+                    "author": "Ada Reviewer",
+                    "tags": ["handoff", "review"],
+                }
+            ],
+            "run_ids": [sweep["runs"][0]["run_id"]],
+            "experiment_ids": [sweep["experiment"]["id"]],
+            "campaign_study_template_ids": ["self-interaction-sweep"],
+            "research_object_ids": [research_object["export"]["id"]],
+        },
+    )
+    assert workspace_payload.status_code == 200
+    workspace_detail = workspace_payload.json()
+    summary = workspace_detail["summary"]
+    workspace = workspace_detail["workspace"]
+    assert summary["title"] == "Portable reviewer workspace"
+    assert summary["run_count"] == 1
+    assert summary["experiment_count"] == 1
+    assert summary["campaign_study_template_count"] == 1
+    assert summary["research_object_count"] == 1
+    assert summary["collaborator_count"] == 1
+    assert summary["annotation_count"] == 1
+    assert summary["job_count"] >= 1
+    assert workspace["collaborators"][0]["display_name"] == "Ada Reviewer"
+    assert workspace["annotations"][0]["target_id"] == sweep["experiment"]["id"]
+    assert workspace["resources"]["runs"][0]["summary"]["run_id"] == sweep["runs"][0]["run_id"]
+    assert (
+        workspace["resources"]["campaign_study_templates"][0]["summary"]["template_id"]
+        == "self-interaction-sweep"
+    )
+    assert (
+        workspace["resources"]["research_objects"][0]["summary"]["id"]
+        == research_object["export"]["id"]
+    )
+
+    list_payload = client.get("/api/workspaces")
+    assert list_payload.status_code == 200
+    assert list_payload.json()["items"][0]["workspace_id"] == summary["workspace_id"]
+
+    download_payload = client.get(workspace_detail["urls"]["download"])
+    assert download_payload.status_code == 200
+    assert download_payload.headers["content-type"].startswith("application/json")
+    assert download_payload.json()["workspace_id"] == summary["workspace_id"]
+
+    import_payload = client.post(
+        "/api/workspaces/import",
+        json={"workspace": workspace},
+    )
+    assert import_payload.status_code == 200
+    imported = import_payload.json()
+    assert imported["summary"]["imported_from_workspace_id"] == summary["workspace_id"]
+    assert imported["summary"]["campaign_study_template_count"] == 1
+    assert imported["imported_campaign_studies"][0]["imported_from_template_id"] == (
+        "self-interaction-sweep"
+    )
+
+    imported_template_path = (
+        tmp_path
+        / "experiments"
+        / "campaign-studies"
+        / f"{imported['imported_campaign_studies'][0]['template_id']}.json"
+    )
+    assert imported_template_path.exists()
+
+    stale_payload = client.post(
+        "/api/workspaces/export",
+        json={
+            "title": "Workspace with stale selection",
+            "run_ids": ["missing-run-id"],
+            "experiment_ids": ["missing-experiment-id"],
+        },
+    )
+    assert stale_payload.status_code == 200
+    stale_workspace = stale_payload.json()
+    assert stale_workspace["summary"]["run_count"] == 0
+    assert stale_workspace["summary"]["experiment_count"] == 0
+    assert stale_workspace["summary"]["warning_count"] == 2
+    assert {
+        warning["resource_type"]
+        for warning in stale_workspace["workspace"]["warnings"]
+    } == {"run", "experiment"}
+
+    invalid_payload = client.post(
+        "/api/workspaces/export",
+        json={
+            "title": "Invalid workspace",
+            "annotations": [
+                {
+                    "target_type": "remote-shell",
+                    "target_id": "hpc-1",
+                    "text": "This should not be accepted.",
+                }
+            ],
+        },
+    )
+    assert invalid_payload.status_code == 400
+    assert "Unsupported workspace annotation target_type" in invalid_payload.json()["detail"]
 
 
 def test_cockpit_api_rejects_invalid_edited_decision_profile(tmp_path: Path) -> None:
