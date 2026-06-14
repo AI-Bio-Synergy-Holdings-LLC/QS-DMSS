@@ -188,8 +188,8 @@ scheduler submission.
 Recommended connector sequence:
 
 1. `LocalExecutor`: current behavior behind the executor contract.
-2. `DryRunExecutor`: writes the exact job spec and scheduler script but does not
-   submit it.
+2. `DryRunSlurmExecutor`: writes the exact job spec, request bundle, and
+   scheduler script but does not submit it.
 3. `SlurmExecutor`: `sbatch`, `squeue`, `sacct`, artifact staging, and collection.
 4. `PbsExecutor` or `LsfExecutor`: only after Slurm proves the contract.
 5. `SshExecutor`: for single remote workstation/lab server workflows.
@@ -202,6 +202,43 @@ Each connector should answer:
 - Which scheduler state maps to QS-DMSS job state?
 - What credentials are required, and where are they kept?
 - How are partial failures preserved as evidence?
+
+## Dry-Run Slurm Request Bundles
+
+The current Slurm prototype is deliberately review-only. It creates a local
+draft job record and request bundle, but never calls `sbatch`, `squeue`, SSH, or
+any remote scheduler command.
+
+CLI:
+
+```bash
+qs-dmss executors slurm-dry-run configs/demo.yaml --request-root dry-run-jobs --job-name qs-demo
+```
+
+Generated layout:
+
+```text
+dry-run-jobs/
+  job-<timestamp>-<id>/
+    job.json
+    request-bundle/
+      README.md
+      config.yaml
+      request-bundle.json
+      slurm-job.sh
+```
+
+Important semantics:
+
+- `job.json` remains in state `draft`.
+- `request-bundle.json` records `submission_policy.submitted=false` and
+  `submission_policy.never_submit=true`.
+- `slurm-job.sh` contains reviewable `#SBATCH` directives and a `qs-dmss run`
+  command, but does not include an `sbatch` invocation.
+- The bundle includes SHA-256 hashes for the generated config, Slurm script,
+  and review README.
+- Manual scheduler submission, if ever appropriate, is an explicit user action
+  outside this dry-run command.
 
 ## Security Boundaries
 
@@ -230,7 +267,8 @@ Guardrails:
 - No remote credential manager.
 - No production-scale solver claim.
 - No direct arbitrary shell execution from the cockpit.
-- No scheduler-specific connector until the local executor seam exists.
+- No real scheduler submission connector until dry-run artifacts have been
+  reviewed against site policy.
 
 ## Recommended Build Slices
 
@@ -243,9 +281,10 @@ Guardrails:
    the job represents a multi-run artifact or persisted publication export
    rather than one simulation run.
 5. Complete: add workspace export/import with collaborators and annotations.
-6. Next: add `DryRunSlurmExecutor` that produces a reviewable batch script and request
-   bundle without submission.
-7. Add real Slurm submit/status/collect behind an explicit opt-in profile.
+6. Complete: add `DryRunSlurmExecutor` that produces a reviewable batch script
+   and request bundle without submission.
+7. Next: add real Slurm submit/status/collect behind an explicit opt-in profile
+   only after dry-run artifacts have been reviewed against a real site policy.
 
 ## Success Standard
 

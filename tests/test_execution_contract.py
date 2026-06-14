@@ -1,7 +1,9 @@
+import json
 from pathlib import Path
 
 from qs_dmss.execution import (
     CollaboratorRef,
+    DryRunSlurmExecutor,
     ExecutionArtifact,
     ExecutionJobHandle,
     ExecutionJobResult,
@@ -10,6 +12,7 @@ from qs_dmss.execution import (
     ExecutorCapabilities,
     LocalJobRegistry,
     ResearchWorkspaceRef,
+    SlurmDryRunOptions,
 )
 
 
@@ -134,3 +137,77 @@ def test_local_job_registry_records_lifecycle(tmp_path: Path) -> None:
         "running",
         "succeeded",
     ]
+
+
+def test_dry_run_slurm_executor_emits_reviewable_request_bundle(tmp_path: Path) -> None:
+    config_path = tmp_path / "self-interaction.yaml"
+    config_path.write_text(
+        "run:\n  name: self-interaction\n  seed: 7\n",
+        encoding="utf-8",
+    )
+    registry = LocalJobRegistry(tmp_path / "jobs")
+    executor = DryRunSlurmExecutor(
+        registry,
+        options=SlurmDryRunOptions(
+            job_name="qs-self-interaction",
+            partition="debug",
+            account="science",
+            time_limit="00:05:00",
+            cpus_per_task=2,
+            memory="4G",
+            output_root="hpc-runs",
+        ),
+    )
+    spec = ExecutionJobSpec(
+        config={"run": {"name": "self-interaction", "seed": 7}},
+        source_name=config_path.name,
+        output_root=Path("hpc-runs"),
+        labels=("dry-run", "slurm"),
+        metadata={"source_config_path": str(config_path)},
+    )
+
+    handle = executor.submit(spec)
+    status = executor.status(handle)
+    result = executor.collect(handle)
+    record = registry.get(handle.job_id)
+    request_dir = tmp_path / "jobs" / handle.job_id / "request-bundle"
+    request_bundle_path = request_dir / "request-bundle.json"
+    script_path = request_dir / "slurm-job.sh"
+    copied_config_path = request_dir / "config.yaml"
+
+    assert handle.backend == "dry-run-slurm"
+    assert handle.state == "draft"
+    assert status.state == "draft"
+    assert record["state"] == "draft"
+    assert record["backend"] == "dry-run-slurm"
+    assert record["metadata"]["submission_policy"] == "never_submit"
+    assert record["result"]["state"] == "draft"
+    assert [event["state"] for event in record["lifecycle"]] == ["draft"]
+    assert request_bundle_path.exists()
+    assert script_path.exists()
+    assert copied_config_path.read_text(encoding="utf-8") == config_path.read_text(
+        encoding="utf-8",
+    )
+
+    request_bundle = json.loads(request_bundle_path.read_text(encoding="utf-8"))
+    assert request_bundle["submission_policy"]["submitted"] is False
+    assert request_bundle["submission_policy"]["never_submit"] is True
+    assert request_bundle["slurm_options"]["partition"] == "debug"
+    assert request_bundle["slurm_options"]["account"] == "science"
+    assert request_bundle["spec"]["metadata"]["source_config_path"] == str(config_path)
+    assert {artifact["role"] for artifact in request_bundle["artifacts"]} == {
+        "config",
+        "slurm_script",
+        "review_readme",
+    }
+
+    script = script_path.read_text(encoding="utf-8")
+    assert "#SBATCH --partition=debug" in script
+    assert "#SBATCH --account=science" in script
+    assert "qs-dmss run config.yaml --output-root hpc-runs" in script
+    assert not any(line.strip().startswith("sbatch") for line in script.splitlines())
+
+    assert {
+        artifact.role for artifact in result.artifacts
+    } == {"request_bundle", "other"}
+    assert all(artifact.sha256 for artifact in result.artifacts)

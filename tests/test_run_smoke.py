@@ -125,3 +125,60 @@ def test_run_demo_defaults_to_current_working_directory(tmp_path: Path) -> None:
     verification = verify_run_path(run_dirs[0])
     assert verification.success, verification.errors
     assert not (demo_path.parent / "runs").exists()
+
+
+def test_cli_slurm_dry_run_generates_request_bundle(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    config_path = repo_root / "configs" / "demo.yaml"
+    request_root = tmp_path / "dry-run-jobs"
+
+    exit_code = main(
+        [
+            "executors",
+            "slurm-dry-run",
+            str(config_path),
+            "--request-root",
+            str(request_root),
+            "--job-name",
+            "qs-demo",
+            "--partition",
+            "debug",
+            "--time",
+            "00:03:00",
+            "--cpus-per-task",
+            "2",
+            "--mem",
+            "4G",
+            "--slurm-output-root",
+            "hpc-runs",
+        ]
+    )
+
+    assert exit_code == 0
+    job_dirs = [path for path in request_root.iterdir() if path.is_dir()]
+    assert len(job_dirs) == 1
+    job_dir = job_dirs[0]
+    request_dir = job_dir / "request-bundle"
+    request_bundle_path = request_dir / "request-bundle.json"
+    script_path = request_dir / "slurm-job.sh"
+    record_path = job_dir / "job.json"
+    assert request_bundle_path.exists()
+    assert script_path.exists()
+    assert (request_dir / "README.md").exists()
+    assert (request_dir / "config.yaml").exists()
+
+    record = json.loads(record_path.read_text(encoding="utf-8"))
+    request_bundle = json.loads(request_bundle_path.read_text(encoding="utf-8"))
+    script = script_path.read_text(encoding="utf-8")
+
+    assert record["state"] == "draft"
+    assert record["backend"] == "dry-run-slurm"
+    assert record["metadata"]["submission_policy"] == "never_submit"
+    assert request_bundle["submission_policy"]["submitted"] is False
+    assert request_bundle["submission_policy"]["manual_review_required"] is True
+    assert request_bundle["slurm_options"]["job_name"] == "qs-demo"
+    assert request_bundle["slurm_options"]["partition"] == "debug"
+    assert "#SBATCH --job-name=qs-demo" in script
+    assert "#SBATCH --partition=debug" in script
+    assert "qs-dmss run config.yaml --output-root hpc-runs" in script
+    assert not any(line.strip().startswith("sbatch") for line in script.splitlines())
