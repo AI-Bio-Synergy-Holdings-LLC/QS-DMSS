@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "template_id": "self-interaction-sweep",
+  "label": "Self-Interaction Sweep",
+  "description": "A packaged Campaign Studio study that varies only engine.g_int so a fresh user can inspect how the self-interaction control changes stability, density, runtime, and recommendation evidence.",
+  "purpose": "Turn the new QS-DMSS scientific-scope lane into a runnable tangible-utility demo: one small deterministic self-interaction campaign that can be run, compared, verified, bundled, and exported.",
+  "expected_runtime": "Fast laptop/CI campaign; five 8 x 8 x 8 NumPy runs are intended to finish in under a minute on typical reviewer hardware.",
+  "created_at": "2026-06-13T00:00:00Z",
+  "updated_at": "2026-06-13T00:00:00Z",
+  "source_config_name": "self-interaction-sweep.yaml",
+  "packaged": true,
+  "metrics": [
+    {
+      "label": "Energy drift",
+      "description": "Primary stability signal used by the default recommendation profile."
+    },
+    {
+      "label": "Norm drift",
+      "description": "Conservation-style sanity check for the deterministic reference run."
+    },
+    {
+      "label": "Max density",
+      "description": "Compact peak-density response that may change as engine.g_int varies."
+    },
+    {
+      "label": "Elapsed seconds",
+      "description": "Small-run runtime signal used to keep the demo reviewer-friendly."
+    }
+  ],
+  "limitations": [
+    "Small deterministic reference campaign, not a calibrated physics result.",
+    "Uses a compact grid and short step count for fast inspection rather than production resolution.",
+    "Varying engine.g_int here demonstrates workflow sensitivity and evidence handling; it does not validate a dark-matter model."
+  ],
+  "non_claims": [
+    "Does not prove one self-interaction value is scientifically correct.",
+    "Does not replace peer-reviewed numerical validation, physical calibration, or production cosmology codes.",
+    "Does not claim large-scale structure, observational, or astrophysical inference."
+  ],
+  "interpretation": {
+    "summary": "QS-DMSS varies engine.g_int while holding the grid, seed, initial packet, timestep, and step count fixed. The cockpit should be read as a reproducible parameter-study walkthrough: compare drift, peak density, verification status, and recommendation rationale across the campaign.",
+    "what_changed": [
+      "Only engine.g_int changes across the packaged campaign variants.",
+      "Energy drift and norm drift show whether this small numerical setup stayed stable enough for inspection.",
+      "Max density shows whether the final density concentration changed across the interaction sweep.",
+      "Elapsed seconds helps keep the study honest about reviewer-facing runtime."
+    ],
+    "metric_meanings": [
+      "Energy drift is the primary stability metric in this template; lower absolute drift is preferred.",
+      "Norm drift is a conservation-style sanity check; large drift would deserve numerical review.",
+      "Max density is an output response, not a claim of physical correctness.",
+      "The recommendation is an objective-driven ranking under the template scoring contract, not a scientific verdict."
+    ],
+    "what_this_does_not_claim": [
+      "It does not prove an optimal physical self-interaction strength.",
+      "It does not validate QS-DMSS against peer-reviewed cosmological benchmarks.",
+      "It does not make production-scale claims beyond this small reproducible study."
+    ],
+    "review_prompt": "A useful review comment can focus on whether this g_int sweep makes the actual simulation behavior understandable, whether the metrics are sufficient, or which diagnostic would make the study more trustworthy."
+  },
+  "campaign": {
+    "label": "Self-interaction tangible utility sweep",
+    "strategy": "grid",
+    "max_runs": 5,
+    "planned_run_count": 5,
+    "dimension_count": 1,
+    "dimensions": [
+      {
+        "path": "engine.g_int",
+        "label": "Interaction",
+        "description": "Sweep the nonlinear interaction term to compare stability and density response.",
+        "value_type": "float",
+        "values": [0.0, 0.02, 0.05, 0.08, 0.12]
+      }
+    ]
+  },
+  "objective": {
+    "name": "Self-interaction stability and density response",
+    "summary": "Prefer verified runs with low drift while preserving enough density response to make the self-interaction sweep inspectable.",
+    "primary_metric": "energy_drift",
+    "goal": "minimize_abs"
+  },
+  "constraints": {
+    "max_abs_energy_drift": 0.25,
+    "max_abs_norm_drift": 0.25,
+    "min_max_density": 0.05,
+    "max_elapsed_seconds": 10.0,
+    "require_verification": true
+  },
+  "ranking": {
+    "primary_metric_weight": 2.6,
+    "weights": {
+      "energy_drift": 1.0,
+      "norm_drift": 0.9,
+      "max_density": 0.7,
+      "elapsed_seconds": 0.2
+    }
+  },
+  "scoring_contract": {
+    "objective": {
+      "name": "Self-interaction stability and density response",
+      "summary": "Prefer verified runs with low drift while preserving enough density response to make the self-interaction sweep inspectable.",
+      "primary_metric": "energy_drift",
+      "goal": "minimize_abs"
+    },
+    "constraints": {
+      "max_abs_energy_drift": 0.25,
+      "max_abs_norm_drift": 0.25,
+      "min_max_density": 0.05,
+      "max_elapsed_seconds": 10.0,
+      "require_verification": true
+    },
+    "ranking": {
+      "primary_metric_weight": 2.6,
+      "weights": {
+        "energy_drift": 1.0,
+        "norm_drift": 0.9,
+        "max_density": 0.7,
+        "elapsed_seconds": 0.2
+      }
+    },
+    "planned_run_count": 5,
+    "max_runs": 5
+  },
+  "config": {
+    "run": {
+      "name": "self-interaction-sweep",
+      "seed": 23,
+      "output_root": "runs"
+    },
+    "engine": {
+      "backend": "numpy",
+      "grid_shape": [8, 8, 8],
+      "box_size": 1.0,
+      "mass": 1.0,
+      "g_int": 0.05,
+      "time_step": 0.02,
+      "num_steps": 6,
+      "log_every": 1
+    },
+    "initial": {
+      "kind": "gaussian",
+      "amplitude": 0.35,
+      "width": 0.2,
+      "random_phase": true
+    },
+    "objective": {
+      "name": "Self-interaction stability and density response",
+      "summary": "Prefer verified runs with low drift while preserving enough density response to make the self-interaction sweep inspectable.",
+      "primary_metric": "energy_drift",
+      "goal": "minimize_abs"
+    },
+    "constraints": {
+      "max_abs_energy_drift": 0.25,
+      "max_abs_norm_drift": 0.25,
+      "min_max_density": 0.05,
+      "max_elapsed_seconds": 10.0,
+      "require_verification": true
+    },
+    "ranking": {
+      "primary_metric_weight": 2.6,
+      "weights": {
+        "energy_drift": 1.0,
+        "norm_drift": 0.9,
+        "max_density": 0.7,
+        "elapsed_seconds": 0.2
+      }
+    },
+    "campaign": {
+      "label": "Self-interaction tangible utility sweep",
+      "strategy": "grid",
+      "max_runs": 5,
+      "dimensions": [
+        {
+          "path": "engine.g_int",
+          "values": [0.0, 0.02, 0.05, 0.08, 0.12]
+        }
+      ]
+    }
+  }
+}

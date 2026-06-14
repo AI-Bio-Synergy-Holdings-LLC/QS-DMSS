@@ -80,10 +80,13 @@ studies reproducible, inspectable, comparable, and citable.
 ## Concrete Guide: Self-Interaction Campaign Study
 
 The quickest concrete study is to sweep the self-interaction control
-`engine.g_int` and inspect how the evidence metrics respond. The checked-in demo
-already includes `engine.g_int` in its Campaign Studio grid.
+`engine.g_int` and inspect how the evidence metrics respond. Current builds ship
+a packaged Campaign Studio study template named `Self-Interaction Sweep`, so a
+fresh cockpit session can run the study without first copying or editing YAML.
 
-From an installed package:
+From an installed package, the quickest CLI fallback is the bundled demo
+campaign. It includes `engine.g_int` as one dimension in a broader stability
+frontier grid:
 
 ```powershell
 python -m venv .venv
@@ -94,7 +97,7 @@ qs-dmss campaigns run-demo --output-root self-interaction-study\runs
 qs-dmss experiments list --output-root self-interaction-study\runs
 ```
 
-From a source checkout:
+From a source checkout, the same bundled demo campaign can be run directly:
 
 ```powershell
 python -m pip install -e .[dev]
@@ -103,7 +106,7 @@ qs-dmss experiments list --output-root self-interaction-study\runs
 ```
 
 The campaign writes run evidence under `self-interaction-study/runs/` and a
-campaign-level research object under `self-interaction-study/experiments/`.
+campaign-level evidence object under `self-interaction-study/experiments/`.
 Inspect the generated experiment report and bundle to compare:
 
 - energy drift;
@@ -113,8 +116,9 @@ Inspect the generated experiment report and bundle to compare:
 - manifest verification status;
 - objective-driven recommendation status and rationale.
 
-For a pure self-interaction sweep, copy `configs/demo.yaml` and reduce the
-campaign grid to one dimension:
+The packaged cockpit template uses the pure one-dimensional self-interaction
+sweep below. To reproduce that grid from the CLI today, copy a config and set
+the campaign section to:
 
 ```yaml
 campaign:
@@ -126,7 +130,7 @@ campaign:
       values: [0.0, 0.02, 0.05, 0.08, 0.12]
 ```
 
-Then run:
+Then run the copied config:
 
 ```powershell
 qs-dmss campaigns run path\to\self-interaction.yaml --output-root self-interaction-study\runs
@@ -146,13 +150,16 @@ qs-dmss cockpit --host 127.0.0.1 --port 8001 --output-root self-interaction-stud
 
 Open `http://127.0.0.1:8001`, then use Campaign Studio to:
 
-1. inspect the packaged campaign;
-2. edit the parameter grid around `engine.g_int`;
-3. preview the scoring contract;
-4. save the study template;
-5. launch the campaign;
-6. inspect the recommendation, comparison report, evidence bundle, and last-run
-   provenance.
+1. select the packaged `Self-Interaction Sweep` study template;
+2. inspect its purpose, expected runtime, metrics, limitations, and non-claims;
+3. load it to see the one-dimensional `engine.g_int` grid and scoring contract;
+4. launch the campaign through the existing Campaign Studio pipeline;
+5. inspect the guided interpretation, recommendation, comparison report,
+   evidence bundle, and last-run provenance;
+6. compose a campaign research-object Markdown export with the scoring contract,
+   recommendation rationale, and citation block;
+7. optionally edit, save, import, or export the study template JSON so another
+   user can reproduce the campaign design.
 
 That workflow is the current center of gravity for QS-DMSS: not only computing a
 field update, but preserving the full path needed for another person to inspect

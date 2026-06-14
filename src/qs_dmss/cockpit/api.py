@@ -37,6 +37,7 @@ from qs_dmss.io.config import (
     parse_config,
 )
 from qs_dmss.paths import (
+    bundled_assets_root,
     contained_path,
     configs_root,
     discover_repo_root,
@@ -245,10 +246,36 @@ class CockpitService:
         }
 
     def list_campaign_study_templates(self) -> list[dict]:
-        return [
-            self._build_campaign_study_summary(self._read_json(path))
+        local_records: list[dict] = [
+            self._read_json(path)
             for path in self._list_campaign_study_template_paths()
         ]
+        local_records_by_id = {
+            record["template_id"]: record
+            for record in local_records
+            if record.get("template_id")
+        }
+        packaged_ids: set[str] = set()
+        summaries: list[dict] = []
+
+        for packaged_path in self._list_packaged_campaign_study_template_paths():
+            packaged_record = self._read_json(packaged_path)
+            template_id = packaged_record.get("template_id")
+            if not template_id:
+                continue
+            packaged_ids.add(template_id)
+            summaries.append(
+                self._build_campaign_study_summary(
+                    local_records_by_id.get(template_id, packaged_record),
+                )
+            )
+
+        for record in local_records:
+            template_id = record.get("template_id")
+            if template_id and template_id not in packaged_ids:
+                summaries.append(self._build_campaign_study_summary(record))
+
+        return summaries
 
     def get_campaign_study_template(self, template_id: str) -> dict:
         path = self._get_campaign_study_template_path(template_id)
@@ -504,10 +531,12 @@ class CockpitService:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
 
         study_template_path = None
+        study_template_record = None
         if payload.study_template_id:
-            study_template_path = self._get_campaign_study_template_path(
+            study_template_path = self._ensure_local_campaign_study_template_path(
                 payload.study_template_id,
             )
+            study_template_record = self._read_json(study_template_path)
 
         run_dirs: list[Path] = []
         summaries: list[dict] = []
@@ -603,6 +632,7 @@ class CockpitService:
             "campaign": campaign_summary,
             "runs": summaries,
             "comparison": comparison,
+            "guide": self._build_campaign_study_guide(study_template_record, comparison),
             "artifact": artifact,
             "study_template": study_template,
         }
@@ -733,6 +763,9 @@ class CockpitService:
             studies_root.mkdir(parents=True, exist_ok=True)
         return studies_root
 
+    def _packaged_campaign_studies_root(self) -> Path:
+        return bundled_assets_root() / "campaign-studies"
+
     def _list_campaign_study_template_paths(self) -> list[Path]:
         studies_root = self._campaign_studies_root()
         if not studies_root.exists():
@@ -747,16 +780,59 @@ class CockpitService:
             reverse=True,
         )
 
+    def _list_packaged_campaign_study_template_paths(self) -> list[Path]:
+        studies_root = self._packaged_campaign_studies_root()
+        if not studies_root.exists():
+            return []
+        return sorted(
+            [
+                path
+                for path in studies_root.glob("*.json")
+                if path.is_file()
+            ],
+            key=lambda path: path.name,
+        )
+
     def _get_campaign_study_template_path(self, template_id: str) -> Path:
         template_name = safe_filename(
             template_id,
             default="campaign-study",
             suffixes=(".json",),
         )
-        path = contained_path(self._campaign_studies_root(), template_name)
-        if not path.exists() or not path.is_file():
-            raise HTTPException(status_code=404, detail="Campaign study template not found")
-        return path
+        local_path = contained_path(self._campaign_studies_root(), template_name)
+        if local_path.exists() and local_path.is_file():
+            return local_path
+
+        packaged_root = self._packaged_campaign_studies_root()
+        packaged_path = contained_path(packaged_root, template_name)
+        if packaged_path.exists() and packaged_path.is_file():
+            return packaged_path
+
+        raise HTTPException(status_code=404, detail="Campaign study template not found")
+
+    def _ensure_local_campaign_study_template_path(self, template_id: str) -> Path:
+        template_name = safe_filename(
+            template_id,
+            default="campaign-study",
+            suffixes=(".json",),
+        )
+        studies_root = self._campaign_studies_root(create=True)
+        local_path = contained_path(studies_root, template_name)
+        if local_path.exists() and local_path.is_file():
+            return local_path
+
+        source_path = self._get_campaign_study_template_path(template_id)
+        record = self._read_json(source_path)
+        now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+        record.setdefault("created_at", now)
+        record["updated_at"] = now
+        if record.get("packaged"):
+            record["installed_from_packaged_template"] = True
+        local_path.write_text(
+            json.dumps(record, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        return local_path
 
     def _campaign_study_template_id(self, label: str) -> str:
         timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
@@ -838,6 +914,18 @@ class CockpitService:
             "scoring_contract": scoring_contract,
             "config": config,
         }
+        for key in (
+            "purpose",
+            "expected_runtime",
+            "metrics",
+            "limitations",
+            "non_claims",
+            "interpretation",
+        ):
+            if key in template:
+                record[key] = template[key]
+        if template.get("packaged"):
+            record["packaged"] = True
         if template.get("imported_from_template_id"):
             record["imported_from_template_id"] = str(template["imported_from_template_id"])
         return record
@@ -889,10 +977,17 @@ class CockpitService:
         template_id = record["template_id"]
         campaign = record.get("campaign") or {}
         objective = record.get("objective") or {}
+        packaged = bool(record.get("packaged"))
         return {
             "template_id": template_id,
             "label": record.get("label", template_id),
             "description": record.get("description", ""),
+            "purpose": record.get("purpose"),
+            "expected_runtime": record.get("expected_runtime"),
+            "metrics": record.get("metrics") or [],
+            "limitations": record.get("limitations") or [],
+            "non_claims": record.get("non_claims") or [],
+            "interpretation": record.get("interpretation") or {},
             "created_at": record.get("created_at"),
             "updated_at": record.get("updated_at"),
             "source_config_name": record.get("source_config_name"),
@@ -903,6 +998,8 @@ class CockpitService:
             "objective_name": objective.get("name"),
             "primary_metric": objective.get("primary_metric"),
             "goal": objective.get("goal"),
+            "packaged": packaged,
+            "origin": "packaged" if packaged else "local",
             "imported": bool(record.get("imported_from_template_id")),
             "imported_from_template_id": record.get("imported_from_template_id"),
             "exportable": True,
@@ -916,6 +1013,77 @@ class CockpitService:
             "summary": self._build_campaign_study_summary(record),
             "template": record,
             "urls": self._campaign_study_urls(record["template_id"]),
+        }
+
+    def _build_campaign_study_guide(
+        self,
+        record: dict | None,
+        comparison: dict[str, Any],
+    ) -> dict[str, Any]:
+        interpretation = (record or {}).get("interpretation") or {}
+        label = (record or {}).get("label") or "Campaign Studio study"
+        rows = comparison.get("rows") or []
+        ranges = comparison.get("ranges") or {}
+        decision = comparison.get("decision") or {}
+        shared = comparison.get("shared_experiment") or {}
+        dimensions = shared.get("dimensions") or []
+        changed_paths = ", ".join(
+            str(dimension.get("path") or dimension.get("label"))
+            for dimension in dimensions
+        )
+        if not changed_paths:
+            changed_paths = "the configured campaign parameters"
+
+        what_changed = list(interpretation.get("what_changed") or [])
+        if rows:
+            energy_span = ranges.get("energy_drift", {}).get("span")
+            norm_span = ranges.get("norm_drift", {}).get("span")
+            density_span = ranges.get("max_density", {}).get("span")
+            if energy_span is not None:
+                what_changed.append(f"Energy drift span across completed variants: {energy_span:.3e}.")
+            if norm_span is not None:
+                what_changed.append(f"Norm drift span across completed variants: {norm_span:.3e}.")
+            if density_span is not None:
+                what_changed.append(f"Max-density span across completed variants: {density_span:.3e}.")
+        if decision.get("recommended_run_id"):
+            what_changed.append(
+                "The scoring contract recommends "
+                f"{decision['recommended_run_id']} because: {decision.get('reason', 'no rationale recorded')}"
+            )
+        if not what_changed:
+            what_changed.append(f"The campaign varies {changed_paths} and compares the resulting evidence rows.")
+
+        return {
+            "title": f"{label} guided interpretation",
+            "plain_language_summary": interpretation.get(
+                "summary",
+                (
+                    f"QS-DMSS ran a Campaign Studio study varying {changed_paths}. "
+                    "Read the result as a reproducible parameter-study workflow, not a scientific verdict."
+                ),
+            ),
+            "what_changed": what_changed,
+            "metric_meanings": list(
+                interpretation.get("metric_meanings")
+                or [
+                    "Energy and norm drift are stability-oriented diagnostics.",
+                    "Max density is an output response to compare across variants.",
+                    "Elapsed seconds keeps reviewer-facing runtime visible.",
+                    "The recommendation is a scoring-contract result, not peer-reviewed validation.",
+                ]
+            ),
+            "what_this_does_not_claim": list(
+                interpretation.get("what_this_does_not_claim")
+                or (record or {}).get("non_claims")
+                or [
+                    "It does not prove that one parameter value is scientifically correct.",
+                    "It does not replace external validation or peer review.",
+                ]
+            ),
+            "review_prompt": interpretation.get(
+                "review_prompt",
+                "A useful review comment can focus on whether the campaign evidence makes parameter behavior understandable.",
+            ),
         }
 
     def _read_json(self, path: Path) -> dict:

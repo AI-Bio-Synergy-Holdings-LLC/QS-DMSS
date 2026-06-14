@@ -328,7 +328,7 @@
                     Save edited grids and decision profiles as reusable local JSON templates.
                   </p>
                   <label class="field campaign-study-template-select">
-                    <span>Saved Study Template</span>
+                    <span>Study Template</span>
                     <select id="campaignStudyTemplateSelect" aria-label="Saved campaign study template">
                       <option value="">No saved templates yet</option>
                     </select>
@@ -397,6 +397,44 @@
                   >
                     Templates preserve the grid, scoring contract, and launchable campaign config.
                   </p>
+                  <section class="lab-interpretation-card campaign-study-guide" id="campaignStudyGuide">
+                    <div>
+                      <p class="artifact-list-title">Guided Study Interpretation</p>
+                      <h4 id="campaignStudyGuideTitle">Select a study template</h4>
+                      <p id="campaignStudyGuideSummary">
+                        Packaged study guidance appears here, including what changes,
+                        how to read the metrics, and what the result does not claim.
+                      </p>
+                    </div>
+                    <div class="lab-interpretation-grid">
+                      <article>
+                        <p class="artifact-list-title">What Changed</p>
+                        <ul id="campaignStudyGuideChangedList">
+                          <li>Run or select a study template to inspect campaign changes.</li>
+                        </ul>
+                      </article>
+                      <article>
+                        <p class="artifact-list-title">Metric Meanings</p>
+                        <ul id="campaignStudyGuideMetricList">
+                          <li>Metric interpretation appears with packaged study metadata.</li>
+                        </ul>
+                      </article>
+                    </div>
+                    <div class="lab-interpretation-grid">
+                      <article>
+                        <p class="artifact-list-title">What This Does Not Claim</p>
+                        <ul id="campaignStudyGuideNonClaimList">
+                          <li>Scientific claim boundaries appear here.</li>
+                        </ul>
+                      </article>
+                      <article>
+                        <p class="artifact-list-title">Review Prompt</p>
+                        <p class="lab-review-prompt" id="campaignStudyGuideReviewPrompt">
+                          Run the study to generate a concrete review prompt.
+                        </p>
+                      </article>
+                    </div>
+                  </section>
                 </section>
                 <p class="lab-review-prompt" id="campaignStudioBoundary">
                   Add campaign metadata to make Scenario Library entries launch configurable studies.
