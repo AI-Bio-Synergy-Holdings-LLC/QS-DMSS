@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 import numpy as np
 
@@ -12,6 +13,7 @@ class SimulationResult:
     psi: np.ndarray
     density: np.ndarray
     history: list[dict]
+    diagnostics: dict[str, Any] | None = None
 
 
 class QuantumScalarDarkMatterSolver:

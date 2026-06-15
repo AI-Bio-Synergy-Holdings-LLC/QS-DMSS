@@ -8,6 +8,10 @@ from typing import Any
 
 import yaml
 
+SUPPORTED_BACKENDS = ("numpy", "numpy_fractal_ssfm", "cupy_fractal_ssfm")
+SUPPORTED_FRACTAL_BACKENDS = ("numpy_fractal_ssfm", "cupy_fractal_ssfm")
+SUPPORTED_GEOMETRY_MODES = ("fuzzy_potential", "soft_mask", "hard_mask")
+SUPPORTED_FRACTALS = ("mandelbrot", "radial_shells")
 SUPPORTED_DECISION_METRICS = (
     "energy_drift",
     "norm_drift",
@@ -45,6 +49,38 @@ class EngineConfig:
     time_step: float
     num_steps: int
     log_every: int = 1
+
+
+@dataclass(frozen=True)
+class FractalGeometryConfig:
+    mode: str = "fuzzy_potential"
+    fractal: str = "mandelbrot"
+    potential_strength: float = 0.0
+    boundary_epsilon: float = 0.04
+    quadrant_gamma: tuple[float, float, float, float] = (1.0, 1.0, 1.0, 1.0)
+    mandelbrot_iterations: int = 64
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "mode": self.mode,
+            "fractal": self.fractal,
+            "potential_strength": self.potential_strength,
+            "boundary_epsilon": self.boundary_epsilon,
+            "quadrant_gamma": list(self.quadrant_gamma),
+            "mandelbrot_iterations": self.mandelbrot_iterations,
+        }
+
+
+@dataclass(frozen=True)
+class SpectralConfig:
+    dealias_fraction: float | None = None
+    leakage_fraction: float = 0.8
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "dealias_fraction": self.dealias_fraction,
+            "leakage_fraction": self.leakage_fraction,
+        }
 
 
 @dataclass(frozen=True)
@@ -152,6 +188,8 @@ class SimulationConfig:
     run: RunConfig
     engine: EngineConfig
     initial: InitialConditionConfig
+    geometry: FractalGeometryConfig | None = None
+    spectral: SpectralConfig | None = None
     objective: ObjectiveConfig | None = None
     constraints: ConstraintConfig | None = None
     ranking: RankingConfig | None = None
@@ -181,6 +219,10 @@ class SimulationConfig:
                 "random_phase": self.initial.random_phase,
             },
         }
+        if self.geometry is not None:
+            payload["geometry"] = self.geometry.to_dict()
+        if self.spectral is not None:
+            payload["spectral"] = self.spectral.to_dict()
         if self.objective is not None:
             payload["objective"] = self.objective.to_dict()
             payload["constraints"] = (self.constraints or ConstraintConfig()).to_dict()
@@ -230,6 +272,71 @@ def _require_string(value: Any, field_name: str) -> str:
     if not isinstance(value, str) or not value.strip():
         raise ValueError(f"'{field_name}' must be a non-empty string")
     return value.strip()
+
+
+def _parse_optional_fraction(value: Any, field_name: str) -> float | None:
+    if value is None:
+        return None
+    numeric_value = _require_number(value, field_name, positive=True)
+    if numeric_value > 1.0:
+        raise ValueError(f"'{field_name}' must be <= 1.0")
+    return numeric_value
+
+
+def _parse_geometry(data: Any) -> FractalGeometryConfig:
+    geometry_data = _require_mapping(data or {}, "geometry")
+    mode = _require_string(geometry_data.get("mode", "fuzzy_potential"), "geometry.mode")
+    if mode not in SUPPORTED_GEOMETRY_MODES:
+        supported = ", ".join(SUPPORTED_GEOMETRY_MODES)
+        raise ValueError(f"'geometry.mode' must be one of: {supported}")
+
+    fractal = _require_string(geometry_data.get("fractal", "mandelbrot"), "geometry.fractal")
+    if fractal not in SUPPORTED_FRACTALS:
+        supported = ", ".join(SUPPORTED_FRACTALS)
+        raise ValueError(f"'geometry.fractal' must be one of: {supported}")
+
+    quadrant_raw = geometry_data.get("quadrant_gamma", [1.0, 1.0, 1.0, 1.0])
+    if not isinstance(quadrant_raw, list) or len(quadrant_raw) != 4:
+        raise ValueError("'geometry.quadrant_gamma' must be a list of four numeric values")
+    quadrant_gamma = tuple(
+        _require_number(value, f"geometry.quadrant_gamma[{index}]")
+        for index, value in enumerate(quadrant_raw)
+    )
+
+    return FractalGeometryConfig(
+        mode=mode,
+        fractal=fractal,
+        potential_strength=_require_non_negative_number(
+            geometry_data.get("potential_strength", 0.0),
+            "geometry.potential_strength",
+        ),
+        boundary_epsilon=_require_number(
+            geometry_data.get("boundary_epsilon", 0.04),
+            "geometry.boundary_epsilon",
+            positive=True,
+        ),
+        quadrant_gamma=quadrant_gamma,  # type: ignore[arg-type]
+        mandelbrot_iterations=_require_int(
+            geometry_data.get("mandelbrot_iterations", 64),
+            "geometry.mandelbrot_iterations",
+            minimum=1,
+        ),
+    )
+
+
+def _parse_spectral(data: Any) -> SpectralConfig:
+    spectral_data = _require_mapping(data or {}, "spectral")
+    return SpectralConfig(
+        dealias_fraction=_parse_optional_fraction(
+            spectral_data.get("dealias_fraction"),
+            "spectral.dealias_fraction",
+        ),
+        leakage_fraction=_parse_optional_fraction(
+            spectral_data.get("leakage_fraction", 0.8),
+            "spectral.leakage_fraction",
+        )
+        or 0.8,
+    )
 
 
 def _parse_objective(data: Any) -> ObjectiveConfig:
@@ -397,20 +504,32 @@ def parse_config(data: dict[str, Any]) -> SimulationConfig:
     if not isinstance(output_root, str) or not output_root.strip():
         raise ValueError("'run.output_root' must be a non-empty string")
 
-    backend = engine_data.get("backend")
-    if backend != "numpy":
-        raise ValueError("'engine.backend' must be 'numpy' in this reference build")
+    backend = _require_string(engine_data.get("backend"), "engine.backend")
+    if backend not in SUPPORTED_BACKENDS:
+        supported = ", ".join(SUPPORTED_BACKENDS)
+        raise ValueError(f"'engine.backend' must be one of: {supported}")
 
     grid_shape = engine_data.get("grid_shape")
     if (
         not isinstance(grid_shape, list)
         or len(grid_shape) != 3
-        or any(
-            not isinstance(value, int) or isinstance(value, bool) or value < 2
-            for value in grid_shape
-        )
+        or any(not isinstance(value, int) or isinstance(value, bool) for value in grid_shape)
     ):
+        raise ValueError("'engine.grid_shape' must be a list of three integers")
+    if backend in SUPPORTED_FRACTAL_BACKENDS:
+        if grid_shape[0] < 2 or grid_shape[1] < 2 or grid_shape[2] != 1:
+            raise ValueError(
+                "'engine.grid_shape' must be [nx, ny, 1] with nx and ny >= 2 "
+                "for fractal SSFM backends"
+            )
+    elif any(value < 2 for value in grid_shape):
         raise ValueError("'engine.grid_shape' must be a list of three integers >= 2")
+
+    if backend == "numpy" and (root.get("geometry") is not None or root.get("spectral") is not None):
+        raise ValueError("'geometry' and 'spectral' are only supported by fractal SSFM backends")
+
+    geometry = _parse_geometry(root.get("geometry")) if backend in SUPPORTED_FRACTAL_BACKENDS else None
+    spectral = _parse_spectral(root.get("spectral")) if backend in SUPPORTED_FRACTAL_BACKENDS else None
 
     initial_kind = initial_data.get("kind")
     if initial_kind not in {"gaussian", "uniform"}:
@@ -471,6 +590,8 @@ def parse_config(data: dict[str, Any]) -> SimulationConfig:
                 "initial.random_phase",
             ),
         ),
+        geometry=geometry,
+        spectral=spectral,
         objective=objective,
         constraints=constraints,
         ranking=ranking,

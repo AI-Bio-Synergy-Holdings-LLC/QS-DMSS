@@ -1,0 +1,30 @@
+run:
+  name: fractal-quadrant-ssfm-reference
+  seed: 42
+  output_root: runs
+engine:
+  backend: numpy_fractal_ssfm
+  grid_shape: [32, 32, 1]
+  box_size: 4.0
+  mass: 1.0
+  g_int: 1.0
+  time_step: 0.001
+  num_steps: 8
+  log_every: 2
+geometry:
+  mode: fuzzy_potential
+  fractal: mandelbrot
+  potential_strength: 12.5
+  boundary_epsilon: 0.04
+  mandelbrot_iterations: 32
+  quadrant_gamma: [1.0, 0.85, 1.2, 0.65]
+spectral:
+  # Keep null for the strictest conservation smoke. Setting a fraction such as
+  # 0.6666666667 intentionally enables non-unitary high-frequency filtering.
+  dealias_fraction: null
+  leakage_fraction: 0.8
+initial:
+  kind: gaussian
+  amplitude: 1.0
+  width: 0.35
+  random_phase: false

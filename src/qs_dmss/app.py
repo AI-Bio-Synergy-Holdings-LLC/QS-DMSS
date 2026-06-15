@@ -9,7 +9,7 @@ from typing import Any
 
 import numpy as np
 
-from qs_dmss.core.solver import QuantumScalarDarkMatterSolver
+from qs_dmss.core.solver_registry import build_solver
 from qs_dmss.decision import evaluate_run_decision
 from qs_dmss.evidence.bundle import (
     build_environment_lock,
@@ -52,10 +52,11 @@ def _build_metrics(
     config: SimulationConfig,
     history: list[dict],
     elapsed_seconds: float,
+    solver_diagnostics: dict[str, Any] | None = None,
 ) -> dict:
     initial = history[0]
     final = history[-1]
-    return {
+    metrics: dict[str, Any] = {
         "schema_version": 1,
         "backend": config.engine.backend,
         "elapsed_seconds": round(elapsed_seconds, 6),
@@ -68,6 +69,13 @@ def _build_metrics(
         "energy_drift": round(final["energy"] - initial["energy"], 12),
         "max_density": final["max_density"],
     }
+    if solver_diagnostics:
+        metrics["diagnostics"] = solver_diagnostics
+        if "spectral_leakage" in solver_diagnostics:
+            metrics["spectral_leakage"] = solver_diagnostics["spectral_leakage"]
+        if "aliasing_ratio" in solver_diagnostics:
+            metrics["aliasing_ratio"] = solver_diagnostics["aliasing_ratio"]
+    return metrics
 
 
 class LocalExecutor:
@@ -85,7 +93,7 @@ class LocalExecutor:
             supports_cancellation=False,
             supports_artifact_collection=True,
             requires_credentials=False,
-            notes=("Synchronous adapter over the local NumPy runner.",),
+            notes=("Synchronous adapter over local QS-DMSS solver backends.",),
         )
 
     def submit(self, spec: ExecutionJobSpec) -> ExecutionJobHandle:
@@ -266,11 +274,7 @@ def _execute_run_direct(
     started_at = datetime.now(timezone.utc)
     started = time.perf_counter()
 
-    solver = QuantumScalarDarkMatterSolver(
-        engine=config.engine,
-        initial=config.initial,
-        seed=config.run.seed,
-    )
+    solver = build_solver(config)
     result = solver.run()
 
     elapsed_seconds = time.perf_counter() - started
@@ -289,6 +293,7 @@ def _execute_run_direct(
         config=config,
         history=result.history,
         elapsed_seconds=elapsed_seconds,
+        solver_diagnostics=result.diagnostics,
     )
     _write_json(workspace.run_dir / "metrics.json", metrics)
 
