@@ -134,15 +134,15 @@ qs-dmss benchmarks validate --scenario demo-baseline
 Run the experimental CPU reference Fractal/Quadrant SSFM validation spine:
 
 ```powershell
-qs-dmss run configs/fractal_quadrant_ssfm.yaml
+qs-dmss validation fractal-ssfm --config configs/fractal_quadrant_ssfm.yaml
 ```
 
 See
 [docs/fractal-quadrant-ssfm-validation-spine.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/fractal-quadrant-ssfm-validation-spine.md)
 for the scientific claim boundary and validation expectations.
 
-This writes `benchmark-validation/benchmark-validation.json` plus a
-human-readable `benchmark-validation/benchmark-validation.md` summary.
+This writes `fractal-ssfm-validation/fractal-ssfm-validation.json` plus a
+human-readable `fractal-ssfm-validation/fractal-ssfm-validation.md` summary.
 
 Run the canonical simulation showcase:
 

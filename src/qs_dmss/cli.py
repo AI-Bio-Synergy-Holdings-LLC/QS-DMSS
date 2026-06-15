@@ -116,6 +116,35 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Skip replay validation and only generate fresh-run showcase artifacts.",
     )
 
+    validation_parser = subparsers.add_parser(
+        "validation",
+        help="Run solver-specific validation harnesses.",
+    )
+    validation_subparsers = validation_parser.add_subparsers(
+        dest="validation_command",
+        required=True,
+    )
+
+    fractal_validation_parser = validation_subparsers.add_parser(
+        "fractal-ssfm",
+        help="Validate the experimental NumPy Fractal/Quadrant SSFM backend.",
+    )
+    fractal_validation_parser.add_argument(
+        "--config",
+        default="configs/fractal_quadrant_ssfm.yaml",
+        help="Path to a YAML config using backend: numpy_fractal_ssfm.",
+    )
+    fractal_validation_parser.add_argument(
+        "--output-root",
+        help="Directory for generated validation configs, runs, and reports.",
+    )
+    fractal_validation_parser.add_argument(
+        "--norm-tolerance",
+        type=float,
+        default=1e-9,
+        help="Maximum allowed fuzzy_potential relative norm error.",
+    )
+
     cockpit_parser = subparsers.add_parser(
         "cockpit",
         help="Start the local QS-DMSS browser cockpit.",
@@ -391,6 +420,26 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Evidence bundle: {report['run']['bundle_path']}")
             if report.get("replay"):
                 print(f"Replay complete: {report['replay']['run_dir']}")
+            print(f"Report: {report['report_path']}")
+            print(f"Reviewer summary: {report['markdown_report_path']}")
+            return 0 if report["success"] else 1
+
+    if args.command == "validation":
+        if args.validation_command == "fractal-ssfm":
+            from qs_dmss.fractal_validation import validate_fractal_ssfm
+
+            try:
+                report = validate_fractal_ssfm(
+                    config_path=args.config,
+                    output_root=args.output_root,
+                    norm_tolerance=args.norm_tolerance,
+                )
+            except (FileNotFoundError, ValueError) as exc:
+                print(exc)
+                return 1
+
+            status = "passed" if report["success"] else "failed"
+            print(f"Fractal SSFM validation {status}.")
             print(f"Report: {report['report_path']}")
             print(f"Reviewer summary: {report['markdown_report_path']}")
             return 0 if report["success"] else 1
