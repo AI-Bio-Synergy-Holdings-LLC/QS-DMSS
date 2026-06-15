@@ -31,35 +31,33 @@ The full strategy now lives in:
 - [contributor-roadmap.md](contributor-roadmap.md)
 - [funding-roadmap.md](funding-roadmap.md)
 
-## Current Active Slice: Self-Interaction Study Template
+## Current Active Slice: Fractal SSFM Scientific Review Gate
 
 Lab Mode and Campaign Studio now make QS-DMSS feel meaningfully different from
 a generic open simulator. `v0.9.0` has shipped the dry-run Slurm review target,
-and `v0.8.0` shipped the Campaign Studio Template
-Library polish, and PR #90 clarified the scientific scope and tangible-utility
-lane. The current slice turns that positioning into a packaged runnable study.
+and the current `main` branch adds the experimental Fractal/Quadrant SSFM
+validation harness as a source-review gate before any GPU expansion, release
+prep, or decision-metric UI for spectral diagnostics.
 
 The target user flow is:
 
 ```text
-select Self-Interaction Sweep -> run engine.g_int campaign -> inspect guidance -> export research object
+source checkout -> run fractal SSFM validation -> inspect JSON/Markdown report -> comment on issue #105
 ```
 
-The current implementation should focus on the local cockpit and existing
-showcase/campaign/evidence spine:
+The current implementation should focus on review conversion, not another
+release:
 
-- ship a packaged `Self-Interaction Sweep` Campaign Studio template focused on
-  `engine.g_int`;
-- show purpose, expected runtime, metrics, limitations, and non-claims in the
-  template library before a user edits YAML;
-- run the packaged template through the existing campaign/recommendation
-  pipeline without writing inside installed package assets;
-- record local last-run provenance, recommendation, report, and bundle links
-  after execution;
-- attach the scoring contract, campaign metadata, guided interpretation, and
-  recommendation rationale to exported research objects;
-- keep package releases paused until the template feels like a meaningful
-  `v0.9.0` product milestone.
+- route numerical-methods, nonlinear-waves, spectral-methods, and
+  scientific-Python reviewers to
+  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`;
+- ask for one public comment on Strang refinement, fuzzy-potential norm
+  conservation, non-conservative mask labels, or diagnostics-only status;
+- keep `v0.9.0` as the stable public package baseline while this source gate is
+  reviewed;
+- keep GPU expansion, real HPC submission, `v0.10.0` release prep, and
+  decision-metric UI paused until the review target receives substantive
+  technical feedback or exposes a blocker.
 
 ## Builder Board Tracks
 

@@ -16,6 +16,23 @@ bundled, verified, replayable, comparable, citable, and ready to share.
 QS-DMSS is beta for reproducible package/evidence workflows; it is not
 peer-reviewed scientific validation.
 
+## Current Public State
+
+The current public package baseline is `qs-dmss==0.9.0`, archived as
+`v0.9.0` with Zenodo DOI
+[10.5281/zenodo.20693736](https://doi.org/10.5281/zenodo.20693736).
+That release is the stable install path for Lab Mode, Campaign Studio study
+templates, workspace export/import metadata, and dry-run Slurm request bundles
+that never submit scheduler jobs.
+
+Current `main` is one validation slice ahead of the public package: it adds the
+experimental Fractal/Quadrant SSFM validation harness and routes scientific
+feedback through
+[issue #105](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105).
+GPU expansion, `v0.10.0` release prep, and decision-metric UI for
+`spectral_leakage` / `aliasing_ratio` remain paused until that review target
+receives substantive technical feedback.
+
 ## Tangible Utility Summary
 
 QS-DMSS is a classical, NumPy-first reference lab for small deterministic
@@ -131,15 +148,19 @@ Run the benchmark validation spine:
 qs-dmss benchmarks validate --scenario demo-baseline
 ```
 
-Run the experimental CPU reference Fractal/Quadrant SSFM validation spine:
+The experimental CPU reference Fractal/Quadrant SSFM validation spine currently
+lives on `main` after `v0.9.0`. To run that source-review gate before the next
+package release, use an editable source checkout:
 
 ```powershell
+python -m pip install -e .[dev]
 qs-dmss validation fractal-ssfm --config configs/fractal_quadrant_ssfm.yaml
 ```
 
 See
 [docs/fractal-quadrant-ssfm-validation-spine.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/fractal-quadrant-ssfm-validation-spine.md)
-for the scientific claim boundary and validation expectations.
+for the scientific claim boundary, validation expectations, and #105 review
+gate.
 
 This writes `fractal-ssfm-validation/fractal-ssfm-validation.json` plus a
 human-readable `fractal-ssfm-validation/fractal-ssfm-validation.md` summary.

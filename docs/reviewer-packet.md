@@ -17,8 +17,11 @@ Open Collective: `https://opencollective.com/qs-dmss`
 Scientific scope and tangible utility guide:
 [`scientific-scope-and-utility.md`](scientific-scope-and-utility.md)
 
-Active external review sprint:
-`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
+Active scientific review target:
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`
+
+Active HPC/RSE site-policy review target:
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/99`
 
 Reviewer opt-in discussion:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
@@ -73,6 +76,36 @@ Expected signals:
 
 Use [reviewer-wheel-quickstart.md](reviewer-wheel-quickstart.md) for the
 cross-platform PyPI and GitHub release-wheel commands.
+
+## Current Main Scientific Review Gate
+
+The public package baseline remains `qs-dmss==0.9.0`. Current `main` is one
+validation slice ahead of that release: it adds
+`qs-dmss validation fractal-ssfm` for the experimental
+`numpy_fractal_ssfm` backend.
+
+Use this source-only review path when commenting on issue #105:
+
+```powershell
+git clone https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS.git
+cd QS-DMSS
+python -m pip install -e .[dev]
+qs-dmss validation fractal-ssfm --config configs/fractal_quadrant_ssfm.yaml
+```
+
+Expected signals:
+
+- `fractal-ssfm-validation/fractal-ssfm-validation.json`
+- `fractal-ssfm-validation/fractal-ssfm-validation.md`
+- Strang refinement checks for decreasing `time_step`
+- fuzzy-potential norm-conservation status
+- explicit non-conservative labels for `soft_mask` and `hard_mask`
+
+Please leave one public comment on
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`.
+GPU expansion, `v0.10.0` release prep, and decision-metric UI for
+`spectral_leakage` / `aliasing_ratio` remain paused until that target receives
+substantive technical feedback.
 
 ## Simulation Showcase Path
 
@@ -156,18 +189,19 @@ Choose the lane that matches the feedback you want to provide.
 | Benchmark workflow | `benchmarks list`, `benchmarks validate`, metric envelope report, replay compatibility | Scientific review or reproducibility review |
 | Simulation showcase | `showcase run`, generated CSV/SVG outputs, replay comparison, scenario narrative | Scientific review or evidence review |
 | Lab Mode guided comparison | Cockpit Lab Mode, Evidence Explorer, guided variant comparison, report/bundle links | Product UX review or evidence review |
+| Fractal SSFM validation | Source checkout, `validation fractal-ssfm`, JSON/Markdown report, conservation labels | Scientific review on #105 |
+| Dry-run Slurm review | `executors slurm-dry-run`, request bundle, scheduler script, no-submit policy | HPC/RSE review on #99 |
 | Documentation | README, reviewer quickstart, evidence glossary, benchmark expectations | Documentation issue |
 | Paper readiness | JOSS paper scaffold, state-of-field comparison, research impact evidence | Scientific review |
 
-Open feedback through the active review sprint:
+Open feedback through the active public gates:
 
-- Overview: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
-- Fresh install and reproducibility:
-  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/39`
-- Evidence bundle and benchmark validation:
-  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/40`
-- Scientific framing and JOSS preflight:
-  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/41`
+- Fractal SSFM validation:
+  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`
+- HPC/RSE dry-run Slurm site-policy review:
+  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/99`
+- Builder Board and product roadmap:
+  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57`
 
 ## Funding And Stewardship
 
