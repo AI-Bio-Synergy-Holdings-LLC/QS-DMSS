@@ -74,6 +74,9 @@ dev = [
   "tomli>=2.0; python_version < '3.11'",
   "twine>=6.0",
 ]
+gpu = [
+  "cupy-cuda12x>=13.0",
+]
 
 [project.scripts]
 qs-dmss = "qs_dmss.cli:main"

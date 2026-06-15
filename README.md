@@ -78,6 +78,9 @@ evidence-first simulation lab:
   collaborator and annotation metadata
 - Dry-run Slurm request bundles that emit reviewable scheduler artifacts
   without submitting jobs
+- Experimental Fractal/Quadrant SSFM validation spine for nonlinear wave
+  propagation through fuzzy fractal effective potentials, with a CPU reference
+  backend and optional CuPy acceleration path
 - Comparison tooling for energy drift, norm drift, density, and runtime deltas
 - Decision profiles that score runs against an explicit objective, constraint set, and ranking policy
 - Durable experiment exports with copied run evidence, comparison JSON, report HTML, manifest, and bundle ZIP
@@ -127,6 +130,16 @@ Run the benchmark validation spine:
 ```powershell
 qs-dmss benchmarks validate --scenario demo-baseline
 ```
+
+Run the experimental CPU reference Fractal/Quadrant SSFM validation spine:
+
+```powershell
+qs-dmss run configs/fractal_quadrant_ssfm.yaml
+```
+
+See
+[docs/fractal-quadrant-ssfm-validation-spine.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/fractal-quadrant-ssfm-validation-spine.md)
+for the scientific claim boundary and validation expectations.
 
 This writes `benchmark-validation/benchmark-validation.json` plus a
 human-readable `benchmark-validation/benchmark-validation.md` summary.
