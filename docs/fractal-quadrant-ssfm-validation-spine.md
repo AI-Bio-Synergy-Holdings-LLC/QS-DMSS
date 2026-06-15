@@ -79,6 +79,18 @@ CPU reference smoke:
 qs-dmss run configs/fractal_quadrant_ssfm.yaml
 ```
 
+Validation harness:
+
+```bash
+qs-dmss validation fractal-ssfm --config configs/fractal_quadrant_ssfm.yaml
+```
+
+The harness writes generated configs and evidence-backed runs under
+`fractal-ssfm-validation/`, plus two reviewer-facing reports:
+
+- `fractal-ssfm-validation/fractal-ssfm-validation.json`
+- `fractal-ssfm-validation/fractal-ssfm-validation.md`
+
 Optional CUDA/CuPy path:
 
 ```bash
@@ -102,3 +114,4 @@ Before promoting this backend beyond experimental status, QS-DMSS should retain:
 - Evidence bundle, manifest, report, verify, and replay compatibility.
 - Norm-conservation diagnostics for `geometry.mode: fuzzy_potential` when `spectral.dealias_fraction: null`.
 - Explicit non-conservative labels for `soft_mask`, `hard_mask`, and de-alias filtering.
+- Dedicated harness output for Strang refinement checks, fuzzy-potential norm conservation, and fuzzy/soft/hard geometry comparison.
