@@ -2,6 +2,7 @@ include CODE_OF_CONDUCT.md
 include CONTRIBUTING.md
 include CITATION.cff
 include LICENSE
+include NOTICE
 include README.md
 include RELEASE.md
 include SECURITY.md
