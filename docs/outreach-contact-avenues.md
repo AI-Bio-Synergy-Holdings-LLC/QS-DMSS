@@ -13,7 +13,7 @@ Primary opt-in discussion:
 Reviewer opt-in issue form:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=reviewer_opt_in.yml`
 
-Community outreach wave 1:
+Historical community outreach wave 1:
 `docs/community-outreach-wave-1.md`
 
 ## Contact Principle
@@ -29,9 +29,9 @@ offers another channel.
 | Priority | Avenue | Best contact produced | Best QS-DMSS ask |
 | --- | --- | --- | --- |
 | 1 | GitHub Discussion #44 | Public GitHub handles from opt-in comments | Ask people to choose one review lane. |
-| 1 | Reviewer opt-in issue form | Public GitHub handles with lane consent | Route the reviewer to `#39`, `#40`, `#41`, or `#37`. |
-| 1 | US-RSE | Research software engineers and code-review volunteers | Ask for install/reproducibility and evidence-workflow feedback. |
-| 1 | Scientific Python community | Scientific Python maintainers and users | Ask for packaging, benchmark, and reproducibility feedback. |
+| 1 | Reviewer opt-in issue form | Public GitHub handles with lane consent | Route the reviewer to `#105`, `#99`, or `#57`. |
+| 1 | US-RSE | Research software engineers and code-review volunteers | Ask for dry-run Slurm site-policy, install/reproducibility, and evidence-workflow feedback. |
+| 1 | Scientific Python community | Scientific Python maintainers and users | Ask for packaging, validation-harness, and reproducibility feedback. |
 | 2 | pyOpenSci | Python package peer-review contacts | Use later for package-quality review once scope is stable. |
 | 2 | OpenAstronomy community | Astronomy/astrophysics software readers | Ask for domain framing, non-claims, and JOSS-readiness feedback. |
 | 2 | ReSA | Research software policy and stewardship network | Ask for research-software sustainability and review-path feedback. |
@@ -58,22 +58,22 @@ review ask, not a promotional announcement.
 
 Primary link: `https://us-rse.org/get-involved/`
 
-Best ask: "Could one or two RSEs sanity-check the install/reproducibility or
-evidence-bundle workflow and leave a GitHub comment?"
+Best ask: "Could one or two RSEs sanity-check the dry-run Slurm request
+bundle or install/reproducibility workflow and leave one GitHub comment?"
 
 ### Scientific Python
 
-Scientific Python is best for packaging, CLI, benchmark, and reproducibility
-workflow feedback. Keep the ask grounded in the Python package and evidence
-workflow rather than the scientific model.
+Scientific Python is best for packaging, CLI, validation harness, and
+reproducibility workflow feedback. Keep the ask grounded in the Python package
+and evidence workflow rather than the scientific model.
 
 Primary links:
 
 - `https://scientific-python.org/community/`
 - `https://discuss.scientific-python.org/`
 
-Best ask: "Does this PyPI package provide a clear enough reproducibility path
-from install to generated evidence?"
+Best ask: "Does this PyPI package and current source-validation path provide a
+clear enough reproducibility path from install to generated evidence?"
 
 ### pyOpenSci
 
@@ -140,8 +140,10 @@ preflight path first.
 
 Primary link: `https://joss.readthedocs.io/`
 
-Best ask now: request informal preflight comments on `#41`; submit only when
-the review packet, paper, examples, tests, and contribution path are ready.
+Best ask now: request informal preflight comments through `#105` for the
+Fractal SSFM validation gate or through the reviewer opt-in form. Submit only
+when the review packet, paper, examples, tests, and contribution path are
+ready.
 
 ## Recommended Sequence
 
@@ -150,7 +152,7 @@ the review packet, paper, examples, tests, and contribution path are ready.
    are likely to respond.
 3. Post one small ask to US-RSE and one to Scientific Python, each routing to
    Discussion #44 and the reviewer opt-in form.
-4. Ask domain contacts from OpenAstronomy to comment on `#41`, not to endorse
+4. Ask domain contacts from OpenAstronomy to comment on `#105`, not to endorse
    the model.
 5. Use pyOpenSci, ASCL, Zenodo communities, and JOSS as staged readiness gates,
    not attention hacks.
@@ -158,12 +160,12 @@ the review packet, paper, examples, tests, and contribution path are ready.
 ## Copyable Cross-Community Ask
 
 ```text
-QS-DMSS v0.4.0 is looking for a few first-pass external reviewers.
+QS-DMSS v0.9.0 is looking for a few focused external reviewers.
 
 The project is beta software for reproducible package/evidence workflows, not
-peer-reviewed scientific validation. The immediate goal is modest: three public
-comments across install/reproducibility, evidence/benchmark validation,
-canonical simulation showcase clarity, and scientific/JOSS framing.
+peer-reviewed scientific validation. The immediate goal is modest: a few public
+comments across Fractal SSFM validation, dry-run Slurm site-policy review, and
+install/reproducibility clarity.
 
 If you are open to reviewing one small lane, please opt in here:
 

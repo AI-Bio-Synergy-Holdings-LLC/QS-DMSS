@@ -16,6 +16,11 @@ bundled, verified, replayable, comparable, citable, and ready to share.
 QS-DMSS is beta for reproducible package/evidence workflows; it is not
 peer-reviewed scientific validation.
 
+QS-DMSS is created, managed, and maintained by AI-Bio Synergy Holdings LLC.
+Access, use, attribution, contribution, funding, and claim-boundary details
+are summarized in
+[docs/ownership-and-use.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ownership-and-use.md).
+
 ## Current Public State
 
 The current public package baseline is `qs-dmss==0.9.0`, archived as
@@ -399,6 +404,9 @@ Contributor source-map guidance lives in
 [docs/contributor-map.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/contributor-map.md),
 and GitHub social preview setup lives in
 [docs/social-preview.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/social-preview.md).
+Ownership, use, citation, contribution, funding, and claim-boundary guidance
+lives in
+[docs/ownership-and-use.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ownership-and-use.md).
 
 Scholarly indexing readiness and public-launch materials live in
 [docs/ascl-joss-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ascl-joss-readiness.md)
@@ -411,7 +419,7 @@ The JOSS preflight checklist lives in
 The active builder roadmap lives in
 [docs/post-v0.3-active-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/post-v0.3-active-roadmap.md).
 
-The next research-grade upgrade slice is defined in
+Historical research-grade upgrade planning lives in
 [docs/research-grade-upgrade-slice.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/research-grade-upgrade-slice.md),
 with paper strategy notes in
 [docs/research-paper-strategy.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/research-paper-strategy.md).

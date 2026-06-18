@@ -17,12 +17,14 @@ specific GitHub issue, pull request, or reproducibility signal.
 - Release target: `v0.9.0`
 - Latest archived Zenodo release DOI: `10.5281/zenodo.20693736` (`v0.9.0`)
 - Open Collective: `https://opencollective.com/qs-dmss`
-- Review sprint hub: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
+- Scientific review gate: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`
+- HPC/RSE site-policy review gate: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/99`
+- Builder board: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57`
 - Reviewer opt-in discussion: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
 - Reviewer opt-in issue form: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=reviewer_opt_in.yml`
-- Outreach copy: `docs/external-review-outreach.md`
+- Historical outreach copy: `docs/external-review-outreach.md`
 - Outreach contact avenues: `docs/outreach-contact-avenues.md`
-- Community outreach wave 1: `docs/community-outreach-wave-1.md`
+- Historical community outreach wave 1: `docs/community-outreach-wave-1.md`
 
 ## Reviewer Paths
 
@@ -30,12 +32,11 @@ Use these calls to action in public posts, direct outreach, and release notes.
 
 | Reviewer type | Ask | GitHub path |
 | --- | --- | --- |
-| Broad reviewer | Pick any lane and leave one comment, even if everything passes. | `#37` |
-| Reproducibility reviewer | Install from PyPI, run the demo/campaign, and report friction. | `#39` |
-| Python/package reviewer | Inspect package install behavior and first-run clarity. | `#39` |
-| Evidence/benchmark reviewer | Inspect bundle contents, replay, benchmark validation, and auditability. | `#40` |
-| Scientific reviewer | Review model framing, assumptions, limitation language, and JOSS readiness. | `#41` |
-| New contributor | Identify the first task that would make contribution easier. | `#37` or `good first issue` tasks |
+| Numerical/scientific reviewer | Comment on the Fractal SSFM validation harness, convergence, conservation, or diagnostics-only boundary. | `#105` |
+| HPC/RSE reviewer | Comment on dry-run Slurm directives, environment setup, filesystem staging, or scheduler-state mapping. | `#99` |
+| Reproducibility reviewer | Install from PyPI, run the demo/campaign/showcase, and report friction through the reviewer opt-in form. | reviewer opt-in form |
+| Builder/contributor | Identify the first task or build lane that would make contribution easier. | `#57` |
+| Sponsor/funder | Review whether funding asks map to concrete public artifacts. | Open Collective or `#57` |
 
 ## Historical Review Ask
 

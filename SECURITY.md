@@ -2,8 +2,13 @@
 
 ## Supported Versions
 
-The currently supported public release line is `v0.3.x`, beginning with
-`v0.3.0`.
+The currently supported public release line is `v0.9.x`, beginning with
+`v0.9.0`.
+
+Current `main` may include security or governance fixes that have not yet been
+packaged into a release. As of the latest repository maintenance pass, `main`
+contains the post-`v0.9.0` NOTICE packaging fix and the safe Starlette
+dependency floor.
 
 Earlier public release lines remain archived and citable, but security fixes
 should target the current supported line unless a maintainer explicitly decides

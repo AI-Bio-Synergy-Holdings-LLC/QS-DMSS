@@ -17,10 +17,10 @@ body:
       label: Review Lane
       description: Pick the lane where you are most willing to help.
       options:
-        - Install/reproducibility (#39)
-        - Evidence bundle and benchmark validation (#40)
-        - Scientific framing and JOSS preflight (#41)
-        - Broad open-source/contributor feedback (#37)
+        - Fractal SSFM validation review (#105)
+        - HPC dry-run Slurm site-policy review (#99)
+        - Builder roadmap / contribution lane (#57)
+        - Install, reproducibility, or documentation feedback
         - Not sure yet
     validations:
       required: true
@@ -29,7 +29,7 @@ body:
     attributes:
       label: What can you review?
       description: Keep this short. Examples are OS/Python install path, evidence bundle clarity, JOSS framing, docs onboarding, or contributor experience.
-      placeholder: "I can test the PyPI install on Ubuntu with Python 3.12 and leave notes on #39."
+      placeholder: "I can test the PyPI install on Ubuntu with Python 3.12 or leave one note on #105."
     validations:
       required: true
   - type: input
@@ -37,7 +37,7 @@ body:
     attributes:
       label: Rough Timeframe
       description: Optional public estimate so maintainers know when to follow up.
-      placeholder: "This week, next sprint, or when v0.5.0 review closes"
+      placeholder: "This week, next sprint, or when the current review gate closes"
     validations:
       required: false
   - type: checkboxes
