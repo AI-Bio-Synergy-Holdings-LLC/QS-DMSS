@@ -31,7 +31,9 @@ Appropriate claims:
 - Package architecture and reproducibility model.
 - How configs, ledgers, manifests, bundles, replay, campaigns, and decision
   profiles connect.
-- What v0.3.0 proves as a public beta package with benchmark validation.
+- What v0.9.0 proves as a public beta package with Lab Mode, Campaign Studio,
+  publication-style exports, workspace metadata, dry-run Slurm review bundles,
+  and benchmark validation.
 - What the software does not yet validate scientifically.
 
 Evidence needed:
@@ -91,16 +93,17 @@ Claims to avoid until then:
 3. Software architecture.
 4. Reproducibility and evidence model.
 5. Benchmark and validation design.
-6. Current v0.3.0 state.
+6. Current v0.9.0 state and post-release source-validation gate.
 7. Limitations and non-goals.
 8. Roadmap toward external validation.
 9. AI usage, provenance, and human review.
 
 ## Immediate Writing Task
 
-Do not expand `paper/paper.md` into submission form yet. Use `v0.3.0` as the
-stable public baseline, gather reviewer feedback through the review packet, and
-then update the paper scaffold with evidence that a reviewer can reproduce.
+Do not expand `paper/paper.md` into submission form yet. Use `v0.9.0` as the
+stable public package baseline, gather reviewer feedback through the review
+packet and issue #105, and then update the paper scaffold with evidence that a
+reviewer can reproduce.
 
 The current paper should remain a disciplined scaffold until the benchmark
-slice and external review provide enough data.
+and Fractal SSFM validation review provide enough data.

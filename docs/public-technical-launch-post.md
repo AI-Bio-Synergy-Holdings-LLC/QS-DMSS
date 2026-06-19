@@ -1,39 +1,42 @@
-# Public Technical Launch Post
+# Public Technical Update Post
 
 Audience: technical readers, scientific-software reviewers, potential early
-adopters, and research collaborators.
+adopters, research collaborators, RSE/HPC reviewers, and open-source funders.
 
 Suggested title:
 
 ```text
-QS-DMSS v0.3.0: benchmark validation for reproducible simulation evidence workflows
+QS-DMSS v0.9.0: evidence-first simulation workflows with dry-run HPC review artifacts
 ```
 
 Post:
 
 ````markdown
-Today I am sharing QS-DMSS v0.3.0 as public beta software for reproducible
-package/evidence workflows around QuantumScalar dark matter simulation.
+QS-DMSS v0.9.0 is public as beta software for reproducible package/evidence
+workflows around QuantumScalar dark matter simulation.
 
 The point of this release is not to claim a new scientific result. It is not
 peer-reviewed scientific validation. The point is to make the computational
 spine inspectable: install the package, run a bundled demo, generate a
 deterministic evidence bundle, verify the manifest, replay the captured
-configuration, and compare campaign variants through an objective-based
-decision layer.
+configuration, compare campaign variants, export research objects, and produce
+reviewable dry-run Slurm request bundles without submitting scheduler jobs.
 
 QS-DMSS currently includes:
 
-- a NumPy-based split-step Schrodinger-Poisson solver;
+- a NumPy-based split-step Schrodinger-Poisson reference solver;
 - a packaged CLI available with `pip install qs-dmss`;
+- Lab Mode for guided simulation inspection;
+- Campaign Studio study templates, editable grids, and decision profiles;
 - manifest-verified run evidence bundles;
 - deterministic replay and verification commands;
-- template-driven decision campaigns across parameter grids;
-- objective-based run ranking;
-- packaged benchmark validation with expected metric envelopes;
-- a local cockpit for launching, inspecting, verifying, comparing, and exporting runs;
+- canonical simulation showcase reports with CSV and SVG artifacts;
+- publication-style research-object export composition;
+- workspace export/import metadata with collaborator and annotation fields;
+- dry-run Slurm request bundles for HPC/RSE site-policy review;
 - GitHub Actions CI across Python 3.10 through 3.13 plus Docker smoke validation;
-- fresh-install smoke validation from PyPI and GitHub release wheels on Linux, macOS, and Windows;
+- fresh-install smoke validation from PyPI and GitHub release wheels on Linux,
+  macOS, and Windows;
 - GitHub release artifacts, PyPI distribution, and Zenodo DOI archival.
 
 The project is intentionally evidence-first. Every run is meant to leave behind
@@ -46,8 +49,10 @@ Public entry points:
 
 - GitHub: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
 - PyPI: https://pypi.org/project/qs-dmss/
-- Latest release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.3.0
+- Latest release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.9.0
 - Zenodo concept DOI: https://doi.org/10.5281/zenodo.20074924
+- v0.9.0 release DOI: https://doi.org/10.5281/zenodo.20693736
+- Open Collective: https://opencollective.com/qs-dmss
 
 Fast smoke test:
 
@@ -55,50 +60,65 @@ Fast smoke test:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss
+python -m pip install qs-dmss==0.9.0
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 qs-dmss benchmarks validate --scenario demo-baseline
+qs-dmss showcase run --output-root simulation-showcase
 ```
+
+Dry-run Slurm review artifact:
+
+```powershell
+qs-dmss executors slurm-dry-run configs/demo.yaml --output-root slurm-review
+```
+
+Current source-review gate:
+
+The current `main` branch is one validation slice ahead of the public package.
+It adds an experimental Fractal/Quadrant SSFM validation harness for technical
+review before any GPU expansion, v0.10.0 release prep, or decision-metric UI
+for spectral diagnostics.
+
+Review issue:
+https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105
 
 What this release is:
 
 - public, citable, installable beta software;
 - a reproducibility and productization spine;
 - a concrete package for reviewer feedback;
-- a foundation for future benchmark and research-use work.
+- a foundation for future validation and research-use work.
 
 What this release is not:
 
 - not a peer-reviewed scientific result;
-- not yet an ASCL-indexed code;
-- not yet a JOSS submission;
+- not a production cosmological simulation code;
+- not a real HPC scheduler submission connector;
 - not a claim that the model has been externally validated.
 
-The next scholarly-readiness steps are intentionally conservative: collect
-reviewer feedback, document research-use evidence, prepare ASCL metadata once a
-research paper or submitted preprint uses the code, and mature the JOSS paper
-only after public development history and impact evidence are strong enough.
-
 If you care about reproducible scientific software, simulation evidence bundles,
-or auditable dark matter modeling workflows, I would value your review.
+auditable dark matter modeling workflows, or cautious HPC connector design, I
+would value one small public comment on the review issue that matches your
+expertise.
 ````
 
 Short social version:
 
 ```text
-QS-DMSS v0.3.0 is public: citable beta software for reproducible
-package/evidence workflows around QuantumScalar dark matter simulation.
+QS-DMSS v0.9.0 is public: citable beta software for reproducible simulation
+evidence workflows.
 
-It focuses on the evidence spine: deterministic runs, manifest-verified bundles,
-replay, campaign comparison, objective-based recommendations, packaged
-benchmark validation, CI, PyPI, and Zenodo DOI archival.
+It now includes Lab Mode, Campaign Studio study templates, evidence bundles,
+replay/verify, publication-style exports, workspace metadata, and dry-run Slurm
+request bundles that never submit scheduler jobs.
 
-This is not peer-reviewed scientific validation, and it is not a JOSS/ASCL claim
-yet. It is the public baseline for review, adoption feedback, and
-research-readiness hardening.
+This is not peer-reviewed scientific validation. Current source review is
+focused on the experimental Fractal/Quadrant SSFM validation harness before any
+GPU expansion or v0.10.0 release prep.
 
 GitHub: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
 PyPI: https://pypi.org/project/qs-dmss/
-Concept DOI: https://doi.org/10.5281/zenodo.20074924
+DOI: https://doi.org/10.5281/zenodo.20693736
+Open Collective: https://opencollective.com/qs-dmss
 ```

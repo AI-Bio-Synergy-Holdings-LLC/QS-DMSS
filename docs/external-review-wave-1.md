@@ -1,5 +1,9 @@
 # v0.3.0 External Review Wave 1
 
+Status: retained as historical outreach planning for the first external review
+sprint. Current outreach targets should use `v0.9.0`, issue #105, issue #99,
+issue #57, and the reviewer opt-in form.
+
 This is the first manual reviewer-conversion push for the v0.3.0 review
 sprint. Keep it private-contact friendly: do not publish personal contact
 details in the repository, and do not tag random people into GitHub issues

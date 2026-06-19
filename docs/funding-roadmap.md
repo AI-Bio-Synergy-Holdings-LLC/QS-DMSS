@@ -11,6 +11,10 @@ Support QS-DMSS through Open Collective:
 https://opencollective.com/qs-dmss
 ```
 
+Funding support does not change QS-DMSS access, license, ownership,
+attribution, or scientific-claim boundaries. See
+[`ownership-and-use.md`](ownership-and-use.md).
+
 ## Funding Principles
 
 - Fund outcomes, not vague maintenance.

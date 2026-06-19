@@ -1,5 +1,9 @@
 # Research-Grade Upgrade Slice
 
+Status: retained as historical planning from the early beta roadmap. The
+current public baseline is `v0.9.0`, and the active source-validation gate is
+the Fractal SSFM review target in issue #105.
+
 This slice defines the next contribution path after the v0.2.0 beta launch
 packet. The goal is to strengthen every layer of QS-DMSS without cutting a new
 package release until the work produces measurable capability.

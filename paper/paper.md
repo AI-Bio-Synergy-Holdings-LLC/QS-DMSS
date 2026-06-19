@@ -12,7 +12,7 @@ authors:
 affiliations:
   - name: "TODO: Confirm author affiliations"
     index: 1
-date: 10 May 2026
+date: 18 June 2026
 bibliography: paper.bib
 ---
 
@@ -82,15 +82,17 @@ external adoption, issue-driven review by another group, or integration into a
 real research workflow.
 
 The current public baseline provides near-term reproducibility evidence through
-PyPI distribution, Zenodo DOI archival [@qsdmss030], CI across Python 3.10
+PyPI distribution, Zenodo DOI archival [@qsdmss090], CI across Python 3.10
 through 3.13, Docker smoke validation, and installed-package demo/campaign smoke
 tests across Linux, macOS, and Windows.
 
-The post-beta development line adds a lightweight benchmark validation spine:
-packaged benchmark scenarios, expected metric envelopes, evidence-bundle
-verification, replay checks, and a JSON validation report. This benchmark spine
-supports software-methods review of the reproducibility workflow, but it should
-not be presented as peer-reviewed scientific validation of the underlying model.
+The current public package line also includes Lab Mode, Campaign Studio study
+templates, publication-style research-object export, workspace export/import
+metadata, and dry-run Slurm request bundles for HPC/RSE site-policy review. The
+post-release source line adds an experimental Fractal/Quadrant SSFM validation
+harness. These features support software-methods review of reproducibility and
+validation workflows, but they should not be presented as peer-reviewed
+scientific validation of the underlying model.
 
 # AI usage disclosure
 

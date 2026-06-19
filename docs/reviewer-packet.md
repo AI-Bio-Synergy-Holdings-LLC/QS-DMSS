@@ -109,7 +109,7 @@ substantive technical feedback.
 
 ## Simulation Showcase Path
 
-The published `v0.6.0` package includes a canonical simulation showcase for
+The published `v0.9.0` package includes a canonical simulation showcase for
 reviewers who want to inspect the actual simulated field output, not just the
 install and benchmark envelopes:
 

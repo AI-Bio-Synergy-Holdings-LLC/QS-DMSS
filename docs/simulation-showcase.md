@@ -102,9 +102,10 @@ boundary understandable?
 
 Good places to file that feedback:
 
-- Scientific/JOSS framing: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/41`
-- Evidence and benchmark validation: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/40`
-- General external review sprint: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/37`
+- Scientific validation gate: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`
+- HPC/RSE dry-run Slurm site-policy gate: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/99`
+- Builder roadmap and contribution tracks: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57`
+- Reviewer opt-in form: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=reviewer_opt_in.yml`
 
 ## Non-Claims
 
