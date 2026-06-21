@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QS-DMSS Studio | Evidence-first simulation lab</title>
+    <meta
+      name="description"
+      content="QS-DMSS Studio is the public front door for an evidence-first simulation lab: run simulations, inspect evidence, compare campaigns, and publish reproducible artifacts."
+    />
+    <meta name="theme-color" content="#101a18" />
+    <meta property="og:title" content="QS-DMSS Studio" />
+    <meta
+      property="og:description"
+      content="Run simulations, inspect evidence, compare campaigns, and publish reproducible artifacts."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://qs-dmss.studio/" />
+    <link rel="canonical" href="https://qs-dmss.studio/" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <header class="site-header" aria-label="Primary navigation">
+      <a class="brand" href="#top" aria-label="QS-DMSS Studio home">
+        <span class="brand-mark" aria-hidden="true">QS</span>
+        <span>
+          <strong>QS-DMSS Studio</strong>
+          <small>Evidence-first simulation lab</small>
+        </span>
+      </a>
+      <nav class="nav-links" aria-label="Site sections">
+        <a href="#studio-loop">Studio loop</a>
+        <a href="#capabilities">Capabilities</a>
+        <a href="#boundaries">Boundaries</a>
+        <a href="#live-demo">Live demo</a>
+      </nav>
+    </header>
+
+    <main id="main">
+      <section class="hero" id="top" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">Public beta | Apache-2.0 | PyPI + Zenodo archived</p>
+          <h1 id="hero-title">Run simulations. Inspect evidence. Compare campaigns. Publish reproducible artifacts.</h1>
+          <p class="hero-lede">
+            QS-DMSS is a deterministic, evidence-first simulation lab for
+            QuantumScalar dark matter workflows. It turns a run into a research
+            object: configured, measured, bundled, verified, replayable,
+            comparable, citable, and ready for review.
+          </p>
+          <div class="hero-actions" aria-label="Primary actions">
+            <a class="button primary" href="https://pypi.org/project/qs-dmss/">Install from PyPI</a>
+            <a class="button" href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS">View GitHub</a>
+            <a class="button" href="#local-cockpit">Run local cockpit</a>
+            <a class="button" href="https://doi.org/10.5281/zenodo.20693736">Read DOI</a>
+            <a class="button support" href="https://opencollective.com/qs-dmss">Support on Open Collective</a>
+          </div>
+        </div>
+
+        <aside class="hero-panel" aria-labelledby="release-title">
+          <p class="panel-kicker">Current public baseline</p>
+          <h2 id="release-title">qs-dmss==0.9.0</h2>
+          <dl>
+            <div>
+              <dt>Release DOI</dt>
+              <dd><a href="https://doi.org/10.5281/zenodo.20693736">10.5281/zenodo.20693736</a></dd>
+            </div>
+            <div>
+              <dt>Package</dt>
+              <dd><a href="https://pypi.org/project/qs-dmss/">pypi.org/project/qs-dmss</a></dd>
+            </div>
+            <div>
+              <dt>Stewardship</dt>
+              <dd>Created, managed, and maintained by AI-Bio Synergy Holdings LLC.</dd>
+            </div>
+          </dl>
+          <p class="claim-note">
+            Beta for reproducible package/evidence workflows; not peer-reviewed
+            scientific validation.
+          </p>
+        </aside>
+      </section>
+
+      <section class="flow-section" id="studio-loop" aria-labelledby="loop-title">
+        <p class="eyebrow">The QS-DMSS loop</p>
+        <h2 id="loop-title">A simulation is not finished when it produces a plot.</h2>
+        <div class="flow-grid" role="list" aria-label="QS-DMSS product loop">
+          <article role="listitem">
+            <span>01</span>
+            <h3>Run simulations</h3>
+            <p>Launch packaged scenarios, demos, and Campaign Studio studies from the CLI or local cockpit.</p>
+          </article>
+          <article role="listitem">
+            <span>02</span>
+            <h3>Inspect evidence</h3>
+            <p>Open metrics, manifests, reports, CSV samples, figures, verification status, and replay paths.</p>
+          </article>
+          <article role="listitem">
+            <span>03</span>
+            <h3>Compare campaigns</h3>
+            <p>Evaluate parameter grids against explicit objectives, constraints, ranking weights, and recommendations.</p>
+          </article>
+          <article role="listitem">
+            <span>04</span>
+            <h3>Publish artifacts</h3>
+            <p>Export research objects with citation blocks, evidence bundles, scenario metadata, and reproducibility notes.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="capabilities" id="capabilities" aria-labelledby="capabilities-title">
+        <div class="section-heading">
+          <p class="eyebrow">Studio capabilities</p>
+          <h2 id="capabilities-title">Built around evidence, not just execution.</h2>
+        </div>
+
+        <div class="card-grid">
+          <article class="capability-card">
+            <h3>Lab Mode</h3>
+            <p>
+              A guided cockpit path for choosing a scenario, running the simulation,
+              reading plain-language interpretation, and inspecting generated evidence.
+            </p>
+          </article>
+          <article class="capability-card">
+            <h3>Campaign Studio</h3>
+            <p>
+              Reusable study templates, editable parameter grids, decision profiles,
+              scoring contracts, recommendation rationale, and last-run provenance.
+            </p>
+          </article>
+          <article class="capability-card">
+            <h3>Evidence Bundles</h3>
+            <p>
+              Run directories preserve configs, metrics, environment locks, figures,
+              manifests, reports, hashes, verification status, and replay commands.
+            </p>
+          </article>
+          <article class="capability-card">
+            <h3>Publication Export</h3>
+            <p>
+              Compose a shareable research-object surface with scenario context,
+              artifacts, metrics, evidence status, replay guidance, and DOI citation.
+            </p>
+          </article>
+          <article class="capability-card">
+            <h3>Dry-Run Slurm Review</h3>
+            <p>
+              Generate scheduler request bundles for HPC/RSE review without calling
+              sbatch, squeue, or any real cluster submission path.
+            </p>
+          </article>
+          <article class="capability-card caution" id="boundaries">
+            <h3>Scientific Boundaries</h3>
+            <p>
+              QS-DMSS is beta software for reproducible package/evidence workflows.
+              It does not claim peer-reviewed physical validation or production
+              cosmological simulation performance.
+            </p>
+          </article>
+        </div>
+      </section>
+
+      <section class="cockpit-strip" id="local-cockpit" aria-labelledby="cockpit-title">
+        <div>
+          <p class="eyebrow">Try it locally</p>
+          <h2 id="cockpit-title">Run the cockpit from the published package.</h2>
+          <p>
+            The current safest interactive experience is local-first. Install from
+            PyPI, start the cockpit on localhost, then run Lab Mode or Campaign
+            Studio without exposing a public compute surface.
+          </p>
+        </div>
+        <pre aria-label="Local cockpit commands"><code>python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install qs-dmss==0.9.0
+qs-dmss cockpit --host 127.0.0.1 --port 8001</code></pre>
+      </section>
+
+      <section class="live-demo" id="live-demo" aria-labelledby="live-demo-title">
+        <div class="orb" aria-hidden="true"></div>
+        <div>
+          <p class="eyebrow">Phase two</p>
+          <h2 id="live-demo-title">Live demo coming next at app.qs-dmss.studio.</h2>
+          <p>
+            The future hosted app should be a constrained demonstration, not an
+            unrestricted public compute service. The first version should allow
+            only packaged scenarios and study templates, short-lived artifacts,
+            no arbitrary YAML upload, no user-provided filesystem paths, no real
+            scheduler submission, and clear rate/resource limits.
+          </p>
+        </div>
+      </section>
+
+      <section class="link-panel" aria-labelledby="links-title">
+        <h2 id="links-title">Public entry points</h2>
+        <ul>
+          <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS">GitHub repository</a></li>
+          <li><a href="https://pypi.org/project/qs-dmss/">PyPI package</a></li>
+          <li><a href="https://doi.org/10.5281/zenodo.20693736">v0.9.0 Zenodo DOI</a></li>
+          <li><a href="https://opencollective.com/qs-dmss">Open Collective</a></li>
+          <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ownership-and-use.md">Ownership and use</a></li>
+          <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57">Builder board</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>QS-DMSS is created, managed, and maintained by AI-Bio Synergy Holdings LLC.</p>
+      <p>Apache-2.0 open-source software. Funding does not imply scientific endorsement or peer-reviewed validation.</p>
+    </footer>
+  </body>
+</html>
