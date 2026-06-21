@@ -11,6 +11,7 @@ specific GitHub issue, pull request, or reproducibility signal.
 
 ## Current Public Entry Points
 
+- Canonical website: `https://qs-dmss.studio`
 - GitHub repository: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS`
 - PyPI package: `https://pypi.org/project/qs-dmss/`
 - Latest release: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases`
@@ -140,12 +141,13 @@ Validation: Guide links to source paths and tests.
 Labels: `packaging`, `good first issue`
 
 Problem: PyPI discoverability depends on project URLs making it into the built
-wheel metadata. Add a short maintainer-facing snippet that inspects
+wheel metadata. Keep `https://qs-dmss.studio` as the Homepage and
+Documentation target, and add a short maintainer-facing snippet that inspects
 `Project-URL` fields after `python -m build`.
 
-Validation: The release checklist shows how to confirm Repository, Issues,
-Documentation, PyPI, DOI, Review, and Reviewer Quickstart URLs appear in the
-wheel `METADATA`.
+Validation: The release checklist shows how to confirm Homepage, QS-DMSS
+Studio, Repository, Issues, Documentation, PyPI, DOI, Review, and Reviewer
+Quickstart URLs appear in the wheel `METADATA`.
 
 ### 10. Add a GitHub social preview asset
 

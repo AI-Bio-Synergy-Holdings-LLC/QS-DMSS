@@ -7,6 +7,12 @@ contributors, and sponsors using QS-DMSS.
 
 QS-DMSS is created, managed, and maintained by AI-Bio Synergy Holdings LLC.
 
+The canonical public front door is:
+
+```text
+https://qs-dmss.studio
+```
+
 The public repository is:
 
 ```text

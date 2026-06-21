@@ -48,7 +48,7 @@ identifiers:
     description: "First archived release DOI for v0.1.3."
 repository-code: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS"
 repository-artifact: "https://pypi.org/project/qs-dmss/"
-url: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.9.0"
+url: "https://qs-dmss.studio"
 keywords:
   - dark matter
   - scientific computing

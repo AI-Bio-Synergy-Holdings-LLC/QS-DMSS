@@ -7,6 +7,9 @@ private contact details in public repository files.
 
 Current public baseline target: `qs-dmss==0.9.0` / GitHub release `v0.9.0`
 
+Canonical public website:
+`https://qs-dmss.studio`
+
 Primary opt-in discussion:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
 
@@ -160,6 +163,8 @@ ready.
 ## Copyable Cross-Community Ask
 
 ```text
+QS-DMSS Studio is live at https://qs-dmss.studio.
+
 QS-DMSS v0.9.0 is looking for a few focused external reviewers.
 
 The project is beta software for reproducible package/evidence workflows, not
