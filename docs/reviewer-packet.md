@@ -6,6 +6,8 @@ would be most useful.
 
 Current public baseline: `v0.9.0` / `qs-dmss==0.9.0`
 
+Canonical website: `https://qs-dmss.studio`
+
 Release DOI: `10.5281/zenodo.20693736`
 
 Latest archived release DOI: `10.5281/zenodo.20693736` (`v0.9.0`)

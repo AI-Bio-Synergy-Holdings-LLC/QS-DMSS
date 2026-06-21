@@ -3,6 +3,9 @@
 QS-DMSS is published on PyPI:
 `https://pypi.org/project/qs-dmss/`.
 
+The canonical public website for package discovery is:
+`https://qs-dmss.studio`.
+
 Install from PyPI:
 
 ```powershell
@@ -16,6 +19,7 @@ Trusted Publishing.
 
 - Initial published version: `0.1.0`
 - Current release target: `0.9.0`
+- Canonical website: `https://qs-dmss.studio`
 - PyPI project URL: `https://pypi.org/project/qs-dmss/`
 - Initial publish workflow run:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/actions/runs/25393532837`
@@ -58,6 +62,8 @@ from pathlib import Path
 
 wheel = Path(os.environ["WHEEL_PATH"])
 required = {
+    "Homepage",
+    "QS-DMSS Studio",
     "Repository",
     "Issues",
     "Documentation",
@@ -83,8 +89,8 @@ print("Project-URL labels present:", ", ".join(sorted(labels)))
 PY
 ```
 
-The check should include at least Repository, Issues, Documentation, PyPI, DOI,
-Review, and Reviewer Quickstart before publication.
+The check should include at least Homepage, QS-DMSS Studio, Repository, Issues,
+Documentation, PyPI, DOI, Review, and Reviewer Quickstart before publication.
 
 ## Package Identity
 

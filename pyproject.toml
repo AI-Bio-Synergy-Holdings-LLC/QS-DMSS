@@ -46,12 +46,13 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS"
+Homepage = "https://qs-dmss.studio"
+"QS-DMSS Studio" = "https://qs-dmss.studio"
 Repository = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS"
 Issues = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues"
 Releases = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases"
 "Release Notes" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/release-v0.9.0.md"
-Documentation = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS#readme"
+Documentation = "https://qs-dmss.studio"
 Contributing = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/CONTRIBUTING.md"
 Review = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new/choose"
 "Reviewer Packet" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-packet.md"

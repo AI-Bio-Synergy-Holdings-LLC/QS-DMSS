@@ -21,7 +21,7 @@ Access, use, attribution, contribution, funding, and claim-boundary details
 are summarized in
 [docs/ownership-and-use.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ownership-and-use.md).
 
-The public website front door is prepared for
+The canonical public website front door is
 [qs-dmss.studio](https://qs-dmss.studio). It is a static GitHub Pages site
 focused on install paths, evidence-first positioning, local cockpit guidance,
 and the future constrained `app.qs-dmss.studio` live demo path. Deployment notes

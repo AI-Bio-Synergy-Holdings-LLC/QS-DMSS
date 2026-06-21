@@ -47,6 +47,7 @@ back to explicit constraints and ranking rules?
 
 Public entry points:
 
+- Website: https://qs-dmss.studio
 - GitHub: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
 - PyPI: https://pypi.org/project/qs-dmss/
 - Latest release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.9.0
@@ -117,6 +118,7 @@ This is not peer-reviewed scientific validation. Current source review is
 focused on the experimental Fractal/Quadrant SSFM validation harness before any
 GPU expansion or v0.10.0 release prep.
 
+Website: https://qs-dmss.studio
 GitHub: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
 PyPI: https://pypi.org/project/qs-dmss/
 DOI: https://doi.org/10.5281/zenodo.20693736

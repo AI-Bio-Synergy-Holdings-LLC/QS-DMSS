@@ -15,6 +15,8 @@ Release DOI: `10.5281/zenodo.20500433`
 
 Open Collective: `https://opencollective.com/qs-dmss`
 
+Canonical website: `https://qs-dmss.studio`
+
 Reviewer opt-in discussion:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
 
