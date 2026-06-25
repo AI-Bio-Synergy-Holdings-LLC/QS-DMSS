@@ -97,12 +97,14 @@ def test_static_site_metadata_hardening() -> None:
     assert {"Organization", "WebSite", "WebPage", "SoftwareSourceCode"} <= graph_types
 
 
-def test_static_site_favicon_is_text_free_mark() -> None:
+def test_static_site_favicon_matches_live_mark() -> None:
     favicon = (SITE_ROOT / "favicon.svg").read_text(encoding="utf-8")
 
-    assert 'aria-label="QS-DMSS Studio"' in favicon
-    assert "<text" not in favicon
-    assert 'id="ring"' in favicon
+    assert 'aria-label="QS-DMSS"' in favicon
+    assert 'rx="14" fill="#101a18"' in favicon
+    assert 'stroke="#4aa3a0"' in favicon
+    assert 'stroke="#ffd36e"' in favicon
+    assert ">QS</text>" in favicon
 
 
 def test_static_site_social_preview_dimensions() -> None:
