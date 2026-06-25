@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "fixture_id": "workflow-smoke-reference-v1",
+  "title": "QS-DMSS public reference-data calibration sandbox fixture",
+  "description": "A tiny fixture for exercising source provenance, cache integrity, citation capture, and evidence-bundle generation without downloading or redistributing provider datasets.",
+  "claim_boundary": "Workflow calibration only. This fixture does not fine-tune a scientific model, validate QS-DMSS against public observations, or establish peer-reviewed scientific validation.",
+  "source_ids": [
+    "planck-legacy",
+    "desi-dr1",
+    "sdss-dr19",
+    "gaia-dr3"
+  ],
+  "reference_observables": {
+    "source_manifest_count": 4,
+    "required_citation_count": 4,
+    "required_url_count": 4
+  },
+  "calibration_contract": {
+    "transform_script": "qs_dmss.data_registry.run_reference_calibration",
+    "cache_policy": "copy packaged source manifests and this tiny fixture into a user cache directory; record sha256 checksums, source URLs, access date, citations, and config in the evidence bundle",
+    "success_criteria": [
+      "all requested source IDs resolve to packaged source manifests",
+      "each source manifest includes an official URL and citation",
+      "each cached manifest and fixture has a sha256 checksum",
+      "the output evidence bundle contains JSON, Markdown, config, cached-source index, and fixture records"
+    ]
+  }
+}

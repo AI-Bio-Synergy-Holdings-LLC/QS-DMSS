@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "description": "Public reference-data source registry for QS-DMSS provenance and calibration sandbox workflows. These records identify official public source lanes; they do not bundle or mirror provider datasets.",
+  "sources": [
+    {
+      "id": "planck-legacy",
+      "name": "Planck Legacy Archive",
+      "provider": "European Space Agency",
+      "release": "Planck 2018 Legacy Release",
+      "domain": "CMB and cosmological-parameter reference products",
+      "official_url": "https://pla.esac.esa.int/",
+      "documentation_url": "https://www.cosmos.esa.int/web/planck",
+      "citation": "Planck Collaboration. Planck 2018 results. VI. Cosmological parameters. Astronomy & Astrophysics 641, A6 (2020).",
+      "citation_url": "https://www.aanda.org/articles/aa/full_html/2020/09/aa33910-18/aa33910-18.html",
+      "license_or_terms": "Use according to ESA/Planck archive citation and data-use guidance.",
+      "cache_policy": "Do not bundle Planck products in qs-dmss. Cache user-selected files locally with URL, access date, checksum, and citation metadata.",
+      "notes": [
+        "Useful as a public cosmology reference lane for provenance and calibration-sandbox experiments.",
+        "QS-DMSS does not claim physical calibration to Planck data without independent domain validation."
+      ]
+    },
+    {
+      "id": "desi-dr1",
+      "name": "DESI Data Release 1",
+      "provider": "Dark Energy Spectroscopic Instrument collaboration",
+      "release": "DR1",
+      "domain": "Spectroscopic redshift survey data",
+      "official_url": "https://data.desi.lbl.gov/doc/releases/dr1/",
+      "documentation_url": "https://data.desi.lbl.gov/doc/releases/",
+      "citation": "DESI Collaboration et al. Data Release 1 of the Dark Energy Spectroscopic Instrument. The Astronomical Journal 171, 285 (2026).",
+      "citation_url": "https://ui.adsabs.harvard.edu/abs/2026AJ....171..285D/abstract",
+      "license_or_terms": "Use according to DESI public data-release citation and data-use guidance.",
+      "cache_policy": "Do not bundle DESI products in qs-dmss. Cache user-selected files locally with URL, access date, checksum, and citation metadata.",
+      "notes": [
+        "Useful as a public large-scale-structure reference lane.",
+        "QS-DMSS source records are metadata references, not a DESI mirror."
+      ]
+    },
+    {
+      "id": "sdss-dr19",
+      "name": "Sloan Digital Sky Survey Data Release 19",
+      "provider": "Sloan Digital Sky Survey collaboration",
+      "release": "DR19",
+      "domain": "Public survey spectra, catalogs, and value-added products",
+      "official_url": "https://www.sdss.org/science/publications/data-release-publications/",
+      "documentation_url": "https://www.sdss.org/",
+      "citation": "SDSS Collaboration et al. The Nineteenth Data Release of the Sloan Digital Sky Survey. arXiv:2507.07093 (2025).",
+      "citation_url": "https://arxiv.org/abs/2507.07093",
+      "license_or_terms": "Use according to SDSS public data-release citation and data-use guidance.",
+      "cache_policy": "Do not bundle SDSS products in qs-dmss. Cache user-selected files locally with URL, access date, checksum, and citation metadata.",
+      "notes": [
+        "Useful as a public survey reference lane for reviewer-facing provenance examples.",
+        "QS-DMSS does not treat SDSS data-release presence as scientific validation."
+      ]
+    },
+    {
+      "id": "gaia-dr3",
+      "name": "Gaia Data Release 3",
+      "provider": "European Space Agency",
+      "release": "DR3",
+      "domain": "Astrometric, photometric, spectroscopic, and astrophysical-parameter catalog data",
+      "official_url": "https://www.cosmos.esa.int/web/gaia/dr3",
+      "documentation_url": "https://www.cosmos.esa.int/web/gaia/data-release-3",
+      "citation": "Gaia Collaboration. Gaia Data Release 3: Summary of the content and survey properties. Astronomy & Astrophysics 674, A1 (2023).",
+      "citation_url": "https://www.aanda.org/articles/aa/full_html/2023/06/aa43940-22/aa43940-22.html",
+      "license_or_terms": "Use according to ESA/Gaia archive citation and data-use guidance.",
+      "cache_policy": "Do not bundle Gaia products in qs-dmss. Cache user-selected files locally with URL, access date, checksum, and citation metadata.",
+      "notes": [
+        "Useful as a public catalog reference lane for provenance workflow tests.",
+        "QS-DMSS source records are metadata references, not a Gaia mirror."
+      ]
+    }
+  ]
+}

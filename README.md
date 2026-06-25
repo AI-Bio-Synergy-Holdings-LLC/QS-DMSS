@@ -37,13 +37,15 @@ That release is the stable install path for Lab Mode, Campaign Studio study
 templates, workspace export/import metadata, and dry-run Slurm request bundles
 that never submit scheduler jobs.
 
-Current `main` is one validation slice ahead of the public package: it adds the
-experimental Fractal/Quadrant SSFM validation harness and routes scientific
-feedback through
+Current `main` is ahead of the public package with two source-review slices: the
+experimental Fractal/Quadrant SSFM validation harness and a public
+reference-data provenance calibration sandbox. Fractal SSFM scientific feedback
+is routed through
 [issue #105](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105).
-GPU expansion, `v0.10.0` release prep, and decision-metric UI for
-`spectral_leakage` / `aliasing_ratio` remain paused until that review target
-receives substantive technical feedback.
+GPU expansion and decision-metric UI for `spectral_leakage` / `aliasing_ratio`
+remain paused until that review target receives substantive technical feedback.
+The reference-data sandbox is a `v0.10.0` candidate only if it remains a real
+CLI/API evidence workflow, not metadata-only release churn.
 
 ## Tangible Utility Summary
 
@@ -59,6 +61,9 @@ and citable.
   cluster infrastructure for small reference runs.
 - Evidence bundles, manifests, replay, verification, reports, and Zenodo/PyPI
   metadata that turn runs into portable research objects.
+- Public reference-data source manifests and calibration-sandbox evidence that
+  record source URLs, access dates, citations, transform metadata, cache
+  checksums, and claim boundaries without mirroring provider datasets.
 - Campaign Studio study templates for preserving, rerunning, importing,
   exporting, and explaining reproducible parameter-grid designs.
 - Portable workspace snapshots for handing off selected runs, experiments,
@@ -82,6 +87,7 @@ study using `engine.g_int`.
 - Objective-driven decision profiles with ranked recommendations
 - Template-defined decision campaigns across multi-parameter search grids
 - Reusable Campaign Studio study templates for preserving, rerunning, and sharing campaign designs
+- Public reference-data provenance and calibration sandbox for Planck Legacy Archive, DESI DR1, SDSS DR19, and Gaia DR3 source lanes
 - Run ledger with stable run IDs and config digests
 - Evidence bundle with artifacts, metrics, manifest, and HTML report
 - Replay and verification commands for reproducibility checks
@@ -110,6 +116,10 @@ evidence-first simulation lab:
 - Experimental Fractal/Quadrant SSFM validation spine for nonlinear wave
   propagation through fuzzy fractal effective potentials, with a CPU reference
   backend and optional CuPy acceleration path
+- Public reference-data provenance sandbox that materializes metadata-only
+  source manifests, cache checksums, a tiny calibration fixture, and an evidence
+  bundle for Planck Legacy Archive, DESI DR1, SDSS DR19, and Gaia DR3 source
+  lanes
 - Comparison tooling for energy drift, norm drift, density, and runtime deltas
 - Decision profiles that score runs against an explicit objective, constraint set, and ranking policy
 - Durable experiment exports with copied run evidence, comparison JSON, report HTML, manifest, and bundle ZIP
@@ -176,6 +186,25 @@ gate.
 
 This writes `fractal-ssfm-validation/fractal-ssfm-validation.json` plus a
 human-readable `fractal-ssfm-validation/fractal-ssfm-validation.md` summary.
+
+Run the public reference-data provenance calibration sandbox:
+
+```powershell
+qs-dmss data sources list
+qs-dmss data sources inspect planck-legacy
+qs-dmss data calibration run --output-root reference-data-calibration
+```
+
+This writes `reference-data-calibration/reference-data-calibration.json`,
+`reference-data-calibration/reference-data-calibration.md`, and
+`reference-data-calibration/reference-data-calibration-evidence.zip`. The
+workflow records source URL, access date, citation, transform script, config,
+cache checksum, and claim-boundary metadata. It is workflow calibration, not
+fine-tuning or peer-reviewed scientific validation.
+
+See
+[docs/reference-data-calibration.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reference-data-calibration.md)
+for source-lane details, cache policy, and evidence outputs.
 
 Run the canonical simulation showcase:
 
@@ -390,6 +419,9 @@ The beta promotion gate lives in
 
 Benchmark validation guidance lives in
 [docs/benchmark-validation.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/benchmark-validation.md).
+
+Public reference-data provenance and calibration sandbox guidance lives in
+[docs/reference-data-calibration.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reference-data-calibration.md).
 
 Canonical simulation showcase guidance lives in
 [docs/simulation-showcase.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/simulation-showcase.md).

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
 
 from fastapi import HTTPException
@@ -143,6 +144,77 @@ def _build_parser() -> argparse.ArgumentParser:
         type=float,
         default=1e-9,
         help="Maximum allowed fuzzy_potential relative norm error.",
+    )
+
+    data_parser = subparsers.add_parser(
+        "data",
+        help="Inspect public reference-data sources and run calibration sandbox workflows.",
+    )
+    data_subparsers = data_parser.add_subparsers(
+        dest="data_command",
+        required=True,
+    )
+
+    data_sources_parser = data_subparsers.add_parser(
+        "sources",
+        help="List or inspect official public reference-data source records.",
+    )
+    data_sources_subparsers = data_sources_parser.add_subparsers(
+        dest="data_sources_command",
+        required=True,
+    )
+
+    data_sources_list_parser = data_sources_subparsers.add_parser(
+        "list",
+        help="List packaged public reference-data source records.",
+    )
+    data_sources_list_parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="as_json",
+        help="Emit the source registry as JSON.",
+    )
+
+    data_sources_inspect_parser = data_sources_subparsers.add_parser(
+        "inspect",
+        help="Inspect a packaged public reference-data source record.",
+    )
+    data_sources_inspect_parser.add_argument(
+        "source_id",
+        help="Source ID to inspect, such as planck-legacy, desi-dr1, sdss-dr19, or gaia-dr3.",
+    )
+    data_sources_inspect_parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="as_json",
+        help="Emit the source record as JSON.",
+    )
+
+    data_calibration_parser = data_subparsers.add_parser(
+        "calibration",
+        help="Run the public reference-data provenance calibration sandbox.",
+    )
+    data_calibration_subparsers = data_calibration_parser.add_subparsers(
+        dest="data_calibration_command",
+        required=True,
+    )
+    data_calibration_run_parser = data_calibration_subparsers.add_parser(
+        "run",
+        help="Materialize source manifests, cache checksums, and an evidence bundle.",
+    )
+    data_calibration_run_parser.add_argument(
+        "--source",
+        action="append",
+        dest="sources",
+        help="Source ID to include. Repeat to select multiple sources; defaults to all packaged lanes.",
+    )
+    data_calibration_run_parser.add_argument(
+        "--output-root",
+        help="Directory for generated calibration report and evidence bundle.",
+    )
+    data_calibration_run_parser.add_argument(
+        "--cache-root",
+        help="User cache directory for metadata manifests and tiny calibration fixtures.",
     )
 
     cockpit_parser = subparsers.add_parser(
@@ -443,6 +515,82 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Report: {report['report_path']}")
             print(f"Reviewer summary: {report['markdown_report_path']}")
             return 0 if report["success"] else 1
+
+    if args.command == "data":
+        from qs_dmss.data_registry import (
+            list_data_sources,
+            resolve_data_source,
+            run_reference_calibration,
+        )
+
+        if args.data_command == "sources":
+            if args.data_sources_command == "list":
+                sources = list_data_sources()
+                if args.as_json:
+                    print(
+                        json.dumps(
+                            [source.payload for source in sources],
+                            indent=2,
+                            sort_keys=True,
+                        )
+                    )
+                    return 0
+
+                for source in sources:
+                    payload = source.payload
+                    print(
+                        f"{source.source_id} | {payload['release']} | "
+                        f"{payload['provider']} | {payload['official_url']}"
+                    )
+                return 0
+
+            if args.data_sources_command == "inspect":
+                try:
+                    source = resolve_data_source(args.source_id)
+                except FileNotFoundError as exc:
+                    print(exc)
+                    return 1
+
+                payload = source.payload
+                if args.as_json:
+                    print(json.dumps(payload, indent=2, sort_keys=True))
+                    return 0
+
+                print(f"ID: {source.source_id}")
+                print(f"Name: {payload['name']}")
+                print(f"Provider: {payload['provider']}")
+                print(f"Release: {payload['release']}")
+                print(f"Domain: {payload['domain']}")
+                print(f"Official URL: {payload['official_url']}")
+                print(f"Documentation: {payload['documentation_url']}")
+                print(f"Citation: {payload['citation']}")
+                print(f"Citation URL: {payload['citation_url']}")
+                print(f"Cache policy: {payload['cache_policy']}")
+                print("Boundary: metadata/provenance source only; QS-DMSS does not bundle or mirror provider datasets.")
+                for note in payload.get("notes", []):
+                    print(f"- {note}")
+                return 0
+
+        if args.data_command == "calibration":
+            if args.data_calibration_command == "run":
+                try:
+                    report = run_reference_calibration(
+                        output_root=args.output_root,
+                        cache_root=args.cache_root,
+                        source_ids=args.sources,
+                    )
+                except (FileNotFoundError, ValueError) as exc:
+                    print(exc)
+                    return 1
+
+                status = "passed" if report["success"] else "failed"
+                print(f"Reference-data calibration {status}.")
+                print(f"Report: {report['report_path']}")
+                print(f"Reviewer summary: {report['markdown_report_path']}")
+                print(f"Evidence bundle: {report['evidence_bundle_path']}")
+                print(f"Cache root: {report['cache_root']}")
+                print(f"Boundary: {report['claim_boundary']}")
+                return 0 if report["success"] else 1
 
     if args.command == "cockpit":
         from qs_dmss.cockpit.server import run_cockpit_server
