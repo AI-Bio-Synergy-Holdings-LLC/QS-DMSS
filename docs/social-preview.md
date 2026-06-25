@@ -18,10 +18,11 @@ public product-loop language:
 
 ```text
 QS-DMSS STUDIO
-Run simulations -> inspect evidence
-Compare campaigns. Publish reproducible artifacts.
+Evidence-first simulation lab
+Run simulations. Inspect evidence.
+Compare campaigns and publish reproducible artifacts.
 qs-dmss.studio
-Beta for reproducible package/evidence workflows; not peer-reviewed scientific validation.
+Beta workflows. Not peer-reviewed scientific validation.
 ```
 
 ## Upload Steps
