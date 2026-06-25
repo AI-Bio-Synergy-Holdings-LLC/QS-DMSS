@@ -182,6 +182,7 @@ experiments/
 jobs/
 showcases/
 benchmark-validation/
+fractal-ssfm-validation/
 reference-data-calibration/
 simulation-showcase/
 .codex-logs/

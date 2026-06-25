@@ -83,6 +83,18 @@ def demo_config_path(repo_root: Path | None = None) -> Path:
     return path
 
 
+def fractal_config_path(repo_root: Path | None = None) -> Path:
+    root = repo_root or discover_repo_root()
+    candidates = [
+        configs_root(root) / "fractal_quadrant_ssfm.yaml",
+        bundled_assets_root() / "configs" / "fractal_quadrant_ssfm.yaml",
+    ]
+    for path in candidates:
+        if path.exists():
+            return path
+    raise FileNotFoundError("Bundled Fractal SSFM config not found")
+
+
 def runs_root(repo_root: Path) -> Path:
     return repo_root / "runs"
 

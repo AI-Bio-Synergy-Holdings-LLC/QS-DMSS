@@ -9,8 +9,9 @@ The current QS-DMSS direction is:
 run simulations -> inspect evidence -> compare campaigns -> publish reproducible artifacts
 ```
 
-The current public baseline is `qs-dmss==0.9.0`, archived by Zenodo as
-`v0.9.0` / `10.5281/zenodo.20693736`.
+The current public baseline is `qs-dmss==0.10.0`. The latest archived DOI
+remains `v0.9.0` / `10.5281/zenodo.20693736` until Zenodo archives the
+`v0.10.0` release.
 
 ## Strategic Shift
 
@@ -31,33 +32,32 @@ The full strategy now lives in:
 - [contributor-roadmap.md](contributor-roadmap.md)
 - [funding-roadmap.md](funding-roadmap.md)
 
-## Current Active Slice: Fractal SSFM Scientific Review Gate
+## Current Active Slice: Post-v0.10.0 Scientific Review Conversion
 
 Lab Mode and Campaign Studio now make QS-DMSS feel meaningfully different from
-a generic open simulator. `v0.9.0` has shipped the dry-run Slurm review target,
-and the current `main` branch adds the experimental Fractal/Quadrant SSFM
-validation harness as a source-review gate before any GPU expansion, release
-prep, or decision-metric UI for spectral diagnostics.
+a generic open simulator. `v0.9.0` shipped the dry-run Slurm review target, and
+`v0.10.0` makes the experimental Fractal/Quadrant SSFM validation harness plus
+the public reference-data provenance calibration sandbox installable from PyPI.
 
 The target user flow is:
 
 ```text
-source checkout -> run fractal SSFM validation -> inspect JSON/Markdown report -> comment on issue #105
+pip install -> run fractal SSFM validation or reference-data calibration -> inspect JSON/Markdown/evidence output -> comment on issue #105 or related provenance issues
 ```
 
-The current implementation should focus on review conversion, not another
-release:
+The current implementation should focus on review conversion after publication,
+not another immediate feature release:
 
 - route numerical-methods, nonlinear-waves, spectral-methods, and
   scientific-Python reviewers to
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`;
 - ask for one public comment on Strang refinement, fuzzy-potential norm
   conservation, non-conservative mask labels, or diagnostics-only status;
-- keep `v0.9.0` as the stable public package baseline while this source gate is
-  reviewed;
-- keep GPU expansion, real HPC submission, `v0.10.0` release prep, and
-  decision-metric UI paused until the review target receives substantive
-  technical feedback or exposes a blocker.
+- use `v0.10.0` as the stable public package baseline while the validation and
+  provenance gates are reviewed;
+- keep GPU expansion, real HPC submission, and decision-metric UI paused until
+  the review target receives substantive technical feedback or exposes a
+  blocker.
 
 ## Builder Board Tracks
 

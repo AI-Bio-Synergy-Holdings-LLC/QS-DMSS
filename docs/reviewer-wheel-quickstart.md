@@ -4,13 +4,13 @@ This path validates QS-DMSS from a published distribution without a source
 checkout. It is intended for reviewers who need a fast productization smoke
 test.
 
-Release: `v0.9.0`
+Release: `v0.10.0`
 
 PyPI:
 `https://pypi.org/project/qs-dmss/`
 
 Wheel:
-`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.9.0/qs_dmss-0.9.0-py3-none-any.whl`
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.10.0/qs_dmss-0.10.0-py3-none-any.whl`
 
 ## PyPI Install
 
@@ -26,6 +26,8 @@ qs-dmss run-demo
 qs-dmss campaigns run-demo
 qs-dmss benchmarks validate --scenario demo-baseline
 qs-dmss showcase run --output-root simulation-showcase
+qs-dmss validation fractal-ssfm --output-root fractal-ssfm-validation
+qs-dmss data calibration run --output-root reference-data-calibration
 ```
 
 Linux/macOS Bash:
@@ -40,6 +42,8 @@ qs-dmss run-demo
 qs-dmss campaigns run-demo
 qs-dmss benchmarks validate --scenario demo-baseline
 qs-dmss showcase run --output-root simulation-showcase
+qs-dmss validation fractal-ssfm --output-root fractal-ssfm-validation
+qs-dmss data calibration run --output-root reference-data-calibration
 ```
 
 ## GitHub Release Wheel
@@ -49,16 +53,16 @@ Use this path when validating the GitHub release asset directly.
 Windows PowerShell:
 
 ```powershell
-$release = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.9.0"
-Invoke-WebRequest "$release/qs_dmss-0.9.0-py3-none-any.whl" -OutFile "qs_dmss-0.9.0-py3-none-any.whl"
-python -m pip install .\qs_dmss-0.9.0-py3-none-any.whl
+$release = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.10.0"
+Invoke-WebRequest "$release/qs_dmss-0.10.0-py3-none-any.whl" -OutFile "qs_dmss-0.10.0-py3-none-any.whl"
+python -m pip install .\qs_dmss-0.10.0-py3-none-any.whl
 ```
 
 Linux/macOS Bash:
 
 ```bash
-release="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.9.0"
-python -m pip install "$release/qs_dmss-0.9.0-py3-none-any.whl"
+release="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.10.0"
+python -m pip install "$release/qs_dmss-0.10.0-py3-none-any.whl"
 ```
 
 ## Expected Signals
@@ -73,6 +77,12 @@ python -m pip install "$release/qs_dmss-0.9.0-py3-none-any.whl"
 - `qs-dmss showcase run --output-root simulation-showcase` prints
   `Simulation showcase passed: canonical-simulation` and writes a reviewer
   summary, CSV tables, SVG plots, verified run evidence, and replay evidence.
+- `qs-dmss validation fractal-ssfm --output-root fractal-ssfm-validation`
+  prints `Fractal SSFM validation passed.` and writes the validation JSON and
+  Markdown summary.
+- `qs-dmss data calibration run --output-root reference-data-calibration`
+  prints `Reference-data calibration passed.` and writes JSON, Markdown, cache
+  provenance records, and an evidence ZIP.
 
 The demo is a smoke test for installation, deterministic execution, evidence
 generation, verification, and replay. It is not a scientific benchmark and does
@@ -136,7 +146,7 @@ suite.
 ```powershell
 git clone https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS.git
 cd QS-DMSS
-git checkout v0.9.0
+git checkout v0.10.0
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip

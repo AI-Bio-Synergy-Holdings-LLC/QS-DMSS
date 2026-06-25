@@ -148,3 +148,51 @@ def test_fractal_validation_cli_routes_to_harness(
         "norm_tolerance": 1e-8,
     }
     assert "Fractal SSFM validation passed." in captured.out
+
+
+def test_fractal_validation_cli_uses_bundled_default_config(
+    monkeypatch,
+    tmp_path: Path,
+    capsys,
+) -> None:
+    from qs_dmss import fractal_validation
+
+    seen: dict[str, object] = {}
+
+    def fake_validate_fractal_ssfm(
+        config_path: str | Path,
+        output_root: str | Path | None = None,
+        *,
+        norm_tolerance: float,
+    ) -> dict[str, object]:
+        seen["config_path"] = config_path
+        seen["output_root"] = output_root
+        seen["norm_tolerance"] = norm_tolerance
+        return {
+            "success": True,
+            "report_path": str(tmp_path / FRACTAL_VALIDATION_JSON_REPORT),
+            "markdown_report_path": str(tmp_path / FRACTAL_VALIDATION_MARKDOWN_REPORT),
+        }
+
+    monkeypatch.setattr(
+        fractal_validation,
+        "validate_fractal_ssfm",
+        fake_validate_fractal_ssfm,
+    )
+
+    exit_code = main(
+        [
+            "validation",
+            "fractal-ssfm",
+            "--output-root",
+            str(tmp_path),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert exit_code == 0
+    assert Path(seen["config_path"]).name == "fractal_quadrant_ssfm.yaml"
+    assert Path(seen["config_path"]).is_file()
+    assert seen["output_root"] == str(tmp_path)
+    assert seen["norm_tolerance"] == 1e-9
+    assert "Fractal SSFM validation passed." in captured.out

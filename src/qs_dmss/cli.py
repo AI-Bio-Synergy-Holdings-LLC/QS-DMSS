@@ -8,7 +8,7 @@ from fastapi import HTTPException
 
 from qs_dmss.app import execute_run_from_path, replay_run
 from qs_dmss.evidence.verify import verify_run_path
-from qs_dmss.paths import demo_config_path
+from qs_dmss.paths import demo_config_path, fractal_config_path
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -132,8 +132,7 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     fractal_validation_parser.add_argument(
         "--config",
-        default="configs/fractal_quadrant_ssfm.yaml",
-        help="Path to a YAML config using backend: numpy_fractal_ssfm.",
+        help="Path to a YAML config using backend: numpy_fractal_ssfm. Defaults to the bundled config.",
     )
     fractal_validation_parser.add_argument(
         "--output-root",
@@ -502,7 +501,7 @@ def main(argv: list[str] | None = None) -> int:
 
             try:
                 report = validate_fractal_ssfm(
-                    config_path=args.config,
+                    config_path=args.config or fractal_config_path(),
                     output_root=args.output_root,
                     norm_tolerance=args.norm_tolerance,
                 )
