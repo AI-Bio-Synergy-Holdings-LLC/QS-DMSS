@@ -30,22 +30,22 @@ live in
 
 ## Current Public State
 
-The current public package baseline is `qs-dmss==0.9.0`, archived as
-`v0.9.0` with Zenodo DOI
-[10.5281/zenodo.20693736](https://doi.org/10.5281/zenodo.20693736).
-That release is the stable install path for Lab Mode, Campaign Studio study
-templates, workspace export/import metadata, and dry-run Slurm request bundles
-that never submit scheduler jobs.
+The current public package baseline is `qs-dmss==0.10.0`. It makes the
+Fractal/Quadrant SSFM validation spine and the public reference-data
+provenance calibration sandbox installable from PyPI alongside Lab Mode,
+Campaign Studio study templates, workspace export/import metadata, and dry-run
+Slurm request bundles that never submit scheduler jobs.
 
-Current `main` is ahead of the public package with two source-review slices: the
-experimental Fractal/Quadrant SSFM validation harness and a public
-reference-data provenance calibration sandbox. Fractal SSFM scientific feedback
-is routed through
+The latest archived release DOI remains
+[v0.9.0 / 10.5281/zenodo.20693736](https://doi.org/10.5281/zenodo.20693736)
+until Zenodo archives `v0.10.0`. After Zenodo mints the `v0.10.0` DOI, update
+CITATION.cff, README citation text, Codemeta, and citation docs in a tiny DOI
+metadata PR.
+
+Fractal SSFM scientific feedback is routed through
 [issue #105](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105).
 GPU expansion and decision-metric UI for `spectral_leakage` / `aliasing_ratio`
 remain paused until that review target receives substantive technical feedback.
-The reference-data sandbox is a `v0.10.0` candidate only if it remains a real
-CLI/API evidence workflow, not metadata-only release churn.
 
 ## Tangible Utility Summary
 
@@ -170,13 +170,11 @@ Run the benchmark validation spine:
 qs-dmss benchmarks validate --scenario demo-baseline
 ```
 
-The experimental CPU reference Fractal/Quadrant SSFM validation spine currently
-lives on `main` after `v0.9.0`. To run that source-review gate before the next
-package release, use an editable source checkout:
+Run the experimental CPU reference Fractal/Quadrant SSFM validation spine:
 
 ```powershell
 python -m pip install -e .[dev]
-qs-dmss validation fractal-ssfm --config configs/fractal_quadrant_ssfm.yaml
+qs-dmss validation fractal-ssfm
 ```
 
 See
@@ -492,7 +490,7 @@ use it when archiving GitHub releases.
 For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
-- Latest archived release DOI: [v0.9.0 / 10.5281/zenodo.20693736](https://doi.org/10.5281/zenodo.20693736)
+- Latest archived release DOI while v0.10.0 archive is pending: [v0.9.0 / 10.5281/zenodo.20693736](https://doi.org/10.5281/zenodo.20693736)
 - Previous archived release DOI: [v0.8.0 / 10.5281/zenodo.20673804](https://doi.org/10.5281/zenodo.20673804)
 - Previous archived release DOI: [v0.7.0 / 10.5281/zenodo.20671389](https://doi.org/10.5281/zenodo.20671389)
 - Previous archived release DOI: [v0.6.1 / 10.5281/zenodo.20631860](https://doi.org/10.5281/zenodo.20631860)

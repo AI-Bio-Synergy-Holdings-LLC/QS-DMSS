@@ -18,7 +18,7 @@ Initial PyPI publication completed on `2026-05-05` through GitHub Actions
 Trusted Publishing.
 
 - Initial published version: `0.1.0`
-- Current release target: `0.9.0`
+- Current release target: `0.10.0`
 - Canonical website: `https://qs-dmss.studio`
 - PyPI project URL: `https://pypi.org/project/qs-dmss/`
 - Initial publish workflow run:
@@ -26,8 +26,8 @@ Trusted Publishing.
 - Initial publish commit: `3cd208ff985041cf95261f8de289e4dd5a14df49`
 - Upload method: Trusted Publishing / GitHub OIDC
 - Current release files:
-  - `qs_dmss-0.9.0-py3-none-any.whl`
-  - `qs_dmss-0.9.0.tar.gz`
+  - `qs_dmss-0.10.0-py3-none-any.whl`
+  - `qs_dmss-0.10.0.tar.gz`
 - Initial published files:
   - `qs_dmss-0.1.0-py3-none-any.whl`
   - `qs_dmss-0.1.0.tar.gz`
@@ -35,11 +35,13 @@ Trusted Publishing.
 Run post-publication smoke validation from a fresh virtual environment:
 
 ```powershell
-python -m pip install --no-cache-dir qs-dmss==0.9.0
+python -m pip install --no-cache-dir qs-dmss==0.10.0
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 qs-dmss benchmarks validate --scenario demo-baseline
 qs-dmss showcase run --output-root simulation-showcase
+qs-dmss validation fractal-ssfm --output-root fractal-ssfm-validation
+qs-dmss data calibration run --output-root reference-data-calibration
 ```
 
 Cross-platform adoption validation lives in
@@ -100,7 +102,7 @@ Documentation, PyPI, DOI, Review, and Reviewer Quickstart before publication.
 - Organization: `AI Bio Synergy Holdings LLC`
 - License: `Apache-2.0`
 - Supported Python range: `>=3.10`
-- CI validation range for `v0.9.x`: Python 3.10 through 3.13 plus Docker smoke
+- CI validation range for `v0.10.x`: Python 3.10 through 3.13 plus Docker smoke
 - Citation metadata: `CITATION.cff`
 
 ## Citation and Archival Metadata
@@ -113,8 +115,9 @@ The current citation metadata includes the Zenodo concept DOI so package-facing
 metadata has a stable citation target:
 
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: `10.5281/zenodo.20693736`
+- Latest archived release DOI while `v0.10.0` is pending: `10.5281/zenodo.20693736`
 - Latest archived release record: `https://zenodo.org/records/20693736`
+- `v0.10.0` release DOI: pending Zenodo archive
 - `v0.9.0` release DOI: `10.5281/zenodo.20693736`
 - `v0.9.0` release record: `https://zenodo.org/records/20693736`
 - `v0.8.0` release DOI: `10.5281/zenodo.20673804`

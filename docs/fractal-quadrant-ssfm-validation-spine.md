@@ -6,13 +6,12 @@ QS-DMSS now has an opt-in nonlinear wave backend for quadrant-partitioned fuzzy 
 
 The existing `backend: numpy` Schrodinger-Poisson reference path remains the default.
 
-This page describes the current `main` validation gate after the public
-`v0.9.0` package release. Until a later release is intentionally cut, reviewers
-should run this harness from an editable source checkout and leave technical
-feedback on
+This page describes the installable validation gate included in `v0.10.0`.
+Reviewers should run this harness from the published package or an editable
+source checkout and leave technical feedback on
 [issue #105](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105).
-GPU expansion, release prep, and decision-metric UI for `spectral_leakage` /
-`aliasing_ratio` remain paused behind that review gate.
+GPU expansion, further release prep, and decision-metric UI for
+`spectral_leakage` / `aliasing_ratio` remain paused behind that review gate.
 
 ## Governing Model
 
@@ -91,7 +90,7 @@ Validation harness:
 
 ```bash
 python -m pip install -e .[dev]
-qs-dmss validation fractal-ssfm --config configs/fractal_quadrant_ssfm.yaml
+qs-dmss validation fractal-ssfm
 ```
 
 The harness writes generated configs and evidence-backed runs under

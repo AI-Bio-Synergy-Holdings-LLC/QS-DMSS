@@ -4,13 +4,14 @@ This packet is the shortest path for an external reviewer to understand what
 QS-DMSS is claiming, reproduce the public baseline, and decide where feedback
 would be most useful.
 
-Current public baseline: `v0.9.0` / `qs-dmss==0.9.0`
+Current public baseline: `v0.10.0` / `qs-dmss==0.10.0`
 
 Canonical website: `https://qs-dmss.studio`
 
-Release DOI: `10.5281/zenodo.20693736`
+Release DOI: pending Zenodo archive after `v0.10.0` release
 
-Latest archived release DOI: `10.5281/zenodo.20693736` (`v0.9.0`)
+Latest archived release DOI while `v0.10.0` is pending:
+`10.5281/zenodo.20693736` (`v0.9.0`)
 
 Project DOI: `10.5281/zenodo.20074924`
 
@@ -54,12 +55,13 @@ Use the published PyPI package from a clean environment:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.9.0
+python -m pip install qs-dmss==0.10.0
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 qs-dmss benchmarks validate --scenario demo-baseline
 qs-dmss showcase run --output-root simulation-showcase
+qs-dmss data calibration run --output-root reference-data-calibration
 ```
 
 Expected signals:
@@ -75,24 +77,23 @@ Expected signals:
 - `qs-dmss showcase run --output-root simulation-showcase` writes
   `simulation-showcase/simulation-showcase.md`, CSV tables, SVG plots,
   verified run evidence, and replay evidence.
+- `qs-dmss data calibration run --output-root reference-data-calibration`
+  writes source URL, access date, citation, transform script, cache checksum,
+  config, and evidence ZIP records for public reference-data provenance.
 
 Use [reviewer-wheel-quickstart.md](reviewer-wheel-quickstart.md) for the
 cross-platform PyPI and GitHub release-wheel commands.
 
-## Current Main Scientific Review Gate
+## Scientific Review Gate
 
-The public package baseline remains `qs-dmss==0.9.0`. Current `main` is one
-validation slice ahead of that release: it adds
-`qs-dmss validation fractal-ssfm` for the experimental
-`numpy_fractal_ssfm` backend.
+The public package baseline includes `qs-dmss validation fractal-ssfm` for the
+experimental `numpy_fractal_ssfm` backend.
 
-Use this source-only review path when commenting on issue #105:
+Use this review path when commenting on issue #105:
 
 ```powershell
-git clone https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS.git
-cd QS-DMSS
-python -m pip install -e .[dev]
-qs-dmss validation fractal-ssfm --config configs/fractal_quadrant_ssfm.yaml
+python -m pip install qs-dmss==0.10.0
+qs-dmss validation fractal-ssfm
 ```
 
 Expected signals:
@@ -105,13 +106,13 @@ Expected signals:
 
 Please leave one public comment on
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`.
-GPU expansion, `v0.10.0` release prep, and decision-metric UI for
-`spectral_leakage` / `aliasing_ratio` remain paused until that target receives
-substantive technical feedback.
+GPU expansion and decision-metric UI for `spectral_leakage` /
+`aliasing_ratio` remain paused until that target receives substantive
+technical feedback.
 
 ## Simulation Showcase Path
 
-The published `v0.9.0` package includes a canonical simulation showcase for
+The published `v0.10.0` package includes a canonical simulation showcase for
 reviewers who want to inspect the actual simulated field output, not just the
 install and benchmark envelopes:
 
@@ -131,6 +132,10 @@ Expected signals:
 Use [simulation-showcase.md](simulation-showcase.md) for the detailed path.
 
 ## Lab Mode Cockpit Path
+
+`v0.10.0` is the product milestone where the public reference-data provenance
+calibration sandbox and Fractal/Quadrant SSFM validation spine become
+installable from PyPI.
 
 `v0.9.0` is the product milestone where the dry-run Slurm request-bundle review
 path becomes installable from PyPI without real scheduler submission.
@@ -191,7 +196,7 @@ Choose the lane that matches the feedback you want to provide.
 | Benchmark workflow | `benchmarks list`, `benchmarks validate`, metric envelope report, replay compatibility | Scientific review or reproducibility review |
 | Simulation showcase | `showcase run`, generated CSV/SVG outputs, replay comparison, scenario narrative | Scientific review or evidence review |
 | Lab Mode guided comparison | Cockpit Lab Mode, Evidence Explorer, guided variant comparison, report/bundle links | Product UX review or evidence review |
-| Fractal SSFM validation | Source checkout, `validation fractal-ssfm`, JSON/Markdown report, conservation labels | Scientific review on #105 |
+| Fractal SSFM validation | Published package or source checkout, `validation fractal-ssfm`, JSON/Markdown report, conservation labels | Scientific review on #105 |
 | Dry-run Slurm review | `executors slurm-dry-run`, request bundle, scheduler script, no-submit policy | HPC/RSE review on #99 |
 | Documentation | README, reviewer quickstart, evidence glossary, benchmark expectations | Documentation issue |
 | Paper readiness | JOSS paper scaffold, state-of-field comparison, research impact evidence | Scientific review |
