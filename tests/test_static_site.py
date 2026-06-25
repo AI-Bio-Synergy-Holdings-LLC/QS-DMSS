@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+import re
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -49,6 +51,48 @@ def test_static_site_front_door_contract() -> None:
 
 def test_static_site_cname_matches_public_domain() -> None:
     assert (SITE_ROOT / "CNAME").read_text(encoding="utf-8").strip() == "qs-dmss.studio"
+
+
+def test_static_site_metadata_hardening() -> None:
+    index = (SITE_ROOT / "index.html").read_text(encoding="utf-8")
+    robots = (SITE_ROOT / "robots.txt").read_text(encoding="utf-8")
+    sitemap = (SITE_ROOT / "sitemap.xml").read_text(encoding="utf-8")
+
+    required_fragments = [
+        'content="index, follow, max-image-preview:large"',
+        'property="og:site_name" content="QS-DMSS Studio"',
+        'property="og:image" content="https://qs-dmss.studio/assets/social-preview.png"',
+        'property="og:image:width" content="1200"',
+        'property="og:image:height" content="630"',
+        'name="twitter:card" content="summary_large_image"',
+        'name="twitter:image" content="https://qs-dmss.studio/assets/social-preview.png"',
+        'rel="icon" href="favicon.svg" type="image/svg+xml"',
+    ]
+
+    for fragment in required_fragments:
+        assert fragment in index
+
+    assert "Sitemap: https://qs-dmss.studio/sitemap.xml" in robots
+    assert "<loc>https://qs-dmss.studio/</loc>" in sitemap
+
+    json_ld_match = re.search(
+        r'<script type="application/ld\+json">\s*(.*?)\s*</script>',
+        index,
+        flags=re.DOTALL,
+    )
+    assert json_ld_match
+    structured_data = json.loads(json_ld_match.group(1))
+    graph_types = {item["@type"] for item in structured_data["@graph"]}
+    assert {"Organization", "WebSite", "WebPage", "SoftwareSourceCode"} <= graph_types
+
+
+def test_static_site_social_preview_dimensions() -> None:
+    data = (SITE_ROOT / "assets" / "social-preview.png").read_bytes()
+
+    assert data[:8] == b"\x89PNG\r\n\x1a\n"
+    width = int.from_bytes(data[16:20], "big")
+    height = int.from_bytes(data[20:24], "big")
+    assert (width, height) == (1200, 630)
 
 
 def test_static_site_local_anchor_links_resolve() -> None:
