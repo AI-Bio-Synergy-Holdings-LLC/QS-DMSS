@@ -171,6 +171,7 @@ cython_debug/
 
 # Ruff stuff:
 .ruff_cache/
+.tmp/
 
 # PyPI configuration file
 .pypirc
@@ -181,5 +182,6 @@ experiments/
 jobs/
 showcases/
 benchmark-validation/
+reference-data-calibration/
 simulation-showcase/
 .codex-logs/
