@@ -8,6 +8,16 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SITE_ROOT = REPO_ROOT / "site"
+GITHUB_SOCIAL_PREVIEW_SIZE = (1280, 640)
+SITE_SOCIAL_PREVIEW_SIZE = (1200, 630)
+
+
+def _png_dimensions(path: Path) -> tuple[int, int]:
+    data = path.read_bytes()
+    assert data[:8] == b"\x89PNG\r\n\x1a\n"
+    width = int.from_bytes(data[16:20], "big")
+    height = int.from_bytes(data[20:24], "big")
+    return width, height
 
 
 class _AnchorParser(HTMLParser):
@@ -43,6 +53,7 @@ def test_static_site_front_door_contract() -> None:
         "Scientific Boundaries",
         "Live demo coming next at app.qs-dmss.studio.",
         "not peer-reviewed scientific validation",
+        'name="twitter:card" content="summary_large_image"',
     ]
 
     for fragment in required_fragments:
@@ -87,12 +98,7 @@ def test_static_site_metadata_hardening() -> None:
 
 
 def test_static_site_social_preview_dimensions() -> None:
-    data = (SITE_ROOT / "assets" / "social-preview.png").read_bytes()
-
-    assert data[:8] == b"\x89PNG\r\n\x1a\n"
-    width = int.from_bytes(data[16:20], "big")
-    height = int.from_bytes(data[20:24], "big")
-    assert (width, height) == (1200, 630)
+    assert _png_dimensions(SITE_ROOT / "assets" / "social-preview.png") == SITE_SOCIAL_PREVIEW_SIZE
 
 
 def test_static_site_local_anchor_links_resolve() -> None:
@@ -109,3 +115,13 @@ def test_static_site_local_anchor_links_resolve() -> None:
     assert local_anchor_targets
     for target in local_anchor_targets:
         assert target in parser.ids
+
+
+def test_social_preview_assets_are_publishable() -> None:
+    docs_asset = REPO_ROOT / "docs" / "assets" / "social-preview.png"
+    site_asset = SITE_ROOT / "assets" / "social-preview.png"
+
+    assert _png_dimensions(docs_asset) == GITHUB_SOCIAL_PREVIEW_SIZE
+    assert _png_dimensions(site_asset) == SITE_SOCIAL_PREVIEW_SIZE
+    assert docs_asset.stat().st_size > 10_000
+    assert site_asset.stat().st_size > 10_000

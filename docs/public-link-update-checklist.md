@@ -90,3 +90,51 @@ peer-reviewed scientific validation. If you are open to a small review, please
 pick one lane: Fractal SSFM validation (#105), dry-run Slurm site-policy review
 (#99), or builder/product roadmap feedback (#57).
 ```
+
+## Cross-Site Link Policy
+
+Use asymmetric links so each public surface reinforces the project without
+creating ownership, endorsement, or access ambiguity.
+
+### AI-Bio Synergy Holdings LLC (`https://ai-biosynergyholdings.com`)
+
+Recommended:
+
+- Link prominently to `https://qs-dmss.studio` as the canonical public front
+  door for the QS-DMSS software asset.
+- Link to the GitHub repository for technical due diligence, contribution, and
+  release history.
+- Keep the stewardship language: QS-DMSS is created, managed, and maintained
+  by AI-Bio Synergy Holdings LLC.
+
+### AI Bio Synergy Inc (`https://aibiosynergy.com`)
+
+Recommended:
+
+- Link to `https://qs-dmss.studio` only where public software, licensing,
+  pilot, or partnership context is useful.
+- Prefer the Studio link first and the GitHub repository second, because the
+  Studio page carries the clearest public orientation and claim boundaries.
+- Avoid wording that implies AI Bio Synergy Inc owns QS-DMSS unless that is
+  separately documented in private governance records.
+
+### Common Ground Standard (`https://common-ground-standard.org`)
+
+Recommended:
+
+- Do not place QS-DMSS or the GitHub repository in primary navigation for the
+  standard.
+- If linking is useful, place it in a separate-projects, stewardship, or footer
+  context.
+- Avoid implying that Common Ground Standard certifies, endorses, validates, or
+  governs QS-DMSS.
+
+### QS-DMSS Studio And Repository
+
+Recommended:
+
+- Include AI-Bio Synergy Holdings LLC as the steward and manager.
+- Include AI Bio Synergy Inc only as an optional commercial-inquiries link if a
+  public contact path is needed.
+- Include Common Ground Standard only as a related public-review initiative,
+  not as a scientific validation, compliance, or certification authority.

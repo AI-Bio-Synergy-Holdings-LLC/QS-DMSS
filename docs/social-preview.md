@@ -6,12 +6,22 @@ The repository social preview asset lives at:
 docs/assets/social-preview.png
 ```
 
-The asset is 1280x640 and uses conservative public language:
+The Studio-hosted Open Graph/Twitter image lives at:
 
 ```text
-QS-DMSS
-EVIDENCE-FIRST REPRODUCIBLE SIMULATION WORKFLOWS
-BETA PACKAGE/EVIDENCE SPINE - NOT PEER-REVIEWED SCIENTIFIC VALIDATION
+site/assets/social-preview.png
+```
+
+The GitHub repository preview is 1280x640. The Studio-hosted Open
+Graph/Twitter image is 1200x630. Both use the same Studio visual direction and
+public product-loop language:
+
+```text
+QS-DMSS STUDIO
+Run simulations -> inspect evidence
+Compare campaigns. Publish reproducible artifacts.
+qs-dmss.studio
+Beta for reproducible package/evidence workflows; not peer-reviewed scientific validation.
 ```
 
 ## Upload Steps
@@ -24,8 +34,8 @@ Repository administrators can upload the image in GitHub:
 4. Upload `docs/assets/social-preview.png`.
 5. Save the repository settings.
 
-GitHub may cache social previews, so link previews can take time to update
-after upload.
+GitHub and social platforms may cache social previews, so link previews can
+take time to update after upload.
 
 ## Positioning Guardrail
 
