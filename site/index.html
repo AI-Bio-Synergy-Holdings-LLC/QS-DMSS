@@ -6,14 +6,14 @@
     <title>QS-DMSS Studio | Evidence-first simulation lab</title>
     <meta
       name="description"
-      content="QS-DMSS Studio is the public front door for an evidence-first simulation lab: run simulations, inspect evidence, compare campaigns, and publish reproducible artifacts."
+      content="QS-DMSS Studio is the public front door for an evidence-first simulation lab: run simulations, inspect evidence, compare campaigns, record public data provenance, and publish reproducible artifacts."
     />
     <meta name="theme-color" content="#101a18" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta property="og:title" content="QS-DMSS Studio" />
     <meta
       property="og:description"
-      content="Run simulations, inspect evidence, compare campaigns, and publish reproducible artifacts."
+      content="Run simulations, inspect evidence, compare campaigns, record public data provenance, and publish reproducible artifacts."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://qs-dmss.studio/" />
@@ -31,7 +31,7 @@
     <meta name="twitter:title" content="QS-DMSS Studio | Evidence-First Simulation Lab" />
     <meta
       name="twitter:description"
-      content="Public beta software for reproducible package/evidence workflows: run simulations, inspect evidence, compare campaigns, and publish reviewable artifacts."
+      content="Public beta software for reproducible package/evidence workflows: run simulations, inspect evidence, compare campaigns, record data provenance, and publish reviewable artifacts."
     />
     <meta name="twitter:image" content="https://qs-dmss.studio/assets/social-preview.png" />
     <meta
@@ -66,11 +66,11 @@
             "@type": "SoftwareSourceCode",
             "@id": "https://qs-dmss.studio/#software",
             "name": "QS-DMSS",
-            "description": "Apache-2.0 public beta software for reproducible package/evidence workflows around QuantumScalar dark matter simulation.",
+            "description": "Apache-2.0 public beta software for reproducible package/evidence workflows around QuantumScalar dark matter simulation, public reference-data provenance, and validation spines.",
             "codeRepository": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
             "programmingLanguage": "Python",
             "license": "https://www.apache.org/licenses/LICENSE-2.0",
-            "version": "0.9.0",
+            "version": "0.10.0",
             "maintainer": {
               "@id": "https://ai-biosynergyholdings.com/#organization"
             }
@@ -80,7 +80,7 @@
             "@id": "https://qs-dmss.studio/#webpage",
             "name": "QS-DMSS Studio | Evidence-first simulation lab",
             "url": "https://qs-dmss.studio/",
-            "description": "QS-DMSS Studio is the public front door for an evidence-first simulation lab: run simulations, inspect evidence, compare campaigns, and publish reproducible artifacts.",
+            "description": "QS-DMSS Studio is the public front door for an evidence-first simulation lab: run simulations, inspect evidence, compare campaigns, record public data provenance, and publish reproducible artifacts.",
             "isPartOf": {
               "@id": "https://qs-dmss.studio/#website"
             },
@@ -114,6 +114,7 @@
       <nav class="nav-links" aria-label="Site sections">
         <a href="#studio-loop">Studio loop</a>
         <a href="#capabilities">Capabilities</a>
+        <a href="#validation">Validation</a>
         <a href="#boundaries">Boundaries</a>
         <a href="#live-demo">Live demo</a>
       </nav>
@@ -122,34 +123,38 @@
     <main id="main">
       <section class="hero" id="top" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <p class="eyebrow">Public beta | Apache-2.0 | PyPI + Zenodo archived</p>
+          <p class="eyebrow">Public beta | Apache-2.0 | PyPI v0.10.0</p>
           <h1 id="hero-title">Run simulations. Inspect evidence. Compare campaigns. Publish reproducible artifacts.</h1>
           <p class="hero-lede">
             QS-DMSS is a deterministic, evidence-first simulation lab for
             QuantumScalar dark matter workflows. It turns a run into a research
             object: configured, measured, bundled, verified, replayable,
-            comparable, citable, and ready for review.
+            comparable, source-provenanced, citable, and ready for review.
           </p>
           <div class="hero-actions" aria-label="Primary actions">
             <a class="button primary" href="https://pypi.org/project/qs-dmss/">Install from PyPI</a>
             <a class="button" href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS">View GitHub</a>
             <a class="button" href="#local-cockpit">Run local cockpit</a>
-            <a class="button" href="https://doi.org/10.5281/zenodo.20693736">Read DOI</a>
+            <a class="button" href="https://doi.org/10.5281/zenodo.20074924">Read DOI</a>
             <a class="button support" href="https://opencollective.com/qs-dmss">Support on Open Collective</a>
           </div>
         </div>
 
         <aside class="hero-panel" aria-labelledby="release-title">
           <p class="panel-kicker">Current public baseline</p>
-          <h2 id="release-title">qs-dmss==0.9.0</h2>
+          <h2 id="release-title">qs-dmss==0.10.0</h2>
           <dl>
             <div>
-              <dt>Release DOI</dt>
-              <dd><a href="https://doi.org/10.5281/zenodo.20693736">10.5281/zenodo.20693736</a></dd>
+              <dt>GitHub release</dt>
+              <dd><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.10.0">v0.10.0 release notes and artifacts</a></dd>
+            </div>
+            <div>
+              <dt>Latest archived DOI</dt>
+              <dd><a href="https://doi.org/10.5281/zenodo.20693736">v0.9.0 DOI</a>; v0.10.0 archive pending.</dd>
             </div>
             <div>
               <dt>Package</dt>
-              <dd><a href="https://pypi.org/project/qs-dmss/">pypi.org/project/qs-dmss</a></dd>
+              <dd><a href="https://pypi.org/project/qs-dmss/0.10.0/">pypi.org/project/qs-dmss/0.10.0</a></dd>
             </div>
             <div>
               <dt>Stewardship</dt>
@@ -158,7 +163,8 @@
           </dl>
           <p class="claim-note">
             Beta for reproducible package/evidence workflows; not peer-reviewed
-            scientific validation.
+            scientific validation. Public source provenance is workflow evidence,
+            not provider-data model calibration.
           </p>
         </aside>
       </section>
@@ -232,6 +238,22 @@
               sbatch, squeue, or any real cluster submission path.
             </p>
           </article>
+          <article class="capability-card" id="validation">
+            <h3>Validation Spine</h3>
+            <p>
+              Run the installable Fractal/Quadrant SSFM validation harness for
+              convergence, norm conservation, geometry labels, and diagnostics
+              before GPU expansion or decision-metric exposure.
+            </p>
+          </article>
+          <article class="capability-card">
+            <h3>Reference-Data Provenance</h3>
+            <p>
+              Record official Planck, DESI, SDSS, and Gaia source lanes with
+              access dates, citations, cache checksums, transform metadata, and
+              evidence bundles without mirroring provider datasets.
+            </p>
+          </article>
           <article class="capability-card caution" id="boundaries">
             <h3>Scientific Boundaries</h3>
             <p>
@@ -249,15 +271,18 @@
           <h2 id="cockpit-title">Run the cockpit from the published package.</h2>
           <p>
             The current safest interactive experience is local-first. Install from
-            PyPI, start the cockpit on localhost, then run Lab Mode or Campaign
-            Studio without exposing a public compute surface.
+            PyPI, start the cockpit on localhost, then run Lab Mode, Campaign
+            Studio, validation, or provenance workflows without exposing a public
+            compute surface.
           </p>
         </div>
         <pre aria-label="Local cockpit commands"><code>python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.9.0
-qs-dmss cockpit --host 127.0.0.1 --port 8001</code></pre>
+python -m pip install qs-dmss==0.10.0
+qs-dmss cockpit --host 127.0.0.1 --port 8001
+qs-dmss validation fractal-ssfm
+qs-dmss data calibration run --output-root reference-data-calibration</code></pre>
       </section>
 
       <section class="live-demo" id="live-demo" aria-labelledby="live-demo-title">
@@ -279,9 +304,13 @@ qs-dmss cockpit --host 127.0.0.1 --port 8001</code></pre>
         <h2 id="links-title">Public entry points</h2>
         <ul>
           <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS">GitHub repository</a></li>
-          <li><a href="https://pypi.org/project/qs-dmss/">PyPI package</a></li>
-          <li><a href="https://doi.org/10.5281/zenodo.20693736">v0.9.0 Zenodo DOI</a></li>
+          <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.10.0">v0.10.0 release</a></li>
+          <li><a href="https://pypi.org/project/qs-dmss/0.10.0/">PyPI package</a></li>
+          <li><a href="https://doi.org/10.5281/zenodo.20074924">Project DOI</a></li>
+          <li><a href="https://doi.org/10.5281/zenodo.20693736">Latest archived release DOI</a></li>
           <li><a href="https://opencollective.com/qs-dmss">Open Collective</a></li>
+          <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reference-data-calibration.md">Reference-data calibration</a></li>
+          <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/fractal-quadrant-ssfm-validation-spine.md">Fractal SSFM validation</a></li>
           <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ownership-and-use.md">Ownership and use</a></li>
           <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57">Builder board</a></li>
         </ul>
