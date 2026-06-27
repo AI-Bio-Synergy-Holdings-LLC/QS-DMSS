@@ -5,7 +5,7 @@ review contacts. It is intentionally conservative: do not scrape anonymous
 traffic, do not infer identities from downloads or clones, and do not collect
 private contact details in public repository files.
 
-Current public baseline target: `qs-dmss==0.9.0` / GitHub release `v0.9.0`
+Current public baseline target: `qs-dmss==0.10.0` / GitHub release `v0.10.0`
 
 Canonical public website:
 `https://qs-dmss.studio`
@@ -18,6 +18,9 @@ Reviewer opt-in issue form:
 
 Historical community outreach wave 1:
 `docs/community-outreach-wave-1.md`
+
+Current focused reviewer outreach packet:
+`docs/v0.10-reviewer-outreach.md`
 
 ## Contact Principle
 
@@ -165,18 +168,22 @@ ready.
 ```text
 QS-DMSS Studio is live at https://qs-dmss.studio.
 
-QS-DMSS v0.9.0 is looking for a few focused external reviewers.
+QS-DMSS v0.10.0 is looking for a few focused external reviewers.
 
 The project is beta software for reproducible package/evidence workflows, not
 peer-reviewed scientific validation. The immediate goal is modest: a few public
-comments across Fractal SSFM validation, dry-run Slurm site-policy review, and
-install/reproducibility clarity.
+comments across Fractal SSFM validation, dry-run Slurm site-policy review,
+public reference-data provenance, and install/reproducibility clarity.
 
-If you are open to reviewing one small lane, please opt in here:
+If you are open to reviewing one small lane, please comment on one active gate:
 
-https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44
+Fractal/Quadrant SSFM validation:
+https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105
 
-Or use the reviewer opt-in issue form:
+Dry-run Slurm site-policy review:
+https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/99
+
+Or opt in here:
 
 https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=reviewer_opt_in.yml
 ```
