@@ -59,7 +59,7 @@ Code name:
 QS-DMSS
 
 Authors:
-AI Bio Synergy Holdings LLC
+AI-Bio Synergy Holdings LLC
 
 Description:
 QS-DMSS is an evidence-first reference package for deterministic
