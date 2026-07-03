@@ -99,7 +99,7 @@ Documentation, PyPI, DOI, Review, and Reviewer Quickstart before publication.
 - PyPI project name: `qs-dmss`
 - Python import package: `qs_dmss`
 - Console command: `qs-dmss`
-- Organization: `AI Bio Synergy Holdings LLC`
+- Organization: `AI-Bio Synergy Holdings LLC`
 - License: `Apache-2.0`
 - Supported Python range: `>=3.10`
 - CI validation range for `v0.10.x`: Python 3.10 through 3.13 plus Docker smoke
@@ -158,8 +158,8 @@ The initial `0.1.0` publication gate is complete:
 Approved on `2026-04-30` by repository owner instruction for the next external
 distribution preparation phase:
 
-- Package-name owner: `AI Bio Synergy Holdings LLC`.
-- Support owner: `AI Bio Synergy Holdings LLC`.
+- Package-name owner: `AI-Bio Synergy Holdings LLC`.
+- Support owner: `AI-Bio Synergy Holdings LLC`.
 - Non-sensitive support intake: GitHub Issues on
   `AI-Bio-Synergy-Holdings-LLC/QS-DMSS`.
 - Sensitive report intake: `SECURITY.md`.

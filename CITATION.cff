@@ -7,7 +7,7 @@ date-released: 2026-06-25
 license: Apache-2.0
 abstract: "Evidence-first QuantumScalar dark matter simulation software for deterministic runs, configurable Campaign Studio study templates and decision profiles, Lab Mode guided interpretation and comparison, Fractal/Quadrant SSFM validation spines, public reference-data provenance and calibration sandbox workflows, dry-run Slurm request bundles, publication export composition, canonical simulation showcase artifacts, and reproducible evidence bundles."
 authors:
-  - name: "AI Bio Synergy Holdings LLC"
+  - name: "AI-Bio Synergy Holdings LLC"
 doi: 10.5281/zenodo.20074924
 identifiers:
   - type: doi
