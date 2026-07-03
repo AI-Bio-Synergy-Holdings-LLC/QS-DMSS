@@ -128,9 +128,9 @@ The best current ask is:
 That is the strongest donation story because it is concrete, differentiated,
 and aligned with what already makes QS-DMSS more than another solver.
 
-The current public package baseline is `v0.9.0`, and the immediate
-trust-building gate is scientific review of the Fractal/Quadrant SSFM
-validation harness on
+The current public package baseline is `v0.10.0`, and the immediate
+trust-building gate is scientific review of the installable Fractal/Quadrant
+SSFM validation harness on
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`. Funding
 support should help convert that kind of review into clearer validation
 artifacts, stronger documentation, and carefully staged future build slices, not
