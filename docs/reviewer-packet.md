@@ -20,6 +20,9 @@ Open Collective: `https://opencollective.com/qs-dmss`
 Scientific scope and tangible utility guide:
 [`scientific-scope-and-utility.md`](scientific-scope-and-utility.md)
 
+Conceptual and citation role map:
+[`conceptual-reference-map.md`](conceptual-reference-map.md)
+
 Active scientific review target:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`
 
@@ -46,6 +49,11 @@ install -> run -> bundle -> verify -> replay -> benchmark validate -> inspect
 Reviewers should treat the bundled demo and benchmark scenarios as
 reproducibility and packaging evidence, not as claims that the underlying
 QuantumScalar dark matter model has been scientifically validated.
+
+References in the conceptual map are role-labeled as scientific context,
+numerical-method precedent, public source-data provenance, research-object
+infrastructure, or future comparison targets. They should not be read as
+endorsements of QS-DMSS or as validation against external datasets.
 
 ## Fast Review Path
 

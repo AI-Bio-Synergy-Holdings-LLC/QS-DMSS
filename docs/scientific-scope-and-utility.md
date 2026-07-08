@@ -77,6 +77,11 @@ QS-DMSS does not currently claim:
 The correct claim is more modest and stronger: QS-DMSS makes small simulation
 studies reproducible, inspectable, comparable, and citable.
 
+The public conceptual lineage and citation roles are mapped in
+[conceptual-reference-map.md](conceptual-reference-map.md). Use that map to
+separate scientific context, numerical-method precedent, public source-data
+provenance, research-object infrastructure, and future comparison targets.
+
 ## Concrete Guide: Self-Interaction Campaign Study
 
 The quickest concrete study is to sweep the self-interaction control

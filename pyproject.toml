@@ -61,6 +61,7 @@ Review = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new/choo
 "Beta Readiness" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/beta-readiness.md"
 "Benchmark Validation" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/benchmark-validation.md"
 "Reference Data Calibration" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reference-data-calibration.md"
+"Conceptual Reference Map" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/conceptual-reference-map.md"
 "Simulation Showcase" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/simulation-showcase.md"
 "JOSS Preflight" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/joss-preflight.md"
 PyPI = "https://pypi.org/project/qs-dmss/"

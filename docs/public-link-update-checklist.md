@@ -51,6 +51,22 @@ reproducibility infrastructure, and public build milestones. Funding does not
 imply scientific endorsement or peer-reviewed validation.
 ```
 
+Recommended transparency update:
+
+```text
+QS-DMSS has added a public Conceptual Reference Map to make the project's
+citation boundaries easier to audit. References are labeled by role:
+conceptual physics context, numerical-method precedent, public source-data
+provenance, research-object infrastructure, and future comparison targets.
+
+This is a transparency layer, not a validation claim. QS-DMSS remains beta
+software for reproducible package/evidence workflows, not peer-reviewed
+scientific validation.
+
+Reference map: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/conceptual-reference-map.md
+Studio: https://qs-dmss.studio
+```
+
 ## LinkedIn
 
 Recommended Featured link:
@@ -77,6 +93,35 @@ QS-DMSS is beta software for reproducible package/evidence workflows, not
 peer-reviewed scientific validation.
 ```
 
+Recommended short update:
+
+```text
+QS-DMSS now includes a public Conceptual Reference Map so reviewers can see
+which references are conceptual context, numerical-method precedent, public
+source-data provenance, research-object infrastructure, or future comparison
+targets.
+
+The goal is transparency: cite the lineage, preserve the boundaries, and avoid
+implying scientific validation before external review.
+
+https://qs-dmss.studio
+https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/conceptual-reference-map.md
+```
+
+## X / Short Social
+
+Recommended short post:
+
+```text
+QS-DMSS now has a public Conceptual Reference Map: citation roles are labeled
+as conceptual context, method precedent, public data provenance,
+research-object infrastructure, or future comparison targets.
+
+Transparency layer, not a validation claim.
+
+https://qs-dmss.studio
+```
+
 ## Outreach Copy
 
 When asking for review, lead with the website, then route technical reviewers
@@ -88,7 +133,8 @@ QS-DMSS Studio is live at https://qs-dmss.studio.
 QS-DMSS is beta software for reproducible package/evidence workflows, not
 peer-reviewed scientific validation. If you are open to a small review, please
 pick one lane: Fractal SSFM validation (#105), dry-run Slurm site-policy review
-(#99), or builder/product roadmap feedback (#57).
+(#99), conceptual/citation boundary feedback, or builder/product roadmap
+feedback (#57).
 ```
 
 ## Cross-Site Link Policy
