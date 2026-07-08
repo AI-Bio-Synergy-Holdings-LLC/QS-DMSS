@@ -5,7 +5,7 @@ Source Software expectations. It is intentionally conservative: the project can
 prepare for JOSS now, but should not submit until the open gaps below are
 credible.
 
-Last reviewed: 2026-06-01
+Last reviewed: 2026-07-08
 
 Primary sources:
 
@@ -17,8 +17,9 @@ Primary sources:
 
 Do not submit to JOSS yet.
 
-Prepare the packet, collect reviewer feedback, and use `v0.9.0` as the stable
-public baseline for Lab Mode, Campaign Studio, Publication Export Composer, and reproducibility
+Prepare the packet, collect reviewer feedback, and use `v0.10.0` as the stable
+public baseline for Lab Mode, Campaign Studio, Publication Export Composer,
+Fractal/Quadrant SSFM validation, reference-data provenance, and reproducibility
 review.
 
 ## Fit Summary
@@ -45,7 +46,7 @@ workflow is a meaningful contribution to the research community.
 | Example usage | `run-demo`, `campaigns run-demo`, `benchmarks validate` | Ready enough | Add a short tutorial only if reviewers need more context |
 | Community pathways | CONTRIBUTING, SECURITY, issue templates, review packet, Open Collective stewardship path | Ready | Keep labels/issues organized for external feedback |
 | Software paper | `paper/paper.md` scaffold with required sections | Partial | Replace TODOs with owner-confirmed authorship, comparison, impact, and AI disclosure |
-| State of the field | Initial citations and comparison targets identified | Not ready | Compare directly against PyUltraLight, SCALAR, AxioNyx, and adjacent workflow tools |
+| State of the field | Initial citations, citation roles, and comparison targets identified in `conceptual-reference-map.md` | Not ready | Turn the reference map into a concise paper-ready comparison against PyUltraLight, SCALAR, AxioNyx, and adjacent workflow tools |
 | Research impact | Reproducible release evidence and benchmark spine | Not ready | Collect external review, adoption, benchmark comparison, preprint, or real workflow evidence |
 | AI usage disclosure | Draft placeholder exists | Not ready | Owner must confirm exact tools, scope, and human-review controls |
 | Authorship and affiliations | Placeholder metadata | Not ready | Owner must confirm final paper authors, affiliations, acknowledgements, and conflicts |
@@ -66,7 +67,8 @@ Before submission, update `paper/paper.md` with:
 - A complete AI usage disclosure that lists tools, scope, and human validation.
 - Acknowledgements, funding, conflicts, and support statements.
 - References for related software, scientific context, the Zenodo concept DOI,
-  and the `v0.6.0` release DOI.
+  the current release state, and the citation roles in
+  `docs/conceptual-reference-map.md`.
 - Funding and stewardship statement if support materially contributed to the
   submitted work.
 
@@ -90,6 +92,8 @@ validation.
 ## Reviewer Packet Links
 
 - Review entrypoint: [reviewer-packet.md](reviewer-packet.md)
+- Conceptual reference map:
+  [conceptual-reference-map.md](conceptual-reference-map.md)
 - Wheel quickstart: [reviewer-wheel-quickstart.md](reviewer-wheel-quickstart.md)
 - Benchmark validation: [benchmark-validation.md](benchmark-validation.md)
 - Demo and benchmark expectations:

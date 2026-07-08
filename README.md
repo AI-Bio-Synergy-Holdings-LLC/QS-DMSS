@@ -78,6 +78,12 @@ See
 for the scientific scope, non-claims, and a concrete self-interaction campaign
 study using `engine.g_int`.
 
+See
+[docs/conceptual-reference-map.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/conceptual-reference-map.md)
+for the role-labeled conceptual, numerical-method, public data provenance, and
+research-object references that make QS-DMSS easier to audit without implying
+peer-reviewed scientific validation.
+
 - Installable Python package
 - Bundled demo assets for installed-package smoke testing
 - Config-driven simulation CLI

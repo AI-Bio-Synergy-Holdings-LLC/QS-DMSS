@@ -41,6 +41,10 @@ The packaged registry currently includes metadata records for:
 These records are official source lanes and citation metadata. They are not
 local copies of the provider datasets.
 
+For role-labeled citations and the distinction between public source-data
+provenance, conceptual context, and scientific validation, see
+[conceptual-reference-map.md](conceptual-reference-map.md).
+
 ## Calibration Sandbox
 
 Run the provenance calibration workflow:
