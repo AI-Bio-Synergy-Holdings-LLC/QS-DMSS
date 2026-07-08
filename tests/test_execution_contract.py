@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+import pytest
+
 from qs_dmss.execution import (
     CollaboratorRef,
     DryRunSlurmExecutor,
@@ -137,6 +139,23 @@ def test_local_job_registry_records_lifecycle(tmp_path: Path) -> None:
         "running",
         "succeeded",
     ]
+
+
+def test_local_job_registry_rejects_path_like_job_ids(tmp_path: Path) -> None:
+    registry = LocalJobRegistry(tmp_path / "jobs")
+    spec = ExecutionJobSpec(config={"run": {"name": "demo"}}, source_name="demo.yaml")
+    handle = registry.create(spec)
+
+    assert registry.get(handle.job_id)["job_id"] == handle.job_id
+    for job_id in (
+        "../job-20260101T000000Z-12345678",
+        r"..\job-20260101T000000Z-12345678",
+        "/tmp/job-20260101T000000Z-12345678",
+        "job-20260101T000000Z-12345678/child",
+        "job-001",
+    ):
+        with pytest.raises(ValueError):
+            registry.get(job_id)
 
 
 def test_dry_run_slurm_executor_emits_reviewable_request_bundle(tmp_path: Path) -> None:

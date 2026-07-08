@@ -8,6 +8,7 @@ this protocol without changing the evidence-bundle contract.
 from __future__ import annotations
 
 import json
+import re
 import uuid
 from hashlib import sha256
 from dataclasses import asdict, dataclass, field, is_dataclass
@@ -26,6 +27,8 @@ JobState = Literal[
     "cancelled",
     "unknown",
 ]
+
+_JOB_ID_PATTERN = re.compile(r"\Ajob-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}\Z")
 
 ArtifactRole = Literal[
     "request_bundle",
@@ -220,7 +223,7 @@ class LocalJobRegistry:
     ) -> ExecutionJobHandle:
         self.jobs_root.mkdir(parents=True, exist_ok=True)
         job_id = f"job-{_job_timestamp()}-{uuid.uuid4().hex[:8]}"
-        job_dir = self._job_dir(job_id, create=True)
+        job_dir = self._create_job_dir(job_id)
         record_path = job_dir / "job.json"
         handle = ExecutionJobHandle(
             job_id=job_id,
@@ -366,18 +369,39 @@ class LocalJobRegistry:
             metadata={"error": error_text},
         )
 
-    def _job_dir(self, job_id: str, *, create: bool = False) -> Path:
-        if not job_id.startswith("job-") or any(separator in job_id for separator in ("/", "\\")):
+    def _validate_job_id(self, job_id: str) -> str:
+        if not _JOB_ID_PATTERN.fullmatch(job_id):
             raise ValueError(f"Invalid job id: {job_id}")
-        job_dir = (self.jobs_root / job_id).resolve()
-        if job_dir.parent != self.jobs_root.resolve():
-            raise ValueError(f"Job path escapes registry root: {job_id}")
-        if create:
-            job_dir.mkdir(parents=True, exist_ok=False)
+        return job_id
+
+    def _create_job_dir(self, job_id: str) -> Path:
+        safe_job_id = self._validate_job_id(job_id)
+        jobs_root = self.jobs_root.resolve()
+        job_dir = jobs_root.joinpath(safe_job_id).resolve()
+        try:
+            job_dir.relative_to(jobs_root)
+        except ValueError as exc:
+            raise ValueError(f"Job path escapes registry root: {job_id}") from exc
+        job_dir.mkdir(parents=True, exist_ok=False)
         return job_dir
 
+    def _existing_job_dir(self, job_id: str) -> Path:
+        safe_job_id = self._validate_job_id(job_id)
+        jobs_root = self.jobs_root.resolve()
+        if not jobs_root.exists():
+            raise FileNotFoundError(f"Job registry not found: {jobs_root}")
+        for candidate in jobs_root.iterdir():
+            if candidate.is_dir() and candidate.name == safe_job_id:
+                job_dir = candidate.resolve()
+                try:
+                    job_dir.relative_to(jobs_root)
+                except ValueError as exc:
+                    raise ValueError(f"Job path escapes registry root: {job_id}") from exc
+                return job_dir
+        raise FileNotFoundError(f"Job record not found: {job_id}")
+
     def _job_record_path(self, job_id: str) -> Path:
-        record_path = self._job_dir(job_id) / "job.json"
+        record_path = self._existing_job_dir(job_id) / "job.json"
         if not record_path.exists():
             raise FileNotFoundError(f"Job record not found: {record_path}")
         return record_path
