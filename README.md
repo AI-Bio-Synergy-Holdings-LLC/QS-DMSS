@@ -37,11 +37,8 @@ Campaign Studio study templates, workspace export/import metadata, dry-run
 Slurm request bundles that never submit scheduler jobs, public Conceptual
 Reference Map links, and job-registry path hardening.
 
-The latest archived release DOI remains
-[v0.9.0 / 10.5281/zenodo.20693736](https://doi.org/10.5281/zenodo.20693736)
-until Zenodo archives `v0.10.1`. After Zenodo mints the `v0.10.1` DOI, update
-CITATION.cff, README citation text, Codemeta, and citation docs in a tiny DOI
-metadata PR.
+The latest archived release DOI is
+[v0.10.1 / 10.5281/zenodo.21270512](https://doi.org/10.5281/zenodo.21270512).
 
 Fractal SSFM scientific feedback is routed through
 [issue #105](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105).
@@ -497,7 +494,8 @@ use it when archiving GitHub releases.
 For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
-- Latest archived release DOI while v0.10.1 archive is pending: [v0.9.0 / 10.5281/zenodo.20693736](https://doi.org/10.5281/zenodo.20693736)
+- Latest archived release DOI: [v0.10.1 / 10.5281/zenodo.21270512](https://doi.org/10.5281/zenodo.21270512)
+- Previous archived release DOI: [10.5281/zenodo.20693736](https://doi.org/10.5281/zenodo.20693736)
 - Previous archived release DOI: [v0.8.0 / 10.5281/zenodo.20673804](https://doi.org/10.5281/zenodo.20673804)
 - Previous archived release DOI: [v0.7.0 / 10.5281/zenodo.20671389](https://doi.org/10.5281/zenodo.20671389)
 - Previous archived release DOI: [v0.6.1 / 10.5281/zenodo.20631860](https://doi.org/10.5281/zenodo.20631860)

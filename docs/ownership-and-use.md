@@ -42,8 +42,8 @@ For research references, cite the Zenodo record that matches the work being
 used:
 
 - Project concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI while `v0.10.1` is pending:
-  `10.5281/zenodo.20693736` (`v0.9.0`)
+- Latest archived release DOI:
+  `10.5281/zenodo.21270512` (`v0.10.1`)
 
 Repository citation metadata lives in [`CITATION.cff`](../CITATION.cff), and
 additional citation notes live in [`zenodo-citation.md`](zenodo-citation.md).
@@ -64,8 +64,8 @@ Recommended reproducibility attribution:
 
 ```text
 This work used QS-DMSS v0.10.1 / qs-dmss==0.10.1. The project concept DOI is
-10.5281/zenodo.20074924; add the v0.10.1 version DOI after Zenodo archives the
-release.
+10.5281/zenodo.20074924; the v0.10.1 archived release DOI is
+10.5281/zenodo.21270512.
 ```
 
 ## Contribution Basis
