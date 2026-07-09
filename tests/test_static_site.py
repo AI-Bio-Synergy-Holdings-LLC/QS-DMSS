@@ -66,6 +66,14 @@ def test_static_site_cname_matches_public_domain() -> None:
     assert (SITE_ROOT / "CNAME").read_text(encoding="utf-8").strip() == "qs-dmss.studio"
 
 
+def test_google_search_console_verification_file_is_preserved() -> None:
+    verification_file = SITE_ROOT / "google67df4bb4cd1d4c1e.html"
+
+    assert verification_file.read_text(encoding="utf-8").strip() == (
+        "google-site-verification: google67df4bb4cd1d4c1e.html"
+    )
+
+
 def test_static_site_metadata_hardening() -> None:
     index = (SITE_ROOT / "index.html").read_text(encoding="utf-8")
     robots = (SITE_ROOT / "robots.txt").read_text(encoding="utf-8")
