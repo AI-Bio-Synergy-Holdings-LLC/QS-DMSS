@@ -58,7 +58,7 @@ Candidate references to assess for a future paper:
 
 ## Public Source-Data Provenance
 
-QS-DMSS v0.10.0 includes source records for public astronomical/cosmological
+QS-DMSS v0.10.1 includes source records for public astronomical/cosmological
 data lanes. These are metadata and provenance lanes only. They are not bundled
 datasets, calibration truth, or scientific validation datasets.
 

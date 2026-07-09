@@ -4,13 +4,13 @@ This packet is the shortest path for an external reviewer to understand what
 QS-DMSS is claiming, reproduce the public baseline, and decide where feedback
 would be most useful.
 
-Current public baseline: `v0.10.0` / `qs-dmss==0.10.0`
+Current public baseline: `v0.10.1` / `qs-dmss==0.10.1`
 
 Canonical website: `https://qs-dmss.studio`
 
-Release DOI: pending Zenodo archive after `v0.10.0` release
+Release DOI: pending Zenodo archive after `v0.10.1` release
 
-Latest archived release DOI while `v0.10.0` is pending:
+Latest archived release DOI while `v0.10.1` is pending:
 `10.5281/zenodo.20693736` (`v0.9.0`)
 
 Project DOI: `10.5281/zenodo.20074924`
@@ -63,7 +63,7 @@ Use the published PyPI package from a clean environment:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.10.0
+python -m pip install qs-dmss==0.10.1
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo
@@ -100,7 +100,7 @@ experimental `numpy_fractal_ssfm` backend.
 Use this review path when commenting on issue #105:
 
 ```powershell
-python -m pip install qs-dmss==0.10.0
+python -m pip install qs-dmss==0.10.1
 qs-dmss validation fractal-ssfm
 ```
 
@@ -120,7 +120,7 @@ technical feedback.
 
 ## Simulation Showcase Path
 
-The published `v0.10.0` package includes a canonical simulation showcase for
+The published `v0.10.1` package includes a canonical simulation showcase for
 reviewers who want to inspect the actual simulated field output, not just the
 install and benchmark envelopes:
 
@@ -141,9 +141,9 @@ Use [simulation-showcase.md](simulation-showcase.md) for the detailed path.
 
 ## Lab Mode Cockpit Path
 
-`v0.10.0` is the product milestone where the public reference-data provenance
-calibration sandbox and Fractal/Quadrant SSFM validation spine become
-installable from PyPI.
+`v0.10.1` is the patch baseline where the public reference-data provenance
+calibration sandbox, Fractal/Quadrant SSFM validation spine, Conceptual
+Reference Map, and job-registry path hardening are installable from PyPI.
 
 `v0.9.0` is the product milestone where the dry-run Slurm request-bundle review
 path becomes installable from PyPI without real scheduler submission.

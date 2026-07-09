@@ -17,7 +17,7 @@ Primary sources:
 
 Do not submit to JOSS yet.
 
-Prepare the packet, collect reviewer feedback, and use `v0.10.0` as the stable
+Prepare the packet, collect reviewer feedback, and use `v0.10.1` as the stable
 public baseline for Lab Mode, Campaign Studio, Publication Export Composer,
 Fractal/Quadrant SSFM validation, reference-data provenance, and reproducibility
 review.
@@ -40,7 +40,7 @@ workflow is a meaningful contribution to the research community.
 | --- | --- | --- | --- |
 | Public repository and issue workflow | Public GitHub repository, issue templates, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT | Ready | Keep development visible through ordinary issues and PRs |
 | OSI-approved license | Apache-2.0 `LICENSE` file | Ready | No action |
-| Installable package | PyPI `qs-dmss==0.10.0`, release wheel, Trusted Publishing, fresh-install smoke | Ready | `v0.10.0` ships the Fractal/Quadrant SSFM validation spine and public reference-data provenance sandbox; latest archived release DOI remains `10.5281/zenodo.20693736` until Zenodo archives `v0.10.0` |
+| Installable package | PyPI `qs-dmss==0.10.1`, release wheel, Trusted Publishing, fresh-install smoke | Ready | `v0.10.1` carries the Fractal/Quadrant SSFM validation spine, public reference-data provenance sandbox, Conceptual Reference Map links, and job-registry path hardening; latest archived release DOI remains `10.5281/zenodo.20693736` until Zenodo archives `v0.10.1` |
 | Tests and CI | Pytest suite, benchmark smoke, wheel smoke, Docker smoke, CodeQL | Ready | Add tests only when behavior changes |
 | Documentation | README, reviewer quickstart, evidence glossary, benchmark docs, contributor map | Ready enough | Use reviewer feedback to patch confusing sections |
 | Example usage | `run-demo`, `campaigns run-demo`, `benchmarks validate` | Ready enough | Add a short tutorial only if reviewers need more context |

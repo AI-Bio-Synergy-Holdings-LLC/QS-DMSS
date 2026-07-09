@@ -42,7 +42,7 @@ For research references, cite the Zenodo record that matches the work being
 used:
 
 - Project concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI while `v0.10.0` is pending:
+- Latest archived release DOI while `v0.10.1` is pending:
   `10.5281/zenodo.20693736` (`v0.9.0`)
 
 Repository citation metadata lives in [`CITATION.cff`](../CITATION.cff), and
@@ -63,8 +63,8 @@ QS-DMSS, created and maintained by AI-Bio Synergy Holdings LLC.
 Recommended reproducibility attribution:
 
 ```text
-This work used QS-DMSS v0.10.0 / qs-dmss==0.10.0. The project concept DOI is
-10.5281/zenodo.20074924; add the v0.10.0 version DOI after Zenodo archives the
+This work used QS-DMSS v0.10.1 / qs-dmss==0.10.1. The project concept DOI is
+10.5281/zenodo.20074924; add the v0.10.1 version DOI after Zenodo archives the
 release.
 ```
 
@@ -87,7 +87,7 @@ claim.
 QS-DMSS is beta software for reproducible package/evidence workflows. It is
 not peer-reviewed scientific validation.
 
-The current public package baseline is `qs-dmss==0.10.0`. Fractal/Quadrant
+The current public package baseline is `qs-dmss==0.10.1`. Fractal/Quadrant
 SSFM scientific feedback is routed through issue #105 before any GPU expansion
 or decision-metric UI exposure for spectral diagnostics.
 
@@ -101,8 +101,8 @@ Ordinary nominative references are fine, for example:
 
 ```text
 Built with QS-DMSS
-Uses QS-DMSS v0.10.0
-Reproduced with qs-dmss==0.10.0
+Uses QS-DMSS v0.10.1
+Reproduced with qs-dmss==0.10.1
 ```
 
 Avoid wording that suggests AI-Bio Synergy Holdings LLC has reviewed,
