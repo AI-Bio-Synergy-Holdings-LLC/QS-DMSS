@@ -74,6 +74,17 @@ def test_google_search_console_verification_file_is_preserved() -> None:
     )
 
 
+def test_bing_webmaster_tools_verification_file_is_preserved() -> None:
+    verification_file = SITE_ROOT / "BingSiteAuth.xml"
+
+    assert verification_file.read_text(encoding="utf-8").strip() == (
+        '<?xml version="1.0"?>\n'
+        "<users>\n"
+        "\t<user>14335C18E7ACA058F0F25C4DB07F9CBF</user>\n"
+        "</users>"
+    )
+
+
 def test_static_site_metadata_hardening() -> None:
     index = (SITE_ROOT / "index.html").read_text(encoding="utf-8")
     robots = (SITE_ROOT / "robots.txt").read_text(encoding="utf-8")
