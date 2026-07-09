@@ -3,7 +3,7 @@
 This policy keeps release builds, Python package metadata, GitHub release
 artifacts, and PyPI distributions aligned before and after tags are published.
 
-Current release target: `v0.10.0` / `0.10.0`. Published release-candidate tags
+Current release target: `v0.10.1` / `0.10.1`. Published release-candidate tags
 such as `v0.1.0-rc.1` and `v0.1.0-rc.2` remain immutable; do not move or
 replace them.
 

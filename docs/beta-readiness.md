@@ -10,12 +10,12 @@ The intended beta claim is narrow:
 
 ## Current Decision
 
-- Current release target: `v0.9.0` / `0.9.0`
+- Current release target: `v0.10.1` / `0.10.1`
 - Current PyPI classifier target: `Development Status :: 4 - Beta`
 - Promotion basis: `v0.1.5` passed the beta-readiness gate
 - Current Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: `10.5281/zenodo.20693736`
-- `v0.9.0` release DOI: `10.5281/zenodo.20693736`
+- Latest archived release DOI before `v0.10.1`: `10.5281/zenodo.20693736`
+- `v0.10.1` release DOI: pending Zenodo archive
 - `v0.8.0` release DOI: `10.5281/zenodo.20673804`
 - `v0.7.0` release DOI: `10.5281/zenodo.20671389`
 - `v0.6.1` release DOI: `10.5281/zenodo.20631860`
@@ -127,7 +127,7 @@ and a clean public code-scanning posture:
 - Keeps the PyPI classifier at `Development Status :: 4 - Beta`.
 - Shows saved study templates as reusable research-asset cards with objective,
   metric, run-plan, source, import/export, and last-run provenance metadata.
-- Updates the latest archived DOI to the Zenodo archive for `v0.9.0`.
+- Uses the latest available archived DOI until the next release-specific DOI is minted.
 - Ships Scenario Library metadata, editable Campaign Studio parameter grids,
   editable decision profiles, and scoring-contract preview in the local
   cockpit.

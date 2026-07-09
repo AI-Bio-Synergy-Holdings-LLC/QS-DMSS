@@ -30,15 +30,16 @@ live in
 
 ## Current Public State
 
-The current public package baseline is `qs-dmss==0.10.0`. It makes the
+The current public package baseline is `qs-dmss==0.10.1`. It keeps the
 Fractal/Quadrant SSFM validation spine and the public reference-data
 provenance calibration sandbox installable from PyPI alongside Lab Mode,
-Campaign Studio study templates, workspace export/import metadata, and dry-run
-Slurm request bundles that never submit scheduler jobs.
+Campaign Studio study templates, workspace export/import metadata, dry-run
+Slurm request bundles that never submit scheduler jobs, public Conceptual
+Reference Map links, and job-registry path hardening.
 
 The latest archived release DOI remains
 [v0.9.0 / 10.5281/zenodo.20693736](https://doi.org/10.5281/zenodo.20693736)
-until Zenodo archives `v0.10.0`. After Zenodo mints the `v0.10.0` DOI, update
+until Zenodo archives `v0.10.1`. After Zenodo mints the `v0.10.1` DOI, update
 CITATION.cff, README citation text, Codemeta, and citation docs in a tiny DOI
 metadata PR.
 
@@ -496,7 +497,7 @@ use it when archiving GitHub releases.
 For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
-- Latest archived release DOI while v0.10.0 archive is pending: [v0.9.0 / 10.5281/zenodo.20693736](https://doi.org/10.5281/zenodo.20693736)
+- Latest archived release DOI while v0.10.1 archive is pending: [v0.9.0 / 10.5281/zenodo.20693736](https://doi.org/10.5281/zenodo.20693736)
 - Previous archived release DOI: [v0.8.0 / 10.5281/zenodo.20673804](https://doi.org/10.5281/zenodo.20673804)
 - Previous archived release DOI: [v0.7.0 / 10.5281/zenodo.20671389](https://doi.org/10.5281/zenodo.20671389)
 - Previous archived release DOI: [v0.6.1 / 10.5281/zenodo.20631860](https://doi.org/10.5281/zenodo.20631860)

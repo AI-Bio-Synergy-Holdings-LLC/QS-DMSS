@@ -61,7 +61,7 @@ Fast smoke test:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.10.0
+python -m pip install qs-dmss==0.10.1
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 qs-dmss benchmarks validate --scenario demo-baseline
@@ -78,7 +78,7 @@ Current source-review gate:
 
 The current `main` branch is one validation slice ahead of the public package.
 It adds an experimental Fractal/Quadrant SSFM validation harness for technical
-review before any GPU expansion, v0.10.0 release prep, or decision-metric UI
+review before any GPU expansion, future release prep, or decision-metric UI
 for spectral diagnostics.
 
 Review issue:
@@ -116,7 +116,7 @@ request bundles that never submit scheduler jobs.
 
 This is not peer-reviewed scientific validation. Current source review is
 focused on the experimental Fractal/Quadrant SSFM validation harness before any
-GPU expansion or v0.10.0 release prep.
+GPU expansion or future release prep.
 
 Website: https://qs-dmss.studio
 GitHub: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
