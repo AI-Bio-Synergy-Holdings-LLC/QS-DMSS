@@ -51,6 +51,8 @@ def test_static_site_front_door_contract() -> None:
         "Publication Export",
         "Dry-Run Slurm Review",
         "Scientific Boundaries",
+        "What researchers can find here.",
+        "QuantumScalar dark matter simulation workflows",
         "Live demo coming next at app.qs-dmss.studio.",
         "not peer-reviewed scientific validation",
         'name="twitter:card" content="summary_large_image"',
@@ -68,10 +70,15 @@ def test_static_site_metadata_hardening() -> None:
     index = (SITE_ROOT / "index.html").read_text(encoding="utf-8")
     robots = (SITE_ROOT / "robots.txt").read_text(encoding="utf-8")
     sitemap = (SITE_ROOT / "sitemap.xml").read_text(encoding="utf-8")
+    llms = (SITE_ROOT / "llms.txt").read_text(encoding="utf-8")
 
     required_fragments = [
         'content="index, follow, max-image-preview:large"',
+        'name="keywords"',
+        'content="QS-DMSS, QuantumScalar dark matter',
+        'rel="sitemap" type="application/xml" href="https://qs-dmss.studio/sitemap.xml"',
         'property="og:site_name" content="QS-DMSS Studio"',
+        'property="og:locale" content="en_US"',
         'property="og:image" content="https://qs-dmss.studio/assets/social-preview.png"',
         'property="og:image:width" content="1200"',
         'property="og:image:height" content="630"',
@@ -84,7 +91,11 @@ def test_static_site_metadata_hardening() -> None:
         assert fragment in index
 
     assert "Sitemap: https://qs-dmss.studio/sitemap.xml" in robots
+    assert "Allow: /llms.txt" in robots
     assert "<loc>https://qs-dmss.studio/</loc>" in sitemap
+    assert "<lastmod>2026-07-09</lastmod>" in sitemap
+    assert "<image:loc>https://qs-dmss.studio/assets/social-preview.png</image:loc>" in sitemap
+    assert "Latest archived release DOI: https://doi.org/10.5281/zenodo.21270512" in llms
 
     json_ld_match = re.search(
         r'<script type="application/ld\+json">\s*(.*?)\s*</script>',
@@ -94,7 +105,7 @@ def test_static_site_metadata_hardening() -> None:
     assert json_ld_match
     structured_data = json.loads(json_ld_match.group(1))
     graph_types = {item["@type"] for item in structured_data["@graph"]}
-    assert {"Organization", "WebSite", "WebPage", "SoftwareSourceCode"} <= graph_types
+    assert {"Organization", "WebSite", "WebPage", "SoftwareSourceCode", "SoftwareApplication"} <= graph_types
 
 
 def test_static_site_favicon_matches_studio_mark() -> None:
