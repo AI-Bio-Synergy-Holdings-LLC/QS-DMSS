@@ -226,6 +226,7 @@ main {
 .hero-panel,
 .cockpit-strip,
 .live-demo,
+.seo-summary,
 .link-panel {
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -418,9 +419,50 @@ pre {
   box-shadow: inset 0 0 40px rgba(141, 224, 196, 0.14), 0 0 70px rgba(224, 184, 93, 0.12);
 }
 
+.seo-summary,
 .link-panel {
   margin: clamp(1rem, 4vw, 4rem);
   padding: clamp(1.4rem, 4vw, 3rem);
+}
+
+.seo-summary {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.seo-summary h2 {
+  margin: 0;
+  max-width: 12ch;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.2rem, 5vw, 4.2rem);
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.discovery-copy p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 1.08rem;
+}
+
+.keyword-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 1.25rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.keyword-list li {
+  border: 1px solid rgba(141, 224, 196, 0.22);
+  border-radius: 16px;
+  padding: 0.75rem 0.85rem;
+  background: rgba(141, 224, 196, 0.07);
+  color: #d9fff4;
+  font-weight: 750;
 }
 
 .link-panel h2 {
@@ -474,6 +516,7 @@ pre {
   .hero,
   .section-heading,
   .cockpit-strip,
+  .seo-summary,
   .live-demo {
     grid-template-columns: 1fr;
   }
@@ -515,6 +558,7 @@ pre {
 
   .flow-grid,
   .card-grid,
+  .keyword-list,
   .link-panel ul {
     grid-template-columns: 1fr;
   }

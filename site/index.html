@@ -3,20 +3,29 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>QS-DMSS Studio | Evidence-first simulation lab</title>
+    <title>QS-DMSS Studio | Reproducible QuantumScalar Simulation Lab</title>
     <meta
       name="description"
-      content="QS-DMSS Studio is the public front door for an evidence-first simulation lab: run simulations, inspect evidence, compare campaigns, record public data provenance, and publish reproducible artifacts."
+      content="QS-DMSS Studio is an evidence-first Python simulation lab for QuantumScalar dark matter workflows, campaign comparison, validation spines, data provenance, and citable research artifacts."
     />
+    <meta
+      name="keywords"
+      content="QS-DMSS, QuantumScalar dark matter, simulation lab, scientific Python, reproducible research, evidence bundles, Campaign Studio, Lab Mode, Schrodinger-Poisson, SSFM validation, public data provenance"
+    />
+    <meta name="author" content="AI-Bio Synergy Holdings LLC" />
+    <meta name="creator" content="AI-Bio Synergy Holdings LLC" />
+    <meta name="publisher" content="AI-Bio Synergy Holdings LLC" />
+    <meta name="application-name" content="QS-DMSS Studio" />
     <meta name="theme-color" content="#101a18" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
-    <meta property="og:title" content="QS-DMSS Studio" />
+    <meta property="og:title" content="QS-DMSS Studio | Reproducible QuantumScalar Simulation Lab" />
     <meta
       property="og:description"
-      content="Run simulations, inspect evidence, compare campaigns, record public data provenance, and publish reproducible artifacts."
+      content="Run simulations, inspect evidence, compare campaigns, record public data provenance, and publish reproducible research artifacts."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://qs-dmss.studio/" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:site_name" content="QS-DMSS Studio" />
     <meta property="og:image" content="https://qs-dmss.studio/assets/social-preview.png" />
     <meta property="og:image:secure_url" content="https://qs-dmss.studio/assets/social-preview.png" />
@@ -39,6 +48,7 @@
       content="QS-DMSS evidence-first reproducible simulation workflows public beta preview."
     />
     <link rel="canonical" href="https://qs-dmss.studio/" />
+    <link rel="sitemap" type="application/xml" href="https://qs-dmss.studio/sitemap.xml" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <script type="application/ld+json">
       {
@@ -71,6 +81,50 @@
             "programmingLanguage": "Python",
             "license": "https://www.apache.org/licenses/LICENSE-2.0",
             "version": "0.10.1",
+            "runtimePlatform": "Python 3.10+",
+            "keywords": [
+              "QuantumScalar dark matter",
+              "scientific Python",
+              "reproducible research",
+              "evidence bundles",
+              "Schrodinger-Poisson",
+              "split-step Fourier method",
+              "public data provenance"
+            ],
+            "sameAs": [
+              "https://pypi.org/project/qs-dmss/0.10.1/",
+              "https://doi.org/10.5281/zenodo.20074924",
+              "https://doi.org/10.5281/zenodo.21270512",
+              "https://opencollective.com/qs-dmss"
+            ],
+            "maintainer": {
+              "@id": "https://ai-biosynergyholdings.com/#organization"
+            }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://qs-dmss.studio/#application",
+            "name": "QS-DMSS Studio",
+            "applicationCategory": "Scientific simulation software",
+            "applicationSubCategory": "Reproducible research software",
+            "operatingSystem": "Windows, macOS, Linux",
+            "softwareVersion": "0.10.1",
+            "isAccessibleForFree": true,
+            "license": "https://www.apache.org/licenses/LICENSE-2.0",
+            "downloadUrl": "https://pypi.org/project/qs-dmss/0.10.1/",
+            "installUrl": "https://pypi.org/project/qs-dmss/0.10.1/",
+            "releaseNotes": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.10.1",
+            "codeRepository": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
+            "citation": [
+              "https://doi.org/10.5281/zenodo.20074924",
+              "https://doi.org/10.5281/zenodo.21270512"
+            ],
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD",
+              "availability": "https://schema.org/InStock"
+            },
             "maintainer": {
               "@id": "https://ai-biosynergyholdings.com/#organization"
             }
@@ -78,14 +132,18 @@
           {
             "@type": "WebPage",
             "@id": "https://qs-dmss.studio/#webpage",
-            "name": "QS-DMSS Studio | Evidence-first simulation lab",
+            "name": "QS-DMSS Studio | Reproducible QuantumScalar simulation lab",
             "url": "https://qs-dmss.studio/",
-            "description": "QS-DMSS Studio is the public front door for an evidence-first simulation lab: run simulations, inspect evidence, compare campaigns, record public data provenance, and publish reproducible artifacts.",
+            "description": "QS-DMSS Studio is an evidence-first Python simulation lab for QuantumScalar dark matter workflows, campaign comparison, validation spines, data provenance, and citable research artifacts.",
+            "dateModified": "2026-07-09",
             "isPartOf": {
               "@id": "https://qs-dmss.studio/#website"
             },
             "about": {
               "@id": "https://qs-dmss.studio/#software"
+            },
+            "mainEntity": {
+              "@id": "https://qs-dmss.studio/#application"
             },
             "primaryImageOfPage": {
               "@type": "ImageObject",
@@ -308,6 +366,31 @@ qs-dmss data calibration run --output-root reference-data-calibration</code></pr
             no arbitrary YAML upload, no user-provided filesystem paths, no real
             scheduler submission, and clear rate/resource limits.
           </p>
+        </div>
+      </section>
+
+      <section class="seo-summary" id="discoverability" aria-labelledby="discoverability-title">
+        <div>
+          <p class="eyebrow">Search and research discovery</p>
+          <h2 id="discoverability-title">What researchers can find here.</h2>
+        </div>
+        <div class="discovery-copy">
+          <p>
+            QS-DMSS is open-source scientific Python software for reproducible
+            QuantumScalar dark matter simulation workflows. It combines a local
+            cockpit, Campaign Studio study templates, deterministic evidence
+            bundles, public reference-data provenance, Fractal/Quadrant SSFM
+            validation, dry-run Slurm request bundles, and publication export
+            composition.
+          </p>
+          <ul class="keyword-list" aria-label="QS-DMSS discovery topics">
+            <li>QuantumScalar dark matter simulation workflows</li>
+            <li>Schrodinger-Poisson-style deterministic experiments</li>
+            <li>Evidence bundles, replay, verification, and citable artifacts</li>
+            <li>Campaign Studio parameter grids and decision profiles</li>
+            <li>Public data provenance for Planck, DESI, SDSS, and Gaia source lanes</li>
+            <li>Fractal/Quadrant SSFM validation spine and claim-boundary notes</li>
+          </ul>
         </div>
       </section>
 

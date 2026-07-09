@@ -1,0 +1,29 @@
+# QS-DMSS Studio
+
+QS-DMSS Studio is the public front door for QS-DMSS: open-source scientific
+Python software for evidence-first QuantumScalar dark matter simulation
+workflows.
+
+Canonical website: https://qs-dmss.studio/
+Repository: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
+PyPI package: https://pypi.org/project/qs-dmss/0.10.1/
+Project DOI: https://doi.org/10.5281/zenodo.20074924
+Latest archived release DOI: https://doi.org/10.5281/zenodo.21270512
+Open Collective: https://opencollective.com/qs-dmss
+
+QS-DMSS helps users run simulations, inspect evidence, compare campaigns,
+record public reference-data provenance, verify/replay outputs, and publish
+reproducible research artifacts.
+
+Important boundaries:
+- QS-DMSS is beta for reproducible package/evidence workflows.
+- QS-DMSS is not peer-reviewed scientific validation.
+- Public source provenance is workflow evidence, not provider-data model
+  calibration.
+- Dry-run Slurm request bundles do not submit scheduler jobs.
+
+Key docs:
+- Reviewer packet: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-packet.md
+- Conceptual reference map: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/conceptual-reference-map.md
+- Reference-data calibration: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reference-data-calibration.md
+- Fractal SSFM validation spine: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/fractal-quadrant-ssfm-validation-spine.md
