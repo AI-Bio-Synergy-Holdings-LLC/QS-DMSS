@@ -86,8 +86,5 @@ and the GitHub release wheel from `v0.10.1`.
 ## Citation Status
 
 - Project DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI before `v0.10.1`: `10.5281/zenodo.20693736`
-- `v0.10.1` release DOI: pending Zenodo archive
-
-After Zenodo archives `v0.10.1`, open a tiny DOI metadata PR updating
-CITATION.cff, README citation text, Codemeta, and citation docs.
+- `v0.10.1` release DOI: `10.5281/zenodo.21270512`
+- Previous archived release DOI: `10.5281/zenodo.20693736`

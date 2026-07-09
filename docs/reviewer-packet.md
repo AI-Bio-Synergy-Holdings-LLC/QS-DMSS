@@ -8,10 +8,7 @@ Current public baseline: `v0.10.1` / `qs-dmss==0.10.1`
 
 Canonical website: `https://qs-dmss.studio`
 
-Release DOI: pending Zenodo archive after `v0.10.1` release
-
-Latest archived release DOI while `v0.10.1` is pending:
-`10.5281/zenodo.20693736` (`v0.9.0`)
+Release DOI: `10.5281/zenodo.21270512` (`v0.10.1`)
 
 Project DOI: `10.5281/zenodo.20074924`
 

@@ -50,9 +50,9 @@ Public entry points:
 - Website: https://qs-dmss.studio
 - GitHub: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
 - PyPI: https://pypi.org/project/qs-dmss/
-- Latest release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.9.0
+- Latest release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.10.1
 - Zenodo concept DOI: https://doi.org/10.5281/zenodo.20074924
-- v0.9.0 release DOI: https://doi.org/10.5281/zenodo.20693736
+- v0.10.1 release DOI: https://doi.org/10.5281/zenodo.21270512
 - Open Collective: https://opencollective.com/qs-dmss
 
 Fast smoke test:
@@ -121,6 +121,6 @@ GPU expansion or future release prep.
 Website: https://qs-dmss.studio
 GitHub: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
 PyPI: https://pypi.org/project/qs-dmss/
-DOI: https://doi.org/10.5281/zenodo.20693736
+DOI: https://doi.org/10.5281/zenodo.21270512
 Open Collective: https://opencollective.com/qs-dmss
 ```
