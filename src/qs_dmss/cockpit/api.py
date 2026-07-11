@@ -75,7 +75,6 @@ HOSTED_DEMO_ENV_VAR = "QS_DMSS_HOSTED_DEMO"
 HOSTED_DEMO_SELF_INTERACTION_TEMPLATE_ID = "self-interaction-sweep"
 _HOSTED_DEMO_ACTIVE_JOBS: set[str] = set()
 _HOSTED_DEMO_ACTIVE_JOBS_LOCK = threading.Lock()
-_HOSTED_DEMO_LAST_CLEANUP = 0.0
 
 
 @dataclass(frozen=True)
@@ -283,17 +282,19 @@ class CockpitService:
             jobs_root=session_jobs_root,
         )
 
-    def cleanup_hosted_sessions(self) -> None:
-        global _HOSTED_DEMO_LAST_CLEANUP
+    def cleanup_hosted_sessions(
+        self,
+        *,
+        now: float,
+        last_cleanup_at: float,
+    ) -> float:
         if not self.hosted_demo.enabled:
-            return
-        now = time.time()
-        if now - _HOSTED_DEMO_LAST_CLEANUP < 60:
-            return
-        _HOSTED_DEMO_LAST_CLEANUP = now
+            return last_cleanup_at
+        if now - last_cleanup_at < 60:
+            return last_cleanup_at
         sessions_root = self.output_root / "sessions"
         if not sessions_root.exists():
-            return
+            return now
         cutoff = now - self.hosted_demo.ttl_seconds
         for session_dir in sessions_root.iterdir():
             if not session_dir.is_dir():
@@ -303,6 +304,7 @@ class CockpitService:
                     shutil.rmtree(session_dir)
             except OSError:
                 continue
+        return now
 
     def hosted_demo_status(self, session_id: str | None = None) -> dict[str, Any]:
         payload = self.hosted_demo.as_public_dict()
@@ -2804,6 +2806,8 @@ def create_app(
             "Set QS_DMSS_HOSTED_DEMO=1 for the constrained public hosted demo."
         ),
     )
+    app.state.hosted_demo_last_cleanup = 0.0
+    app.state.hosted_demo_cleanup_lock = threading.Lock()
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(
@@ -2829,7 +2833,11 @@ def create_app(
         if not _is_valid_hosted_demo_session_id(session_id):
             session_id = _new_hosted_demo_session_id()
         request.state.hosted_demo_session_id = session_id
-        service.cleanup_hosted_sessions()
+        with app.state.hosted_demo_cleanup_lock:
+            app.state.hosted_demo_last_cleanup = service.cleanup_hosted_sessions(
+                now=time.time(),
+                last_cleanup_at=app.state.hosted_demo_last_cleanup,
+            )
 
         response = await call_next(request)
         response.set_cookie(
