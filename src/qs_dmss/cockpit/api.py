@@ -1,13 +1,18 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+import os
+import secrets
+import shutil
+import threading
+import time
+from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from typing import Any, Callable
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -65,6 +70,103 @@ from qs_dmss.showcase import (
 
 
 GENERIC_COCKPIT_ERROR_DETAIL = "Cockpit request failed; check server logs for details."
+HOSTED_DEMO_COOKIE_NAME = "qs_dmss_demo_session"
+HOSTED_DEMO_ENV_VAR = "QS_DMSS_HOSTED_DEMO"
+HOSTED_DEMO_SELF_INTERACTION_TEMPLATE_ID = "self-interaction-sweep"
+_HOSTED_DEMO_ACTIVE_JOBS: set[str] = set()
+_HOSTED_DEMO_ACTIVE_JOBS_LOCK = threading.Lock()
+
+
+@dataclass(frozen=True)
+class HostedDemoSettings:
+    enabled: bool = False
+    ttl_seconds: int = 60 * 60
+    max_campaign_runs: int = 5
+    max_engine_steps: int = 12
+    max_total_engine_steps: int = 60
+    max_grid_cells: int = 4096
+    max_artifact_bytes: int = 10 * 1024 * 1024
+
+    def as_public_dict(self) -> dict[str, Any]:
+        return {
+            "enabled": self.enabled,
+            "session_ttl_seconds": self.ttl_seconds,
+            "max_campaign_runs": self.max_campaign_runs,
+            "max_engine_steps": self.max_engine_steps,
+            "max_total_engine_steps": self.max_total_engine_steps,
+            "max_grid_cells": self.max_grid_cells,
+            "max_artifact_bytes": self.max_artifact_bytes,
+            "one_active_job_per_session": True,
+            "allowed_compute_paths": [
+                "packaged Lab Mode showcase",
+                "packaged guided comparison",
+                "packaged self-interaction Campaign Studio study",
+                "verification, replay, reports, bundles, and research-object export",
+            ],
+            "temporary_output_notice": (
+                "Public hosted demo outputs are temporary; do not upload sensitive data."
+            ),
+        }
+
+
+def _env_flag(name: str, default: bool = False) -> bool:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _env_int(name: str, default: int) -> int:
+    value = os.environ.get(name)
+    if value is None:
+        return default
+    try:
+        parsed = int(value)
+    except ValueError:
+        return default
+    return parsed if parsed > 0 else default
+
+
+def _hosted_demo_settings(enabled: bool | None = None) -> HostedDemoSettings:
+    settings = HostedDemoSettings(
+        enabled=_env_flag(HOSTED_DEMO_ENV_VAR),
+        ttl_seconds=_env_int("QS_DMSS_HOSTED_DEMO_TTL_SECONDS", 60 * 60),
+        max_campaign_runs=_env_int("QS_DMSS_HOSTED_DEMO_MAX_CAMPAIGN_RUNS", 5),
+        max_engine_steps=_env_int("QS_DMSS_HOSTED_DEMO_MAX_ENGINE_STEPS", 12),
+        max_total_engine_steps=_env_int("QS_DMSS_HOSTED_DEMO_MAX_TOTAL_ENGINE_STEPS", 60),
+        max_grid_cells=_env_int("QS_DMSS_HOSTED_DEMO_MAX_GRID_CELLS", 4096),
+        max_artifact_bytes=_env_int("QS_DMSS_HOSTED_DEMO_MAX_ARTIFACT_BYTES", 10 * 1024 * 1024),
+    )
+    if enabled is not None:
+        settings = replace(settings, enabled=enabled)
+    return settings
+
+
+def _new_hosted_demo_session_id() -> str:
+    return secrets.token_urlsafe(18)
+
+
+def _is_valid_hosted_demo_session_id(value: str | None) -> bool:
+    if not value or not (16 <= len(value) <= 64):
+        return False
+    return safe_filename(value, default="session") == value
+
+
+def _grid_cell_count(config: dict[str, Any]) -> int:
+    cells = 1
+    for value in (config.get("engine") or {}).get("grid_shape") or []:
+        try:
+            cells *= int(value)
+        except (TypeError, ValueError):
+            return 0
+    return cells
+
+
+def _configured_engine_steps(config: dict[str, Any]) -> int:
+    try:
+        return int((config.get("engine") or {}).get("num_steps") or 0)
+    except (TypeError, ValueError):
+        return 0
 
 
 class LaunchRunRequest(BaseModel):
@@ -126,14 +228,17 @@ class CockpitService:
     jobs_root: Path
     config_root: Path
     static_root: Path
+    hosted_demo: HostedDemoSettings = field(default_factory=HostedDemoSettings)
 
     @classmethod
     def create(
         cls,
         repo_root: str | Path | None = None,
         output_root: str | Path | None = None,
+        hosted_demo: bool | None = None,
     ) -> "CockpitService":
         resolved_repo_root = discover_repo_root(Path(repo_root) if repo_root else Path.cwd())
+        hosted_settings = _hosted_demo_settings(hosted_demo)
         resolved_output_root = (
             Path(output_root).resolve() if output_root else runs_root(resolved_repo_root)
         )
@@ -153,6 +258,135 @@ class CockpitService:
             jobs_root=resolved_jobs_root,
             config_root=configs_root(resolved_repo_root),
             static_root=Path(__file__).resolve().parent / "static",
+            hosted_demo=hosted_settings,
+        )
+
+    def for_hosted_session(self, session_id: str) -> "CockpitService":
+        if not self.hosted_demo.enabled:
+            return self
+        session_name = safe_filename(session_id, default="session")
+        session_root = contained_path(self.output_root / "sessions", session_name)
+        session_output_root = session_root / "runs"
+        session_experiments_root = session_root / "experiments"
+        session_jobs_root = LocalJobRegistry.for_output_root(
+            session_output_root,
+        ).jobs_root
+        session_output_root.mkdir(parents=True, exist_ok=True)
+        session_experiments_root.mkdir(parents=True, exist_ok=True)
+        session_jobs_root.mkdir(parents=True, exist_ok=True)
+        os.utime(session_root, None)
+        return replace(
+            self,
+            output_root=session_output_root,
+            experiments_root=session_experiments_root,
+            jobs_root=session_jobs_root,
+        )
+
+    def cleanup_hosted_sessions(
+        self,
+        *,
+        now: float,
+        last_cleanup_at: float,
+    ) -> float:
+        if not self.hosted_demo.enabled:
+            return last_cleanup_at
+        if now - last_cleanup_at < 60:
+            return last_cleanup_at
+        sessions_root = self.output_root / "sessions"
+        if not sessions_root.exists():
+            return now
+        cutoff = now - self.hosted_demo.ttl_seconds
+        for session_dir in sessions_root.iterdir():
+            if not session_dir.is_dir():
+                continue
+            try:
+                if session_dir.stat().st_mtime < cutoff:
+                    shutil.rmtree(session_dir)
+            except OSError:
+                continue
+        return now
+
+    def hosted_demo_status(self, session_id: str | None = None) -> dict[str, Any]:
+        payload = self.hosted_demo.as_public_dict()
+        payload["session_id"] = session_id if self.hosted_demo.enabled else None
+        return payload
+
+    def assert_hosted_download_allowed(self, path: Path) -> None:
+        if not self.hosted_demo.enabled:
+            return
+        try:
+            size = path.stat().st_size
+        except OSError as exc:
+            raise HTTPException(status_code=404, detail="Artifact not found") from exc
+        if size > self.hosted_demo.max_artifact_bytes:
+            raise HTTPException(
+                status_code=413,
+                detail="Hosted demo artifact exceeds the download size cap.",
+            )
+
+    def _assert_hosted_config_envelope(
+        self,
+        config: dict[str, Any],
+        *,
+        planned_run_count: int = 1,
+    ) -> None:
+        if not self.hosted_demo.enabled:
+            return
+        engine_steps = _configured_engine_steps(config)
+        grid_cells = _grid_cell_count(config)
+        total_steps = planned_run_count * engine_steps
+        if planned_run_count > self.hosted_demo.max_campaign_runs:
+            raise HTTPException(
+                status_code=403,
+                detail="Hosted demo campaigns are capped at five packaged runs.",
+            )
+        if engine_steps > self.hosted_demo.max_engine_steps:
+            raise HTTPException(
+                status_code=403,
+                detail="Hosted demo run configs exceed the engine step cap.",
+            )
+        if total_steps > self.hosted_demo.max_total_engine_steps:
+            raise HTTPException(
+                status_code=403,
+                detail="Hosted demo campaign exceeds the total configured step cap.",
+            )
+        if grid_cells > self.hosted_demo.max_grid_cells:
+            raise HTTPException(
+                status_code=403,
+                detail="Hosted demo run configs exceed the grid-size cap.",
+            )
+
+    def _assert_hosted_packaged_campaign(
+        self,
+        payload: LaunchCampaignRequest,
+        base_config: dict[str, Any],
+        campaign_plan: dict[str, Any],
+    ) -> None:
+        if not self.hosted_demo.enabled:
+            return
+        if payload.study_template_id != HOSTED_DEMO_SELF_INTERACTION_TEMPLATE_ID:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Hosted demo only runs the packaged Self-Interaction Sweep template. "
+                    "Install QS-DMSS locally to edit or launch custom campaigns."
+                ),
+            )
+        packaged_template = self._read_json(
+            self._get_campaign_study_template_path(HOSTED_DEMO_SELF_INTERACTION_TEMPLATE_ID),
+        )
+        packaged_config = parse_config(packaged_template.get("config")).to_dict()
+        if base_config != packaged_config:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Hosted demo does not run edited Campaign Studio payloads. "
+                    "Use the packaged Self-Interaction Sweep or install QS-DMSS locally."
+                ),
+            )
+        self._assert_hosted_config_envelope(
+            base_config,
+            planned_run_count=campaign_plan["planned_run_count"],
         )
 
     def list_configs(self) -> list[dict]:
@@ -317,6 +551,14 @@ class CockpitService:
         return self._get_campaign_study_template_path(template_id)
 
     def save_campaign_study_template(self, payload: CampaignStudyTemplateRequest) -> dict:
+        if self.hosted_demo.enabled:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Hosted demo keeps study templates packaged and temporary. "
+                    "Install QS-DMSS locally to save custom study templates."
+                ),
+            )
         try:
             record = self._normalize_campaign_study_template(payload.template)
         except ValueError as exc:
@@ -333,6 +575,14 @@ class CockpitService:
         return self._build_campaign_study_detail(path)
 
     def import_campaign_study_template(self, payload: CampaignStudyTemplateRequest) -> dict:
+        if self.hosted_demo.enabled:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Hosted demo does not accept uploaded study templates. "
+                    "Install QS-DMSS locally to import portable campaign designs."
+                ),
+            )
         template = dict(payload.template)
         imported_from = template.get("template_id")
         if imported_from:
@@ -371,6 +621,14 @@ class CockpitService:
         return self._build_workspace_detail(self._get_workspace_path(workspace_id))
 
     def export_workspace(self, payload: WorkspaceExportRequest) -> dict:
+        if self.hosted_demo.enabled:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Hosted demo disables workspace snapshots because public outputs are temporary. "
+                    "Use research-object export here, or install QS-DMSS locally for workspace export."
+                ),
+            )
         try:
             record = self._build_workspace_record(payload)
         except ValueError as exc:
@@ -387,6 +645,14 @@ class CockpitService:
         return self._build_workspace_detail(workspace_path)
 
     def import_workspace(self, payload: WorkspaceImportRequest) -> dict:
+        if self.hosted_demo.enabled:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Hosted demo does not accept uploaded workspace JSON. "
+                    "Install QS-DMSS locally to import collaborator workspaces."
+                ),
+            )
         try:
             record = self._normalize_imported_workspace(payload.workspace)
             installed_templates = self._install_workspace_campaign_studies(record)
@@ -409,6 +675,14 @@ class CockpitService:
         return self._get_workspace_path(workspace_id)
 
     def launch_run(self, payload: LaunchRunRequest) -> dict:
+        if self.hosted_demo.enabled:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Hosted demo disables arbitrary run configs. "
+                    "Use Lab Mode or install QS-DMSS locally for custom runs."
+                ),
+            )
         config = parse_config(payload.config)
         with TemporaryDirectory() as temp_dir:
             temp_path = self._temp_source_path(Path(temp_dir), payload.source_name)
@@ -436,6 +710,7 @@ class CockpitService:
 
     def launch_showcase(self, scenario: str = DEFAULT_SHOWCASE_NAME) -> dict:
         selected = self._resolve_showcase_scenario(scenario)
+        self._assert_hosted_config_envelope(load_config(selected.config_path).to_dict())
         showcase_root = self._showcase_output_root(selected.name, create=True)
         report = run_simulation_showcase(
             output_root=showcase_root,
@@ -465,6 +740,10 @@ class CockpitService:
         base_config = load_config(selected.config_path).to_dict()
         dimensions = self._guided_comparison_dimensions()
         variants = self._guided_comparison_variants(base_config)
+        self._assert_hosted_config_envelope(
+            base_config,
+            planned_run_count=len(variants),
+        )
         experiment_id = create_experiment_id("guided-comparison")
         experiment_label = f"{selected.name.replace('-', ' ').title()} guided comparison"
         parent_handle = self._start_parent_job(
@@ -611,6 +890,14 @@ class CockpitService:
             raise
 
     def launch_sweep(self, payload: SweepRequest) -> dict:
+        if self.hosted_demo.enabled:
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "Hosted demo disables arbitrary sweeps. "
+                    "Run the packaged Self-Interaction Sweep template or install QS-DMSS locally."
+                ),
+            )
         try:
             base_config = parse_config(payload.config).to_dict()
             parameter = get_sweep_parameter(payload.parameter_path)
@@ -712,6 +999,7 @@ class CockpitService:
             campaign_plan = build_campaign_plan(base_config)
         except ValueError as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
+        self._assert_hosted_packaged_campaign(payload, base_config, campaign_plan)
 
         study_template_path = None
         study_template_record = None
@@ -2503,13 +2791,23 @@ class CockpitService:
 def create_app(
     repo_root: str | Path | None = None,
     output_root: str | Path | None = None,
+    hosted_demo: bool | None = None,
 ) -> FastAPI:
-    service = CockpitService.create(repo_root=repo_root, output_root=output_root)
+    service = CockpitService.create(
+        repo_root=repo_root,
+        output_root=output_root,
+        hosted_demo=hosted_demo,
+    )
 
     app = FastAPI(
-        title="QS-DMSS Cockpit",
-        summary="Local-first API and browser cockpit for deterministic runs and evidence bundles.",
+        title="QS-DMSS Studio Cockpit",
+        summary=(
+            "Local-first API and browser cockpit for deterministic runs and evidence bundles. "
+            "Set QS_DMSS_HOSTED_DEMO=1 for the constrained public hosted demo."
+        ),
     )
+    app.state.hosted_demo_last_cleanup = 0.0
+    app.state.hosted_demo_cleanup_lock = threading.Lock()
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(
@@ -2523,37 +2821,119 @@ def create_app(
 
     app.mount("/static", StaticFiles(directory=service.static_root), name="static")
 
+    @app.middleware("http")
+    async def hosted_demo_session_middleware(
+        request: Request,
+        call_next: Callable,
+    ):
+        if not service.hosted_demo.enabled:
+            return await call_next(request)
+
+        session_id = request.cookies.get(HOSTED_DEMO_COOKIE_NAME)
+        if not _is_valid_hosted_demo_session_id(session_id):
+            session_id = _new_hosted_demo_session_id()
+        request.state.hosted_demo_session_id = session_id
+        with app.state.hosted_demo_cleanup_lock:
+            app.state.hosted_demo_last_cleanup = service.cleanup_hosted_sessions(
+                now=time.time(),
+                last_cleanup_at=app.state.hosted_demo_last_cleanup,
+            )
+
+        response = await call_next(request)
+        response.set_cookie(
+            HOSTED_DEMO_COOKIE_NAME,
+            session_id,
+            max_age=service.hosted_demo.ttl_seconds,
+            httponly=True,
+            samesite="lax",
+        )
+        return response
+
+    def current_service(request: Request) -> CockpitService:
+        if not service.hosted_demo.enabled:
+            return service
+        session_id = getattr(request.state, "hosted_demo_session_id", None)
+        if not _is_valid_hosted_demo_session_id(session_id):
+            session_id = _new_hosted_demo_session_id()
+            request.state.hosted_demo_session_id = session_id
+        return service.for_hosted_session(str(session_id))
+
+    def hosted_demo_job_key(request: Request) -> str:
+        session_id = getattr(request.state, "hosted_demo_session_id", "local")
+        client_host = request.client.host if request.client else "unknown"
+        return f"{session_id}:{client_host}"
+
+    def run_hosted_job_guard(
+        request: Request,
+        active_service: CockpitService,
+        action: Callable[[], dict],
+    ) -> dict:
+        if not active_service.hosted_demo.enabled:
+            return action()
+
+        key = hosted_demo_job_key(request)
+        with _HOSTED_DEMO_ACTIVE_JOBS_LOCK:
+            if key in _HOSTED_DEMO_ACTIVE_JOBS:
+                raise HTTPException(
+                    status_code=429,
+                    detail=(
+                        "Hosted demo allows one active job per browser session. "
+                        "Wait for the current run to finish before starting another."
+                    ),
+                )
+            _HOSTED_DEMO_ACTIVE_JOBS.add(key)
+        try:
+            return action()
+        finally:
+            with _HOSTED_DEMO_ACTIVE_JOBS_LOCK:
+                _HOSTED_DEMO_ACTIVE_JOBS.discard(key)
+
+    def guarded_file_response(
+        active_service: CockpitService,
+        path: Path,
+        *,
+        media_type: str,
+        filename: str | None = None,
+    ) -> FileResponse:
+        active_service.assert_hosted_download_allowed(path)
+        return FileResponse(path, media_type=media_type, filename=filename)
+
     @app.get("/")
     def root() -> FileResponse:
         return FileResponse(service.index_path(), media_type="text/html")
 
     @app.get("/api/health")
-    def health() -> dict:
+    def health(
+        request: Request,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        session_id = getattr(request.state, "hosted_demo_session_id", None)
         return {
             "status": "ok",
-            "repo_root": str(service.repo_root),
-            "output_root": str(service.output_root),
-            "experiments_root": str(service.experiments_root),
-            "jobs_root": str(service.jobs_root),
+            "repo_root": str(active_service.repo_root),
+            "output_root": str(active_service.output_root),
+            "experiments_root": str(active_service.experiments_root),
+            "jobs_root": str(active_service.jobs_root),
+            "hosted_demo": active_service.hosted_demo_status(session_id),
         }
 
     @app.get("/api/configs")
-    def configs() -> dict:
-        items = service.list_configs()
+    def configs(active_service: CockpitService = Depends(current_service)) -> dict:
+        items = active_service.list_configs()
         return {
             "items": items,
             "default_name": items[0]["name"] if items else None,
         }
 
     @app.get("/api/sweeps/parameters")
-    def sweep_parameters() -> dict:
-        return {"items": service.list_sweep_parameters()}
+    def sweep_parameters(active_service: CockpitService = Depends(current_service)) -> dict:
+        return {"items": active_service.list_sweep_parameters()}
 
     @app.get("/api/showcases")
-    def showcases() -> dict:
+    def showcases(active_service: CockpitService = Depends(current_service)) -> dict:
         try:
-            items = service.list_showcases()
-            campaign_studio = service.campaign_studio_preview()
+            items = active_service.list_showcases()
+            campaign_studio = active_service.campaign_studio_preview()
         except HTTPException:
             raise
         except Exception:
@@ -2568,174 +2948,331 @@ def create_app(
         }
 
     @app.post("/api/showcases/{scenario}/run")
-    def launch_showcase(scenario: str) -> dict:
-        return service.launch_showcase(scenario)
+    def launch_showcase(
+        scenario: str,
+        request: Request,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return run_hosted_job_guard(
+            request,
+            active_service,
+            lambda: active_service.launch_showcase(scenario),
+        )
 
     @app.post("/api/showcases/{scenario}/compare")
-    def launch_showcase_comparison(scenario: str) -> dict:
-        return service.launch_showcase_comparison(scenario)
+    def launch_showcase_comparison(
+        scenario: str,
+        request: Request,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return run_hosted_job_guard(
+            request,
+            active_service,
+            lambda: active_service.launch_showcase_comparison(scenario),
+        )
 
     @app.get("/api/showcases/{scenario}/report")
-    def showcase_markdown_report(scenario: str) -> FileResponse:
-        report_path = service.showcase_markdown_path(scenario)
-        return FileResponse(report_path, media_type="text/markdown")
+    def showcase_markdown_report(
+        scenario: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        report_path = active_service.showcase_markdown_path(scenario)
+        return guarded_file_response(
+            active_service,
+            report_path,
+            media_type="text/markdown",
+        )
 
     @app.get("/api/showcases/{scenario}/report.json")
-    def showcase_json_report(scenario: str) -> FileResponse:
-        report_path = service.showcase_json_path(scenario)
-        return FileResponse(report_path, media_type="application/json")
+    def showcase_json_report(
+        scenario: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        report_path = active_service.showcase_json_path(scenario)
+        return guarded_file_response(
+            active_service,
+            report_path,
+            media_type="application/json",
+        )
 
     @app.get("/api/showcases/{scenario}/artifacts/{artifact_name}")
-    def showcase_artifact(scenario: str, artifact_name: str) -> FileResponse:
-        artifact_path = service.showcase_artifact_path(scenario, artifact_name)
+    def showcase_artifact(
+        scenario: str,
+        artifact_name: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        artifact_path = active_service.showcase_artifact_path(scenario, artifact_name)
         media_type = "application/octet-stream"
         if artifact_path.suffix == ".svg":
             media_type = "image/svg+xml"
         elif artifact_path.suffix == ".csv":
             media_type = "text/csv"
-        return FileResponse(artifact_path, media_type=media_type, filename=artifact_path.name)
+        return guarded_file_response(
+            active_service,
+            artifact_path,
+            media_type=media_type,
+            filename=artifact_path.name,
+        )
 
     @app.get("/api/runs")
-    def runs() -> dict:
-        return {"items": service.list_runs()}
+    def runs(active_service: CockpitService = Depends(current_service)) -> dict:
+        return {"items": active_service.list_runs()}
 
     @app.get("/api/runs/{run_id}")
-    def run_detail(run_id: str) -> dict:
-        return service.get_run_detail(run_id)
+    def run_detail(
+        run_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return active_service.get_run_detail(run_id)
 
     @app.get("/api/runs/{run_id}/job")
-    def run_job_detail(run_id: str) -> dict:
-        return service.get_run_job_detail(run_id)
+    def run_job_detail(
+        run_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return active_service.get_run_job_detail(run_id)
 
     @app.get("/api/jobs/{job_id}")
-    def job_detail(job_id: str) -> dict:
-        return service.get_job_detail(job_id)
+    def job_detail(
+        job_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return active_service.get_job_detail(job_id)
 
     @app.post("/api/runs")
-    def launch_run(payload: LaunchRunRequest) -> dict:
-        return service.launch_run(payload)
+    def launch_run(
+        payload: LaunchRunRequest,
+        request: Request,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return run_hosted_job_guard(
+            request,
+            active_service,
+            lambda: active_service.launch_run(payload),
+        )
 
     @app.post("/api/compare")
-    def compare_runs(payload: CompareRunsRequest) -> dict:
-        return service.compare_runs(payload)
+    def compare_runs(
+        payload: CompareRunsRequest,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return active_service.compare_runs(payload)
 
     @app.post("/api/experiments")
-    def create_experiment(payload: CreateExperimentRequest) -> dict:
-        return service.create_experiment(payload)
+    def create_experiment(
+        payload: CreateExperimentRequest,
+        request: Request,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return run_hosted_job_guard(
+            request,
+            active_service,
+            lambda: active_service.create_experiment(payload),
+        )
 
     @app.get("/api/experiments")
-    def experiments() -> dict:
-        return {"items": service.list_experiments()}
+    def experiments(active_service: CockpitService = Depends(current_service)) -> dict:
+        return {"items": active_service.list_experiments()}
 
     @app.get("/api/experiments/{experiment_id}")
-    def experiment_detail(experiment_id: str) -> dict:
-        return service.get_experiment_detail(experiment_id)
+    def experiment_detail(
+        experiment_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return active_service.get_experiment_detail(experiment_id)
 
     @app.get("/api/campaign-studies")
-    def campaign_studies() -> dict:
-        return {"items": service.list_campaign_study_templates()}
+    def campaign_studies(active_service: CockpitService = Depends(current_service)) -> dict:
+        return {"items": active_service.list_campaign_study_templates()}
 
     @app.post("/api/campaign-studies")
-    def save_campaign_study(payload: CampaignStudyTemplateRequest) -> dict:
-        return service.save_campaign_study_template(payload)
+    def save_campaign_study(
+        payload: CampaignStudyTemplateRequest,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return active_service.save_campaign_study_template(payload)
 
     @app.post("/api/campaign-studies/import")
-    def import_campaign_study(payload: CampaignStudyTemplateRequest) -> dict:
-        return service.import_campaign_study_template(payload)
+    def import_campaign_study(
+        payload: CampaignStudyTemplateRequest,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return active_service.import_campaign_study_template(payload)
 
     @app.get("/api/campaign-studies/{template_id}")
-    def campaign_study_detail(template_id: str) -> dict:
-        return service.get_campaign_study_template(template_id)
+    def campaign_study_detail(
+        template_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return active_service.get_campaign_study_template(template_id)
 
     @app.get("/api/campaign-studies/{template_id}/download")
-    def campaign_study_download(template_id: str) -> FileResponse:
-        template_path = service.campaign_study_template_path(template_id)
-        return FileResponse(
+    def campaign_study_download(
+        template_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        template_path = active_service.campaign_study_template_path(template_id)
+        return guarded_file_response(
+            active_service,
             template_path,
             media_type="application/json",
             filename=template_path.name,
         )
 
     @app.post("/api/sweeps")
-    def launch_sweep(payload: SweepRequest) -> dict:
-        return service.launch_sweep(payload)
+    def launch_sweep(
+        payload: SweepRequest,
+        request: Request,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return run_hosted_job_guard(
+            request,
+            active_service,
+            lambda: active_service.launch_sweep(payload),
+        )
 
     @app.post("/api/campaigns")
-    def launch_campaign(payload: LaunchCampaignRequest) -> dict:
-        return service.launch_campaign(payload)
+    def launch_campaign(
+        payload: LaunchCampaignRequest,
+        request: Request,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return run_hosted_job_guard(
+            request,
+            active_service,
+            lambda: active_service.launch_campaign(payload),
+        )
 
     @app.post("/api/research-objects/export")
-    def export_research_object(payload: ResearchObjectExportRequest) -> dict:
-        return service.export_research_object(payload)
+    def export_research_object(
+        payload: ResearchObjectExportRequest,
+        request: Request,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return run_hosted_job_guard(
+            request,
+            active_service,
+            lambda: active_service.export_research_object(payload),
+        )
 
     @app.get("/api/research-objects/{export_id}/download")
-    def research_object_download(export_id: str) -> FileResponse:
-        markdown_path, file_name = service.research_object_markdown_path(export_id)
-        return FileResponse(
+    def research_object_download(
+        export_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        markdown_path, file_name = active_service.research_object_markdown_path(export_id)
+        return guarded_file_response(
+            active_service,
             markdown_path,
             media_type="text/markdown",
             filename=file_name,
         )
 
     @app.get("/api/workspaces")
-    def workspaces() -> dict:
-        return {"items": service.list_workspaces()}
+    def workspaces(active_service: CockpitService = Depends(current_service)) -> dict:
+        return {"items": active_service.list_workspaces()}
 
     @app.post("/api/workspaces/export")
-    def export_workspace(payload: WorkspaceExportRequest) -> dict:
-        return service.export_workspace(payload)
+    def export_workspace(
+        payload: WorkspaceExportRequest,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return active_service.export_workspace(payload)
 
     @app.post("/api/workspaces/import")
-    def import_workspace(payload: WorkspaceImportRequest) -> dict:
-        return service.import_workspace(payload)
+    def import_workspace(
+        payload: WorkspaceImportRequest,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return active_service.import_workspace(payload)
 
     @app.get("/api/workspaces/{workspace_id}")
-    def workspace_detail(workspace_id: str) -> dict:
-        return service.get_workspace(workspace_id)
+    def workspace_detail(
+        workspace_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return active_service.get_workspace(workspace_id)
 
     @app.get("/api/workspaces/{workspace_id}/download")
-    def workspace_download(workspace_id: str) -> FileResponse:
-        workspace_path = service.workspace_path(workspace_id)
-        return FileResponse(
+    def workspace_download(
+        workspace_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        workspace_path = active_service.workspace_path(workspace_id)
+        return guarded_file_response(
+            active_service,
             workspace_path,
             media_type="application/json",
             filename=workspace_path.name,
         )
 
     @app.post("/api/runs/{run_id}/verify")
-    def verify_run(run_id: str) -> dict:
-        return service.verify_run(run_id)
+    def verify_run(
+        run_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return active_service.verify_run(run_id)
 
     @app.post("/api/runs/{run_id}/replay")
-    def replay_run(run_id: str) -> dict:
-        return service.replay_run(run_id)
+    def replay_run(
+        run_id: str,
+        request: Request,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        return run_hosted_job_guard(
+            request,
+            active_service,
+            lambda: active_service.replay_run(run_id),
+        )
 
     @app.get("/api/runs/{run_id}/bundle")
-    def bundle_download(run_id: str) -> FileResponse:
-        bundle_path = service.bundle_path(run_id)
-        return FileResponse(
+    def bundle_download(
+        run_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        bundle_path = active_service.bundle_path(run_id)
+        return guarded_file_response(
+            active_service,
             bundle_path,
             media_type="application/zip",
             filename=bundle_path.name,
         )
 
     @app.get("/api/runs/{run_id}/report")
-    def run_report(run_id: str) -> FileResponse:
-        report_path = service.report_path(run_id)
-        return FileResponse(report_path, media_type="text/html")
+    def run_report(
+        run_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        report_path = active_service.report_path(run_id)
+        return guarded_file_response(
+            active_service,
+            report_path,
+            media_type="text/html",
+        )
 
     @app.get("/api/experiments/{experiment_id}/bundle")
-    def experiment_bundle_download(experiment_id: str) -> FileResponse:
-        bundle_path = service.experiment_bundle_path(experiment_id)
-        return FileResponse(
+    def experiment_bundle_download(
+        experiment_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        bundle_path = active_service.experiment_bundle_path(experiment_id)
+        return guarded_file_response(
+            active_service,
             bundle_path,
             media_type="application/zip",
             filename=bundle_path.name,
         )
 
     @app.get("/api/experiments/{experiment_id}/report")
-    def experiment_report(experiment_id: str) -> FileResponse:
-        report_path = service.experiment_report_path(experiment_id)
-        return FileResponse(report_path, media_type="text/html")
+    def experiment_report(
+        experiment_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        report_path = active_service.experiment_report_path(experiment_id)
+        return guarded_file_response(
+            active_service,
+            report_path,
+            media_type="text/html",
+        )
 
     return app

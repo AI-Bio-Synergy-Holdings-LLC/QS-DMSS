@@ -1,4 +1,5 @@
 const state = {
+  hostedDemo: null,
   configs: [],
   showcases: [],
   campaignStudio: null,
@@ -30,6 +31,9 @@ const state = {
 };
 
 const els = {
+  hostedDemoBanner: document.querySelector("#hostedDemoBanner"),
+  railModeLabel: document.querySelector("#railModeLabel"),
+  apiModePill: document.querySelector("#apiModePill"),
   configTemplate: document.querySelector("#configTemplate"),
   loadTemplateButton: document.querySelector("#loadTemplateButton"),
   labScenarioSelect: document.querySelector("#labScenarioSelect"),
@@ -482,6 +486,62 @@ async function fetchText(url) {
     throw new Error(`Request failed: ${response.status}`);
   }
   return response.text();
+}
+
+function hostedDemoEnabled() {
+  return Boolean(state.hostedDemo?.enabled);
+}
+
+function hostedDemoBlocked(actionLabel) {
+  if (!hostedDemoEnabled()) {
+    return false;
+  }
+  toast(
+    "Hosted demo uses curated paths",
+    `${actionLabel} is local-only. Use Lab Mode, Guided Comparison, the Self-Interaction Sweep template, or install QS-DMSS locally for custom work.`,
+    "danger",
+  );
+  return true;
+}
+
+function setControlsDisabled(container, disabled) {
+  if (!container) {
+    return;
+  }
+  container.querySelectorAll("button, input, select, textarea").forEach((control) => {
+    control.disabled = disabled;
+  });
+}
+
+function applyHostedDemoMode() {
+  const enabled = hostedDemoEnabled();
+  els.hostedDemoBanner.hidden = !enabled;
+  els.railModeLabel.textContent = enabled ? "Hosted demo" : "Local-first";
+  els.apiModePill.textContent = enabled ? "Curated demo API" : "Local API";
+  document.body.classList.toggle("is-hosted-demo", enabled);
+  if (!enabled) {
+    return;
+  }
+
+  setControlsDisabled(els.launchForm, true);
+  setControlsDisabled(els.sweepForm, true);
+  els.loadTemplateButton.disabled = true;
+  els.launchButton.disabled = true;
+  els.launchSweepButton.disabled = true;
+  els.launchCampaignButton.disabled = true;
+  els.launchCampaignStudioButton.disabled = true;
+  els.saveCampaignStudyTemplateButton.disabled = true;
+  els.importCampaignStudyTemplateInput.disabled = true;
+  els.exportWorkspaceButton.disabled = true;
+  els.workspaceImportInput.disabled = true;
+  els.workspaceExportSummary.textContent =
+    "Workspace import/export is local-only in the public hosted demo. Compose a research-object export for shareable Markdown, or install QS-DMSS locally for portable workspace snapshots.";
+  els.workspaceExportFeedback.textContent =
+    "Hosted demo outputs are temporary. Do not upload sensitive collaborator, annotation, or workspace data.";
+  if (!els.campaignStudioFeedback.textContent.includes("Hosted demo")) {
+    els.campaignStudioFeedback.textContent =
+      "Hosted demo runs the packaged Self-Interaction Sweep template. Editing and saving custom campaign designs is local-only.";
+  }
 }
 
 function configByName(name) {
@@ -1220,6 +1280,7 @@ function campaignStudyTemplateCardMarkup(item, selected) {
 function renderCampaignStudyTemplates() {
   const summaries = state.campaignStudyTemplates || [];
   const selected = selectedCampaignStudyTemplateSummary();
+  const hostedDemo = hostedDemoEnabled();
   els.campaignStudyTemplateStatus.textContent = summaries.length
     ? `${summaries.length} ${summaries.length === 1 ? "template" : "templates"}`
     : "No templates";
@@ -1272,19 +1333,25 @@ function renderCampaignStudyTemplates() {
   const draft = state.campaignStudio?.available
     ? campaignStudioDraft(state.campaignStudio)
     : { valid: false };
-  els.saveCampaignStudyTemplateButton.disabled = !draft.valid;
+  els.saveCampaignStudyTemplateButton.disabled = hostedDemo || !draft.valid;
   els.loadCampaignStudyTemplateButton.disabled = !selected;
-  els.runCampaignStudyTemplateButton.disabled = !selected;
+  els.runCampaignStudyTemplateButton.disabled =
+    !selected || (hostedDemo && selected.template_id !== "self-interaction-sweep");
   setCampaignStudyTemplateDownloadEnabled(selected);
   els.campaignStudyTemplateSummary.textContent = selected
     ? `${selected.label}: ${formatRunCount(selected.planned_run_count)} scored by ${selected.primary_metric} (${selected.goal}). ${selected.last_run ? `Last run recommended ${shortRunId(selected.last_run.recommended_run_id)}.` : "Run it once to attach provenance."}`
-    : "Save edited grids and decision profiles as reusable local JSON templates that another user can import and rerun.";
+    : hostedDemo
+      ? "Hosted demo offers packaged study templates only; install QS-DMSS locally to save or import custom campaign designs."
+      : "Save edited grids and decision profiles as reusable local JSON templates that another user can import and rerun.";
   els.campaignStudyTemplateFeedback.textContent = selected
-    ? `Selected template ${selected.template_id}. Load it to edit, run it directly, or download portable JSON for another user.`
+    ? hostedDemo
+      ? `Selected template ${selected.template_id}. Hosted demo can run the packaged Self-Interaction Sweep and download its JSON for inspection.`
+      : `Selected template ${selected.template_id}. Load it to edit, run it directly, or download portable JSON for another user.`
     : "Templates preserve the grid, scoring contract, launchable campaign config, and latest run provenance.";
   renderCampaignStudyGuide(
     state.lastCampaignStudyGuide || campaignStudyTemplateGuideFromSummary(selected),
   );
+  applyHostedDemoMode();
 }
 
 async function refreshCampaignStudyTemplates() {
@@ -2038,6 +2105,9 @@ async function handleComposeResearchObject() {
 }
 
 async function handleExportWorkspace() {
+  if (hostedDemoBlocked("Workspace export")) {
+    return;
+  }
   const payload = buildWorkspacePayload();
   els.exportWorkspaceButton.disabled = true;
   els.exportWorkspaceButton.textContent = "Exporting...";
@@ -2064,6 +2134,10 @@ async function handleExportWorkspace() {
 }
 
 async function handleImportWorkspace(event) {
+  if (hostedDemoBlocked("Workspace import")) {
+    event.target.value = "";
+    return;
+  }
   const [file] = event.target.files || [];
   if (!file) {
     return;
@@ -2791,7 +2865,7 @@ function updateCampaignStudioEditorState(preview = state.campaignStudio) {
     ? `Ready to launch ${draft.plannedRuns} variants optimized for ${draft.decisionProfile.objective.primary_metric} (${draft.decisionProfile.objective.goal}).`
     : draft.errors[0];
   renderCampaignStudioScoringContract(draft);
-  els.launchCampaignStudioButton.disabled = !draft.valid;
+  els.launchCampaignStudioButton.disabled = hostedDemoEnabled() || !draft.valid;
   els.resetCampaignStudioButton.disabled = false;
   renderCampaignStudyTemplates();
   return draft;
@@ -3075,7 +3149,7 @@ function renderCampaignProfile(config) {
       `;
     })
     .join("");
-  els.launchCampaignButton.disabled = plannedRuns < 2;
+  els.launchCampaignButton.disabled = hostedDemoEnabled() || plannedRuns < 2;
 }
 
 function renderConfigOptions() {
@@ -3528,18 +3602,21 @@ function renderExperimentPlaceholder() {
 
 async function hydrate() {
   const [
+    healthPayload,
     configPayload,
     sweepPayload,
     showcasePayload,
     experimentPayload,
     campaignStudyPayload,
   ] = await Promise.all([
+    fetchJson("/api/health"),
     fetchJson("/api/configs"),
     fetchJson("/api/sweeps/parameters"),
     fetchJson("/api/showcases"),
     fetchJson("/api/experiments"),
     fetchJson("/api/campaign-studies"),
   ]);
+  state.hostedDemo = healthPayload.hosted_demo || null;
   state.configs = configPayload.items;
   state.sweepParameters = sweepPayload.items;
   state.showcases = showcasePayload.items;
@@ -3580,10 +3657,14 @@ async function hydrate() {
   } else {
     renderExperimentPlaceholder();
   }
+  applyHostedDemoMode();
 }
 
 async function handleLaunch(event) {
   event.preventDefault();
+  if (hostedDemoBlocked("Custom run launch")) {
+    return;
+  }
   els.launchButton.disabled = true;
   els.launchButton.textContent = "Launching...";
 
@@ -3761,6 +3842,9 @@ async function runCampaignStudioConfig({
 
 async function handleLaunchCampaignStudio(event) {
   event.preventDefault();
+  if (hostedDemoBlocked("Edited Campaign Studio launch")) {
+    return;
+  }
   const draft = campaignStudioDraft();
   if (!draft.valid) {
     updateCampaignStudioEditorState();
@@ -3780,6 +3864,9 @@ async function handleLaunchCampaignStudio(event) {
 }
 
 async function handleSaveCampaignStudyTemplate() {
+  if (hostedDemoBlocked("Saving custom study templates")) {
+    return;
+  }
   const draft = campaignStudioDraft();
   if (!draft.valid) {
     updateCampaignStudioEditorState();
@@ -3827,6 +3914,17 @@ async function handleLoadCampaignStudyTemplate() {
 async function handleRunCampaignStudyTemplate() {
   try {
     const payload = await loadCampaignStudyTemplateDetail();
+    if (
+      hostedDemoEnabled() &&
+      payload.summary.template_id !== "self-interaction-sweep"
+    ) {
+      toast(
+        "Hosted demo uses curated paths",
+        "Only the packaged Self-Interaction Sweep template can run in hosted mode.",
+        "danger",
+      );
+      return;
+    }
     state.selectedCampaignStudyTemplateId = payload.summary.template_id;
     applyCampaignStudyTemplate(payload.template);
     await runCampaignStudioConfig({
@@ -3843,6 +3941,10 @@ async function handleRunCampaignStudyTemplate() {
 }
 
 async function handleImportCampaignStudyTemplate(event) {
+  if (hostedDemoBlocked("Importing study templates")) {
+    event.target.value = "";
+    return;
+  }
   const file = event.target.files?.[0];
   if (!file) {
     return;
@@ -3868,6 +3970,9 @@ async function handleImportCampaignStudyTemplate(event) {
 
 async function handleLaunchSweep(event) {
   event.preventDefault();
+  if (hostedDemoBlocked("Custom sweep launch")) {
+    return;
+  }
   const selectedParameter = sweepParameterByPath(els.sweepParameter.value);
   const values = parseSweepValues(els.sweepValues.value);
   if (!selectedParameter || !values.length) {
@@ -3907,6 +4012,9 @@ async function handleLaunchSweep(event) {
 }
 
 async function handleLaunchCampaign() {
+  if (hostedDemoBlocked("Generic campaign launch")) {
+    return;
+  }
   const config = currentConfig();
   if (!config.campaign) {
     toast("No campaign plan", "Select a template with a campaign section first.", "danger");

@@ -35,7 +35,6 @@ USER qsdmss
 
 EXPOSE 8001
 
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/api/health', timeout=3).read()"
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 CMD python -c "import os, urllib.request; urllib.request.urlopen(f'http://127.0.0.1:{os.environ.get(\"PORT\", \"8001\")}/api/health', timeout=3).read()"
 
-ENTRYPOINT ["qs-dmss"]
-CMD ["cockpit", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["sh", "-c", "qs-dmss cockpit --host 0.0.0.0 --port ${PORT:-8001} --output-root /app/runs"]

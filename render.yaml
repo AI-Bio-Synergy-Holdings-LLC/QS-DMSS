@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: qs-dmss-studio-app
+    runtime: docker
+    plan: free
+    region: oregon
+    branch: main
+    autoDeploy: true
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    envVars:
+      - key: QS_DMSS_HOSTED_DEMO
+        value: "1"
+      - key: QS_DMSS_HOSTED_DEMO_TTL_SECONDS
+        value: "3600"
+      - key: QS_DMSS_HOSTED_DEMO_MAX_CAMPAIGN_RUNS
+        value: "5"
+      - key: QS_DMSS_HOSTED_DEMO_MAX_ENGINE_STEPS
+        value: "12"
+      - key: QS_DMSS_HOSTED_DEMO_MAX_TOTAL_ENGINE_STEPS
+        value: "60"
+      - key: QS_DMSS_HOSTED_DEMO_MAX_GRID_CELLS
+        value: "4096"
+      - key: QS_DMSS_HOSTED_DEMO_MAX_ARTIFACT_BYTES
+        value: "10485760"
