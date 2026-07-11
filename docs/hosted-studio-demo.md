@@ -5,6 +5,10 @@ This mode is intentionally narrower than the local cockpit. It is meant to let a
 fresh visitor experience the evidence-first workflow without exposing an open
 compute or upload surface.
 
+Production status: [https://app.qs-dmss.studio](https://app.qs-dmss.studio) is
+deployed from `render.yaml`, DNS-verified, HTTPS-enabled, and linked from the
+canonical Studio website.
+
 ## Public Demo Contract
 
 Set `QS_DMSS_HOSTED_DEMO=1` to enable hosted-demo mode.
@@ -76,9 +80,10 @@ Recommended sequence:
 
 Render notes:
 
-- The free plan is acceptable for a first public demo, but cold starts are likely.
-- A paid low-tier service is preferable once `app.qs-dmss.studio` is linked from
-  the Studio homepage or public posts.
+- The initial public demo uses the free plan, so cold starts are expected after
+  inactivity.
+- Move to a paid low-tier service when usage, public posts, or cold-start friction
+  justify an always-on instance.
 - Do not add API tokens or external data credentials to this service until an
   authenticated workspace model exists.
 
