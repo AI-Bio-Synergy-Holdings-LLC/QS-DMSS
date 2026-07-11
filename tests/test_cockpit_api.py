@@ -67,6 +67,8 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert 'id="jobProvenanceTitle"' in root.text
     assert 'id="jobProvenanceLifecycle"' in root.text
     assert 'id="jobProvenanceArtifacts"' in root.text
+    assert 'id="hostedDemoBanner"' in root.text
+    assert "Public hosted demo outputs are temporary" in root.text
     markdown_link = re.search(r'<a[^>]+id="labMarkdownLink"[^>]*>', root.text)
     json_link = re.search(r'<a[^>]+id="labJsonLink"[^>]*>', root.text)
     research_object_button = re.search(
@@ -149,6 +151,110 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert replay_payload.status_code == 200
     replay_run = replay_payload.json()
     assert replay_run["run_record"]["replayed_from"] == run_id
+
+
+def test_cockpit_hosted_demo_uses_session_scoped_outputs(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(
+        repo_root=repo_root,
+        output_root=tmp_path / "hosted-runs",
+        hosted_demo=True,
+    )
+    first_client = TestClient(app)
+    second_client = TestClient(app)
+
+    health = first_client.get("/api/health")
+    assert health.status_code == 200
+    health_payload = health.json()
+    assert health_payload["hosted_demo"]["enabled"] is True
+    assert health_payload["hosted_demo"]["max_campaign_runs"] == 5
+    assert "qs_dmss_demo_session" in first_client.cookies
+    assert Path(health_payload["output_root"]).parents[1].name == "sessions"
+
+    showcase_payload = first_client.post("/api/showcases/canonical-simulation/run")
+    assert showcase_payload.status_code == 200
+    first_runs = first_client.get("/api/runs")
+    second_runs = second_client.get("/api/runs")
+    assert first_runs.status_code == 200
+    assert second_runs.status_code == 200
+    assert first_runs.json()["items"]
+    assert second_runs.json()["items"] == []
+
+
+def test_cockpit_hosted_demo_restricts_custom_inputs(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(
+        repo_root=repo_root,
+        output_root=tmp_path / "hosted-runs",
+        hosted_demo=True,
+    )
+    client = TestClient(app)
+    config_item = client.get("/api/configs").json()["items"][0]
+
+    custom_run = client.post(
+        "/api/runs",
+        json={"config": config_item["config"], "source_name": "custom.yaml"},
+    )
+    assert custom_run.status_code == 403
+    assert "arbitrary run configs" in custom_run.json()["detail"]
+
+    custom_sweep = client.post(
+        "/api/sweeps",
+        json={
+            "config": config_item["config"],
+            "parameter_path": "engine.g_int",
+            "values": [0.0, 0.1],
+        },
+    )
+    assert custom_sweep.status_code == 403
+
+    custom_campaign = client.post(
+        "/api/campaigns",
+        json={"config": config_item["config"], "source_name": "campaign.yaml"},
+    )
+    assert custom_campaign.status_code == 403
+    assert "Self-Interaction Sweep" in custom_campaign.json()["detail"]
+
+    save_template = client.post(
+        "/api/campaign-studies",
+        json={"template": {"label": "custom", "config": config_item["config"]}},
+    )
+    assert save_template.status_code == 403
+
+    import_workspace = client.post(
+        "/api/workspaces/import",
+        json={"workspace": {"workspace_id": "uploaded"}},
+    )
+    assert import_workspace.status_code == 403
+
+
+def test_cockpit_hosted_demo_allows_packaged_self_interaction_template(
+    tmp_path: Path,
+) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(
+        repo_root=repo_root,
+        output_root=tmp_path / "hosted-runs",
+        hosted_demo=True,
+    )
+    client = TestClient(app)
+
+    detail_payload = client.get("/api/campaign-studies/self-interaction-sweep")
+    assert detail_payload.status_code == 200
+    template = detail_payload.json()["template"]
+
+    campaign_payload = client.post(
+        "/api/campaigns",
+        json={
+            "config": template["config"],
+            "source_name": template["source_config_name"],
+            "study_template_id": template["template_id"],
+        },
+    )
+    assert campaign_payload.status_code == 200
+    campaign = campaign_payload.json()
+    assert campaign["campaign"]["planned_run_count"] == 5
+    assert campaign["study_template"]["summary"]["template_id"] == "self-interaction-sweep"
 
 
 def test_cockpit_api_sanitizes_source_name(tmp_path: Path) -> None:

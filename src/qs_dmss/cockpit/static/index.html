@@ -30,7 +30,7 @@
         </nav>
         <div class="rail-footer">
           <span class="rail-status-dot"></span>
-          <span>Local-first</span>
+          <span id="railModeLabel">Local-first</span>
         </div>
       </aside>
 
@@ -45,10 +45,22 @@
               <span class="pill-dot"></span>
               <span>Deterministic</span>
             </div>
-            <div class="meta-pill subtle">Local API</div>
+            <div class="meta-pill subtle" id="apiModePill">Local API</div>
             <div class="meta-avatar">QS</div>
           </div>
         </header>
+
+        <section class="hosted-demo-banner" id="hostedDemoBanner" hidden>
+          <div>
+            <p class="panel-kicker">Hosted Studio Demo</p>
+            <h2>Curated public demo, temporary outputs</h2>
+          </div>
+          <p>
+            Public hosted demo outputs are temporary; do not upload sensitive data. This mode
+            only runs packaged Lab Mode scenarios, guided comparison, the Self-Interaction
+            Sweep template, evidence checks, and research-object export.
+          </p>
+        </section>
 
         <section class="board-grid">
           <section class="panel lab-panel reveal" id="lab-mode">

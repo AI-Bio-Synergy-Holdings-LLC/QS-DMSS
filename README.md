@@ -374,6 +374,20 @@ docker run --rm -p 8001:8001 qs-dmss
 
 The image installs the built wheel, starts `qs-dmss cockpit --host 0.0.0.0 --port 8001`,
 and exposes the health endpoint at `http://127.0.0.1:8001/api/health`.
+On hosts that provide a `PORT` environment variable, the container binds to that
+port instead.
+
+## Hosted Studio Demo
+
+`app.qs-dmss.studio` is scoped as a constrained hosted demo, not an open compute
+service. Set `QS_DMSS_HOSTED_DEMO=1` to restrict the cockpit to packaged Lab
+Mode, guided comparison, the packaged Self-Interaction Sweep template,
+verification/replay, bundle/report downloads, and research-object export.
+Arbitrary configs, uploads/imports, custom sweeps, edited campaigns, and
+workspace snapshots are local-only.
+
+Render deployment guidance and the public demo guardrail contract live in
+[docs/hosted-studio-demo.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/hosted-studio-demo.md).
 
 ## Project Layout
 
