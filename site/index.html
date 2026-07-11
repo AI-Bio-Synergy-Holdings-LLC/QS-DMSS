@@ -6,7 +6,7 @@
     <title>QS-DMSS Studio | Reproducible QuantumScalar Simulation Lab</title>
     <meta
       name="description"
-      content="QS-DMSS Studio is an evidence-first Python simulation lab for QuantumScalar dark matter workflows, campaign comparison, validation spines, data provenance, and citable research artifacts."
+      content="QS-DMSS Studio is an evidence-first Python simulation lab with a constrained hosted demo for QuantumScalar dark matter workflows, campaign comparison, data provenance, and citable research artifacts."
     />
     <meta
       name="keywords"
@@ -21,7 +21,7 @@
     <meta property="og:title" content="QS-DMSS Studio | Reproducible QuantumScalar Simulation Lab" />
     <meta
       property="og:description"
-      content="Run simulations, inspect evidence, compare campaigns, record public data provenance, and publish reproducible research artifacts."
+      content="Open the hosted QS-DMSS demo to run packaged simulations, inspect evidence, compare campaigns, and export reproducible research artifacts."
     />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://qs-dmss.studio/" />
@@ -109,6 +109,7 @@
             "applicationSubCategory": "Reproducible research software",
             "operatingSystem": "Windows, macOS, Linux",
             "softwareVersion": "0.10.1",
+            "url": "https://app.qs-dmss.studio/",
             "isAccessibleForFree": true,
             "license": "https://www.apache.org/licenses/LICENSE-2.0",
             "downloadUrl": "https://pypi.org/project/qs-dmss/0.10.1/",
@@ -135,7 +136,7 @@
             "name": "QS-DMSS Studio | Reproducible QuantumScalar simulation lab",
             "url": "https://qs-dmss.studio/",
             "description": "QS-DMSS Studio is an evidence-first Python simulation lab for QuantumScalar dark matter workflows, campaign comparison, validation spines, data provenance, and citable research artifacts.",
-            "dateModified": "2026-07-09",
+            "dateModified": "2026-07-11",
             "isPartOf": {
               "@id": "https://qs-dmss.studio/#website"
             },
@@ -193,7 +194,8 @@
             research-object infrastructure.
           </p>
           <div class="hero-actions" aria-label="Primary actions">
-            <a class="button primary" href="https://pypi.org/project/qs-dmss/">Install from PyPI</a>
+            <a class="button primary" href="https://app.qs-dmss.studio/">Open Hosted Demo</a>
+            <a class="button" href="https://pypi.org/project/qs-dmss/">Install from PyPI</a>
             <a class="button" href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS">View GitHub</a>
             <a class="button" href="#local-cockpit">Run local cockpit</a>
             <a class="button" href="https://doi.org/10.5281/zenodo.20074924">Read DOI</a>
@@ -357,15 +359,23 @@ qs-dmss data calibration run --output-root reference-data-calibration</code></pr
       <section class="live-demo" id="live-demo" aria-labelledby="live-demo-title">
         <div class="orb" aria-hidden="true"></div>
         <div>
-          <p class="eyebrow">Phase two</p>
-          <h2 id="live-demo-title">Live demo coming next at app.qs-dmss.studio.</h2>
+          <p class="eyebrow">Hosted Studio Demo</p>
+          <h2 id="live-demo-title">Run the evidence-first workflow at app.qs-dmss.studio.</h2>
           <p>
-            The future hosted app should be a constrained demonstration, not an
-            unrestricted public compute service. The first version should allow
-            only packaged scenarios and study templates, short-lived artifacts,
-            no arbitrary YAML upload, no user-provided filesystem paths, no real
-            scheduler submission, and clear rate/resource limits.
+            The public app is a constrained demonstration, not an unrestricted
+            compute service. Run the packaged Lab Mode showcase, Guided
+            Comparison, and Self-Interaction Sweep; inspect evidence and replay;
+            then export a temporary research object. Arbitrary configs, uploads,
+            custom filesystem paths, and real scheduler submission remain disabled.
           </p>
+          <p>
+            Outputs expire after the hosted session. Do not upload sensitive data.
+            The free public instance may take up to a minute to wake after inactivity.
+          </p>
+          <div class="hero-actions">
+            <a class="button primary" href="https://app.qs-dmss.studio/">Open Hosted Studio Demo</a>
+            <a class="button" href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/hosted-studio-demo.md">Read the demo contract</a>
+          </div>
         </div>
       </section>
 

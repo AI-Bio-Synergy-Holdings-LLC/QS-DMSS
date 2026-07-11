@@ -24,7 +24,8 @@ are summarized in
 The canonical public website front door is
 [qs-dmss.studio](https://qs-dmss.studio). It is a static GitHub Pages site
 focused on install paths, evidence-first positioning, local cockpit guidance,
-and the future constrained `app.qs-dmss.studio` live demo path. Deployment notes
+and the live constrained [app.qs-dmss.studio](https://app.qs-dmss.studio)
+hosted demo. Deployment notes
 live in
 [docs/website-deployment.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/website-deployment.md).
 
@@ -379,8 +380,9 @@ port instead.
 
 ## Hosted Studio Demo
 
-`app.qs-dmss.studio` is scoped as a constrained hosted demo, not an open compute
-service. Set `QS_DMSS_HOSTED_DEMO=1` to restrict the cockpit to packaged Lab
+[app.qs-dmss.studio](https://app.qs-dmss.studio) is live as a constrained
+hosted demo, not an open compute service. Set `QS_DMSS_HOSTED_DEMO=1` to
+restrict the cockpit to packaged Lab
 Mode, guided comparison, the packaged Self-Interaction Sweep template,
 verification/replay, bundle/report downloads, and research-object export.
 Arbitrary configs, uploads/imports, custom sweeps, edited campaigns, and

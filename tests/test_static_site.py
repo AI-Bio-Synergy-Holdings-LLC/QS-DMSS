@@ -53,7 +53,9 @@ def test_static_site_front_door_contract() -> None:
         "Scientific Boundaries",
         "What researchers can find here.",
         "QuantumScalar dark matter simulation workflows",
-        "Live demo coming next at app.qs-dmss.studio.",
+        "Run the evidence-first workflow at app.qs-dmss.studio.",
+        "https://app.qs-dmss.studio/",
+        "Outputs expire after the hosted session. Do not upload sensitive data.",
         "not peer-reviewed scientific validation",
         'name="twitter:card" content="summary_large_image"',
     ]
@@ -112,9 +114,10 @@ def test_static_site_metadata_hardening() -> None:
     assert "Sitemap: https://qs-dmss.studio/sitemap.xml" in robots
     assert "Allow: /llms.txt" in robots
     assert "<loc>https://qs-dmss.studio/</loc>" in sitemap
-    assert "<lastmod>2026-07-09</lastmod>" in sitemap
+    assert "<lastmod>2026-07-11</lastmod>" in sitemap
     assert "<image:loc>https://qs-dmss.studio/assets/social-preview.png</image:loc>" in sitemap
     assert "Latest archived release DOI: https://doi.org/10.5281/zenodo.21270512" in llms
+    assert "Hosted demo: https://app.qs-dmss.studio/" in llms
 
     json_ld_match = re.search(
         r'<script type="application/ld\+json">\s*(.*?)\s*</script>',

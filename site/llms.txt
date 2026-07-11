@@ -5,6 +5,7 @@ Python software for evidence-first QuantumScalar dark matter simulation
 workflows.
 
 Canonical website: https://qs-dmss.studio/
+Hosted demo: https://app.qs-dmss.studio/
 Repository: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
 PyPI package: https://pypi.org/project/qs-dmss/0.10.1/
 Project DOI: https://doi.org/10.5281/zenodo.20074924
@@ -21,6 +22,7 @@ Important boundaries:
 - Public source provenance is workflow evidence, not provider-data model
   calibration.
 - Dry-run Slurm request bundles do not submit scheduler jobs.
+- Hosted-demo outputs are temporary, and arbitrary configs/uploads are disabled.
 
 Key docs:
 - Reviewer packet: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reviewer-packet.md
