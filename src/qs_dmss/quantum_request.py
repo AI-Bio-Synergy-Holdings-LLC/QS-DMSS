@@ -177,7 +177,6 @@ def prepare_fractal_qpu_request(
     if exact_tolerance <= 0.0:
         raise ValueError("exact_tolerance must be greater than zero")
 
-    stack = _require_request_stack()
     output_path = (
         Path(output_root).resolve()
         if output_root is not None
@@ -187,6 +186,7 @@ def prepare_fractal_qpu_request(
         if not output_path.is_dir() or any(output_path.iterdir()):
             raise ValueError(f"QPU request output directory must be empty: {output_path}")
     output_path.mkdir(parents=True, exist_ok=True)
+    stack = _require_request_stack()
 
     reference_dir = contained_path(output_path, "reference-validation")
     reference = validate_fractal_quantum_sidecar(
