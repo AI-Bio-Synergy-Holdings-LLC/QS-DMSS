@@ -1,0 +1,41 @@
+run:
+  name: self-interaction-response
+  seed: 23
+  output_root: runs
+
+engine:
+  backend: numpy
+  grid_shape: [12, 12, 12]
+  box_size: 1.2
+  mass: 1.0
+  g_int: 0.12
+  time_step: 0.008
+  num_steps: 12
+  log_every: 1
+
+initial:
+  kind: gaussian
+  amplitude: 0.2
+  width: 0.24
+  random_phase: true
+
+objective:
+  name: Self-interaction response balance
+  summary: Prefer verified, low-drift runs while retaining an inspectable density response.
+  primary_metric: energy_drift
+  goal: minimize_abs
+
+constraints:
+  max_abs_energy_drift: 0.3
+  max_abs_norm_drift: 0.3
+  min_max_density: 0.08
+  max_elapsed_seconds: 10.0
+  require_verification: true
+
+ranking:
+  primary_metric_weight: 2.2
+  weights:
+    energy_drift: 1.0
+    norm_drift: 0.9
+    max_density: 0.8
+    elapsed_seconds: 0.2

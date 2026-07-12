@@ -383,8 +383,8 @@ port instead.
 [app.qs-dmss.studio](https://app.qs-dmss.studio) is live as a constrained
 hosted demo, not an open compute service. Set `QS_DMSS_HOSTED_DEMO=1` to
 restrict the cockpit to packaged Lab
-Mode, guided comparison, the packaged Self-Interaction Sweep template,
-verification/replay, bundle/report downloads, and research-object export.
+Mode scenarios, guided comparison, the packaged Self-Interaction Sweep template,
+verification/replay, bundle/report/workbook downloads, and research-object export.
 Arbitrary configs, uploads/imports, custom sweeps, edited campaigns, and
 workspace snapshots are local-only.
 
@@ -397,6 +397,13 @@ packaged showcase, compare three distinct parameter variants, and compose the
 research-object export. Comparison rows expose metric deltas, variant-specific
 bundle filenames, and short SHA-256 identities so separate evidence objects do
 not look interchangeable.
+
+The Scenario Library now includes the canonical simulation, a stronger
+self-interaction response study, and an experimental Fractal/Quadrant SSFM
+validation preview. Guided comparisons produce a polished report plus a
+self-contained HTML research workbook with directly labeled comparison visuals,
+a shape-and-color marker key, evidence status, and explicit validation/HPC
+handoff boundaries.
 
 Render deployment guidance and the public demo guardrail contract live in
 [docs/hosted-studio-demo.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/hosted-studio-demo.md).

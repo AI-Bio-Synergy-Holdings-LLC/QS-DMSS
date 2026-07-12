@@ -1305,6 +1305,13 @@ class CockpitService:
             raise HTTPException(status_code=404, detail="Experiment report not found")
         return report_path
 
+    def experiment_workbook_path(self, experiment_id: str) -> Path:
+        experiment_dir = self._get_experiment_dir(experiment_id)
+        workbook_path = experiment_dir / "workbook.html"
+        if not workbook_path.exists():
+            raise HTTPException(status_code=404, detail="Experiment workbook not found")
+        return workbook_path
+
     def research_object_markdown_path(self, export_id: str) -> tuple[Path, str]:
         export_dir = self._research_object_export_dir(export_id)
         metadata_path = export_dir / "research-object.json"
@@ -2474,7 +2481,7 @@ class CockpitService:
             "grid_label": self._format_grid_label(config.engine.grid_shape),
             "steps": config.engine.num_steps,
             "description": (
-                "Packaged canonical simulation scenario that produces a run, "
+                "Packaged simulation scenario that produces a run, "
                 "verified evidence bundle, replay check, CSV/SVG artifacts, "
                 "and a human-readable showcase report."
             ),
@@ -2642,7 +2649,7 @@ class CockpitService:
         return {
             "title": "How the guided variants differ",
             "plain_language_summary": (
-                "QS-DMSS ran the canonical showcase as a small guided comparison: the baseline, "
+                "QS-DMSS ran the packaged showcase as a small guided comparison: the baseline, "
                 "a wider initial density packet, and a stronger interaction variant. The variants "
                 "use the same deterministic seed so the cockpit can focus attention on evidence "
                 "differences rather than random setup changes."
@@ -2787,6 +2794,13 @@ class CockpitService:
             "bundle": f"/api/experiments/{experiment_record['experiment_id']}/bundle",
             "report": f"/api/experiments/{experiment_record['experiment_id']}/report",
         }
+        if (experiment_dir / "workbook.html").exists():
+            urls["workbook"] = (
+                f"/api/experiments/{experiment_record['experiment_id']}/workbook"
+            )
+            urls["workbook_download"] = (
+                f"/api/experiments/{experiment_record['experiment_id']}/workbook/download"
+            )
         if execution_job and execution_job["summary"].get("job_id"):
             urls["job"] = f"/api/jobs/{execution_job['summary']['job_id']}"
         return {
@@ -3295,6 +3309,34 @@ def create_app(
             active_service,
             report_path,
             media_type="text/html",
+        )
+
+    @app.get("/api/experiments/{experiment_id}/workbook")
+    def experiment_workbook(
+        experiment_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        workbook_path = active_service.experiment_workbook_path(experiment_id)
+        return guarded_file_response(
+            active_service,
+            workbook_path,
+            media_type="text/html",
+        )
+
+    @app.get("/api/experiments/{experiment_id}/workbook/download")
+    def experiment_workbook_download(
+        experiment_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        workbook_path = active_service.experiment_workbook_path(experiment_id)
+        return guarded_file_response(
+            active_service,
+            workbook_path,
+            media_type="text/html",
+            filename=(
+                f"{safe_filename(experiment_id, default='experiment')}"
+                "-research-workbook.html"
+            ),
         )
 
     return app

@@ -66,7 +66,11 @@ def test_simulation_showcase_generates_reviewer_artifacts(tmp_path: Path) -> Non
 
 
 def test_cli_showcase_list_and_run(tmp_path: Path, capsys) -> None:
-    assert "canonical-simulation" in list_showcase_scenarios()
+    assert set(list_showcase_scenarios()) >= {
+        "canonical-simulation",
+        "self-interaction-response",
+        "fractal-quadrant-validation-preview",
+    }
 
     list_exit_code = main(["showcase", "list"])
     assert list_exit_code == 0
@@ -86,3 +90,20 @@ def test_cli_showcase_list_and_run(tmp_path: Path, capsys) -> None:
     assert "simulation-showcase.json" in output
     assert "Reviewer summary:" in output
     assert "simulation-showcase.md" in output
+
+
+def test_expanded_packaged_showcase_scenarios_run(tmp_path: Path) -> None:
+    expectations = {
+        "self-interaction-response": "Self-Interaction Response Study",
+        "fractal-quadrant-validation-preview": "Fractal SSFM Validation Preview",
+    }
+    for scenario, title in expectations.items():
+        report = run_simulation_showcase(
+            output_root=tmp_path / scenario,
+            scenario=scenario,
+            replay=False,
+        )
+        assert report["success"], report
+        assert report["scenario_title"] == title
+        assert report["scenario_narrative"]
+        assert Path(report["artifacts"]["energy_history_svg"]).exists()
