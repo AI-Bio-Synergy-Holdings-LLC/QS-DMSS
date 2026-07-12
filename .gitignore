@@ -185,6 +185,8 @@ showcases/
 !src/qs_dmss/assets/showcases/*.yaml
 benchmark-validation/
 fractal-ssfm-validation/
+quantum-sidecar-validation/
+qpu-request-bundle/
 reference-data-calibration/
 simulation-showcase/
 .codex-logs/

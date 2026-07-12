@@ -179,6 +179,39 @@ def _build_parser() -> argparse.ArgumentParser:
         default=1e-10,
         help="Maximum statevector, density, and norm comparison error.",
     )
+    quantum_request_parser = quantum_subparsers.add_parser(
+        "prepare-qpu-request",
+        help="Generate a provider-neutral QPU review bundle without submitting a job.",
+    )
+    quantum_request_parser.add_argument(
+        "--output-root",
+        help="Empty directory for the request, target circuit, and evidence bundle.",
+    )
+    quantum_request_parser.add_argument(
+        "--shots",
+        type=int,
+        default=4096,
+        help="Requested shots (128-100000); recorded only and never submitted.",
+    )
+    quantum_request_parser.add_argument(
+        "--seed",
+        type=int,
+        default=7,
+        help="Reference simulator and target transpiler seed.",
+    )
+    quantum_request_parser.add_argument(
+        "--optimization-level",
+        type=int,
+        choices=(0, 1, 2, 3),
+        default=1,
+        help="Qiskit transpiler optimization level for the generic target.",
+    )
+    quantum_request_parser.add_argument(
+        "--exact-tolerance",
+        type=float,
+        default=1e-10,
+        help="Reference-sidecar equivalence tolerance required before transpilation.",
+    )
 
     data_parser = subparsers.add_parser(
         "data",
@@ -570,6 +603,30 @@ def main(argv: list[str] | None = None) -> int:
             print("Execution: local simulators only; no QPU job was submitted.")
             print(f"Report: {report['report_path']}")
             print(f"Reviewer summary: {report['markdown_report_path']}")
+            print(f"Evidence bundle: {report['evidence_bundle_path']}")
+            return 0 if report["success"] else 1
+
+        if args.quantum_command == "prepare-qpu-request":
+            from qs_dmss.quantum_request import prepare_fractal_qpu_request
+
+            try:
+                report = prepare_fractal_qpu_request(
+                    output_root=args.output_root,
+                    shots=args.shots,
+                    seed=args.seed,
+                    optimization_level=args.optimization_level,
+                    exact_tolerance=args.exact_tolerance,
+                )
+            except (FileNotFoundError, RuntimeError, ValueError) as exc:
+                print(exc)
+                return 1
+
+            status = "passed" if report["success"] else "failed"
+            print(f"Fractal SSFM QPU request preparation {status}.")
+            print("Execution: review-only local transpilation; no QPU job was submitted.")
+            print("Authorization: no provider credentials; maximum authorized cost is $0.00.")
+            print(f"Request: {report['request_path']}")
+            print(f"Review instructions: {report['review_path']}")
             print(f"Evidence bundle: {report['evidence_bundle_path']}")
             return 0 if report["success"] else 1
 

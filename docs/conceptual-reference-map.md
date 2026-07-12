@@ -60,13 +60,17 @@ Candidate references to assess for a future paper:
 
 QS-DMSS remains a classical simulation package. The optional Fractal SSFM
 quantum-readiness sidecar tests one small circuit encoding against the NumPy
-reference; it does not establish QPU acceleration or physical validation.
+reference. Its provider-neutral QPU request bundle then makes topology,
+state-preparation, routing, and gate costs reviewable without credentials,
+provider access, or job submission. Neither surface establishes QPU
+acceleration or physical validation.
 
 | Reference target | Suggested role in QS-DMSS | Notes |
 | --- | --- | --- |
 | Mocz and Szasz, "Towards Cosmological Simulations of Dark Matter on Quantum Computers," arXiv:2101.05821 | Direct conceptual context for hybrid quantum-classical Schrodinger-Poisson simulation. | Supports the sidecar research question while emphasizing that nonlinear self-gravity is difficult. |
 | Weng et al., "Quantum simulation of the nonlinear Schrodinger equation via measurement-induced potential reconstruction," arXiv:2601.19184 | Emerging hybrid nonlinear-wave method context. | Preprint only; do not treat it as validation or settled method precedent. |
 | OpenQASM 3 specification, <https://openqasm.com/> | Human-readable quantum-circuit interchange context. | QS-DMSS also preserves native Qiskit serialization because circuit interchange may be lossy across tools and targets. |
+| Qiskit generic backend and transpiler interfaces | Provider-neutral target-contract and resource-review context. | QS-DMSS uses a local generic topology only; it does not model a named device, current calibration, execution fidelity, availability, or price. |
 
 ## Public Source-Data Provenance
 
