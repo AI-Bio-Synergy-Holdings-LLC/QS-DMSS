@@ -181,6 +181,8 @@ runs/
 experiments/
 jobs/
 showcases/
+!src/qs_dmss/assets/showcases/
+!src/qs_dmss/assets/showcases/*.yaml
 benchmark-validation/
 fractal-ssfm-validation/
 reference-data-calibration/

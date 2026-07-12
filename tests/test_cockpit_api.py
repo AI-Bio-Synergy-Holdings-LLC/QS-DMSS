@@ -515,13 +515,16 @@ def test_cockpit_api_launches_guided_showcase_comparison(tmp_path: Path) -> None
         set(parent_job["artifact_roles"])
     )
     assert guided["urls"]["report"].endswith("/report")
+    assert guided["urls"]["workbook"].endswith("/workbook")
+    assert guided["urls"]["workbook_download"].endswith("/workbook/download")
     assert guided["urls"]["bundle"].endswith("/bundle")
+    assert "workbook.html" in guided["artifact"]["evidence"]["artifact_paths"]
     assert len({run["config_digest"] for run in guided["runs"]}) == 3
     assert len({run["bundle_sha256"] for run in guided["runs"]}) == 3
     assert all(run["bundle_filename"].endswith("-evidence-bundle.zip") for run in guided["runs"])
 
     guide = guided["guide"]
-    assert guide["plain_language_summary"].startswith("QS-DMSS ran the canonical showcase")
+    assert guide["plain_language_summary"].startswith("QS-DMSS ran the packaged showcase")
     assert len(guide["what_changed"]) >= 4
     assert len(guide["what_to_inspect"]) >= 3
     assert guide["what_this_does_not_claim"]
@@ -535,6 +538,20 @@ def test_cockpit_api_launches_guided_showcase_comparison(tmp_path: Path) -> None
     experiment_report = client.get(guided["urls"]["report"])
     assert experiment_report.status_code == 200
     assert "QS-DMSS Experiment Report" in experiment_report.text
+    assert "Variant evidence plate" in experiment_report.text
+    assert "Marker key" in experiment_report.text
+    assert "Dry-run Slurm" in experiment_report.text
+    assert "Validation spine" in experiment_report.text
+
+    experiment_workbook = client.get(guided["urls"]["workbook"])
+    assert experiment_workbook.status_code == 200
+    assert "QS-DMSS Research Workbook" in experiment_workbook.text
+    assert 'role="tablist"' in experiment_workbook.text
+    assert "Embedded comparison data" in experiment_workbook.text
+
+    workbook_download = client.get(guided["urls"]["workbook_download"])
+    assert workbook_download.status_code == 200
+    assert "research-workbook.html" in workbook_download.headers["content-disposition"]
 
     experiment_bundle = client.get(guided["urls"]["bundle"])
     assert experiment_bundle.status_code == 200

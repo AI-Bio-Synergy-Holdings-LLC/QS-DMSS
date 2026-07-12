@@ -1,0 +1,53 @@
+run:
+  name: fractal-quadrant-validation-preview
+  seed: 42
+  output_root: runs
+
+engine:
+  backend: numpy_fractal_ssfm
+  grid_shape: [24, 24, 1]
+  box_size: 4.0
+  mass: 1.0
+  g_int: 1.0
+  time_step: 0.001
+  num_steps: 8
+  log_every: 1
+
+geometry:
+  mode: fuzzy_potential
+  fractal: mandelbrot
+  potential_strength: 12.5
+  boundary_epsilon: 0.04
+  mandelbrot_iterations: 24
+  quadrant_gamma: [1.0, 0.85, 1.2, 0.65]
+
+spectral:
+  dealias_fraction: null
+  leakage_fraction: 0.8
+
+initial:
+  kind: gaussian
+  amplitude: 1.0
+  width: 0.35
+  random_phase: false
+
+objective:
+  name: Fractal SSFM conservation preview
+  summary: Prefer verified runs with low conservation drift under the fuzzy effective potential.
+  primary_metric: energy_drift
+  goal: minimize_abs
+
+constraints:
+  max_abs_energy_drift: 0.5
+  max_abs_norm_drift: 0.2
+  min_max_density: 0.1
+  max_elapsed_seconds: 15.0
+  require_verification: true
+
+ranking:
+  primary_metric_weight: 2.4
+  weights:
+    energy_drift: 1.0
+    norm_drift: 1.0
+    max_density: 0.4
+    elapsed_seconds: 0.2

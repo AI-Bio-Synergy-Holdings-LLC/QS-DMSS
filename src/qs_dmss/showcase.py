@@ -70,7 +70,82 @@ SHOWCASE_SCENARIO_METADATA: dict[str, dict[str, Any]] = {
             "Run Guided Comparison to inspect baseline, wider-packet, and stronger-interaction variants.",
             "Use Campaign Studio as the next builder lane for editable parameter-grid studies.",
         ],
-    }
+        "scenario_narrative": (
+            "A compact Gaussian scalar-field packet evolves through the NumPy "
+            "split-step Schrodinger-Poisson reference solver. The small grid keeps "
+            "the full run, replay, and evidence path suitable for reviewer laptops."
+        ),
+    },
+    "self-interaction-response": {
+        "title": "Self-Interaction Response Study",
+        "purpose": (
+            "Inspect how a stronger configured nonlinear interaction changes density "
+            "response and conservation diagnostics while preserving the same evidence, "
+            "replay, comparison, and publication workflow."
+        ),
+        "expected_runtime": "Compact hosted study; usually under 30 seconds per run.",
+        "output_artifacts": [
+            {"label": "Response diagnostics", "description": "Relative energy, norm, and density trajectories."},
+            {"label": "Spatial evidence", "description": "Radial profile and density-midplane SVG/CSV pairs."},
+            {"label": "Replay evidence", "description": "Deterministic final-density comparison and verified bundles."},
+        ],
+        "limitations": [
+            "Exploratory parameter-response workflow, not a calibrated physical self-interaction model.",
+            "The packaged grid and duration are selected for review speed, not production inference.",
+            "A recommendation reflects the configured scoring contract, not a scientific verdict.",
+        ],
+        "readiness_badges": [
+            {"label": "Packaged", "status": "ready"},
+            {"label": "Comparative", "status": "ready"},
+            {"label": "Replayable", "status": "ready"},
+            {"label": "Exploratory", "status": "warning"},
+        ],
+        "next_actions": [
+            "Run the scenario and inspect the relative conservation traces.",
+            "Compare the packaged width and interaction variants in the research workbook.",
+            "Adapt the study locally before making domain-specific claims.",
+        ],
+        "scenario_narrative": (
+            "This study raises the configured nonlinear interaction while retaining a "
+            "compact Gaussian initial state. It is designed to make parameter-response "
+            "differences visible and evidence-bundled, not to calibrate a physical model."
+        ),
+    },
+    "fractal-quadrant-validation-preview": {
+        "title": "Fractal SSFM Validation Preview",
+        "purpose": (
+            "Preview the experimental NumPy Fractal/Quadrant SSFM backend with a fuzzy "
+            "effective potential, conservation diagnostics, replay evidence, and a clear "
+            "route to the separate validation harness."
+        ),
+        "expected_runtime": "Compact CPU preview; usually under 45 seconds per run.",
+        "output_artifacts": [
+            {"label": "Spectral run evidence", "description": "Run report, metrics, arrays, manifest, and bundle."},
+            {"label": "Geometry preview", "description": "Final density heatmap and radial diagnostic exports."},
+            {"label": "Validation handoff", "description": "Workbook guidance for the separate Fractal SSFM validation command."},
+        ],
+        "limitations": [
+            "Experimental fuzzy-potential backend preview; not exact fractal-boundary PDE solving.",
+            "Does not represent atomic-void modeling or peer-reviewed physical validation.",
+            "Use the separate validation harness for convergence and conservation review.",
+        ],
+        "readiness_badges": [
+            {"label": "CPU reference", "status": "ready"},
+            {"label": "Fuzzy potential", "status": "ready"},
+            {"label": "Validation companion", "status": "warning"},
+            {"label": "Experimental", "status": "warning"},
+        ],
+        "next_actions": [
+            "Run the preview and inspect conservation plus spatial diagnostics.",
+            "Run qs-dmss validation fractal-ssfm for the separate validation spine.",
+            "Review the dry-run Slurm handoff before considering remote execution.",
+        ],
+        "scenario_narrative": (
+            "An experimental pseudo-spectral nonlinear wave path evolves a Gaussian field "
+            "inside a quadrant-weighted fuzzy fractal effective potential. This is a compact "
+            "backend preview paired with, but not equivalent to, the validation harness."
+        ),
+    },
 }
 
 
@@ -107,6 +182,10 @@ def showcase_scenario_metadata(name: str = DEFAULT_SHOWCASE_NAME) -> dict[str, A
         "limitations": list(metadata.get("limitations", [])),
         "readiness_badges": list(metadata.get("readiness_badges", [])),
         "next_actions": list(metadata.get("next_actions", [])),
+        "scenario_narrative": metadata.get(
+            "scenario_narrative",
+            "Packaged QS-DMSS simulation scenario with reproducible evidence outputs.",
+        ),
     }
 
 
@@ -674,7 +753,7 @@ def write_showcase_markdown_report(report: dict[str, Any], path: Path) -> None:
         ]
 
     lines = [
-        "# QS-DMSS Canonical Simulation Showcase",
+        f"# QS-DMSS {report.get('scenario_title', 'Simulation Showcase')}",
         "",
         "This generated report is a reviewer-facing simulation walkthrough for the",
         "packaged QS-DMSS reference solver.",
@@ -799,6 +878,7 @@ def run_simulation_showcase(
     )
 
     selected = resolve_showcase_scenario(scenario)
+    scenario_metadata = showcase_scenario_metadata(selected.name)
     config = load_config(selected.config_path)
     outputs = execute_run_from_path(
         selected.config_path,
@@ -830,13 +910,8 @@ def run_simulation_showcase(
         "schema_version": SHOWCASE_REPORT_SCHEMA_VERSION,
         "generated_at": _utc_now(),
         "scenario": selected.name,
-        "scenario_narrative": (
-            "The scenario evolves a compact Gaussian scalar-field packet with a "
-            "deterministic random phase through the NumPy split-step "
-            "Schrodinger-Poisson reference solver. It is intentionally small "
-            "enough for reviewer laptops while still producing inspectable "
-            "field-density, energy-history, and replay artifacts."
-        ),
+        "scenario_title": scenario_metadata["title"],
+        "scenario_narrative": scenario_metadata["scenario_narrative"],
         "claim_boundary": (
             "This demonstrates the QS-DMSS workflow and simulation behavior; "
             "it is not peer-reviewed scientific validation."

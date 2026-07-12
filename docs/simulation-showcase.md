@@ -1,6 +1,6 @@
-# Canonical Simulation Showcase
+# Packaged Simulation Showcases
 
-The canonical simulation showcase is the first reviewer-facing path focused on
+The canonical simulation showcase is the default reviewer-facing path focused on
 the actual QS-DMSS simulation output rather than only installation,
 verification, or benchmark-envelope status.
 
@@ -44,6 +44,14 @@ List packaged showcase scenarios:
 qs-dmss showcase list
 ```
 
+Current packaged scenarios:
+
+| Scenario | Purpose | Boundary |
+| --- | --- | --- |
+| `canonical-simulation` | Compact reference solver and full evidence/replay path. | Workflow demonstration. |
+| `self-interaction-response` | Stronger-interaction response and comparison study. | Exploratory parameter response, not calibration. |
+| `fractal-quadrant-validation-preview` | Experimental fuzzy-potential Fractal/Quadrant SSFM preview. | Companion to, not a substitute for, the validation harness. |
+
 The default command runs `canonical-simulation` and writes:
 
 - `simulation-showcase/simulation-showcase.json`
@@ -86,8 +94,14 @@ qs-dmss cockpit --host 127.0.0.1 --port 8001
 Open `http://127.0.0.1:8001`, run Lab Mode, run Guided Comparison, then use
 the Publication Export Composer. Expected signals include a plain-language
 interpretation, an Evidence Explorer, SVG/CSV previews, a three-variant
-comparison table, evidence-status summaries, report/bundle links, and a
-downloadable research-object Markdown export.
+comparison table, evidence-status summaries, report/bundle links, a portable
+comparison research workbook, and a downloadable research-object Markdown export.
+
+The workbook opens in a new browser window and downloads as a self-contained
+`.html` artifact. It includes direct metric labels, a redundant shape-and-color
+marker key, recommendation highlighting, embedded comparison data, and separate
+status cards for evidence verification, the Fractal SSFM validation spine, and
+the never-submit dry-run Slurm handoff.
 
 ## Suggested Reviewer Prompt
 

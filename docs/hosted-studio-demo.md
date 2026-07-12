@@ -15,11 +15,13 @@ Set `QS_DMSS_HOSTED_DEMO=1` to enable hosted-demo mode.
 
 Allowed in hosted mode:
 
-- Packaged Lab Mode showcase runs.
+- Packaged Lab Mode scenarios: canonical simulation, self-interaction response,
+  and Fractal/Quadrant SSFM validation preview.
 - Packaged guided comparison.
 - Packaged `self-interaction-sweep` Campaign Studio study template.
 - Evidence verification and replay for generated runs.
-- Report, bundle, artifact, and research-object Markdown export downloads.
+- Report, portable HTML workbook, bundle, artifact, and research-object Markdown
+  export downloads.
 
 Disabled in hosted mode:
 
@@ -60,7 +62,8 @@ surfaces:
 1. Run the packaged deterministic showcase and inspect verification/replay.
 2. Run the three packaged variants and inspect their parameters, metrics,
    bundle filenames, and SHA-256 identities directly in the cockpit.
-3. Compose and download the publication-oriented research object.
+3. Open or download the comparison research workbook, then compose the
+   publication-oriented research object.
 
 Local configuration editing, workspace import/export, and template management
 remain available in local mode but are hidden from the public hosted path. Run,
@@ -103,6 +106,7 @@ Recommended sequence:
    - Open `https://app.qs-dmss.studio`.
    - Run Lab Mode.
    - Run Guided Comparison.
+   - Open the comparison workbook in a new tab and download the `.html` copy.
    - Run the Self-Interaction Sweep template.
    - Compose and download a research-object Markdown export.
    - Confirm custom run, sweep, import, and workspace upload actions are blocked.

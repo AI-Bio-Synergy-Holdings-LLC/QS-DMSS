@@ -906,6 +906,7 @@ def persist_experiment_artifact(
             "experiment": "experiment.json",
             "comparison": "comparison.json",
             "report": "report.html",
+            "workbook": "workbook.html",
             "manifest": "manifest.sha256.json",
             "bundle": "evidence_bundle.zip",
         },

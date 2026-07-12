@@ -79,6 +79,8 @@ def test_cockpit_static_research_surfaces_are_named() -> None:
     assert 'aria-label="Relative norm change over simulation steps"' in html
     assert 'id="artifactPreviewDialog"' in html
     assert 'id="artifactPreviewImage"' in html
+    assert 'id="labComparisonWorkbookLink"' in html
+    assert 'id="labComparisonWorkbookDownloadLink"' in html
 
 
 def test_unavailable_actions_are_not_keyboard_traps() -> None:

@@ -75,6 +75,10 @@ const els = {
   labComparisonReviewPrompt: document.querySelector("#labComparisonReviewPrompt"),
   launchLabComparisonButton: document.querySelector("#launchLabComparisonButton"),
   labComparisonReportLink: document.querySelector("#labComparisonReportLink"),
+  labComparisonWorkbookLink: document.querySelector("#labComparisonWorkbookLink"),
+  labComparisonWorkbookDownloadLink: document.querySelector(
+    "#labComparisonWorkbookDownloadLink",
+  ),
   labComparisonBundleLink: document.querySelector("#labComparisonBundleLink"),
   labComparisonJsonLink: document.querySelector("#labComparisonJsonLink"),
   labComparisonResults: document.querySelector("#labComparisonResults"),
@@ -740,6 +744,18 @@ function setLabComparisonLinksEnabled(enabled, result = null) {
   const experimentId = result?.artifact?.summary?.experiment_id || "guided-comparison";
   [
     [els.labComparisonReportLink, result?.urls?.report, "Open comparison report", "Report after run"],
+    [
+      els.labComparisonWorkbookLink,
+      result?.urls?.workbook,
+      "Open research workbook",
+      "Workbook after run",
+    ],
+    [
+      els.labComparisonWorkbookDownloadLink,
+      result?.urls?.workbook_download,
+      "Download workbook (.html)",
+      "Download workbook",
+    ],
     [els.labComparisonBundleLink, result?.urls?.bundle, "Download comparison bundle", "Bundle after run"],
     [els.labComparisonJsonLink, state.comparisonDownloadUrl, "Download comparison JSON", "JSON after run"],
   ].forEach(([link, href, readyLabel, disabledLabel]) => {
@@ -747,6 +763,8 @@ function setLabComparisonLinksEnabled(enabled, result = null) {
       link.href = href;
       if (link === els.labComparisonBundleLink) {
         link.download = result?.artifact?.summary?.bundle_filename || `${experimentId}-comparison-bundle.zip`;
+      } else if (link === els.labComparisonWorkbookDownloadLink) {
+        link.download = `${experimentId}-research-workbook.html`;
       } else if (link === els.labComparisonJsonLink) {
         link.download = `${experimentId}-comparison.json`;
       }
@@ -944,7 +962,7 @@ function renderGuidedInterpretation(report) {
     return;
   }
 
-  els.labInterpretationTitle.textContent = "What the canonical simulation is showing";
+  els.labInterpretationTitle.textContent = `What ${report.scenario_title || report.scenario} is showing`;
   els.labInterpretationSummary.textContent = interpretation.plain_language_summary;
   renderPlainList(els.labMeaningList, interpretation.what_this_result_means);
   renderPlainList(els.labNonClaimList, interpretation.what_this_result_does_not_claim);
