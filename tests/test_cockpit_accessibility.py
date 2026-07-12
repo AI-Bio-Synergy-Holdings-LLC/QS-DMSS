@@ -56,6 +56,11 @@ def test_cockpit_shell_has_accessible_navigation_and_landmarks() -> None:
     positions = [html.index(f"<span>{label}</span>") for label in navigation_labels]
     assert positions == sorted(positions)
     assert 'href="#lab-mode" aria-current="location"' in html
+    assert 'id="demoPathTitle"' in html
+    assert 'id="demoRunButton"' in html
+    assert 'id="demoCompareButton"' in html
+    assert 'id="demoExportButton"' in html
+    assert '<table aria-label="Guided comparison variant evidence">' in html
 
 
 def test_cockpit_static_research_surfaces_are_named() -> None:
@@ -107,6 +112,9 @@ def test_cockpit_styles_encode_wcag_interaction_baseline() -> None:
     assert "@media (prefers-reduced-motion: reduce)" in css
     assert "scroll-margin-top: 78px" in css
     assert "scroll-margin-top: 96px" in css
+    assert ".demo-path-steps" in css
+    assert ".comparison-results" in css
+    assert ".lab-comparison-actions > :is(button, a, label)" in css
 
     foreground = "#fff8ef"
     action_colors = [
@@ -121,6 +129,11 @@ def test_cockpit_navigation_and_dynamic_controls_preserve_semantics() -> None:
 
     assert "function setupNavigation()" in script
     assert 'setAttribute("aria-current", "location")' in script
+    assert "target.offsetTop" not in script
+    assert "atPageEnd" in script
     assert "function setActionLinkEnabled(" in script
+    assert "function renderLabComparisonResults(" in script
+    assert "function comparisonExportPayload(" in script
+    assert "function updateDemoPath()" in script
     assert 'aria-label="Select run ${escapeHtml(run.run_id)} for comparison"' in script
     assert "setupNavigation();" in script

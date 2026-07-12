@@ -32,11 +32,11 @@
             <span class="rail-index" aria-hidden="true">01</span>
             <span>Lab Mode</span>
           </a>
-          <a class="rail-item" href="#cockpit">
+          <a class="rail-item" href="#cockpit" data-local-only-nav>
             <span class="rail-index" aria-hidden="true">02</span>
             <span>Run Setup</span>
           </a>
-          <a class="rail-item" href="#config">
+          <a class="rail-item" href="#config" data-local-only-nav>
             <span class="rail-index" aria-hidden="true">03</span>
             <span>Configuration</span>
           </a>
@@ -111,8 +111,51 @@
               </div>
             </div>
 
+            <section class="demo-path" aria-labelledby="demoPathTitle">
+              <div class="demo-path-head">
+                <div>
+                  <p class="panel-kicker">Interactive Demo Path</p>
+                  <h3 id="demoPathTitle">Three actions, one inspectable research object</h3>
+                </div>
+                <span class="selection-chip" id="demoPathStatus">Step 1 of 3</span>
+              </div>
+              <ol class="demo-path-steps">
+                <li class="is-current" id="demoRunStep">
+                  <span class="demo-step-number">1</span>
+                  <div>
+                    <strong>Run the simulation</strong>
+                    <small>Create one deterministic showcase with evidence and replay.</small>
+                  </div>
+                  <button class="primary-button" id="demoRunButton" type="button">Run showcase</button>
+                </li>
+                <li id="demoCompareStep">
+                  <span class="demo-step-number">2</span>
+                  <div>
+                    <strong>Compare real variants</strong>
+                    <small>Run three distinct parameter sets and inspect metric deltas.</small>
+                  </div>
+                  <button class="secondary-button teal" id="demoCompareButton" type="button" disabled>
+                    Compare variants
+                  </button>
+                </li>
+                <li id="demoExportStep">
+                  <span class="demo-step-number">3</span>
+                  <div>
+                    <strong>Export the result</strong>
+                    <small>Compose the evidence, comparison, citation, and non-claims.</small>
+                  </div>
+                  <button class="secondary-button" id="demoExportButton" type="button" disabled>
+                    Compose export
+                  </button>
+                </li>
+              </ol>
+              <p class="demo-path-feedback" id="demoPathFeedback" role="status" aria-live="polite">
+                Start with the packaged showcase. QS-DMSS will unlock each next action.
+              </p>
+            </section>
+
             <div class="lab-console">
-              <div class="lab-controls">
+              <div class="lab-controls" id="labRunWorkspace">
                 <label class="field">
                   <span>Packaged Scenario</span>
                   <select id="labScenarioSelect"></select>
@@ -260,6 +303,30 @@
                 <p class="lab-review-prompt" id="labComparisonReviewPrompt">
                   Reviewer prompts appear after the comparison report is generated.
                 </p>
+                <div class="comparison-results" id="labComparisonResults" tabindex="-1" hidden>
+                  <div class="comparison-results-head">
+                    <div>
+                      <p class="artifact-list-title">Distinct Variant Evidence</p>
+                      <h4>Metrics, parameter changes, and bundle identity</h4>
+                    </div>
+                    <p>Each bundle has a unique filename and SHA-256 identity.</p>
+                  </div>
+                  <div class="table-shell compact">
+                    <table aria-label="Guided comparison variant evidence">
+                      <thead>
+                        <tr>
+                          <th>Variant</th>
+                          <th>Parameters</th>
+                          <th>Energy drift</th>
+                          <th>Max density</th>
+                          <th>Evidence identity</th>
+                          <th>Bundle</th>
+                        </tr>
+                      </thead>
+                      <tbody id="labComparisonResultsBody"></tbody>
+                    </table>
+                  </div>
+                </div>
                 <div class="lab-actions lab-comparison-actions">
                   <button class="secondary-button teal" id="launchLabComparisonButton" type="button">
                     Run Guided Comparison
@@ -277,12 +344,18 @@
                   <a
                     class="lab-report-link is-disabled"
                     id="labComparisonBundleLink"
-                    target="_blank"
-                    rel="noreferrer"
                     aria-disabled="true"
                     tabindex="-1"
                   >
                     Bundle after run
+                  </a>
+                  <a
+                    class="lab-report-link is-disabled"
+                    id="labComparisonJsonLink"
+                    aria-disabled="true"
+                    tabindex="-1"
+                  >
+                    JSON after run
                   </a>
                 </div>
                 <p
@@ -312,7 +385,7 @@
                 <ul class="decision-list" id="campaignStudioDimensions">
                   <li>Campaign capabilities appear here.</li>
                 </ul>
-                <form class="campaign-studio-editor" id="campaignStudioEditor">
+                <form class="campaign-studio-editor local-only-surface" id="campaignStudioEditor">
                   <p class="artifact-list-title">Editable Parameter Grid</p>
                   <div id="campaignStudioFields">
                     <p>Campaign grid controls appear here.</p>
@@ -368,7 +441,7 @@
                   <p class="scenario-library-note" id="campaignStudyTemplateSummary">
                     Save edited grids and decision profiles as reusable local JSON templates.
                   </p>
-                  <label class="field campaign-study-template-select">
+                  <label class="field campaign-study-template-select local-only-surface">
                     <span>Study Template</span>
                     <select id="campaignStudyTemplateSelect" aria-label="Saved campaign study template">
                       <option value="">No saved templates yet</option>
@@ -390,7 +463,7 @@
                   </div>
                   <div class="lab-actions lab-comparison-actions">
                     <button
-                      class="ghost-button"
+                      class="ghost-button local-only-control"
                       id="saveCampaignStudyTemplateButton"
                       type="button"
                       disabled
@@ -398,7 +471,7 @@
                       Save Study Template
                     </button>
                     <button
-                      class="ghost-button"
+                      class="ghost-button local-only-control"
                       id="loadCampaignStudyTemplateButton"
                       type="button"
                       disabled
@@ -421,7 +494,7 @@
                     >
                       Download JSON
                     </a>
-                    <label class="ghost-button campaign-study-import-label">
+                    <label class="ghost-button campaign-study-import-label local-only-control">
                       Import JSON
                       <input
                         id="importCampaignStudyTemplateInput"
@@ -581,6 +654,7 @@
                 <article
                   class="research-object-surface"
                   id="researchObjectSurface"
+                  tabindex="-1"
                   aria-live="polite"
                 >
                   <p>
@@ -615,7 +689,10 @@
                 </aside>
               </section>
 
-              <section class="research-object-export workspace-export" id="workspaceExportPanel">
+              <section
+                class="research-object-export workspace-export local-only-surface"
+                id="workspaceExportPanel"
+              >
                 <div class="panel-head compact">
                   <div>
                     <p class="panel-kicker">Research Workspace</p>

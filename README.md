@@ -392,6 +392,12 @@ The hosted application targets WCAG 2.2 Level AA and is reviewed against
 Nielsen Norman Group usability heuristics. This is an engineering baseline, not
 an independent accessibility certification.
 
+The hosted front door now leads with a three-step interactive path: run the
+packaged showcase, compare three distinct parameter variants, and compose the
+research-object export. Comparison rows expose metric deltas, variant-specific
+bundle filenames, and short SHA-256 identities so separate evidence objects do
+not look interchangeable.
+
 Render deployment guidance and the public demo guardrail contract live in
 [docs/hosted-studio-demo.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/hosted-studio-demo.md).
 

@@ -52,6 +52,21 @@ Default hosted caps:
 
 The hosted app also allows one active job per browser session/client pair.
 
+## Interactive Demo Path
+
+The hosted cockpit presents one progressive path before the deeper research
+surfaces:
+
+1. Run the packaged deterministic showcase and inspect verification/replay.
+2. Run the three packaged variants and inspect their parameters, metrics,
+   bundle filenames, and SHA-256 identities directly in the cockpit.
+3. Compose and download the publication-oriented research object.
+
+Local configuration editing, workspace import/export, and template management
+remain available in local mode but are hidden from the public hosted path. Run,
+experiment, and evidence sections remain available and the navigation follows
+the current section as the user scrolls.
+
 ## Accessibility and Usability Baseline
 
 The hosted cockpit targets WCAG 2.2 Level AA across desktop and responsive
