@@ -76,9 +76,12 @@ computational scientists. Useful feedback includes:
 - which additional resource metrics are needed before selecting a real target;
 - what security and cost controls a later provider adapter must enforce.
 
-A provider-specific transpilation profile may be considered after this bundle
-shape is reviewed. Real QPU submission, account credentials, job polling,
-result collection, and cost authorization remain separate future decisions.
+The follow-on
+[`quantum-compilation-validation.md`](quantum-compilation-validation.md) harness
+tests semantic preservation and resource attribution across fixed generic
+topologies before any provider-specific profile is considered. Real QPU
+submission, account credentials, job polling, result collection, and cost
+authorization remain separate future decisions.
 
 ## Claim Boundary
 

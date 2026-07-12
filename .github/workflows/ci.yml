@@ -160,7 +160,7 @@ jobs:
           python -m pip install -e .[dev,quantum]
 
       - name: Run quantum sidecar tests
-        run: pytest -q tests/test_quantum_sidecar.py tests/test_quantum_request.py
+        run: pytest -q tests/test_quantum_sidecar.py tests/test_quantum_request.py tests/test_quantum_compilation.py
 
       - name: Run packaged quantum sidecar
         run: |
@@ -170,6 +170,9 @@ jobs:
           qs-dmss quantum prepare-qpu-request \
             --shots 128 \
             --output-root qpu-request-validation
+          qs-dmss quantum validate-compilation \
+            --shots 128 \
+            --output-root quantum-compilation-validation
 
       - name: Check quantum evidence outputs
         run: |
@@ -180,6 +183,10 @@ jobs:
           test -f qpu-request-validation/artifacts/fractal-fuzzy-target.openqasm
           test -f qpu-request-validation/manifest.sha256.json
           test -f qpu-request-validation/qpu-request-evidence.zip
+          test -f quantum-compilation-validation/quantum-compilation-validation.json
+          test -f quantum-compilation-validation/quantum-compilation-matrix.csv
+          test -f quantum-compilation-validation/manifest.sha256.json
+          test -f quantum-compilation-validation/quantum-compilation-evidence.zip
 
   docker:
     name: Docker smoke
