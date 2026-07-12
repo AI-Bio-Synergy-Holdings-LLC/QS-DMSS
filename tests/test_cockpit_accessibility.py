@@ -74,8 +74,11 @@ def test_cockpit_static_research_surfaces_are_named() -> None:
         assert f'<table aria-label="{label}">' in html
 
     assert '<dialog class="report-modal" id="reportDialog" aria-labelledby="reportHeading">' in html
-    assert 'aria-label="Energy drift over simulation steps"' in html
-    assert 'aria-label="Norm drift over simulation steps"' in html
+    assert 'class="panel detail-panel run-overview-panel reveal"' in html
+    assert 'aria-label="Relative energy change over simulation steps"' in html
+    assert 'aria-label="Relative norm change over simulation steps"' in html
+    assert 'id="artifactPreviewDialog"' in html
+    assert 'id="artifactPreviewImage"' in html
 
 
 def test_unavailable_actions_are_not_keyboard_traps() -> None:
@@ -115,6 +118,10 @@ def test_cockpit_styles_encode_wcag_interaction_baseline() -> None:
     assert ".demo-path-steps" in css
     assert ".comparison-results" in css
     assert ".lab-comparison-actions > :is(button, a, label)" in css
+    assert ".run-overview-panel," in css
+    assert ".scientific-chart-stack" in css
+    assert ".artifact-expand-button" in css
+    assert ".artifact-preview-modal-grid" in css
 
     foreground = "#fff8ef"
     action_colors = [
@@ -135,5 +142,8 @@ def test_cockpit_navigation_and_dynamic_controls_preserve_semantics() -> None:
     assert "function renderLabComparisonResults(" in script
     assert "function comparisonExportPayload(" in script
     assert "function updateDemoPath()" in script
+    assert "function renderScientificTrace(" in script
+    assert "function openArtifactPreview(" in script
+    assert 'data-artifact-preview-url="${escapeHtml(item.url)}"' in script
     assert 'aria-label="Select run ${escapeHtml(run.run_id)} for comparison"' in script
     assert "setupNavigation();" in script

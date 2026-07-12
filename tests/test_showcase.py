@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 from qs_dmss.cli import main
@@ -38,6 +39,30 @@ def test_simulation_showcase_generates_reviewer_artifacts(tmp_path: Path) -> Non
     artifact_paths = report["artifacts"].values()
     for artifact_path in artifact_paths:
         assert Path(artifact_path).exists()
+
+    energy_svg = Path(report["artifacts"]["energy_history_svg"]).read_text(
+        encoding="utf-8"
+    )
+    radial_svg = Path(report["artifacts"]["radial_density_svg"]).read_text(
+        encoding="utf-8"
+    )
+    density_svg = Path(report["artifacts"]["midplane_density_svg"]).read_text(
+        encoding="utf-8"
+    )
+    for line_svg in (energy_svg, radial_svg):
+        ET.fromstring(line_svg)
+        assert 'data-scientific-figure="line-diagnostic"' in line_svg
+        assert "<title>" in line_svg
+        assert "<desc>" in line_svg
+        assert "<metadata>" in line_svg
+        assert 'class="grid-line"' in line_svg
+        assert "Peak" in line_svg
+        assert "Final" in line_svg
+    assert 'data-scientific-figure="density-heatmap"' in density_svg
+    ET.fromstring(density_svg)
+    assert "density (solver units)" in density_svg
+    assert "Peak cell" in density_svg
+    assert "<metadata>" in density_svg
 
 
 def test_cli_showcase_list_and_run(tmp_path: Path, capsys) -> None:
