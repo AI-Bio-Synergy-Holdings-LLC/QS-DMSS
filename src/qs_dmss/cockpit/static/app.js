@@ -1164,7 +1164,6 @@ function renderArtifactPreviews(artifactLinks, runId, callouts = []) {
             >
               <span class="artifact-preview-loading" data-svg-loading>Preparing persistent SVG preview...</span>
               <img data-svg-preview-image alt="${title} preview" hidden />
-              <span class="artifact-expand-label">Expand figure</span>
             </button>
             <div class="artifact-science-strip">
               <span>Scalable vector diagnostic</span>
@@ -3540,6 +3539,9 @@ function updateSelectionChip() {
 
 function setExperimentActionsEnabled(enabled) {
   els.openExperimentReportButton.disabled = !enabled;
+  els.openExperimentReportButton.textContent = !enabled || state.selectedExperiment?.urls?.workbook
+    ? "Open Research Workbook"
+    : "Open Experiment Report";
   setActionLinkEnabled(
     els.experimentBundleLink,
     enabled,
@@ -4626,9 +4628,12 @@ function openRunReport() {
 
 function openExperimentReport() {
   if (!state.selectedExperiment) return;
+  const workbookUrl = state.selectedExperiment.urls.workbook;
   openReport(
-    state.selectedExperiment.urls.report,
-    `Experiment Report - ${state.selectedExperiment.summary.experiment_id}`,
+    workbookUrl || state.selectedExperiment.urls.report,
+    workbookUrl
+      ? `Research Workbook - ${state.selectedExperiment.summary.experiment_id}`
+      : `Experiment Report - ${state.selectedExperiment.summary.experiment_id}`,
   );
 }
 

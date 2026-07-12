@@ -280,10 +280,10 @@ def _marker_svg(marker: dict[str, str], x: float, y: float, size: float = 7) -> 
 
 def _comparison_visual_svg(comparison: dict) -> str:
     rows = comparison["rows"]
-    width = 1120
-    height = max(470, 235 + len(rows) * 58)
+    width = 1240
+    height = max(500, 260 + len(rows) * 58)
     left = 182
-    top = 105
+    top = 130
     panel_width = 220
     panel_gap = 42
     legend_x = left + 3 * (panel_width + panel_gap) + 10
@@ -313,26 +313,37 @@ def _comparison_visual_svg(comparison: dict) -> str:
             span = maximum - minimum
         metric_markup.extend(
             [
-                f'<text x="{x_start}" y="52" font-size="16" font-weight="700" fill="#18383d">{html.escape(label)}</text>',
-                f'<text x="{x_start}" y="72" font-size="11" fill="#607176">{html.escape(subtitle)}</text>',
+                f'<text x="{x_start}" y="88" font-size="16" font-weight="700" fill="#18383d">{html.escape(label)}</text>',
+                f'<text x="{x_start}" y="108" font-size="11" fill="#607176">{html.escape(subtitle)}</text>',
             ]
         )
         for tick_index in range(3):
             fraction = tick_index / 2
             tick_x = x_start + fraction * panel_width
             tick_value = minimum + fraction * span
+            tick_anchor = (
+                "start" if tick_index == 0 else "end" if tick_index == 2 else "middle"
+            )
+            tick_label_x = (
+                tick_x + 4
+                if tick_index == 0
+                else tick_x - 4
+                if tick_index == 2
+                else tick_x
+            )
             metric_markup.append(
                 f'<line x1="{tick_x:.2f}" y1="{top - 15}" x2="{tick_x:.2f}" '
                 f'y2="{top + len(rows) * 58 - 17}" stroke="#dce4e2" stroke-width="1" />'
             )
             metric_markup.append(
-                f'<text x="{tick_x:.2f}" y="{top + len(rows) * 58 + 5}" '
-                f'text-anchor="middle" font-size="10" fill="#607176">{_format_scientific(tick_value)}</text>'
+                f'<text x="{tick_label_x:.2f}" y="{top + len(rows) * 58 + 5}" '
+                f'text-anchor="{tick_anchor}" font-size="10" fill="#607176">{_format_scientific(tick_value)}</text>'
             )
         for row_index, row in enumerate(rows):
             value = float(row.get(key) or 0.0)
             marker = _COMPARISON_MARKERS[row_index % len(_COMPARISON_MARKERS)]
-            x = x_start + ((value - minimum) / span) * panel_width
+            position = (value - minimum) / span
+            x = x_start + position * panel_width
             y = top + row_index * 58
             if row.get("run_id") == recommended_run_id:
                 metric_markup.append(
@@ -340,8 +351,22 @@ def _comparison_visual_svg(comparison: dict) -> str:
                     'stroke="#d7a33d" stroke-width="2.5" />'
                 )
             metric_markup.append(_marker_svg(marker, x, y))
+            value_anchor = (
+                "start"
+                if position <= 0.12
+                else "end"
+                if position >= 0.88
+                else "middle"
+            )
+            value_label_x = (
+                x + 10
+                if position <= 0.12
+                else x - 10
+                if position >= 0.88
+                else x
+            )
             metric_markup.append(
-                f'<text x="{x:.2f}" y="{y - 14:.2f}" text-anchor="middle" '
+                f'<text x="{value_label_x:.2f}" y="{y - 14:.2f}" text-anchor="{value_anchor}" '
                 f'font-size="10" font-weight="700" fill="#42575b">{_format_scientific(value)}</text>'
             )
 
@@ -356,7 +381,7 @@ def _comparison_visual_svg(comparison: dict) -> str:
             f'<text x="{left - 18}" y="{y + 4:.2f}" text-anchor="end" font-size="12" '
             f'font-weight="700" fill="#2d474c">{marker["code"]} · {html.escape(label[:22])}</text>'
         )
-        legend_y = 112 + row_index * 54
+        legend_y = 145 + row_index * 54
         legend_rows.append(_marker_svg(marker, legend_x + 10, legend_y, 7))
         legend_rows.append(
             f'<text x="{legend_x + 28}" y="{legend_y - 2}" font-size="12" font-weight="700" '
@@ -403,8 +428,8 @@ def _comparison_visual_svg(comparison: dict) -> str:
   {''.join(metric_markup)}
   {''.join(row_labels)}
   <line x1="{legend_x - 18}" y1="38" x2="{legend_x - 18}" y2="{height - 36}" stroke="#dce4e2" />
-  <text x="{legend_x}" y="62" font-size="13" font-weight="700" fill="#18383d">Marker key</text>
-  <text x="{legend_x}" y="80" font-size="10" fill="#607176">Shape + color remain redundant</text>
+  <text x="{legend_x}" y="88" font-size="13" font-weight="700" fill="#18383d">Marker key</text>
+  <text x="{legend_x}" y="106" font-size="10" fill="#607176">Shape + color remain redundant</text>
   {''.join(legend_rows)}
   {recommendation_key}
 </svg>"""
@@ -415,7 +440,7 @@ def _experiment_report_styles() -> str:
       :root { --ink:#18383d; --muted:#607176; --line:#d9e1df; --paper:#fffdf8; --teal:#237777; --copper:#c45f28; --gold:#d7a33d; }
       * { box-sizing: border-box; }
       body { margin:0; background:#edf0ea; color:var(--ink); font-family:Manrope,"Segoe UI",sans-serif; line-height:1.55; }
-      main { width:min(1180px,calc(100% - 32px)); margin:28px auto; padding:clamp(24px,4vw,54px); border:1px solid var(--line); border-radius:28px; background:var(--paper); box-shadow:0 28px 80px rgba(24,56,61,.12); }
+      main { width:min(1480px,calc(100% - 32px)); margin:28px auto; padding:clamp(24px,4vw,54px); border:1px solid var(--line); border-radius:28px; background:var(--paper); box-shadow:0 28px 80px rgba(24,56,61,.12); }
       h1,h2,h3 { font-family:Georgia,serif; line-height:1.12; }
       h1 { max-width:18ch; margin:.2rem 0 .75rem; font-size:clamp(2.2rem,5vw,4.7rem); }
       h2 { margin:2.2rem 0 .8rem; font-size:clamp(1.5rem,3vw,2.2rem); }
@@ -447,7 +472,7 @@ def _experiment_report_styles() -> str:
       [role=tab][aria-selected=true] { border-color:var(--teal); background:var(--teal); color:white; }
       [role=tabpanel][hidden] { display:none; }
       pre { padding:16px; overflow:auto; border-radius:16px; background:#152e32; color:#eff8f6; font-size:.82rem; }
-      @media(max-width:760px) { main { width:min(100% - 16px,1180px); margin:8px auto; padding:20px; border-radius:20px; } .metric-grid,.readiness-grid { grid-template-columns:1fr; } figure svg { min-width:720px; } }
+      @media(max-width:760px) { main { width:min(100% - 16px,1480px); margin:8px auto; padding:20px; border-radius:20px; } .metric-grid,.readiness-grid { grid-template-columns:1fr; } figure svg { min-width:720px; } }
       @media print { body { background:white; } main { width:100%; margin:0; padding:20px; border:0; box-shadow:none; } .actions,.tab-list { display:none; } [role=tabpanel][hidden] { display:block; } figure { break-inside:avoid; } }
     """
 

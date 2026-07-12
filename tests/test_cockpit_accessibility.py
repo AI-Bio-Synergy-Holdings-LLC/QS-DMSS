@@ -81,6 +81,7 @@ def test_cockpit_static_research_surfaces_are_named() -> None:
     assert 'id="artifactPreviewImage"' in html
     assert 'id="labComparisonWorkbookLink"' in html
     assert 'id="labComparisonWorkbookDownloadLink"' in html
+    assert "Open Research Workbook" in html
 
 
 def test_unavailable_actions_are_not_keyboard_traps() -> None:
@@ -124,6 +125,7 @@ def test_cockpit_styles_encode_wcag_interaction_baseline() -> None:
     assert ".scientific-chart-stack" in css
     assert ".artifact-expand-button" in css
     assert ".artifact-preview-modal-grid" in css
+    assert "width: min(1480px, calc(100vw - 32px))" in css
     assert "grid-template-columns: repeat(12, minmax(0, 1fr))" in css
     assert ".lab-report-metrics dd" in css
 
@@ -152,5 +154,8 @@ def test_cockpit_navigation_and_dynamic_controls_preserve_semantics() -> None:
     assert "async function fetchSvgPreviewText(" in script
     assert 'data-artifact-source-url="${escapeHtml(item.url)}"' in script
     assert "data:image/svg+xml;charset=utf-8" in script
+    assert "artifact-expand-label" not in script
+    assert "state.selectedExperiment.urls.workbook" in script
+    assert "Research Workbook - ${state.selectedExperiment.summary.experiment_id}" in script
     assert 'aria-label="Select run ${escapeHtml(run.run_id)} for comparison"' in script
     assert "setupNavigation();" in script
