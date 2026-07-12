@@ -388,6 +388,10 @@ verification/replay, bundle/report downloads, and research-object export.
 Arbitrary configs, uploads/imports, custom sweeps, edited campaigns, and
 workspace snapshots are local-only.
 
+The hosted application targets WCAG 2.2 Level AA and is reviewed against
+Nielsen Norman Group usability heuristics. This is an engineering baseline, not
+an independent accessibility certification.
+
 Render deployment guidance and the public demo guardrail contract live in
 [docs/hosted-studio-demo.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/hosted-studio-demo.md).
 

@@ -52,6 +52,20 @@ Default hosted caps:
 
 The hosted app also allows one active job per browser session/client pair.
 
+## Accessibility and Usability Baseline
+
+The hosted cockpit targets WCAG 2.2 Level AA across desktop and responsive
+layouts. Its application shell includes a main-content skip link, named
+landmarks and data tables, visible keyboard focus, minimum-size controls,
+reduced-motion support, mobile reflow, and status announcements for long-running
+operations. Navigation follows document order and reports the current section.
+
+Interaction reviews also use Nielsen Norman Group's ten usability heuristics,
+especially visibility of system status, consistency, error prevention,
+recognition rather than recall, and help/documentation. This engineering target
+is not an independent accessibility certification; assistive-technology and
+user testing remain part of ongoing release validation.
+
 ## Render Deployment
 
 This repository includes `render.yaml` for a single Docker-backed web service.
@@ -80,10 +94,10 @@ Recommended sequence:
 
 Render notes:
 
-- The initial public demo uses the free plan, so cold starts are expected after
-  inactivity.
-- Move to a paid low-tier service when usage, public posts, or cold-start friction
-  justify an always-on instance.
+- The public demo uses the Starter plan for an always-on instance without the
+  free-tier inactivity delay.
+- Reassess CPU and memory capacity from measured runtime and concurrency before
+  moving to a larger service class.
 - Do not add API tokens or external data credentials to this service until an
   authenticated workspace model exists.
 

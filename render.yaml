@@ -2,7 +2,7 @@ services:
   - type: web
     name: qs-dmss-studio-app
     runtime: docker
-    plan: free
+    plan: starter
     region: oregon
     branch: main
     autoDeploy: true
