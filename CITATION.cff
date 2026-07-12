@@ -11,8 +11,11 @@ authors:
 doi: 10.5281/zenodo.20074924
 identifiers:
   - type: doi
+    value: 10.5281/zenodo.21319023
+    description: "Archived release DOI for v0.11.0."
+  - type: doi
     value: 10.5281/zenodo.21270512
-    description: "Latest archived release DOI before v0.11.0."
+    description: "Previous archived release DOI for v0.10.1."
   - type: doi
     value: 10.5281/zenodo.20693736
     description: "Previous archived release DOI."

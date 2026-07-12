@@ -7,14 +7,14 @@ QS-DMSS uses `CITATION.cff` as its canonical citation metadata file.
 - Public baseline: `v0.11.0` release target
 - Current package metadata target: `v0.11.0` / `0.11.0`
 - Citation metadata file: `CITATION.cff`
-- DOI status: `v0.11.0` pending Zenodo archive; `v0.10.1` remains the latest
-  archived release.
-- PyPI metadata status: `v0.11.0` release target; package-facing DOI metadata
-  keeps the concept DOI and latest archived release DOI visible.
+- DOI status: `v0.11.0` archived by Zenodo.
+- PyPI metadata status: `v0.11.0` published. Its immutable package metadata was
+  created before the archive DOI minted; repository and Studio metadata carry
+  the current release DOI.
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: `10.5281/zenodo.21270512` (`v0.10.1`)
-- Latest archived release record: `https://zenodo.org/records/21270512`
-- `v0.11.0` release DOI: pending Zenodo archive
+- Latest archived release DOI: `10.5281/zenodo.21319023` (`v0.11.0`)
+- Latest archived release record: `https://zenodo.org/records/21319023`
+- `v0.11.0` release DOI: `10.5281/zenodo.21319023`
 - Previous archived release DOI: `10.5281/zenodo.20693736`
 - Previous archived release record: `https://zenodo.org/records/20693736`
 - Previous archived release DOI for `v0.8.0`: `10.5281/zenodo.20673804`
@@ -64,7 +64,7 @@ Use the version DOI when citing the exact first archived release artifacts:
 Use the latest known version DOI when citing the current archived release:
 
 ```text
-10.5281/zenodo.21270512
+10.5281/zenodo.21319023
 ```
 
 `CITATION.cff` stores the concept DOI in the root `doi` field so GitHub and

@@ -9,7 +9,7 @@ Hosted demo: https://app.qs-dmss.studio/
 Repository: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
 PyPI package: https://pypi.org/project/qs-dmss/0.11.0/
 Project DOI: https://doi.org/10.5281/zenodo.20074924
-Latest archived release DOI: https://doi.org/10.5281/zenodo.21270512
+Latest archived release DOI: https://doi.org/10.5281/zenodo.21319023
 Open Collective: https://opencollective.com/qs-dmss
 
 QS-DMSS helps users run simulations, inspect evidence, compare campaigns,

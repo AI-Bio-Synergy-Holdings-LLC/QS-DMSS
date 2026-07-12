@@ -84,6 +84,7 @@ scientific validation.
 Studio: https://qs-dmss.studio
 Hosted demo: https://app.qs-dmss.studio
 Release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.11.0
+Archived release DOI: https://doi.org/10.5281/zenodo.21319023
 ```
 
 ## LinkedIn
@@ -138,6 +139,7 @@ broader local configuration surface.
 
 Try the constrained demo: https://app.qs-dmss.studio
 Install locally: python -m pip install qs-dmss==0.11.0
+Archived release DOI: https://doi.org/10.5281/zenodo.21319023
 
 Beta for reproducible package/evidence workflows; not peer-reviewed scientific
 validation.
@@ -166,6 +168,7 @@ a reviewable research object.
 
 Demo: https://app.qs-dmss.studio
 Install: pip install qs-dmss==0.11.0
+DOI: https://doi.org/10.5281/zenodo.21319023
 
 Beta workflow software; not scientific validation.
 ```
