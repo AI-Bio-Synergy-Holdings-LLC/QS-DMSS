@@ -20,6 +20,9 @@ def test_version_metadata_is_aligned() -> None:
     assert qs_dmss.__version__ == declared_version
     assert metadata.version("qs-dmss") == declared_version
 
+    cockpit_favicon = repo_root / "src" / "qs_dmss" / "cockpit" / "static" / "favicon.svg"
+    assert cockpit_favicon.exists()
+
 
 def test_public_discovery_metadata_is_present() -> None:
     repo_root = Path(__file__).resolve().parents[1]

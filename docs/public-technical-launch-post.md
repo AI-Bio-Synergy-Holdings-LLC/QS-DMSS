@@ -50,9 +50,9 @@ Public entry points:
 - Website: https://qs-dmss.studio
 - GitHub: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
 - PyPI: https://pypi.org/project/qs-dmss/
-- Latest release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.10.1
+- Latest release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.11.0
 - Zenodo concept DOI: https://doi.org/10.5281/zenodo.20074924
-- v0.10.1 release DOI: https://doi.org/10.5281/zenodo.21270512
+- Latest archived release DOI (v0.10.1; v0.11.0 pending): https://doi.org/10.5281/zenodo.21270512
 - Open Collective: https://opencollective.com/qs-dmss
 
 Fast smoke test:
@@ -61,7 +61,7 @@ Fast smoke test:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.10.1
+python -m pip install qs-dmss==0.11.0
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 qs-dmss benchmarks validate --scenario demo-baseline

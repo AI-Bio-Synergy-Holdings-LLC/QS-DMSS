@@ -4,16 +4,17 @@ QS-DMSS uses `CITATION.cff` as its canonical citation metadata file.
 
 ## Current Status
 
-- Public baseline: `v0.10.1` release target
-- Current package metadata target: `v0.10.1` / `0.10.1`
+- Public baseline: `v0.11.0` release target
+- Current package metadata target: `v0.11.0` / `0.11.0`
 - Citation metadata file: `CITATION.cff`
-- DOI status: `v0.10.1` archived by Zenodo.
-- PyPI metadata status: `v0.10.1` published; package-facing DOI metadata keeps
-  the concept DOI and latest archived release DOI visible.
+- DOI status: `v0.11.0` pending Zenodo archive; `v0.10.1` remains the latest
+  archived release.
+- PyPI metadata status: `v0.11.0` release target; package-facing DOI metadata
+  keeps the concept DOI and latest archived release DOI visible.
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
 - Latest archived release DOI: `10.5281/zenodo.21270512` (`v0.10.1`)
 - Latest archived release record: `https://zenodo.org/records/21270512`
-- `v0.10.1` release DOI: `10.5281/zenodo.21270512`
+- `v0.11.0` release DOI: pending Zenodo archive
 - Previous archived release DOI: `10.5281/zenodo.20693736`
 - Previous archived release record: `https://zenodo.org/records/20693736`
 - Previous archived release DOI for `v0.8.0`: `10.5281/zenodo.20673804`

@@ -31,14 +31,15 @@ live in
 
 ## Current Public State
 
-The current public package baseline is `qs-dmss==0.10.1`. It keeps the
-Fractal/Quadrant SSFM validation spine and the public reference-data
-provenance calibration sandbox installable from PyPI alongside Lab Mode,
-Campaign Studio study templates, workspace export/import metadata, dry-run
-Slurm request bundles that never submit scheduler jobs, public Conceptual
-Reference Map links, and job-registry path hardening.
+The current release target is `qs-dmss==0.11.0`. It brings the hosted Studio
+experience into the downloadable package: an accessible Lab Mode workflow,
+scientific run and comparison views, portable HTML research workbooks,
+publication-oriented exports, and the same evidence, replay, provenance, and
+validation spine available from the local cockpit. The hosted service applies
+temporary-output and packaged-scenario guardrails; local installs retain
+persistent outputs and the broader local configuration surface.
 
-The latest archived release DOI is
+Until Zenodo archives `v0.11.0`, the latest archived release DOI remains
 [v0.10.1 / 10.5281/zenodo.21270512](https://doi.org/10.5281/zenodo.21270512).
 
 Fractal SSFM scientific feedback is routed through

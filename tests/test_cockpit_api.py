@@ -18,7 +18,12 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
 
     root = client.get("/")
     assert root.status_code == 200
-    assert "QS-DMSS Run Cockpit" in root.text
+    assert "QS-DMSS Studio" in root.text
+    assert "Research Cockpit" in root.text
+    assert 'href="/static/favicon.svg"' in root.text
+    favicon = client.get("/static/favicon.svg")
+    assert favicon.status_code == 200
+    assert "QS-DMSS Studio" in favicon.text
     assert 'id="labProgressText"' in root.text
     assert 'id="labEvidenceExplorer"' in root.text
     assert 'id="labReportPreviewBody"' in root.text

@@ -280,12 +280,12 @@ const toneColorByEvidence = {
 };
 
 const citationMetadata = {
-  packageVersion: "0.10.1",
-  releaseTag: "v0.10.1",
+  packageVersion: "0.11.0",
+  releaseTag: "v0.11.0",
   conceptDoi: "10.5281/zenodo.20074924",
   releaseDoi: "10.5281/zenodo.21270512",
-  releaseUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.10.1",
-  pypiUrl: "https://pypi.org/project/qs-dmss/0.10.1/",
+  releaseUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.11.0",
+  pypiUrl: "https://pypi.org/project/qs-dmss/0.11.0/",
   repositoryUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
   openCollectiveUrl: "https://opencollective.com/qs-dmss",
   builderBoardUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57",
