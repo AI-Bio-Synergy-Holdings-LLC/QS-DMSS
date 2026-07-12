@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">QS-DMSS Studio hosted research cockpit</title>
+  <desc id="description">Social preview for the public hosted demo showing the simulation, evidence, comparison, and export workflow.</desc>
+  <defs>
+    <pattern id="grid" width="52" height="52" patternUnits="userSpaceOnUse">
+      <path d="M52 0H0V52" fill="none" stroke="#27433b" stroke-width="1" opacity="0.5"/>
+    </pattern>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0cf76"/>
+      <stop offset="1" stop-color="#c79b3e"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#122621"/>
+      <stop offset="1" stop-color="#0b1715"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="630" fill="#081713"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <circle cx="110" cy="60" r="260" fill="#315249" opacity="0.28"/>
+  <circle cx="1120" cy="590" r="260" fill="#8c7a3a" opacity="0.2"/>
+
+  <g transform="translate(72 62)">
+    <rect width="60" height="60" rx="18" fill="#111d1a" stroke="#d9ae4e"/>
+    <text x="30" y="39" fill="#e5bc59" font-family="Georgia, serif" font-size="22" font-weight="700" text-anchor="middle">QS</text>
+    <text x="84" y="24" fill="#f6f2e8" font-family="Segoe UI, sans-serif" font-size="19" font-weight="700" letter-spacing="1">QS-DMSS STUDIO</text>
+    <text x="84" y="51" fill="#84d8bf" font-family="Segoe UI, sans-serif" font-size="18" font-weight="600">HOSTED RESEARCH COCKPIT</text>
+  </g>
+
+  <g transform="translate(76 170)">
+    <text fill="#f7f2e6" font-family="Georgia, serif" font-size="66" font-weight="700">
+      <tspan x="0" y="0">Run. Compare.</tspan>
+      <tspan x="0" y="74" fill="url(#gold)">Verify. Export.</tspan>
+    </text>
+    <text x="2" y="128" fill="#bac7c1" font-family="Segoe UI, sans-serif" font-size="24">A constrained public demo of an evidence-first</text>
+    <text x="2" y="160" fill="#bac7c1" font-family="Segoe UI, sans-serif" font-size="24">simulation and research-object workflow.</text>
+    <g transform="translate(0 205)" font-family="Segoe UI, sans-serif" font-size="16" font-weight="700">
+      <rect width="134" height="42" rx="21" fill="#173a32" stroke="#4c8d79"/>
+      <text x="67" y="27" text-anchor="middle" fill="#8ee1c8">LAB MODE</text>
+      <rect x="150" width="174" height="42" rx="21" fill="#173a32" stroke="#4c8d79"/>
+      <text x="237" y="27" text-anchor="middle" fill="#8ee1c8">GUIDED COMPARE</text>
+      <rect x="340" width="160" height="42" rx="21" fill="#173a32" stroke="#4c8d79"/>
+      <text x="420" y="27" text-anchor="middle" fill="#8ee1c8">EVIDENCE</text>
+    </g>
+  </g>
+
+  <g transform="translate(700 60)" filter="url(#shadow)">
+    <rect width="430" height="500" rx="24" fill="url(#panel)" stroke="#806d37"/>
+    <rect width="82" height="500" rx="24" fill="#0d1c19"/>
+    <rect x="81" width="1" height="500" fill="#2c473f"/>
+    <rect x="22" y="24" width="38" height="38" rx="12" fill="#101a18" stroke="#d9ae4e"/>
+    <text x="41" y="49" fill="#e5bc59" font-family="Georgia, serif" font-size="14" font-weight="700" text-anchor="middle">QS</text>
+    <g fill="#52766b">
+      <rect x="24" y="92" width="34" height="5" rx="2.5" fill="#8fd9c3"/>
+      <rect x="24" y="124" width="25" height="5" rx="2.5"/>
+      <rect x="24" y="156" width="30" height="5" rx="2.5"/>
+      <rect x="24" y="188" width="22" height="5" rx="2.5"/>
+      <rect x="24" y="220" width="28" height="5" rx="2.5"/>
+    </g>
+    <text x="108" y="42" fill="#8edbc4" font-family="Segoe UI, sans-serif" font-size="12" font-weight="700" letter-spacing="1.5">LIVE PUBLIC DEMO</text>
+    <text x="108" y="74" fill="#f4efe3" font-family="Georgia, serif" font-size="26" font-weight="700">Research object</text>
+    <text x="108" y="98" fill="#9fb1aa" font-family="Segoe UI, sans-serif" font-size="14">Simulation evidence at a glance</text>
+    <g transform="translate(108 122)">
+      <rect width="292" height="150" rx="16" fill="#0a1513" stroke="#2d4d44"/>
+      <text x="16" y="26" fill="#d9e2de" font-family="Segoe UI, sans-serif" font-size="13" font-weight="600">Conservation diagnostics</text>
+      <text x="260" y="26" fill="#7fcfb8" font-family="Segoe UI, sans-serif" font-size="11" text-anchor="end">VERIFIED</text>
+      <path d="M20 118H270M20 86H270M20 54H270" stroke="#203a33" stroke-width="1"/>
+      <path d="M20 105 C56 100 78 84 108 88 S165 67 196 73 S239 48 270 54" fill="none" stroke="#e4b952" stroke-width="3"/>
+      <path d="M20 112 C62 110 91 101 126 103 S191 90 224 94 S250 82 270 84" fill="none" stroke="#75d6bc" stroke-width="3"/>
+      <circle cx="270" cy="54" r="5" fill="#e4b952"/>
+      <circle cx="270" cy="84" r="5" fill="#75d6bc"/>
+    </g>
+    <g transform="translate(108 292)" font-family="Segoe UI, sans-serif">
+      <rect width="140" height="82" rx="14" fill="#10221e" stroke="#2c4b42"/>
+      <text x="14" y="24" fill="#91a59d" font-size="11">EVIDENCE</text>
+      <text x="14" y="54" fill="#f1ede2" font-size="22" font-weight="700">PASS</text>
+      <circle cx="116" cy="48" r="11" fill="#194d40"/>
+      <path d="m111 48 4 4 7-9" fill="none" stroke="#87dfc5" stroke-width="2"/>
+      <rect x="152" width="140" height="82" rx="14" fill="#10221e" stroke="#2c4b42"/>
+      <text x="166" y="24" fill="#91a59d" font-size="11">REPLAY</text>
+      <text x="166" y="54" fill="#f1ede2" font-size="22" font-weight="700">MATCH</text>
+      <circle cx="268" cy="48" r="11" fill="#194d40"/>
+      <path d="m263 48 4 4 7-9" fill="none" stroke="#87dfc5" stroke-width="2"/>
+    </g>
+    <g transform="translate(108 394)" font-family="Segoe UI, sans-serif">
+      <rect width="292" height="66" rx="14" fill="#d5ad50"/>
+      <text x="20" y="27" fill="#17211e" font-size="11" font-weight="700" letter-spacing="1">PUBLICATION EXPORT</text>
+      <text x="20" y="48" fill="#17211e" font-size="16" font-weight="700">Report + evidence bundle ready</text>
+      <path d="M257 22h15v15M272 22l-21 21" fill="none" stroke="#17211e" stroke-width="2.5"/>
+    </g>
+  </g>
+
+  <g transform="translate(76 568)" font-family="Segoe UI, sans-serif">
+    <text fill="#e6bd5c" font-size="20" font-weight="700">app.qs-dmss.studio</text>
+    <text x="262" fill="#879a92" font-size="15">Temporary outputs | Packaged scenarios | No sensitive data</text>
+  </g>
+</svg>
