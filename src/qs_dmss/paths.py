@@ -95,6 +95,13 @@ def fractal_config_path(repo_root: Path | None = None) -> Path:
     raise FileNotFoundError("Bundled Fractal SSFM config not found")
 
 
+def quantum_sidecar_config_path() -> Path:
+    path = bundled_assets_root() / "quantum" / "fractal-fuzzy-4x4.yaml"
+    if not path.exists():
+        raise FileNotFoundError(f"Bundled quantum sidecar profile not found at {path}")
+    return path
+
+
 def runs_root(repo_root: Path) -> Path:
     return repo_root / "runs"
 

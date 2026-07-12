@@ -1,0 +1,32 @@
+run:
+  name: fractal-fuzzy-quantum-sidecar
+  seed: 7
+  output_root: quantum-sidecar-validation
+
+engine:
+  backend: numpy_fractal_ssfm
+  grid_shape: [4, 4, 1]
+  box_size: 2.0
+  mass: 1.0
+  g_int: 0.0
+  time_step: 0.001
+  num_steps: 1
+  log_every: 1
+
+geometry:
+  mode: fuzzy_potential
+  fractal: mandelbrot
+  potential_strength: 2.0
+  boundary_epsilon: 0.1
+  mandelbrot_iterations: 8
+  quadrant_gamma: [1.0, 1.0, 1.0, 1.0]
+
+spectral:
+  dealias_fraction: null
+  leakage_fraction: 0.8
+
+initial:
+  kind: gaussian
+  amplitude: 1.0
+  width: 0.35
+  random_phase: false

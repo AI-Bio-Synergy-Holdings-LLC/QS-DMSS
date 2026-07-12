@@ -145,6 +145,41 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Maximum allowed fuzzy_potential relative norm error.",
     )
 
+    quantum_parser = subparsers.add_parser(
+        "quantum",
+        help="Run local simulator-only quantum-readiness sidecars.",
+    )
+    quantum_subparsers = quantum_parser.add_subparsers(
+        dest="quantum_command",
+        required=True,
+    )
+    quantum_validate_parser = quantum_subparsers.add_parser(
+        "validate-fractal",
+        help="Validate the packaged Fractal SSFM phase-only circuit against NumPy.",
+    )
+    quantum_validate_parser.add_argument(
+        "--output-root",
+        help="Directory for sidecar reports, circuit artifacts, and evidence bundle.",
+    )
+    quantum_validate_parser.add_argument(
+        "--shots",
+        type=int,
+        default=4096,
+        help="Measurement shots (128-100000) for ideal and synthetic-noise Aer runs.",
+    )
+    quantum_validate_parser.add_argument(
+        "--seed",
+        type=int,
+        default=7,
+        help="Transpiler and simulator seed.",
+    )
+    quantum_validate_parser.add_argument(
+        "--exact-tolerance",
+        type=float,
+        default=1e-10,
+        help="Maximum statevector, density, and norm comparison error.",
+    )
+
     data_parser = subparsers.add_parser(
         "data",
         help="Inspect public reference-data sources and run calibration sandbox workflows.",
@@ -513,6 +548,29 @@ def main(argv: list[str] | None = None) -> int:
             print(f"Fractal SSFM validation {status}.")
             print(f"Report: {report['report_path']}")
             print(f"Reviewer summary: {report['markdown_report_path']}")
+            return 0 if report["success"] else 1
+
+    if args.command == "quantum":
+        if args.quantum_command == "validate-fractal":
+            from qs_dmss.quantum_sidecar import validate_fractal_quantum_sidecar
+
+            try:
+                report = validate_fractal_quantum_sidecar(
+                    output_root=args.output_root,
+                    shots=args.shots,
+                    seed=args.seed,
+                    exact_tolerance=args.exact_tolerance,
+                )
+            except (FileNotFoundError, RuntimeError, ValueError) as exc:
+                print(exc)
+                return 1
+
+            status = "passed" if report["success"] else "failed"
+            print(f"Fractal SSFM quantum-readiness sidecar {status}.")
+            print("Execution: local simulators only; no QPU job was submitted.")
+            print(f"Report: {report['report_path']}")
+            print(f"Reviewer summary: {report['markdown_report_path']}")
+            print(f"Evidence bundle: {report['evidence_bundle_path']}")
             return 0 if report["success"] else 1
 
     if args.command == "data":

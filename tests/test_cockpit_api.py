@@ -27,10 +27,10 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     assert '<link rel="canonical" href="https://app.qs-dmss.studio/"' in root.text
     assert 'name="robots" content="index, follow, max-image-preview:large"' in root.text
     assert 'property="og:type" content="website"' in root.text
-    assert (
-        'property="og:image"\n      '
-        'content="https://app.qs-dmss.studio/static/hosted-demo-social-preview.png"'
-        in root.text
+    assert re.search(
+        r'property="og:image"\s+'
+        r'content="https://app\.qs-dmss\.studio/static/hosted-demo-social-preview\.png"',
+        root.text,
     )
     assert 'name="twitter:card" content="summary_large_image"' in root.text
 

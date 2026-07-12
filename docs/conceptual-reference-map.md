@@ -56,6 +56,18 @@ Candidate references to assess for a future paper:
 | Bao, Jaksch, and Markowich, "Numerical solution of the Gross-Pitaevskii equation for Bose-Einstein condensation," Journal of Computational Physics, 2003 | Time-splitting spectral methods for nonlinear wave equations. | Adjacent method precedent; use only if applicable to the solver discussion. |
 | Fractal/Quadrant SSFM validation issue, QS-DMSS issue #105 | Active technical review gate. | Public QS-DMSS feedback should focus on convergence, norm conservation, and diagnostic boundaries before GPU expansion. |
 
+## Quantum-Readiness Context
+
+QS-DMSS remains a classical simulation package. The optional Fractal SSFM
+quantum-readiness sidecar tests one small circuit encoding against the NumPy
+reference; it does not establish QPU acceleration or physical validation.
+
+| Reference target | Suggested role in QS-DMSS | Notes |
+| --- | --- | --- |
+| Mocz and Szasz, "Towards Cosmological Simulations of Dark Matter on Quantum Computers," arXiv:2101.05821 | Direct conceptual context for hybrid quantum-classical Schrodinger-Poisson simulation. | Supports the sidecar research question while emphasizing that nonlinear self-gravity is difficult. |
+| Weng et al., "Quantum simulation of the nonlinear Schrodinger equation via measurement-induced potential reconstruction," arXiv:2601.19184 | Emerging hybrid nonlinear-wave method context. | Preprint only; do not treat it as validation or settled method precedent. |
+| OpenQASM 3 specification, <https://openqasm.com/> | Human-readable quantum-circuit interchange context. | QS-DMSS also preserves native Qiskit serialization because circuit interchange may be lossy across tools and targets. |
+
 ## Public Source-Data Provenance
 
 QS-DMSS v0.11.0 includes source records for public astronomical/cosmological
