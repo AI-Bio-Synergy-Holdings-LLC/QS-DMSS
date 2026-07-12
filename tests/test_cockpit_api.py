@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+import hashlib
 import re
 from pathlib import Path
 
@@ -515,6 +516,9 @@ def test_cockpit_api_launches_guided_showcase_comparison(tmp_path: Path) -> None
     )
     assert guided["urls"]["report"].endswith("/report")
     assert guided["urls"]["bundle"].endswith("/bundle")
+    assert len({run["config_digest"] for run in guided["runs"]}) == 3
+    assert len({run["bundle_sha256"] for run in guided["runs"]}) == 3
+    assert all(run["bundle_filename"].endswith("-evidence-bundle.zip") for run in guided["runs"])
 
     guide = guided["guide"]
     assert guide["plain_language_summary"].startswith("QS-DMSS ran the canonical showcase")
@@ -535,6 +539,20 @@ def test_cockpit_api_launches_guided_showcase_comparison(tmp_path: Path) -> None
     experiment_bundle = client.get(guided["urls"]["bundle"])
     assert experiment_bundle.status_code == 200
     assert experiment_bundle.headers["content-type"].startswith("application/zip")
+    experiment_id = guided["artifact"]["summary"]["experiment_id"]
+    assert f'{experiment_id}-comparison-bundle.zip' in experiment_bundle.headers[
+        "content-disposition"
+    ]
+
+    downloaded_hashes = set()
+    for run in guided["runs"]:
+        run_bundle = client.get(f'/api/runs/{run["run_id"]}/bundle')
+        assert run_bundle.status_code == 200
+        assert run["bundle_filename"] in run_bundle.headers["content-disposition"]
+        digest = hashlib.sha256(run_bundle.content).hexdigest()
+        assert digest == run["bundle_sha256"]
+        downloaded_hashes.add(digest)
+    assert len(downloaded_hashes) == 3
 
 
 def test_cockpit_api_launch_sweep_and_compare(tmp_path: Path) -> None:

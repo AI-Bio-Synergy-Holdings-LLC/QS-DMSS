@@ -17,6 +17,7 @@ const state = {
   selectedShowcaseName: null,
   labResult: null,
   labComparisonResult: null,
+  comparisonDownloadUrl: null,
   researchObject: null,
   researchObjectDownloadUrl: null,
   workspaceExport: null,
@@ -37,6 +38,14 @@ const els = {
   configTemplate: document.querySelector("#configTemplate"),
   loadTemplateButton: document.querySelector("#loadTemplateButton"),
   labScenarioSelect: document.querySelector("#labScenarioSelect"),
+  demoPathStatus: document.querySelector("#demoPathStatus"),
+  demoPathFeedback: document.querySelector("#demoPathFeedback"),
+  demoRunStep: document.querySelector("#demoRunStep"),
+  demoCompareStep: document.querySelector("#demoCompareStep"),
+  demoExportStep: document.querySelector("#demoExportStep"),
+  demoRunButton: document.querySelector("#demoRunButton"),
+  demoCompareButton: document.querySelector("#demoCompareButton"),
+  demoExportButton: document.querySelector("#demoExportButton"),
   launchLabButton: document.querySelector("#launchLabButton"),
   labScenarioSummary: document.querySelector("#labScenarioSummary"),
   labScenarioMeta: document.querySelector("#labScenarioMeta"),
@@ -65,6 +74,9 @@ const els = {
   launchLabComparisonButton: document.querySelector("#launchLabComparisonButton"),
   labComparisonReportLink: document.querySelector("#labComparisonReportLink"),
   labComparisonBundleLink: document.querySelector("#labComparisonBundleLink"),
+  labComparisonJsonLink: document.querySelector("#labComparisonJsonLink"),
+  labComparisonResults: document.querySelector("#labComparisonResults"),
+  labComparisonResultsBody: document.querySelector("#labComparisonResultsBody"),
   labComparisonProgressText: document.querySelector("#labComparisonProgressText"),
   campaignStudioStatus: document.querySelector("#campaignStudioStatus"),
   campaignStudioSummary: document.querySelector("#campaignStudioSummary"),
@@ -550,19 +562,25 @@ function setupNavigation() {
   };
 
   const syncActiveSection = () => {
-    if (!pairs.length) {
+    const visiblePairs = pairs.filter(({ link, target }) => {
+      const linkStyle = window.getComputedStyle(link);
+      const targetStyle = window.getComputedStyle(target);
+      return linkStyle.display !== "none" && targetStyle.display !== "none";
+    });
+    if (!visiblePairs.length) {
       return;
     }
-    const offset = window.innerWidth <= 900 ? 120 : 40;
-    const ordered = [...pairs].sort(
-      (left, right) => left.target.offsetTop - right.target.offsetTop,
-    );
-    let current = ordered[0];
-    ordered.forEach((item) => {
-      if (item.target.getBoundingClientRect().top <= offset) {
+    const marker = window.innerWidth <= 900 ? 128 : Math.min(180, window.innerHeight * 0.24);
+    let current = visiblePairs[0];
+    visiblePairs.forEach((item) => {
+      if (item.target.getBoundingClientRect().top <= marker) {
         current = item;
       }
     });
+    const atPageEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+    if (atPageEnd) {
+      current = visiblePairs[visiblePairs.length - 1];
+    }
     setActive(current.link);
   };
 
@@ -603,6 +621,7 @@ function applyHostedDemoMode() {
   els.railModeLabel.textContent = enabled ? "Hosted demo" : "Local-first";
   els.apiModePill.textContent = enabled ? "Curated demo API" : "Local API";
   document.body.classList.toggle("is-hosted-demo", enabled);
+  window.dispatchEvent(new Event("resize"));
   if (!enabled) {
     return;
   }
@@ -674,19 +693,59 @@ function setLabLinksEnabled(enabled) {
   els.labSelectRunButton.disabled = !enabled;
 }
 
+function comparisonExportPayload(result) {
+  if (!result) return null;
+  const withoutExecutionJob = (item) => {
+    const copy = { ...item };
+    delete copy.execution_job;
+    return copy;
+  };
+  const rows = (result.comparison?.rows || []).map(withoutExecutionJob);
+  const runs = (result.runs || []).map(withoutExecutionJob);
+  const summary = withoutExecutionJob(result.artifact?.summary || {});
+  return {
+    schema: "qs-dmss-guided-comparison-v1",
+    generated_at: new Date().toISOString(),
+    scenario: result.scenario,
+    guide: result.guide,
+    comparison: { ...result.comparison, rows },
+    runs,
+    artifact: {
+      summary,
+      evidence: result.artifact?.evidence || {},
+      urls: result.artifact?.urls || {},
+    },
+  };
+}
+
 function setLabComparisonLinksEnabled(enabled, result = null) {
+  if (state.comparisonDownloadUrl?.startsWith("blob:")) {
+    URL.revokeObjectURL(state.comparisonDownloadUrl);
+  }
+  const exportPayload = comparisonExportPayload(result);
+  state.comparisonDownloadUrl = enabled && exportPayload
+    ? URL.createObjectURL(new Blob([`${JSON.stringify(exportPayload, null, 2)}\n`], { type: "application/json" }))
+    : null;
+  const experimentId = result?.artifact?.summary?.experiment_id || "guided-comparison";
   [
     [els.labComparisonReportLink, result?.urls?.report, "Open comparison report", "Report after run"],
     [els.labComparisonBundleLink, result?.urls?.bundle, "Download comparison bundle", "Bundle after run"],
+    [els.labComparisonJsonLink, state.comparisonDownloadUrl, "Download comparison JSON", "JSON after run"],
   ].forEach(([link, href, readyLabel, disabledLabel]) => {
     if (enabled && href) {
       link.href = href;
+      if (link === els.labComparisonBundleLink) {
+        link.download = result?.artifact?.summary?.bundle_filename || `${experimentId}-comparison-bundle.zip`;
+      } else if (link === els.labComparisonJsonLink) {
+        link.download = `${experimentId}-comparison.json`;
+      }
       link.removeAttribute("aria-disabled");
       link.removeAttribute("tabindex");
       link.textContent = readyLabel;
       link.classList.remove("is-disabled");
     } else {
       link.removeAttribute("href");
+      link.removeAttribute("download");
       link.setAttribute("aria-disabled", "true");
       link.setAttribute("tabindex", "-1");
       link.textContent = disabledLabel;
@@ -701,6 +760,8 @@ function setLabProgress(isRunning, message) {
   els.launchLabButton.textContent = isRunning ? "Running Lab Mode..." : "Run Lab Mode Showcase";
   els.labProgressShell.hidden = !isRunning;
   els.labProgressText.textContent = message;
+  els.demoRunButton.disabled = isRunning;
+  els.demoRunButton.textContent = isRunning ? "Running showcase..." : "Run showcase";
 }
 
 function setLabComparisonProgress(isRunning, message) {
@@ -710,6 +771,85 @@ function setLabComparisonProgress(isRunning, message) {
     ? "Running Guided Comparison..."
     : "Run Guided Comparison";
   els.labComparisonProgressText.textContent = message;
+  els.demoCompareButton.disabled = isRunning || !state.labResult;
+  els.demoCompareButton.textContent = isRunning ? "Comparing variants..." : "Compare variants";
+}
+
+function updateDemoPath() {
+  const hasRun = Boolean(state.labResult);
+  const hasComparison = Boolean(state.labComparisonResult);
+  const hasExport = Boolean(state.researchObject);
+  const steps = [
+    [els.demoRunStep, hasRun, !hasRun],
+    [els.demoCompareStep, hasComparison, hasRun && !hasComparison],
+    [els.demoExportStep, hasExport, hasComparison && !hasExport],
+  ];
+  steps.forEach(([element, complete, current]) => {
+    element.classList.toggle("is-complete", complete);
+    element.classList.toggle("is-current", current);
+  });
+  els.demoCompareButton.disabled = !hasRun;
+  els.demoExportButton.disabled = !hasComparison;
+  els.demoPathStatus.textContent = hasExport
+    ? "Demo complete"
+    : hasComparison
+    ? "Step 3 of 3"
+    : hasRun
+    ? "Step 2 of 3"
+    : "Step 1 of 3";
+  els.demoPathFeedback.textContent = hasExport
+    ? "Research object composed. Inspect the report surface and download the export below."
+    : hasComparison
+    ? "Three distinct variant bundles are ready. Inspect their metrics and SHA-256 identities, then compose the export."
+    : hasRun
+    ? "The showcase is verified and replayed. Continue with the three-variant comparison."
+    : "Start with the packaged showcase. QS-DMSS will unlock each next action.";
+}
+
+function revealDemoResult(element) {
+  element?.scrollIntoView({ behavior: "auto", block: "start" });
+  window.requestAnimationFrame(() => element?.focus({ preventScroll: true }));
+}
+
+function renderLabComparisonResults(result) {
+  const rows = result?.comparison?.rows || [];
+  const summaries = new Map((result?.runs || []).map((run) => [run.run_id, run]));
+  els.labComparisonResults.hidden = !rows.length;
+  if (!rows.length) {
+    els.labComparisonResultsBody.innerHTML = "";
+    return;
+  }
+  els.labComparisonResultsBody.innerHTML = rows
+    .map((row) => {
+      const summary = summaries.get(row.run_id) || {};
+      const parameters = (row.variant || [])
+        .map((item) => `${item.label}: ${item.value_label}`)
+        .join(" · ");
+      const digest = summary.bundle_sha256 || "unavailable";
+      const filename = summary.bundle_filename || `${row.run_id}-evidence-bundle.zip`;
+      return `
+        <tr>
+          <td><strong>${escapeHtml(row.variant_label || row.parameter_value_label || "Variant")}</strong></td>
+          <td>${escapeHtml(parameters)}</td>
+          <td>${escapeHtml(formatScientific(row.energy_drift))}</td>
+          <td>${escapeHtml(formatScientific(row.max_density))}</td>
+          <td>
+            <span class="comparison-evidence-id">
+              <strong>${escapeHtml(digest.slice(0, 12))}</strong>
+              <span>${escapeHtml(row.bundle_size_label || summary.bundle_size_label || "-")}</span>
+            </span>
+          </td>
+          <td>
+            <a
+              class="comparison-bundle-link"
+              href="/api/runs/${encodeURIComponent(row.run_id)}/bundle"
+              download="${escapeHtml(filename)}"
+            >Download ${escapeHtml(row.variant_label || "variant")}</a>
+          </td>
+        </tr>
+      `;
+    })
+    .join("");
 }
 
 function renderMetricPreview(metrics) {
@@ -739,7 +879,7 @@ function renderEvidenceChecklist(result) {
     {
       tone: "is-success",
       label: "Evidence bundle",
-      detail: `${run.evidence.bundle_size_label} bundle with ${run.evidence.file_count} manifest files.`,
+      detail: `${run.evidence.bundle_size_label} bundle with ${run.evidence.file_count} manifest files; SHA-256 ${run.evidence.bundle_sha256.slice(0, 12)}.`,
     },
     {
       tone: report.verification.success ? "is-success" : "is-danger",
@@ -815,6 +955,8 @@ function renderLabGuidedComparison(result) {
     els.labComparisonReviewPrompt.textContent =
       "Reviewer prompts appear after the comparison report is generated.";
     setLabComparisonLinksEnabled(false);
+    renderLabComparisonResults(null);
+    updateDemoPath();
     return;
   }
 
@@ -830,6 +972,8 @@ function renderLabGuidedComparison(result) {
   renderPlainList(els.labComparisonNonClaimList, guide.what_this_does_not_claim || []);
   els.labComparisonReviewPrompt.textContent = guide.review_prompt;
   setLabComparisonLinksEnabled(true, result);
+  renderLabComparisonResults(result);
+  updateDemoPath();
 }
 
 function parseCsvPreview(text, rowLimit = 4, columnLimit = 5) {
@@ -2110,6 +2254,7 @@ function renderResearchObjectComposer() {
     : "Compose Research Object";
   els.researchObjectCta.hidden = !state.researchObject;
   setResearchObjectDownloadEnabled(Boolean(state.researchObject));
+  updateDemoPath();
 
   if (!hasResearchMaterial) {
     els.researchObjectStatus.textContent = "Run showcase or campaign first";
@@ -2176,6 +2321,7 @@ async function handleComposeResearchObject() {
     state.researchObject.export = payload.export;
     state.researchObjectDownloadUrl = payload.export.download_url;
     renderResearchObjectComposer();
+    revealDemoResult(els.researchObjectSurface);
     toast(
       "Research object exported",
       `Markdown persisted with job ${shortRunId(payload.execution_job?.summary?.job_id)}.`,
@@ -3425,7 +3571,7 @@ function renderEvidence(detail) {
     ? `conic-gradient(${donutStops.join(", ")})`
     : "conic-gradient(var(--stone) 0deg 360deg)";
   els.evidenceCount.textContent = String(detail.evidence.file_count);
-  els.bundleSizeValue.textContent = detail.evidence.bundle_size_label;
+  els.bundleSizeValue.textContent = `${detail.evidence.bundle_size_label} · SHA ${detail.evidence.bundle_sha256.slice(0, 12)}`;
   els.artifactCountValue.textContent = String(detail.evidence.artifact_paths.length);
   els.verificationStatusValue.textContent = detail.verification.success
     ? `Verified (${detail.verification.checked_files})`
@@ -3670,7 +3816,7 @@ function renderSelectedExperiment(detail) {
   els.experimentCreated.textContent = formatTimestamp(detail.summary.created_at);
   els.experimentRecommended.textContent = shortRunId(detail.summary.recommended_run_id);
   els.experimentDecisionStatus.textContent = detail.summary.decision_status || "-";
-  els.experimentBundleSize.textContent = detail.summary.bundle_size_label;
+  els.experimentBundleSize.textContent = `${detail.summary.bundle_size_label} · SHA ${detail.summary.bundle_sha256.slice(0, 12)}`;
   els.experimentJobId.textContent = jobLabel(detail.execution_job || detail.summary.execution_job);
   els.experimentBundleLink.setAttribute("download", "");
   setExperimentActionsEnabled(true);
@@ -3859,6 +4005,7 @@ async function handleLaunchLabComparison() {
       `Compared ${payload.comparison.rows.length} packaged variants`,
       "success",
     );
+    revealDemoResult(els.labComparisonResults);
   } catch (error) {
     els.labComparisonStatus.textContent = "Failed";
     els.labComparisonStatus.className = "selection-chip";
@@ -4241,6 +4388,9 @@ function openExperimentReport() {
 }
 
 function bindEvents() {
+  els.demoRunButton.addEventListener("click", () => els.launchLabButton.click());
+  els.demoCompareButton.addEventListener("click", () => els.launchLabComparisonButton.click());
+  els.demoExportButton.addEventListener("click", () => els.composeResearchObjectButton.click());
   els.labScenarioSelect.addEventListener("change", (event) => {
     state.selectedShowcaseName = event.target.value;
     state.labResult = null;

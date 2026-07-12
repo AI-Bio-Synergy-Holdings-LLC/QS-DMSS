@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import secrets
@@ -75,6 +76,14 @@ HOSTED_DEMO_ENV_VAR = "QS_DMSS_HOSTED_DEMO"
 HOSTED_DEMO_SELF_INTERACTION_TEMPLATE_ID = "self-interaction-sweep"
 _HOSTED_DEMO_ACTIVE_JOBS: set[str] = set()
 _HOSTED_DEMO_ACTIVE_JOBS_LOCK = threading.Lock()
+
+
+def _file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 @dataclass(frozen=True)
@@ -2686,6 +2695,8 @@ class CockpitService:
             "norm_drift": metrics["norm_drift"],
             "bundle_size_bytes": bundle_path.stat().st_size,
             "bundle_size_label": self._format_bytes(bundle_path.stat().st_size),
+            "bundle_sha256": _file_sha256(bundle_path),
+            "bundle_filename": f"{run_record['run_id']}-evidence-bundle.zip",
             "experiment": experiment,
             "execution_job": execution_job,
         }
@@ -2730,6 +2741,8 @@ class CockpitService:
                 "file_count": len(manifest.get("files", [])),
                 "bundle_size_bytes": bundle_path.stat().st_size,
                 "bundle_size_label": self._format_bytes(bundle_path.stat().st_size),
+                "bundle_sha256": _file_sha256(bundle_path),
+                "bundle_filename": f"{run_record['run_id']}-evidence-bundle.zip",
                 "categories": self._evidence_categories(manifest),
                 "artifact_paths": [entry["path"] for entry in manifest.get("files", [])],
             },
@@ -2758,6 +2771,8 @@ class CockpitService:
             "recommended_run_id": (experiment_record.get("decision") or {}).get("recommended_run_id"),
             "bundle_size_bytes": bundle_path.stat().st_size,
             "bundle_size_label": self._format_bytes(bundle_path.stat().st_size),
+            "bundle_sha256": _file_sha256(bundle_path),
+            "bundle_filename": f"{experiment_record['experiment_id']}-comparison-bundle.zip",
             "execution_job": execution_job,
         }
 
@@ -2782,6 +2797,10 @@ class CockpitService:
             "decision": comparison.get("decision"),
             "evidence": {
                 "file_count": len(manifest.get("files", [])),
+                "bundle_sha256": _file_sha256(experiment_dir / "evidence_bundle.zip"),
+                "bundle_filename": (
+                    f"{experiment_record['experiment_id']}-comparison-bundle.zip"
+                ),
                 "artifact_paths": [entry["path"] for entry in manifest.get("files", [])],
             },
             "urls": urls,
@@ -3235,7 +3254,7 @@ def create_app(
             active_service,
             bundle_path,
             media_type="application/zip",
-            filename=bundle_path.name,
+            filename=f"{safe_filename(run_id, default='run')}-evidence-bundle.zip",
         )
 
     @app.get("/api/runs/{run_id}/report")
@@ -3260,7 +3279,10 @@ def create_app(
             active_service,
             bundle_path,
             media_type="application/zip",
-            filename=bundle_path.name,
+            filename=(
+                f"{safe_filename(experiment_id, default='experiment')}"
+                "-comparison-bundle.zip"
+            ),
         )
 
     @app.get("/api/experiments/{experiment_id}/report")
