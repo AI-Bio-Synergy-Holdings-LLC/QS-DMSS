@@ -125,6 +125,9 @@ evidence-first simulation lab:
 - Optional simulator-only Fractal SSFM quantum-readiness sidecar that compares
   one small phase-only QFT circuit against the NumPy reference and emits
   manifest-verified circuit, sampling, resource, and state-comparison evidence
+- Provider-neutral Fractal SSFM QPU request bundles that expose measurement,
+  state-preparation, topology, routing, and gate costs while enforcing no
+  credentials, no remote API calls, no submission, and zero authorized spend
 - Public reference-data provenance sandbox that materializes metadata-only
   source manifests, cache checksums, a tiny calibration fixture, and an evidence
   bundle for Planck Legacy Archive, DESI DR1, SDSS DR19, and Gaia DR3 source
@@ -207,6 +210,20 @@ native circuit serialization, sampling/resource diagnostics, state comparison,
 a manifest, and an evidence bundle. It does not use a QPU or submit a remote
 job. See
 [docs/fractal-ssfm-quantum-sidecar.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/fractal-ssfm-quantum-sidecar.md).
+
+Prepare the next review-only hardware-target artifact:
+
+```powershell
+qs-dmss quantum prepare-qpu-request --output-root qpu-request-bundle
+```
+
+This reruns the exact sidecar gate, builds the full measurement circuit, and
+transpiles it to a deterministic generic five-qubit linear topology. The
+bundle records logical-to-target resource growth, OpenQASM/QPY artifacts,
+credential and cost policies, checksums, and the complete reference evidence.
+It never reads provider credentials, contacts a remote API, or submits a QPU
+job; authorized spend is fixed at `$0.00`. See
+[docs/fractal-ssfm-qpu-request-bundle.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/fractal-ssfm-qpu-request-bundle.md).
 
 Run the public reference-data provenance calibration sandbox:
 

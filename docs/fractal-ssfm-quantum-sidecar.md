@@ -114,13 +114,18 @@ The sidecar does not claim:
 - production-scale quantum simulation;
 - peer-reviewed physical validation.
 
-## Future Gate
+## Hardware-Target Review Gate
 
-The next quantum slice, if the simulator evidence is reviewed positively,
-should be a dry-run QPU request bundle. It should record OpenQASM, native circuit
-serialization, target requirements, shots, resource estimates, cost limits,
-credential boundaries, and `submitted: false`. A real provider adapter should
-remain a later explicit opt-in decision.
+The follow-on `quantum prepare-qpu-request` command generates the planned dry-run
+QPU request bundle. It records OpenQASM, native circuit serialization, a generic
+target topology, shots, logical-to-target resource estimates, zero authorized
+spend, credential boundaries, and `submitted: false`. See
+[`fractal-ssfm-qpu-request-bundle.md`](fractal-ssfm-qpu-request-bundle.md).
+
+The generic target is not a physical backend and carries no calibration data.
+A provider-specific target profile or execution adapter remains a later,
+explicit opt-in decision requiring separate security, cost, and scientific
+review.
 
 Scientific feedback should remain linked to the classical Fractal SSFM review
 gate in issue #105 so circuit agreement is not mistaken for model validation.
