@@ -31,6 +31,8 @@ const state = {
   comparison: null,
 };
 
+let artifactPreviewTrigger = null;
+
 const els = {
   hostedDemoBanner: document.querySelector("#hostedDemoBanner"),
   railModeLabel: document.querySelector("#railModeLabel"),
@@ -155,6 +157,13 @@ const els = {
   reportDialog: document.querySelector("#reportDialog"),
   reportFrame: document.querySelector("#reportFrame"),
   reportHeading: document.querySelector("#reportHeading"),
+  artifactPreviewDialog: document.querySelector("#artifactPreviewDialog"),
+  artifactPreviewHeading: document.querySelector("#artifactPreviewHeading"),
+  artifactPreviewImage: document.querySelector("#artifactPreviewImage"),
+  artifactPreviewFilename: document.querySelector("#artifactPreviewFilename"),
+  artifactPreviewCallout: document.querySelector("#artifactPreviewCallout"),
+  artifactPreviewWhy: document.querySelector("#artifactPreviewWhy"),
+  artifactPreviewSourceLink: document.querySelector("#artifactPreviewSourceLink"),
   runsTableBody: document.querySelector("#runsTableBody"),
   comparisonTableBody: document.querySelector("#comparisonTableBody"),
   compareTitle: document.querySelector("#compareTitle"),
@@ -230,10 +239,12 @@ const els = {
   normDriftValue: document.querySelector("#normDriftValue"),
   energyChart: document.querySelector("#energyChart"),
   normChart: document.querySelector("#normChart"),
-  energyAxisMid: document.querySelector("#energyAxisMid"),
-  energyAxisEnd: document.querySelector("#energyAxisEnd"),
-  normAxisMid: document.querySelector("#normAxisMid"),
-  normAxisEnd: document.querySelector("#normAxisEnd"),
+  energyInitialValue: document.querySelector("#energyInitialValue"),
+  energyFinalValue: document.querySelector("#energyFinalValue"),
+  energyRangeValue: document.querySelector("#energyRangeValue"),
+  normInitialValue: document.querySelector("#normInitialValue"),
+  normFinalValue: document.querySelector("#normFinalValue"),
+  normRangeValue: document.querySelector("#normRangeValue"),
   evidenceDonut: document.querySelector("#evidenceDonut"),
   evidenceCount: document.querySelector("#evidenceCount"),
   evidenceLegend: document.querySelector("#evidenceLegend"),
@@ -1049,8 +1060,18 @@ function renderArtifactPreviews(artifactLinks, runId, callouts = []) {
     .map((item, index) => {
       const title = escapeHtml(item.label);
       const name = escapeHtml(item.name);
-      const callout = artifactCalloutMarkup(calloutMap.get(item.key));
+      const calloutData = calloutMap.get(item.key);
+      const callout = artifactCalloutMarkup(calloutData);
       if (item.kind === "svg") {
+        const encodedTitle = encodeURIComponent(item.label || item.name);
+        const encodedName = encodeURIComponent(item.name || "Generated SVG");
+        const encodedCallout = encodeURIComponent(
+          calloutData?.callout || "Inspect axes, annotations, extrema, and the sampled diagnostic trajectory.",
+        );
+        const encodedWhy = encodeURIComponent(
+          calloutData?.why_it_matters ||
+            "The scalable source preserves labels and numerical structure for review and publication workflows.",
+        );
         return `
           <figure class="lab-artifact-preview-item">
             <figcaption>
@@ -1058,7 +1079,23 @@ function renderArtifactPreviews(artifactLinks, runId, callouts = []) {
               <span>${name}</span>
             </figcaption>
             ${callout}
-            <img src="${escapeHtml(item.url)}" alt="${title} preview" loading="lazy" />
+            <button
+              class="artifact-expand-button"
+              type="button"
+              data-artifact-preview-url="${escapeHtml(item.url)}"
+              data-artifact-preview-title="${encodedTitle}"
+              data-artifact-preview-name="${encodedName}"
+              data-artifact-preview-callout="${encodedCallout}"
+              data-artifact-preview-why="${encodedWhy}"
+              aria-label="Expand ${title} scientific figure"
+            >
+              <img src="${escapeHtml(item.url)}" alt="${title} preview" loading="lazy" />
+              <span>Expand figure</span>
+            </button>
+            <div class="artifact-science-strip">
+              <span>Scalable vector diagnostic</span>
+              <span>Axes + annotations + embedded metadata</span>
+            </div>
           </figure>
         `;
       }
@@ -1085,6 +1122,28 @@ function renderArtifactPreviews(artifactLinks, runId, callouts = []) {
       loadCsvPreview(item, index, runId);
     }
   });
+}
+
+function openArtifactPreview(trigger) {
+  const url = trigger.dataset.artifactPreviewUrl;
+  if (!url) return;
+
+  artifactPreviewTrigger = trigger;
+  const title = decodeURIComponent(trigger.dataset.artifactPreviewTitle || "Scientific figure");
+  els.artifactPreviewHeading.textContent = title;
+  els.artifactPreviewFilename.textContent = decodeURIComponent(
+    trigger.dataset.artifactPreviewName || "Generated SVG",
+  );
+  els.artifactPreviewCallout.textContent = decodeURIComponent(
+    trigger.dataset.artifactPreviewCallout || "Inspect the scientific figure at full scale.",
+  );
+  els.artifactPreviewWhy.textContent = decodeURIComponent(
+    trigger.dataset.artifactPreviewWhy || "The figure is part of the generated evidence surface.",
+  );
+  els.artifactPreviewImage.src = url;
+  els.artifactPreviewImage.alt = `${title} expanded scientific figure`;
+  els.artifactPreviewSourceLink.href = url;
+  els.artifactPreviewDialog.showModal();
 }
 
 function renderLabEvidenceExplorer(result) {
@@ -3517,42 +3576,129 @@ function renderExperimentRegistry() {
   });
 }
 
-function renderTrace(svg, values, color) {
-  const width = 280;
-  const height = 110;
-  const padding = 10;
+function formatAxisValue(value) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return "-";
+  if (numeric === 0) return "0";
+  if (Math.abs(numeric) >= 1000 || Math.abs(numeric) < 0.001) {
+    return numeric.toExponential(1);
+  }
+  const formatted = numeric.toPrecision(3);
+  return formatted.includes(".") ? formatted.replace(/0+$/, "").replace(/\.$/, "") : formatted;
+}
+
+function renderScientificTrace(svg, history, key, options) {
+  const width = 720;
+  const height = 300;
+  const margin = { top: 28, right: 32, bottom: 54, left: 82 };
   svg.innerHTML = "";
 
-  if (!values.length) {
-    return;
+  const samples = history
+    .map((item, index) => ({
+      step: Number.isFinite(Number(item.step)) ? Number(item.step) : index,
+      value: Number(item[key]),
+    }))
+    .filter((item) => Number.isFinite(item.step) && Number.isFinite(item.value));
+  if (!samples.length) {
+    return null;
   }
 
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const span = max - min || 1;
-  const points = values
-    .map((value, index) => {
-      const x = padding + ((width - padding * 2) * index) / Math.max(values.length - 1, 1);
-      const y = height - padding - ((value - min) / span) * (height - padding * 2);
-      return `${x},${y}`;
-    })
-    .join(" ");
+  const initial = samples[0].value;
+  const denominator = Math.abs(initial) || 1;
+  const relative = samples.map((item) => ({
+    ...item,
+    delta: (item.value - initial) / denominator,
+  }));
+  const xMin = Math.min(...relative.map((item) => item.step));
+  const xMax = Math.max(...relative.map((item) => item.step));
+  const rawYMin = Math.min(0, ...relative.map((item) => item.delta));
+  const rawYMax = Math.max(0, ...relative.map((item) => item.delta));
+  const rawSpan = rawYMax - rawYMin;
+  const yPadding = rawSpan ? rawSpan * 0.14 : Math.max(Math.abs(rawYMax) * 0.2, 1e-12);
+  const yMin = rawYMin - yPadding;
+  const yMax = rawYMax + yPadding;
+  const plotWidth = width - margin.left - margin.right;
+  const plotHeight = height - margin.top - margin.bottom;
+  const xScale = (value) =>
+    margin.left + ((value - xMin) / Math.max(xMax - xMin, 1)) * plotWidth;
+  const yScale = (value) =>
+    margin.top + ((yMax - value) / Math.max(yMax - yMin, Number.EPSILON)) * plotHeight;
+  const coordinates = relative.map((item) => ({
+    ...item,
+    x: xScale(item.step),
+    y: yScale(item.delta),
+  }));
+  const linePoints = coordinates.map((item) => `${item.x.toFixed(2)},${item.y.toFixed(2)}`).join(" ");
+  const zeroY = yScale(0);
+  const areaPoints = [
+    `${coordinates[0].x.toFixed(2)},${zeroY.toFixed(2)}`,
+    ...coordinates.map((item) => `${item.x.toFixed(2)},${item.y.toFixed(2)}`),
+    `${coordinates.at(-1).x.toFixed(2)},${zeroY.toFixed(2)}`,
+  ].join(" ");
+  const peak = coordinates.reduce((current, item) =>
+    Math.abs(item.delta) > Math.abs(current.delta) ? item : current,
+  );
+  const final = coordinates.at(-1);
+  const gradientId = `${svg.id}-area-gradient`;
 
-  const axis = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  axis.setAttribute("d", `M${padding},${height - padding} L${width - padding},${height - padding}`);
-  axis.setAttribute("stroke", "rgba(35, 57, 59, 0.16)");
-  axis.setAttribute("stroke-width", "1");
-  axis.setAttribute("fill", "none");
+  const xTicks = Array.from({ length: 5 }, (_, index) => {
+    const fraction = index / 4;
+    const value = xMin + (xMax - xMin) * fraction;
+    const x = margin.left + plotWidth * fraction;
+    return `
+      <line x1="${x}" y1="${margin.top}" x2="${x}" y2="${height - margin.bottom}" stroke="rgba(21,57,61,0.09)" stroke-width="1" />
+      <text x="${x}" y="${height - margin.bottom + 22}" text-anchor="middle" fill="#627176" font-size="11">${formatAxisValue(value)}</text>
+    `;
+  }).join("");
+  const yTicks = Array.from({ length: 5 }, (_, index) => {
+    const fraction = index / 4;
+    const value = yMax - (yMax - yMin) * fraction;
+    const y = margin.top + plotHeight * fraction;
+    return `
+      <line x1="${margin.left}" y1="${y}" x2="${width - margin.right}" y2="${y}" stroke="rgba(21,57,61,0.1)" stroke-width="1" />
+      <text x="${margin.left - 12}" y="${y + 4}" text-anchor="end" fill="#627176" font-size="11">${formatAxisValue(value)}</text>
+    `;
+  }).join("");
+  const points = coordinates
+    .map(
+      (item) => `
+        <circle cx="${item.x}" cy="${item.y}" r="4" fill="#fffdf8" stroke="${options.color}" stroke-width="2">
+          <title>Step ${formatAxisValue(item.step)}: ${key} ${formatScientific(item.value)}, relative change ${formatScientific(item.delta)}</title>
+        </circle>
+      `,
+    )
+    .join("");
+  const annotationX = Math.min(peak.x + 12, width - margin.right - 150);
+  const annotationY = Math.max(margin.top + 18, peak.y - 12);
 
-  const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
-  line.setAttribute("points", points);
-  line.setAttribute("stroke", color);
-  line.setAttribute("stroke-width", "3");
-  line.setAttribute("stroke-linecap", "round");
-  line.setAttribute("stroke-linejoin", "round");
-  line.setAttribute("fill", "none");
+  svg.innerHTML = `
+    <title>${escapeHtml(options.title)}</title>
+    <desc>${escapeHtml(options.description)} Relative values use the first recorded sample as the reference.</desc>
+    <defs>
+      <linearGradient id="${gradientId}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${options.color}" stop-opacity="0.22" />
+        <stop offset="100%" stop-color="${options.color}" stop-opacity="0.02" />
+      </linearGradient>
+    </defs>
+    ${xTicks}
+    ${yTicks}
+    <line x1="${margin.left}" y1="${zeroY}" x2="${width - margin.right}" y2="${zeroY}" stroke="#334f54" stroke-width="1.4" stroke-dasharray="5 5" />
+    <polygon points="${areaPoints}" fill="url(#${gradientId})" />
+    <polyline points="${linePoints}" fill="none" stroke="${options.color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke" />
+    ${points}
+    <line x1="${peak.x}" y1="${peak.y}" x2="${annotationX}" y2="${annotationY}" stroke="${options.color}" stroke-width="1" />
+    <text x="${annotationX + 4}" y="${annotationY - 4}" fill="#263f43" font-size="11" font-weight="700">Peak |change| ${formatScientific(Math.abs(peak.delta))}</text>
+    <text x="${width / 2}" y="${height - 12}" text-anchor="middle" fill="#40575c" font-size="12" font-weight="700">Simulation step</text>
+    <text x="18" y="${height / 2}" transform="rotate(-90 18 ${height / 2})" text-anchor="middle" fill="#40575c" font-size="12" font-weight="700">${escapeHtml(options.yLabel)}</text>
+    <text x="${width - margin.right}" y="${margin.top + 2}" text-anchor="end" fill="#627176" font-size="10" font-weight="700">Diagnostic trajectory · ${coordinates.length} samples</text>
+  `;
 
-  svg.append(axis, line);
+  return {
+    initial,
+    final: final.value,
+    finalRelative: final.delta,
+    peakRelative: Math.abs(peak.delta),
+  };
 }
 
 function renderEvidence(detail) {
@@ -3614,28 +3760,40 @@ function renderSelectedRun(detail) {
   els.statusJobId.textContent = jobLabel(detail.execution_job);
   els.statusJobBackend.textContent = jobBackendLabel(detail.execution_job);
 
-  els.detailTitle.textContent = detail.summary.name;
-  els.detailChip.textContent = detail.run_record.experiment?.parameter_value_label
-    ? `${detail.summary.run_id} - ${detail.run_record.experiment.parameter_value_label}`
-    : detail.summary.run_id;
+  const runVariantLabel = detail.run_record.experiment?.parameter_value_label;
+  els.detailTitle.textContent = runVariantLabel ? `${runVariantLabel} run` : detail.summary.name;
+  els.detailChip.textContent = shortRunId(detail.summary.run_id);
   els.detailDigest.textContent = detail.summary.config_digest;
-  els.energyDriftValue.textContent = formatScientific(detail.metrics.energy_drift);
-  els.normDriftValue.textContent = formatScientific(detail.metrics.norm_drift);
-  els.energyAxisMid.textContent = Math.floor(detail.metrics.history.length / 2).toString();
-  els.energyAxisEnd.textContent = String(detail.latest_snapshot.step);
-  els.normAxisMid.textContent = Math.floor(detail.metrics.history.length / 2).toString();
-  els.normAxisEnd.textContent = String(detail.latest_snapshot.step);
-
-  renderTrace(
+  const energyTrace = renderScientificTrace(
     els.energyChart,
-    detail.metrics.history.map((item) => Number(item.energy)),
-    "rgba(217, 109, 46, 0.94)",
+    detail.metrics.history,
+    "energy",
+    {
+      color: "#c45f28",
+      title: "Relative energy change over simulation steps",
+      description: "Recorded energy history shown as change relative to the initial value.",
+      yLabel: "Relative energy change",
+    },
   );
-  renderTrace(
+  const normTrace = renderScientificTrace(
     els.normChart,
-    detail.metrics.history.map((item) => Number(item.norm)),
-    "rgba(42, 106, 106, 0.94)",
+    detail.metrics.history,
+    "norm",
+    {
+      color: "#237777",
+      title: "Relative norm change over simulation steps",
+      description: "Recorded norm history shown as change relative to the initial value.",
+      yLabel: "Relative norm change",
+    },
   );
+  els.energyDriftValue.textContent = formatSignedScientific(energyTrace?.finalRelative);
+  els.energyInitialValue.textContent = formatScientific(energyTrace?.initial);
+  els.energyFinalValue.textContent = formatScientific(energyTrace?.final);
+  els.energyRangeValue.textContent = formatScientific(energyTrace?.peakRelative);
+  els.normDriftValue.textContent = formatSignedScientific(normTrace?.finalRelative);
+  els.normInitialValue.textContent = formatScientific(normTrace?.initial);
+  els.normFinalValue.textContent = formatScientific(normTrace?.final);
+  els.normRangeValue.textContent = formatScientific(normTrace?.peakRelative);
 
   els.bundleLink.href = detail.urls.bundle;
   els.bundleLink.setAttribute("download", "");
@@ -3651,7 +3809,7 @@ function renderSelectedRun(detail) {
   renderRunsTable();
 }
 
-function renderRecommendation(decision) {
+function renderRecommendation(decision, rows = []) {
   if (!decision) {
     els.recommendationLabel.textContent = "Recommendation";
     els.recommendationRun.textContent = "No recommendation yet";
@@ -3674,7 +3832,10 @@ function renderRecommendation(decision) {
   }
 
   els.recommendationLabel.textContent = decision.profile.objective.name;
-  els.recommendationRun.textContent = decision.recommended_run_id;
+  const recommendedRow = rows.find((row) => row.run_id === decision.recommended_run_id);
+  const recommendedLabel =
+    recommendedRow?.parameter_value_label || recommendedRow?.config_name || "Recommended run";
+  els.recommendationRun.textContent = `${recommendedLabel} · ${shortRunId(decision.recommended_run_id)}`;
   els.recommendationReason.textContent = decision.reason;
   els.recommendationStatus.textContent = decision.status;
   els.recommendationStatus.className = `status-badge ${toneForStatus(decision.status)}`;
@@ -3683,7 +3844,7 @@ function renderRecommendation(decision) {
 
 function renderComparison(comparison) {
   state.comparison = comparison;
-  renderRecommendation(comparison?.decision || null);
+  renderRecommendation(comparison?.decision || null, comparison?.rows || []);
 
   if (!comparison) {
     els.compareTitle.textContent = "Run Comparison";
@@ -4401,6 +4562,15 @@ function bindEvents() {
 
   els.launchLabButton.addEventListener("click", handleLaunchLabMode);
   els.launchLabComparisonButton.addEventListener("click", handleLaunchLabComparison);
+  els.labArtifactPreview.addEventListener("click", (event) => {
+    const trigger = event.target.closest("[data-artifact-preview-url]");
+    if (trigger) openArtifactPreview(trigger);
+  });
+  els.artifactPreviewDialog.addEventListener("close", () => {
+    els.artifactPreviewImage.removeAttribute("src");
+    artifactPreviewTrigger?.focus();
+    artifactPreviewTrigger = null;
+  });
   els.campaignStudioEditor.addEventListener("submit", handleLaunchCampaignStudio);
   els.campaignStudioFields.addEventListener("input", (event) => {
     const input = event.target.closest("[data-campaign-path]");

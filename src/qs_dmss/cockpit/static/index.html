@@ -960,15 +960,19 @@
             </section>
           </section>
 
-          <section class="panel status-panel reveal">
-            <div class="panel-head">
+          <section class="panel detail-panel run-overview-panel reveal" id="artifacts">
+            <div class="panel-head run-overview-head">
               <div>
-                <p class="panel-kicker">Status</p>
-                <h2 id="statusHeading">Awaiting Run</h2>
+                <p class="panel-kicker">Run Overview</p>
+                <h2 id="detailTitle">Select a run</h2>
+                <p class="run-overview-status" id="statusHeading">Awaiting Run</p>
               </div>
-              <span class="status-badge" id="statusBadge">Idle</span>
+              <div class="run-overview-badges">
+                <span class="status-badge" id="statusBadge">Idle</span>
+                <span class="detail-chip" id="detailChip">No run selected</span>
+              </div>
             </div>
-            <dl class="metric-list" id="statusMetrics">
+            <dl class="metric-list run-summary-metrics" id="statusMetrics">
               <div>
                 <dt>Run ID</dt>
                 <dd id="statusRunId">No run selected</dd>
@@ -1002,16 +1006,6 @@
                 <dd id="statusJobBackend">-</dd>
               </div>
             </dl>
-          </section>
-
-          <section class="panel detail-panel reveal" id="artifacts">
-            <div class="panel-head">
-              <div>
-                <p class="panel-kicker">Run Detail</p>
-                <h2 id="detailTitle">Select a run</h2>
-              </div>
-              <span class="detail-chip" id="detailChip">No run selected</span>
-            </div>
 
             <div class="detail-digest">
               <span>Config Digest</span>
@@ -1042,51 +1036,64 @@
               </dl>
             </section>
 
-            <div class="chart-stack">
-              <article class="metric-card">
-                <div class="metric-copy">
-                  <p>Energy Drift</p>
-                  <strong id="energyDriftValue">-</strong>
+            <section class="diagnostic-workbench" aria-labelledby="diagnosticWorkbenchTitle">
+              <div class="diagnostic-workbench-head">
+                <div>
+                  <p class="panel-kicker">Scientific Diagnostics</p>
+                  <h3 id="diagnosticWorkbenchTitle">Conservation behavior over simulation steps</h3>
                 </div>
-                <div class="trace-wrap">
-                  <svg
-                    id="energyChart"
-                    class="trace"
-                    viewBox="0 0 280 110"
-                    preserveAspectRatio="none"
-                    role="img"
-                    aria-label="Energy drift over simulation steps"
-                  ></svg>
-                  <div class="trace-axis">
-                    <span>0</span>
-                    <span id="energyAxisMid">mid</span>
-                    <span id="energyAxisEnd">end</span>
+                <span class="selection-chip">Relative to initial value · diagnostic only</span>
+              </div>
+              <div class="chart-stack scientific-chart-stack">
+                <article class="metric-card scientific-metric-card">
+                  <header class="scientific-metric-head">
+                    <div class="metric-copy">
+                      <p>Relative Energy Change</p>
+                      <strong id="energyDriftValue">-</strong>
+                    </div>
+                    <p>ΔE / |E₀| across recorded solver steps</p>
+                  </header>
+                  <div class="trace-wrap scientific-trace-wrap">
+                    <svg
+                      id="energyChart"
+                      class="trace scientific-trace"
+                      viewBox="0 0 720 300"
+                      role="img"
+                      aria-label="Relative energy change over simulation steps"
+                    ></svg>
                   </div>
-                </div>
-              </article>
+                  <dl class="chart-stat-row">
+                    <div><dt>Initial E</dt><dd id="energyInitialValue">-</dd></div>
+                    <div><dt>Final E</dt><dd id="energyFinalValue">-</dd></div>
+                    <div><dt>Peak |ΔE/E₀|</dt><dd id="energyRangeValue">-</dd></div>
+                  </dl>
+                </article>
 
-              <article class="metric-card">
-                <div class="metric-copy">
-                  <p>Norm Drift</p>
-                  <strong id="normDriftValue">-</strong>
-                </div>
-                <div class="trace-wrap">
-                  <svg
-                    id="normChart"
-                    class="trace"
-                    viewBox="0 0 280 110"
-                    preserveAspectRatio="none"
-                    role="img"
-                    aria-label="Norm drift over simulation steps"
-                  ></svg>
-                  <div class="trace-axis">
-                    <span>0</span>
-                    <span id="normAxisMid">mid</span>
-                    <span id="normAxisEnd">end</span>
+                <article class="metric-card scientific-metric-card">
+                  <header class="scientific-metric-head">
+                    <div class="metric-copy">
+                      <p>Relative Norm Change</p>
+                      <strong id="normDriftValue">-</strong>
+                    </div>
+                    <p>ΔN / |N₀| across recorded solver steps</p>
+                  </header>
+                  <div class="trace-wrap scientific-trace-wrap">
+                    <svg
+                      id="normChart"
+                      class="trace scientific-trace"
+                      viewBox="0 0 720 300"
+                      role="img"
+                      aria-label="Relative norm change over simulation steps"
+                    ></svg>
                   </div>
-                </div>
-              </article>
-            </div>
+                  <dl class="chart-stat-row">
+                    <div><dt>Initial N</dt><dd id="normInitialValue">-</dd></div>
+                    <div><dt>Final N</dt><dd id="normFinalValue">-</dd></div>
+                    <div><dt>Peak |ΔN/N₀|</dt><dd id="normRangeValue">-</dd></div>
+                  </dl>
+                </article>
+              </div>
+            </section>
 
             <div class="detail-actions">
               <button class="secondary-button" id="verifyButton" type="button" disabled>Verify</button>
@@ -1346,6 +1353,47 @@
           <button class="ghost-button" value="close" type="submit">Close</button>
         </header>
         <iframe id="reportFrame" title="QS-DMSS run report"></iframe>
+      </form>
+    </dialog>
+
+    <dialog
+      class="artifact-preview-modal"
+      id="artifactPreviewDialog"
+      aria-labelledby="artifactPreviewHeading"
+    >
+      <form method="dialog" class="artifact-preview-modal-shell">
+        <header class="report-head">
+          <div>
+            <p class="panel-kicker">Scientific Figure Inspector</p>
+            <h2 id="artifactPreviewHeading">Artifact preview</h2>
+          </div>
+          <button class="ghost-button" value="close" type="submit">Close</button>
+        </header>
+        <div class="artifact-preview-modal-grid">
+          <div class="artifact-preview-canvas">
+            <img id="artifactPreviewImage" alt="" />
+          </div>
+          <aside class="artifact-preview-notes">
+            <p class="artifact-list-title" id="artifactPreviewFilename">Generated SVG</p>
+            <section>
+              <h3>What to inspect</h3>
+              <p id="artifactPreviewCallout">Select an SVG figure to inspect it at full scale.</p>
+            </section>
+            <section>
+              <h3>Why it matters</h3>
+              <p id="artifactPreviewWhy">Scientific interpretation notes appear here.</p>
+            </section>
+            <p class="scenario-library-note">
+              Generated figures are diagnostic workflow artifacts, not peer-reviewed physical validation.
+            </p>
+            <a
+              class="secondary-button teal"
+              id="artifactPreviewSourceLink"
+              target="_blank"
+              rel="noreferrer"
+            >Open source SVG</a>
+          </aside>
+        </div>
       </form>
     </dialog>
 

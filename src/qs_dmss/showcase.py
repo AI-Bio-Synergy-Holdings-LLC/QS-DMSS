@@ -204,35 +204,10 @@ def _midplane_density_slice(
     return rows, slice_data
 
 
-def _scale_points(
-    points: list[tuple[float, float]],
-    *,
-    width: int,
-    height: int,
-    margin: int,
-) -> tuple[list[tuple[float, float]], tuple[float, float], tuple[float, float]]:
-    x_values = [point[0] for point in points]
-    y_values = [point[1] for point in points]
-    x_min, x_max = min(x_values), max(x_values)
-    y_min, y_max = min(y_values), max(y_values)
-    if x_min == x_max:
-        x_min -= 1.0
-        x_max += 1.0
-    if y_min == y_max:
-        padding = max(abs(y_min) * 0.1, 1.0)
-        y_min -= padding
-        y_max += padding
-
-    plot_width = width - (2 * margin)
-    plot_height = height - (2 * margin)
-    scaled = [
-        (
-            margin + ((x - x_min) / (x_max - x_min)) * plot_width,
-            height - margin - ((y - y_min) / (y_max - y_min)) * plot_height,
-        )
-        for x, y in points
-    ]
-    return scaled, (x_min, x_max), (y_min, y_max)
+def _tick_values(minimum: float, maximum: float, count: int = 6) -> list[float]:
+    if count < 2:
+        return [minimum]
+    return [minimum + (maximum - minimum) * index / (count - 1) for index in range(count)]
 
 
 def _write_line_plot_svg(
@@ -244,35 +219,105 @@ def _write_line_plot_svg(
     points: list[tuple[float, float]],
     stroke: str,
 ) -> None:
-    width = 720
-    height = 360
-    margin = 56
-    scaled, x_domain, y_domain = _scale_points(
-        points,
-        width=width,
-        height=height,
-        margin=margin,
-    )
+    width = 960
+    height = 540
+    left = 96
+    right = 44
+    top = 92
+    bottom = 78
+    x_values = [point[0] for point in points]
+    y_values = [point[1] for point in points]
+    x_min, x_max = min(x_values), max(x_values)
+    y_min, y_max = min(y_values), max(y_values)
+    if x_min == x_max:
+        x_min -= 1.0
+        x_max += 1.0
+    if y_min == y_max:
+        padding = max(abs(y_min) * 0.1, 1e-12)
+    else:
+        padding = (y_max - y_min) * 0.08
+    y_min -= padding
+    y_max += padding
+    plot_width = width - left - right
+    plot_height = height - top - bottom
+    scaled = [
+        (
+            left + ((x - x_min) / (x_max - x_min)) * plot_width,
+            top + ((y_max - y) / (y_max - y_min)) * plot_height,
+        )
+        for x, y in points
+    ]
     polyline = " ".join(f"{x:.3f},{y:.3f}" for x, y in scaled)
     circles = "\n".join(
-        f'<circle cx="{x:.3f}" cy="{y:.3f}" r="3.5" fill="{stroke}" />'
-        for x, y in scaled
+        (
+            f'<circle cx="{scaled_x:.3f}" cy="{scaled_y:.3f}" r="4" '
+            f'fill="#fffdf8" stroke="{stroke}" stroke-width="2">'
+            f'<title>{html.escape(x_label)} {x_value:.6g}; '
+            f'{html.escape(y_label)} {y_value:.6g}</title></circle>'
+        )
+        for (x_value, y_value), (scaled_x, scaled_y) in zip(points, scaled, strict=True)
+    )
+    x_grid = "\n".join(
+        (
+            f'<line class="grid-line" x1="{left + (value - x_min) / (x_max - x_min) * plot_width:.3f}" '
+            f'y1="{top}" x2="{left + (value - x_min) / (x_max - x_min) * plot_width:.3f}" '
+            f'y2="{height - bottom}" stroke="#d8e0df" stroke-width="1" />'
+            f'<text x="{left + (value - x_min) / (x_max - x_min) * plot_width:.3f}" '
+            f'y="{height - bottom + 24}" text-anchor="middle" font-family="Arial, sans-serif" '
+            f'font-size="12" fill="#53666a">{value:.4g}</text>'
+        )
+        for value in _tick_values(x_min, x_max)
+    )
+    y_grid = "\n".join(
+        (
+            f'<line class="grid-line" x1="{left}" '
+            f'y1="{top + (y_max - value) / (y_max - y_min) * plot_height:.3f}" '
+            f'x2="{width - right}" y2="{top + (y_max - value) / (y_max - y_min) * plot_height:.3f}" '
+            f'stroke="#d8e0df" stroke-width="1" />'
+            f'<text x="{left - 12}" y="{top + (y_max - value) / (y_max - y_min) * plot_height + 4:.3f}" '
+            f'text-anchor="end" font-family="Arial, sans-serif" font-size="12" fill="#53666a">{value:.3g}</text>'
+        )
+        for value in _tick_values(y_min, y_max)
+    )
+    peak_index = int(np.argmax(np.asarray(y_values)))
+    peak_x, peak_y = scaled[peak_index]
+    peak_value = points[peak_index]
+    final_x, final_y = scaled[-1]
+    metadata = html.escape(
+        json.dumps(
+            {
+                "figure_type": "sampled_line_diagnostic",
+                "sample_count": len(points),
+                "x_domain": [x_min, x_max],
+                "y_domain": [y_min, y_max],
+                "peak_sample": list(peak_value),
+                "final_sample": list(points[-1]),
+                "claim_boundary": "diagnostic workflow artifact; not scientific validation",
+            },
+            sort_keys=True,
+        )
     )
 
     path.write_text(
-        f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-label="{html.escape(title)}">
-  <rect width="100%" height="100%" fill="#f8fafc" />
-  <text x="{margin}" y="32" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">{html.escape(title)}</text>
-  <line x1="{margin}" y1="{height - margin}" x2="{width - margin}" y2="{height - margin}" stroke="#334155" stroke-width="1" />
-  <line x1="{margin}" y1="{margin}" x2="{margin}" y2="{height - margin}" stroke="#334155" stroke-width="1" />
-  <polyline points="{polyline}" fill="none" stroke="{stroke}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" />
+        f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-label="{html.escape(title)}" data-scientific-figure="line-diagnostic">
+  <title>{html.escape(title)}</title>
+  <desc>Sampled {html.escape(y_label)} plotted against {html.escape(x_label)} with direct axis labels, grid lines, peak and final-sample annotations. Diagnostic workflow artifact; not scientific validation.</desc>
+  <metadata>{metadata}</metadata>
+  <rect width="100%" height="100%" fill="#fffdf8" />
+  <text x="{left}" y="38" font-family="Georgia, serif" font-size="24" font-weight="700" fill="#17383c">{html.escape(title)}</text>
+  <text x="{left}" y="62" font-family="Arial, sans-serif" font-size="12" fill="#607176">{len(points)} sampled values · diagnostic workflow artifact</text>
+  {x_grid}
+  {y_grid}
+  <line x1="{left}" y1="{height - bottom}" x2="{width - right}" y2="{height - bottom}" stroke="#334f54" stroke-width="1.5" />
+  <line x1="{left}" y1="{top}" x2="{left}" y2="{height - bottom}" stroke="#334f54" stroke-width="1.5" />
+  <polyline points="{polyline}" fill="none" stroke="{stroke}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
   {circles}
-  <text x="{width / 2:.0f}" y="{height - 16}" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#334155">{html.escape(x_label)}</text>
-  <text x="18" y="{height / 2:.0f}" transform="rotate(-90 18 {height / 2:.0f})" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#334155">{html.escape(y_label)}</text>
-  <text x="{margin}" y="{height - margin + 22}" font-family="Arial, sans-serif" font-size="11" fill="#64748b">{x_domain[0]:.4g}</text>
-  <text x="{width - margin}" y="{height - margin + 22}" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">{x_domain[1]:.4g}</text>
-  <text x="{margin - 8}" y="{height - margin}" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">{y_domain[0]:.4g}</text>
-  <text x="{margin - 8}" y="{margin + 4}" text-anchor="end" font-family="Arial, sans-serif" font-size="11" fill="#64748b">{y_domain[1]:.4g}</text>
+  <line x1="{peak_x:.3f}" y1="{peak_y:.3f}" x2="{min(peak_x + 52, width - right - 128):.3f}" y2="{max(peak_y - 30, top + 18):.3f}" stroke="{stroke}" stroke-width="1.25" />
+  <text x="{min(peak_x + 56, width - right - 124):.3f}" y="{max(peak_y - 34, top + 14):.3f}" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#31494d">Peak {peak_value[1]:.4g}</text>
+  <circle cx="{final_x:.3f}" cy="{final_y:.3f}" r="7" fill="none" stroke="#d96d2e" stroke-width="2" />
+  <text x="{max(final_x - 8, left + 70):.3f}" y="{min(final_y + 24, height - bottom - 8):.3f}" text-anchor="end" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#9b4c20">Final {points[-1][1]:.4g}</text>
+  <text x="{width / 2:.0f}" y="{height - 18}" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#334f54">{html.escape(x_label)}</text>
+  <text x="24" y="{top + plot_height / 2:.0f}" transform="rotate(-90 24 {top + plot_height / 2:.0f})" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#334f54">{html.escape(y_label)}</text>
 </svg>
 """,
         encoding="utf-8",
@@ -297,30 +342,83 @@ def _density_color(value: float, minimum: float, maximum: float) -> str:
 
 
 def _write_density_slice_svg(path: Path, slice_data: np.ndarray) -> None:
-    cell_size = 24
-    margin = 56
+    width = 900
+    height = 700
+    left = 92
+    top = 94
+    plot_size = 500
     nx, ny = slice_data.shape
-    width = margin * 2 + nx * cell_size
-    height = margin * 2 + ny * cell_size + 24
+    cell_width = plot_size / nx
+    cell_height = plot_size / ny
     minimum = float(np.min(slice_data))
     maximum = float(np.max(slice_data))
     cells = []
     for x_index in range(nx):
         for y_index in range(ny):
-            x = margin + x_index * cell_size
-            y = margin + (ny - y_index - 1) * cell_size
-            color = _density_color(float(slice_data[x_index, y_index]), minimum, maximum)
+            x = left + x_index * cell_width
+            y = top + (ny - y_index - 1) * cell_height
+            value = float(slice_data[x_index, y_index])
+            color = _density_color(value, minimum, maximum)
             cells.append(
-                f'<rect x="{x}" y="{y}" width="{cell_size}" height="{cell_size}" fill="{color}" stroke="#f8fafc" stroke-width="1" />'
+                f'<rect x="{x:.3f}" y="{y:.3f}" width="{cell_width + 0.2:.3f}" height="{cell_height + 0.2:.3f}" fill="{color}">'
+                f'<title>x index {x_index}; y index {y_index}; density {value:.6g}</title></rect>'
             )
+    x_ticks = "\n".join(
+        f'<text x="{left + index / 4 * plot_size:.3f}" y="{top + plot_size + 24}" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#53666a">{round(index / 4 * (nx - 1))}</text>'
+        for index in range(5)
+    )
+    y_ticks = "\n".join(
+        f'<text x="{left - 14}" y="{top + plot_size - index / 4 * plot_size + 4:.3f}" text-anchor="end" font-family="Arial, sans-serif" font-size="12" fill="#53666a">{round(index / 4 * (ny - 1))}</text>'
+        for index in range(5)
+    )
+    peak_index = np.unravel_index(int(np.argmax(slice_data)), slice_data.shape)
+    peak_x = left + (peak_index[0] + 0.5) * cell_width
+    peak_y = top + (ny - peak_index[1] - 0.5) * cell_height
+    midpoint = minimum + (maximum - minimum) / 2
+    metadata = html.escape(
+        json.dumps(
+            {
+                "figure_type": "density_midplane_heatmap",
+                "shape": [nx, ny],
+                "minimum": minimum,
+                "maximum": maximum,
+                "peak_index": [int(index) for index in peak_index],
+                "claim_boundary": "diagnostic workflow artifact; not scientific validation",
+            },
+            sort_keys=True,
+        )
+    )
 
     path.write_text(
-        f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-label="Final density midplane heatmap">
-  <rect width="100%" height="100%" fill="#f8fafc" />
-  <text x="{margin}" y="32" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#111827">Final Density Midplane</text>
+        f"""<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-label="Final density midplane heatmap" data-scientific-figure="density-heatmap">
+  <title>Final Density Midplane</title>
+  <desc>Final solver density on the central grid plane with indexed axes, an explicit color scale, cell tooltips, and the peak cell annotated. Diagnostic workflow artifact; not scientific validation.</desc>
+  <metadata>{metadata}</metadata>
+  <defs>
+    <linearGradient id="density-scale" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="{_density_color(minimum, minimum, maximum)}" />
+      <stop offset="55%" stop-color="{_density_color(midpoint, minimum, maximum)}" />
+      <stop offset="100%" stop-color="{_density_color(maximum, minimum, maximum)}" />
+    </linearGradient>
+  </defs>
+  <rect width="100%" height="100%" fill="#fffdf8" />
+  <text x="{left}" y="38" font-family="Georgia, serif" font-size="24" font-weight="700" fill="#17383c">Final Density Midplane</text>
+  <text x="{left}" y="62" font-family="Arial, sans-serif" font-size="12" fill="#607176">Central solver plane · {nx} × {ny} indexed cells · diagnostic workflow artifact</text>
   {"".join(cells)}
-  <text x="{margin}" y="{height - 18}" font-family="Arial, sans-serif" font-size="12" fill="#334155">min density {minimum:.4g}</text>
-  <text x="{width - margin}" y="{height - 18}" text-anchor="end" font-family="Arial, sans-serif" font-size="12" fill="#334155">max density {maximum:.4g}</text>
+  <rect x="{left}" y="{top}" width="{plot_size}" height="{plot_size}" fill="none" stroke="#334f54" stroke-width="1.5" />
+  {x_ticks}
+  {y_ticks}
+  <text x="{left + plot_size / 2}" y="{top + plot_size + 54}" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#334f54">x grid index</text>
+  <text x="24" y="{top + plot_size / 2}" transform="rotate(-90 24 {top + plot_size / 2})" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#334f54">y grid index</text>
+  <circle cx="{peak_x:.3f}" cy="{peak_y:.3f}" r="{max(min(cell_width, cell_height) * 0.42, 7):.3f}" fill="none" stroke="#f7c96b" stroke-width="3" />
+  <line x1="{peak_x:.3f}" y1="{peak_y:.3f}" x2="{left + plot_size + 62}" y2="{top + 54}" stroke="#d96d2e" stroke-width="1.5" />
+  <text x="{left + plot_size + 72}" y="{top + 50}" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#9b4c20">Peak cell ({peak_index[0]}, {peak_index[1]})</text>
+  <text x="{left + plot_size + 72}" y="{top + 68}" font-family="Arial, sans-serif" font-size="12" fill="#53666a">density {maximum:.4g}</text>
+  <rect x="{left + plot_size + 72}" y="{top + 116}" width="28" height="260" fill="url(#density-scale)" stroke="#334f54" stroke-width="1" />
+  <text x="{left + plot_size + 112}" y="{top + 126}" font-family="Arial, sans-serif" font-size="12" fill="#53666a">{maximum:.3g}</text>
+  <text x="{left + plot_size + 112}" y="{top + 250}" font-family="Arial, sans-serif" font-size="12" fill="#53666a">{midpoint:.3g}</text>
+  <text x="{left + plot_size + 112}" y="{top + 376}" font-family="Arial, sans-serif" font-size="12" fill="#53666a">{minimum:.3g}</text>
+  <text x="{left + plot_size + 72}" y="{top + 406}" font-family="Arial, sans-serif" font-size="12" font-weight="700" fill="#334f54">density (solver units)</text>
 </svg>
 """,
         encoding="utf-8",
@@ -380,12 +478,20 @@ def _write_showcase_artifacts(
         midplane_rows,
     )
 
+    initial_energy = float(history_rows[0]["energy"])
+    energy_scale = abs(initial_energy) or 1.0
     _write_line_plot_svg(
         energy_svg,
-        title="Energy History",
+        title="Relative Energy Change",
         x_label="simulation step",
-        y_label="energy",
-        points=[(float(row["step"]), float(row["energy"])) for row in history_rows],
+        y_label="(energy - initial energy) / |initial energy|",
+        points=[
+            (
+                float(row["step"]),
+                (float(row["energy"]) - initial_energy) / energy_scale,
+            )
+            for row in history_rows
+        ],
         stroke="#0f766e",
     )
     _write_line_plot_svg(
