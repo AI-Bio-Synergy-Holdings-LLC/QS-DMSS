@@ -122,6 +122,9 @@ evidence-first simulation lab:
 - Experimental Fractal/Quadrant SSFM validation spine for nonlinear wave
   propagation through fuzzy fractal effective potentials, with a CPU reference
   backend and optional CuPy acceleration path
+- Optional simulator-only Fractal SSFM quantum-readiness sidecar that compares
+  one small phase-only QFT circuit against the NumPy reference and emits
+  manifest-verified circuit, sampling, resource, and state-comparison evidence
 - Public reference-data provenance sandbox that materializes metadata-only
   source manifests, cache checksums, a tiny calibration fixture, and an evidence
   bundle for Planck Legacy Archive, DESI DR1, SDSS DR19, and Gaia DR3 source
@@ -190,6 +193,20 @@ gate.
 
 This writes `fractal-ssfm-validation/fractal-ssfm-validation.json` plus a
 human-readable `fractal-ssfm-validation/fractal-ssfm-validation.md` summary.
+
+Run the optional simulator-only Fractal SSFM quantum-readiness sidecar:
+
+```powershell
+python -m pip install -e ".[dev,quantum]"
+qs-dmss quantum validate-fractal --output-root quantum-sidecar-validation
+```
+
+This fixed `4 x 4` profile validates one linear, phase-only fuzzy-potential
+Strang step against Qiskit statevector and Aer simulations. It writes OpenQASM,
+native circuit serialization, sampling/resource diagnostics, state comparison,
+a manifest, and an evidence bundle. It does not use a QPU or submit a remote
+job. See
+[docs/fractal-ssfm-quantum-sidecar.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/fractal-ssfm-quantum-sidecar.md).
 
 Run the public reference-data provenance calibration sandbox:
 

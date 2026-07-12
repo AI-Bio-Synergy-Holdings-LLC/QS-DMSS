@@ -14,6 +14,13 @@ source checkout and leave technical feedback on
 GPU expansion, further release prep, and decision-metric UI for
 `spectral_leakage` / `aliasing_ratio` remain paused behind that review gate.
 
+An optional simulator-only quantum-readiness sidecar now reuses the
+`fuzzy_potential` conservation boundary for one fixed `4 x 4`, `g_int: 0`
+encoding comparison. It is documented in
+[fractal-ssfm-quantum-sidecar.md](fractal-ssfm-quantum-sidecar.md). Circuit
+agreement is a software-encoding check and does not satisfy this harness's
+scientific review gate.
+
 ## Governing Model
 
 The backend evolves a 2-D wavefunction embedded in the existing QS-DMSS `grid_shape=[nx, ny, 1]` convention:

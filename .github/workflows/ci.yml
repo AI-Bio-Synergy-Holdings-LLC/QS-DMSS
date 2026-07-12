@@ -87,6 +87,7 @@ jobs:
               "qs_dmss/assets/showcases/fractal-quadrant-validation-preview.yaml"
               in wheel_names
           )
+          assert "qs_dmss/assets/quantum/fractal-fuzzy-4x4.yaml" in wheel_names
           assert "qs_dmss/cockpit/static/favicon.svg" in wheel_names
           assert "qs_dmss/cockpit/static/hosted-demo-social-preview.png" in wheel_names
 
@@ -115,6 +116,11 @@ jobs:
               + "src/qs_dmss/assets/showcases/fractal-quadrant-validation-preview.yaml"
               in sdist_names
           )
+          assert (
+              sdist_root
+              + "src/qs_dmss/assets/quantum/fractal-fuzzy-4x4.yaml"
+              in sdist_names
+          )
           assert sdist_root + "src/qs_dmss/cockpit/static/favicon.svg" in sdist_names
           assert (
               sdist_root
@@ -134,6 +140,39 @@ jobs:
           "$GITHUB_WORKSPACE"/wheel-smoke/bin/qs-dmss run-demo --output-root runs
           "$GITHUB_WORKSPACE"/wheel-smoke/bin/qs-dmss benchmarks validate --scenario demo-baseline
           "$GITHUB_WORKSPACE"/wheel-smoke/bin/qs-dmss showcase run --output-root simulation-showcase
+
+  quantum-sidecar:
+    name: Quantum sidecar
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Install quantum sidecar dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .[dev,quantum]
+
+      - name: Run quantum sidecar tests
+        run: pytest -q tests/test_quantum_sidecar.py
+
+      - name: Run packaged quantum sidecar
+        run: |
+          qs-dmss quantum validate-fractal \
+            --shots 1024 \
+            --output-root quantum-sidecar-validation
+
+      - name: Check quantum evidence outputs
+        run: |
+          test -f quantum-sidecar-validation/quantum-sidecar-validation.json
+          test -f quantum-sidecar-validation/manifest.sha256.json
+          test -f quantum-sidecar-validation/quantum-sidecar-evidence.zip
 
   docker:
     name: Docker smoke
