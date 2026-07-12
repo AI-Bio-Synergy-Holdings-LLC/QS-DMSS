@@ -68,7 +68,35 @@ def _canonical_profile(profile: dict[str, Any]) -> str:
     return json.dumps(profile, sort_keys=True, separators=(",", ":"))
 
 
-def _shared_decision_profile(run_details: list[dict[str, Any]]) -> tuple[dict[str, Any] | None, str]:
+def _profile_groups(
+    profiles: list[dict[str, Any] | None],
+    run_details: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    grouped: dict[str, dict[str, Any]] = {}
+    for profile, detail in zip(profiles, run_details):
+        if profile is None:
+            continue
+        canonical = _canonical_profile(profile)
+        objective = profile.get("objective") or {}
+        group = grouped.setdefault(
+            canonical,
+            {
+                "objective_name": str(objective.get("name") or "Unnamed objective"),
+                "primary_metric": str(objective.get("primary_metric") or "-"),
+                "goal": str(objective.get("goal") or "-"),
+                "run_ids": [],
+            },
+        )
+        run_record = detail.get("run_record") or {}
+        summary = detail.get("summary") or {}
+        run_id = run_record.get("run_id") or summary.get("run_id") or ""
+        group["run_ids"].append(str(run_id))
+    return list(grouped.values())
+
+
+def _shared_decision_profile(
+    run_details: list[dict[str, Any]],
+) -> tuple[dict[str, Any] | None, str, str, list[dict[str, Any]]]:
     profiles: list[dict[str, Any] | None] = []
     for detail in run_details:
         run_record = detail.get("run_record") or {}
@@ -78,16 +106,37 @@ def _shared_decision_profile(run_details: list[dict[str, Any]]) -> tuple[dict[st
         profiles.append(profile if isinstance(profile, dict) else None)
 
     available_profiles = [profile for profile in profiles if profile is not None]
+    groups = _profile_groups(profiles, run_details)
     if not available_profiles:
-        return None, "No shared objective profile is configured for the selected runs."
+        return (
+            None,
+            "No objective profile is configured for the selected runs. Metrics and "
+            "deltas remain available for evidence-only comparison.",
+            "unconfigured",
+            groups,
+        )
     if len(available_profiles) != len(profiles):
-        return None, "Some selected runs are missing an objective profile, so QS-DMSS cannot rank them fairly."
+        return (
+            None,
+            "Some selected runs are missing an objective profile. Metrics and deltas "
+            "remain comparable, but QS-DMSS will not rank runs under an incomplete "
+            "scoring contract.",
+            "partial",
+            groups,
+        )
 
     canonical_profiles = {_canonical_profile(profile) for profile in available_profiles}
     if len(canonical_profiles) != 1:
-        return None, "Selected runs do not share the same objective profile, so QS-DMSS cannot produce one recommendation."
+        return (
+            None,
+            "Selected runs use different objective profiles. QS-DMSS preserves an "
+            "evidence-only comparison and does not force one recommendation across "
+            "incompatible scoring contracts.",
+            "mixed",
+            groups,
+        )
 
-    return available_profiles[0], ""
+    return available_profiles[0], "", "shared", groups
 
 
 def _metric_value(row: dict[str, Any], metric: str) -> float:
@@ -324,12 +373,18 @@ def apply_decision_profile(
     comparison: dict[str, Any],
     run_details: list[dict[str, Any]],
 ) -> dict[str, Any]:
-    profile, unavailable_reason = _shared_decision_profile(run_details)
+    profile, unavailable_reason, profile_status, profile_groups = _shared_decision_profile(
+        run_details
+    )
     rows = comparison["rows"]
     if profile is None:
         return {
             "available": False,
-            "status": "unconfigured",
+            "status": "evidence_only",
+            "mode": "evidence_only",
+            "objective_profile_status": profile_status,
+            "profile_count": len(profile_groups),
+            "profile_groups": profile_groups,
             "reason": unavailable_reason,
         }
 
@@ -378,6 +433,10 @@ def apply_decision_profile(
         return {
             "available": False,
             "status": "unconfigured",
+            "mode": "evidence_only",
+            "objective_profile_status": "shared",
+            "profile_count": len(profile_groups),
+            "profile_groups": profile_groups,
             "reason": "The objective profile has no positive ranking weights, so QS-DMSS cannot rank the runs.",
         }
 
@@ -456,6 +515,10 @@ def apply_decision_profile(
     recommended_evaluation = recommended["evaluation"]
     return {
         "available": True,
+        "mode": "ranked",
+        "objective_profile_status": "shared",
+        "profile_count": 1,
+        "profile_groups": profile_groups,
         "status": status,
         "reason": reason,
         "profile": profile,

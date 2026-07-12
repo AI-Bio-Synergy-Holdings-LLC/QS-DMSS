@@ -1200,6 +1200,28 @@ label.ghost-button:focus-within {
   background: rgba(255, 255, 255, 0.54);
 }
 
+.lab-report-metrics dt,
+.lab-report-metrics dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.lab-report-metrics dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.lab-report-metrics dd {
+  margin-top: 5px;
+  color: var(--text);
+  font-family: ui-monospace, "SFMono-Regular", monospace;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
 .lab-evidence-checklist {
   display: grid;
   gap: 10px;
@@ -1301,7 +1323,7 @@ label.ghost-button:focus-within {
   transition: transform 180ms ease;
 }
 
-.artifact-expand-button span {
+.artifact-expand-label {
   position: absolute;
   right: 10px;
   bottom: 10px;
@@ -1315,6 +1337,24 @@ label.ghost-button:focus-within {
   font-size: 0.8rem;
   font-weight: 800;
   box-shadow: 0 8px 20px rgba(21, 57, 61, 0.18);
+}
+
+.artifact-expand-button[aria-busy="true"] {
+  cursor: progress;
+  opacity: 1;
+}
+
+.artifact-preview-loading {
+  display: grid;
+  min-height: 220px;
+  place-items: center;
+  padding: 24px;
+  color: var(--muted);
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 0.88rem;
+  font-weight: 800;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .artifact-expand-button:hover img,
@@ -1464,7 +1504,7 @@ label.ghost-button:focus-within {
 
 .research-object-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 14px;
 }
 
@@ -1477,6 +1517,7 @@ label.ghost-button:focus-within {
   border: 1px solid rgba(21, 57, 61, 0.09);
   border-radius: 18px;
   background: rgba(255, 255, 255, 0.58);
+  overflow-wrap: anywhere;
 }
 
 .research-object-card h5 {
@@ -1484,6 +1525,22 @@ label.ghost-button:focus-within {
 }
 
 .research-object-wide {
+  grid-column: 1 / -1;
+}
+
+.research-object-summary-card,
+.research-object-evidence-card,
+.research-object-citation-card {
+  grid-column: span 5;
+}
+
+.research-object-metrics-card,
+.research-object-artifacts-card,
+.research-object-replay-card {
+  grid-column: span 7;
+}
+
+.research-object-provenance-card {
   grid-column: 1 / -1;
 }
 
@@ -1534,6 +1591,10 @@ label.ghost-button:focus-within {
 .research-object-artifact-list code {
   color: var(--muted);
   font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
+.research-object-artifact-list a {
   overflow-wrap: anywhere;
 }
 
@@ -2680,6 +2741,10 @@ tbody tr.is-selected {
   .scenario-library-grid,
   .research-object-grid {
     grid-template-columns: 1fr;
+  }
+
+  .research-object-card {
+    grid-column: 1 / -1;
   }
 
   .runs-panel,

@@ -289,10 +289,15 @@ def _comparison_visual_svg(comparison: dict) -> str:
     legend_x = left + 3 * (panel_width + panel_gap) + 10
     decision = comparison.get("decision") or {}
     recommended_run_id = decision.get("recommended_run_id")
-    metric_specs = (
+    decision_available = bool(decision.get("available"))
+    metric_specs = [
         ("energy_drift", "Energy drift", "Lower |value| preferred"),
         ("max_density", "Maximum density", "Response metric"),
-        ("decision_score", "Decision score", "Higher weighted score"),
+    ]
+    metric_specs.append(
+        ("decision_score", "Decision score", "Higher weighted score")
+        if decision_available
+        else ("norm_drift", "Norm drift", "Evidence-only metric")
     )
     metric_markup: list[str] = []
     for metric_index, (key, label, subtitle) in enumerate(metric_specs):
@@ -374,9 +379,23 @@ def _comparison_visual_svg(comparison: dict) -> str:
             sort_keys=True,
         )
     )
+    visual_description = (
+        "Small-multiple plots compare energy drift, maximum density, and decision score. "
+        "A sidecar key identifies each shape and color. A gold halo marks the recommended run."
+        if decision_available
+        else "Small-multiple plots compare energy drift, maximum density, and norm drift. "
+        "A sidecar key identifies each shape and color. No recommendation is shown because the selected runs do not share one scoring contract."
+    )
+    recommendation_key = (
+        f'<circle cx="{legend_x + 10}" cy="{height - 52}" r="12" fill="none" '
+        'stroke="#d7a33d" stroke-width="2.5" />'
+        f'<text x="{legend_x + 30}" y="{height - 48}" font-size="11" fill="#607176">Recommended by active scoring contract</text>'
+        if decision_available
+        else f'<text x="{legend_x}" y="{height - 48}" font-size="11" fill="#607176">Evidence-only: no shared scoring contract</text>'
+    )
     return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" aria-labelledby="comparison-visual-title comparison-visual-desc">
   <title id="comparison-visual-title">Variant metric comparison</title>
-  <desc id="comparison-visual-desc">Small-multiple plots compare energy drift, maximum density, and decision score. A sidecar key identifies each shape and color. A gold halo marks the recommended run.</desc>
+  <desc id="comparison-visual-desc">{html.escape(visual_description)}</desc>
   <metadata>{metadata}</metadata>
   <rect width="100%" height="100%" rx="22" fill="#fffdf8" />
   <text x="34" y="35" font-family="Georgia, serif" font-size="22" font-weight="700" fill="#17383c">Variant evidence plate</text>
@@ -387,8 +406,7 @@ def _comparison_visual_svg(comparison: dict) -> str:
   <text x="{legend_x}" y="62" font-size="13" font-weight="700" fill="#18383d">Marker key</text>
   <text x="{legend_x}" y="80" font-size="10" fill="#607176">Shape + color remain redundant</text>
   {''.join(legend_rows)}
-  <circle cx="{legend_x + 10}" cy="{height - 52}" r="12" fill="none" stroke="#d7a33d" stroke-width="2.5" />
-  <text x="{legend_x + 30}" y="{height - 48}" font-size="11" fill="#607176">Recommended by active scoring contract</text>
+  {recommendation_key}
 </svg>"""
 
 
@@ -440,7 +458,7 @@ def _comparison_rows_markup(comparison: dict) -> str:
         f"<td><strong>{html.escape(_comparison_variant_label(row, index))}</strong><br><code>{html.escape(str(row['run_id']))}</code></td>"
         f"<td>{html.escape(str(row.get('decision_rank', '-')))}</td>"
         f"<td>{html.escape(str(row.get('decision_score', '-')))}</td>"
-        f"<td>{'yes' if row.get('decision_qualified') else 'no'}</td>"
+        f"<td>{'-' if row.get('decision_qualified') is None else 'yes' if row['decision_qualified'] else 'no'}</td>"
         f"<td>{_format_scientific(row['energy_drift'])}</td>"
         f"<td>{_format_scientific(row['norm_drift'])}</td>"
         f"<td>{_format_scientific(row['max_density'])}</td>"
@@ -467,7 +485,20 @@ def _readiness_markup(comparison: dict) -> str:
 def _recommendation_markup(comparison: dict) -> str:
     decision = comparison.get("decision") or {}
     if not decision.get("available"):
-        return "<section class=\"recommendation\"><h2>Recommendation unavailable</h2><p>No ranked result is available under the active scoring contract.</p></section>"
+        reason = html.escape(
+            str(
+                decision.get("reason")
+                or "No ranked result is available under a shared scoring contract."
+            )
+        )
+        return (
+            '<section class="recommendation evidence-only">'
+            '<p class="eyebrow">Evidence-only comparison</p>'
+            '<h2>No cross-profile winner</h2>'
+            f'<p>{reason}</p>'
+            '<p><strong>Next step:</strong> select runs with one shared objective profile to enable ranking.</p>'
+            '</section>'
+        )
     recommended = next(
         (row for row in comparison["rows"] if row["run_id"] == decision["recommended_run_id"]),
         {},
@@ -493,6 +524,20 @@ def _comparison_metric_cards(experiment_record: dict, comparison: dict) -> str:
     return "".join(
         f'<article class="metric"><span>{html.escape(label)}</span><strong>{html.escape(value)}</strong></article>'
         for label, value in cards
+    )
+
+
+def _comparison_figure_caption(comparison: dict) -> str:
+    decision = comparison.get("decision") or {}
+    if decision.get("available"):
+        return (
+            "Each metric uses its own labeled scale. Marker shape and color identify "
+            "variants; the gold halo identifies the recommendation."
+        )
+    return (
+        "Each metric uses its own labeled scale. Marker shape and color identify variants. "
+        "Norm drift replaces decision score because the selected runs do not share one "
+        "objective profile."
     )
 
 
@@ -523,7 +568,7 @@ def write_experiment_workbook(
   <section role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">
     <div class="metric-grid">{_comparison_metric_cards(experiment_record, comparison)}</div>
     {_recommendation_markup(comparison)}
-    <figure>{_comparison_visual_svg(comparison)}<figcaption>Each metric uses its own labeled scale. Marker shape and color identify variants; the gold halo identifies the recommendation.</figcaption></figure>
+    <figure>{_comparison_visual_svg(comparison)}<figcaption>{html.escape(_comparison_figure_caption(comparison))}</figcaption></figure>
   </section>
   <section role="tabpanel" id="panel-variants" aria-labelledby="tab-variants" hidden>
     <h2>Variant matrix</h2><div class="table-shell"><table><thead><tr><th>Variant / run</th><th>Rank</th><th>Score</th><th>Qualified</th><th>Energy drift</th><th>Norm drift</th><th>Max density</th><th>Seconds</th><th>Evidence</th></tr></thead><tbody>{rows}</tbody></table></div>
@@ -600,7 +645,7 @@ def write_experiment_report(
     <p class="boundary">Diagnostic workflow comparison only. This report does not claim peer-reviewed physical validation.</p>
     <div class="metric-grid">{_comparison_metric_cards(experiment_record, comparison)}</div>
     {_recommendation_markup(comparison)}
-    <figure>{_comparison_visual_svg(comparison)}<figcaption>Independent metric scales with direct labels. The marker key uses both shape and color; the gold halo identifies the recommended run.</figcaption></figure>
+    <figure>{_comparison_visual_svg(comparison)}<figcaption>{html.escape(_comparison_figure_caption(comparison))}</figcaption></figure>
     {shared_markup}
     <h2>Evidence, validation, and HPC handoff</h2>
     {_readiness_markup(comparison)}
