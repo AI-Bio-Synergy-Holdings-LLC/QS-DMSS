@@ -58,6 +58,21 @@ def test_simulation_showcase_generates_reviewer_artifacts(tmp_path: Path) -> Non
         assert 'class="grid-line"' in line_svg
         assert "Peak" in line_svg
         assert "Final" in line_svg
+        assert 'class="annotation-gutter"' in line_svg
+        assert 'class="final-annotation-label"' in line_svg
+    radial_root = ET.fromstring(radial_svg)
+    namespace = {"svg": "http://www.w3.org/2000/svg"}
+    final_marker = radial_root.find(
+        ".//svg:circle[@class='final-sample-marker']",
+        namespace,
+    )
+    final_label = radial_root.find(
+        ".//svg:text[@class='final-annotation-label']",
+        namespace,
+    )
+    assert final_marker is not None
+    assert final_label is not None
+    assert float(final_label.attrib["x"]) > float(final_marker.attrib["cx"])
     assert 'data-scientific-figure="density-heatmap"' in density_svg
     ET.fromstring(density_svg)
     assert "density (solver units)" in density_svg

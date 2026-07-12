@@ -301,7 +301,7 @@ def _write_line_plot_svg(
     width = 960
     height = 540
     left = 96
-    right = 44
+    right = 190
     top = 92
     bottom = 78
     x_values = [point[0] for point in points]
@@ -362,6 +362,11 @@ def _write_line_plot_svg(
     peak_x, peak_y = scaled[peak_index]
     peak_value = points[peak_index]
     final_x, final_y = scaled[-1]
+    final_label_x = final_x + 28
+    final_label_y = min(
+        max(final_y + 4, top + 26),
+        height - bottom - 14,
+    )
     metadata = html.escape(
         json.dumps(
             {
@@ -387,14 +392,16 @@ def _write_line_plot_svg(
   <text x="{left}" y="62" font-family="Arial, sans-serif" font-size="12" fill="#607176">{len(points)} sampled values · diagnostic workflow artifact</text>
   {x_grid}
   {y_grid}
+  <rect class="annotation-gutter" x="{width - right + 12}" y="{top}" width="{right - 24}" height="{plot_height}" rx="12" fill="#f3f7f4" stroke="#d8e0df" />
   <line x1="{left}" y1="{height - bottom}" x2="{width - right}" y2="{height - bottom}" stroke="#334f54" stroke-width="1.5" />
   <line x1="{left}" y1="{top}" x2="{left}" y2="{height - bottom}" stroke="#334f54" stroke-width="1.5" />
   <polyline points="{polyline}" fill="none" stroke="{stroke}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" />
   {circles}
   <line x1="{peak_x:.3f}" y1="{peak_y:.3f}" x2="{min(peak_x + 52, width - right - 128):.3f}" y2="{max(peak_y - 30, top + 18):.3f}" stroke="{stroke}" stroke-width="1.25" />
   <text x="{min(peak_x + 56, width - right - 124):.3f}" y="{max(peak_y - 34, top + 14):.3f}" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#31494d">Peak {peak_value[1]:.4g}</text>
-  <circle cx="{final_x:.3f}" cy="{final_y:.3f}" r="7" fill="none" stroke="#d96d2e" stroke-width="2" />
-  <text x="{max(final_x - 8, left + 70):.3f}" y="{min(final_y + 24, height - bottom - 8):.3f}" text-anchor="end" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#9b4c20">Final {points[-1][1]:.4g}</text>
+  <circle class="final-sample-marker" cx="{final_x:.3f}" cy="{final_y:.3f}" r="7" fill="#fffdf8" stroke="#d96d2e" stroke-width="2" />
+  <line class="final-annotation-leader" x1="{final_x + 7:.3f}" y1="{final_y:.3f}" x2="{final_label_x - 10:.3f}" y2="{final_label_y - 4:.3f}" stroke="#d96d2e" stroke-width="1.5" />
+  <text class="final-annotation-label" x="{final_label_x:.3f}" y="{final_label_y:.3f}" text-anchor="start" font-family="Arial, sans-serif" font-size="11" font-weight="700" fill="#9b4c20">Final {points[-1][1]:.4g}</text>
   <text x="{width / 2:.0f}" y="{height - 18}" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#334f54">{html.escape(x_label)}</text>
   <text x="24" y="{top + plot_height / 2:.0f}" transform="rotate(-90 24 {top + plot_height / 2:.0f})" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" font-weight="700" fill="#334f54">{html.escape(y_label)}</text>
 </svg>

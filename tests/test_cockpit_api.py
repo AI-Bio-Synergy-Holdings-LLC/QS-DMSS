@@ -542,12 +542,14 @@ def test_cockpit_api_launches_guided_showcase_comparison(tmp_path: Path) -> None
     assert "Marker key" in experiment_report.text
     assert "Dry-run Slurm" in experiment_report.text
     assert "Validation spine" in experiment_report.text
+    assert "width:min(1480px" in experiment_report.text
 
     experiment_workbook = client.get(guided["urls"]["workbook"])
     assert experiment_workbook.status_code == 200
     assert "QS-DMSS Research Workbook" in experiment_workbook.text
     assert 'role="tablist"' in experiment_workbook.text
     assert "Embedded comparison data" in experiment_workbook.text
+    assert experiment_workbook.text != experiment_report.text
 
     workbook_download = client.get(guided["urls"]["workbook_download"])
     assert workbook_download.status_code == 200

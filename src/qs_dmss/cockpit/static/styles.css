@@ -1323,22 +1323,6 @@ label.ghost-button:focus-within {
   transition: transform 180ms ease;
 }
 
-.artifact-expand-label {
-  position: absolute;
-  right: 10px;
-  bottom: 10px;
-  min-height: 36px;
-  padding: 8px 12px;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  border-radius: 999px;
-  background: rgba(21, 57, 61, 0.92);
-  color: #fffdf8;
-  font-family: "Manrope", "Segoe UI", sans-serif;
-  font-size: 0.8rem;
-  font-weight: 800;
-  box-shadow: 0 8px 20px rgba(21, 57, 61, 0.18);
-}
-
 .artifact-expand-button[aria-busy="true"] {
   cursor: progress;
   opacity: 1;
@@ -2567,7 +2551,8 @@ tbody tr.is-selected {
 }
 
 .report-modal {
-  width: min(1200px, calc(100vw - 48px));
+  width: min(1480px, calc(100vw - 32px));
+  max-width: none;
   padding: 0;
   border: none;
   border-radius: 26px;
