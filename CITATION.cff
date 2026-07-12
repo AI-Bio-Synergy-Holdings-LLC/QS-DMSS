@@ -2,17 +2,17 @@ cff-version: 1.2.0
 message: "If you use QS-DMSS, please cite the software release below."
 type: software
 title: "QS-DMSS: QuantumScalar Dark Matter Simulation Suite"
-version: 0.10.1
-date-released: 2026-07-09
+version: 0.11.0
+date-released: 2026-07-12
 license: Apache-2.0
-abstract: "Evidence-first QuantumScalar dark matter simulation software for deterministic runs, configurable Campaign Studio study templates and decision profiles, Lab Mode guided interpretation and comparison, Fractal/Quadrant SSFM validation spines, public reference-data provenance and calibration sandbox workflows, dry-run Slurm request bundles, publication export composition, canonical simulation showcase artifacts, and reproducible evidence bundles."
+abstract: "Evidence-first QuantumScalar dark matter simulation software with a hosted Studio workflow, deterministic local runs, Lab Mode guided interpretation and comparison, portable scientific workbooks, Campaign Studio study templates, validation spines, public reference-data provenance, dry-run Slurm request bundles, publication exports, replay, and reproducible evidence bundles."
 authors:
   - name: "AI-Bio Synergy Holdings LLC"
 doi: 10.5281/zenodo.20074924
 identifiers:
   - type: doi
     value: 10.5281/zenodo.21270512
-    description: "Archived release DOI for v0.10.1."
+    description: "Latest archived release DOI before v0.11.0."
   - type: doi
     value: 10.5281/zenodo.20693736
     description: "Previous archived release DOI."

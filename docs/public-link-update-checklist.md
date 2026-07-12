@@ -67,6 +67,25 @@ Reference map: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/
 Studio: https://qs-dmss.studio
 ```
 
+Recommended v0.11.0 update:
+
+```text
+QS-DMSS v0.11.0 aligns the downloadable open-source package with the hosted
+Studio experience. Researchers can run the same evidence-first cockpit locally
+with persistent outputs, inspect scientific run detail, compare packaged
+variants, open a portable HTML research workbook, verify/replay evidence, and
+compose a publication-oriented research object.
+
+The public hosted service remains deliberately constrained: packaged scenarios,
+temporary outputs, runtime caps, and no arbitrary uploads. QS-DMSS remains beta
+software for reproducible package/evidence workflows, not peer-reviewed
+scientific validation.
+
+Studio: https://qs-dmss.studio
+Hosted demo: https://app.qs-dmss.studio
+Release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.11.0
+```
+
 ## LinkedIn
 
 Recommended Featured link:
@@ -108,6 +127,22 @@ https://qs-dmss.studio
 https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/conceptual-reference-map.md
 ```
 
+Recommended v0.11.0 launch update:
+
+```text
+QS-DMSS v0.11.0 turns the public Hosted Studio work into a downloadable local
+research cockpit. The same Lab Mode, scientific comparison, portable workbook,
+evidence verification/replay, and research-object export experience is now
+available from the open-source package, with persistent local outputs and the
+broader local configuration surface.
+
+Try the constrained demo: https://app.qs-dmss.studio
+Install locally: python -m pip install qs-dmss==0.11.0
+
+Beta for reproducible package/evidence workflows; not peer-reviewed scientific
+validation.
+```
+
 ## X / Short Social
 
 Recommended short post:
@@ -120,6 +155,19 @@ research-object infrastructure, or future comparison targets.
 Transparency layer, not a validation claim.
 
 https://qs-dmss.studio
+```
+
+Recommended v0.11.0 post:
+
+```text
+QS-DMSS v0.11.0 aligns the hosted Studio with the downloadable package: run,
+inspect, compare, verify/replay, open a portable research workbook, and export
+a reviewable research object.
+
+Demo: https://app.qs-dmss.studio
+Install: pip install qs-dmss==0.11.0
+
+Beta workflow software; not scientific validation.
 ```
 
 ## Outreach Copy

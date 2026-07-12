@@ -95,7 +95,7 @@ qs-dmss cockpit --host 0.0.0.0 --port ${PORT:-8001} --output-root /app/runs
 
 Recommended sequence:
 
-1. Merge the hosted-demo PR into `main`.
+1. Deploy the current green `main` commit (or the corresponding release tag).
 2. Open Render Blueprint creation for the repository.
 3. Confirm the `qs-dmss-studio-app` service uses `runtime: docker`.
 4. Confirm `QS_DMSS_HOSTED_DEMO=1` is set.
@@ -122,8 +122,9 @@ Render notes:
 
 ## Optional Python Enhancement Libraries
 
-This PR intentionally does not add new runtime dependencies. The safest visible
-enhancements should come after the hosted-demo guardrails prove stable.
+The hosted baseline intentionally does not add visualization-specific runtime
+dependencies. Visible enhancements should continue to preserve the hosted-demo
+guardrails and the wheel-installed local cockpit path.
 
 Good candidates:
 
@@ -140,7 +141,7 @@ Good candidates:
 
 Recommendation:
 
-Start with no new libraries. If the hosted demo receives public use, the first
-visible enhancement should be interactive artifact preview with `plotly` or
-`altair`. The first operational enhancement should be rate limiting and a
-stronger cleanup worker only after traffic patterns justify it.
+Keep the current dependency-light rendering path until measured use justifies a
+larger client payload. The first operational enhancement should be persistent
+rate limiting and a stronger cleanup worker only after traffic patterns justify
+it.

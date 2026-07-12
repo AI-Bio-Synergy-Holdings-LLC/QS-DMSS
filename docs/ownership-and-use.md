@@ -63,9 +63,9 @@ QS-DMSS, created and maintained by AI-Bio Synergy Holdings LLC.
 Recommended reproducibility attribution:
 
 ```text
-This work used QS-DMSS v0.10.1 / qs-dmss==0.10.1. The project concept DOI is
-10.5281/zenodo.20074924; the v0.10.1 archived release DOI is
-10.5281/zenodo.21270512.
+This work used QS-DMSS v0.11.0 / qs-dmss==0.11.0. The project concept DOI is
+10.5281/zenodo.20074924. Until the v0.11.0 archive is minted, the latest
+archived release DOI is 10.5281/zenodo.21270512 (v0.10.1).
 ```
 
 ## Contribution Basis
@@ -87,7 +87,7 @@ claim.
 QS-DMSS is beta software for reproducible package/evidence workflows. It is
 not peer-reviewed scientific validation.
 
-The current public package baseline is `qs-dmss==0.10.1`. Fractal/Quadrant
+The current public package baseline is `qs-dmss==0.11.0`. Fractal/Quadrant
 SSFM scientific feedback is routed through issue #105 before any GPU expansion
 or decision-metric UI exposure for spectral diagnostics.
 
@@ -101,8 +101,8 @@ Ordinary nominative references are fine, for example:
 
 ```text
 Built with QS-DMSS
-Uses QS-DMSS v0.10.1
-Reproduced with qs-dmss==0.10.1
+Uses QS-DMSS v0.11.0
+Reproduced with qs-dmss==0.11.0
 ```
 
 Avoid wording that suggests AI-Bio Synergy Holdings LLC has reviewed,

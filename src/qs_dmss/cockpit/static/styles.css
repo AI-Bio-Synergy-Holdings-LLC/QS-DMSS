@@ -131,32 +131,19 @@ a {
 }
 
 .brand-mark {
-  position: relative;
+  display: grid;
+  place-items: center;
   flex: 0 0 auto;
   width: 52px;
   height: 52px;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 35%, rgba(255, 252, 245, 0.9), rgba(185, 195, 188, 0.35));
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
-}
-
-.brand-ring,
-.brand-core {
-  position: absolute;
-  border-radius: 50%;
-}
-
-.brand-ring {
-  inset: 9px;
-  border: 6px solid rgba(249, 239, 221, 0.75);
-  border-right-color: var(--olive);
-  border-bottom-color: rgba(249, 239, 221, 0.25);
-}
-
-.brand-core {
-  inset: 19px;
-  background: linear-gradient(180deg, rgba(14, 55, 60, 0.9), rgba(35, 101, 105, 0.9));
-  box-shadow: 0 0 0 4px rgba(255, 250, 244, 0.12);
+  border: 1px solid #e0b85d;
+  border-radius: 15px;
+  background: #101a18;
+  color: #e0b85d;
+  font-family: Fraunces, Georgia, serif;
+  font-size: 1.05rem;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(3, 20, 21, 0.22);
 }
 
 .rail-brand-copy {
@@ -236,14 +223,44 @@ a {
 }
 
 .rail-footer {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
+  display: grid;
   gap: 10px;
   margin-top: auto;
   padding: 0 12px;
   color: rgba(244, 235, 227, 0.78);
   font-size: 0.92rem;
+}
+
+.rail-studio-link {
+  color: #f2c66d;
+  font-weight: 700;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.rail-studio-link:hover {
+  color: #fff5d8;
+}
+
+.rail-studio-link:focus-visible {
+  outline-color: #f2c66d;
+}
+
+.rail-status-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.title-qualifier {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-family: Manrope, "Segoe UI", sans-serif;
+  font-size: 0.32em;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 section[id],

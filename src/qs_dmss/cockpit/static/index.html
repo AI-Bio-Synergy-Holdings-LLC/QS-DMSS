@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>QS-DMSS Run Cockpit</title>
+    <title>QS-DMSS Studio | Research Cockpit</title>
+    <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -17,13 +18,10 @@
     <div class="shell">
       <aside class="rail" aria-label="Application navigation">
         <div class="rail-brand">
-          <div class="brand-mark" aria-hidden="true">
-            <div class="brand-ring"></div>
-            <div class="brand-core"></div>
-          </div>
+          <div class="brand-mark" aria-hidden="true">QS</div>
           <div class="rail-brand-copy">
             <strong>QS-DMSS</strong>
-            <span>Research cockpit</span>
+            <span>Studio cockpit</span>
           </div>
         </div>
         <p class="rail-label" id="primaryNavigationLabel">Workspace</p>
@@ -58,8 +56,11 @@
           </a>
         </nav>
         <div class="rail-footer">
-          <span class="rail-status-dot" aria-hidden="true"></span>
-          <span id="railModeLabel">Local-first</span>
+          <a class="rail-studio-link" href="https://qs-dmss.studio/">Studio home</a>
+          <span class="rail-status-line">
+            <span class="rail-status-dot" aria-hidden="true"></span>
+            <span id="railModeLabel">Local-first</span>
+          </span>
         </div>
       </aside>
 
@@ -67,7 +68,7 @@
         <header class="topbar">
           <div>
             <p class="eyebrow">Deterministic simulation and evidence operations</p>
-            <h1>QS-DMSS Run Cockpit</h1>
+            <h1>QS-DMSS Studio <span class="title-qualifier">Research Cockpit</span></h1>
           </div>
           <div class="topbar-meta">
             <div class="meta-pill">
