@@ -125,3 +125,59 @@ def test_comparison_returns_ranked_recommendation_for_shared_profile() -> None:
     assert comparison["decision"]["recommended_run_id"] == "run-a"
     assert comparison["rows"][0]["decision_rank"] == 1
     assert comparison["rows"][1]["decision_rank"] == 2
+
+
+def test_comparison_preserves_evidence_for_mixed_objective_profiles() -> None:
+    stability_config = parse_config(_decision_config())
+    density_mapping = _decision_config()
+    density_mapping["objective"] = {
+        "name": "Density-response review",
+        "summary": "Inspect the largest terminal density response.",
+        "primary_metric": "max_density",
+        "goal": "maximize",
+    }
+    density_config = parse_config(density_mapping)
+
+    run_details = []
+    for run_id, config, energy_drift, max_density in (
+        ("run-stability", stability_config, 0.01, 0.7),
+        ("run-density", density_config, 0.03, 0.9),
+    ):
+        run_details.append(
+            {
+                "summary": {"run_id": run_id},
+                "config": config.to_dict(),
+                "run_record": {
+                    "run_id": run_id,
+                    "name": run_id,
+                    "source_config_name": f"{run_id}.yaml",
+                    "seed": 7,
+                    "finished_at": "2026-04-25T00:00:00Z",
+                    "elapsed_seconds": 0.4,
+                    "experiment": None,
+                    "decision_profile": decision_profile_from_config(config),
+                },
+                "metrics": {
+                    "energy_drift": energy_drift,
+                    "norm_drift": 0.02,
+                    "max_density": max_density,
+                },
+                "evidence": {"bundle_size_label": "1.00 KB"},
+                "verification": {"success": True},
+            }
+        )
+
+    comparison = build_run_comparison(run_details)
+    decision = comparison["decision"]
+
+    assert decision["available"] is False
+    assert decision["mode"] == "evidence_only"
+    assert decision["status"] == "evidence_only"
+    assert decision["objective_profile_status"] == "mixed"
+    assert decision["profile_count"] == 2
+    assert {group["objective_name"] for group in decision["profile_groups"]} == {
+        "Density-response review",
+        "Stability-first recommendation",
+    }
+    assert all("decision_score" not in row for row in comparison["rows"])
+    assert comparison["ranges"]["max_density"]["span"] == 0.2

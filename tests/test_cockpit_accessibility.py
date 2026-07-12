@@ -124,6 +124,8 @@ def test_cockpit_styles_encode_wcag_interaction_baseline() -> None:
     assert ".scientific-chart-stack" in css
     assert ".artifact-expand-button" in css
     assert ".artifact-preview-modal-grid" in css
+    assert "grid-template-columns: repeat(12, minmax(0, 1fr))" in css
+    assert ".lab-report-metrics dd" in css
 
     foreground = "#fff8ef"
     action_colors = [
@@ -146,6 +148,9 @@ def test_cockpit_navigation_and_dynamic_controls_preserve_semantics() -> None:
     assert "function updateDemoPath()" in script
     assert "function renderScientificTrace(" in script
     assert "function openArtifactPreview(" in script
-    assert 'data-artifact-preview-url="${escapeHtml(item.url)}"' in script
+    assert "const svgPreviewCache = new Map()" in script
+    assert "async function fetchSvgPreviewText(" in script
+    assert 'data-artifact-source-url="${escapeHtml(item.url)}"' in script
+    assert "data:image/svg+xml;charset=utf-8" in script
     assert 'aria-label="Select run ${escapeHtml(run.run_id)} for comparison"' in script
     assert "setupNavigation();" in script

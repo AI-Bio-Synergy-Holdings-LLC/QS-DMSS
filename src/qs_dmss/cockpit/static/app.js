@@ -32,6 +32,7 @@ const state = {
 };
 
 let artifactPreviewTrigger = null;
+const svgPreviewCache = new Map();
 
 const els = {
   hostedDemoBanner: document.querySelector("#hostedDemoBanner"),
@@ -264,6 +265,7 @@ const toneClassByStatus = {
   ranked: "is-success",
   running: "is-warning",
   fallback: "is-warning",
+  evidence_only: "is-warning",
   failed: "is-danger",
   out_of_bounds: "is-danger",
   unconfigured: "is-idle",
@@ -1049,6 +1051,55 @@ async function loadCsvPreview(item, index, runId) {
   }
 }
 
+async function fetchSvgPreviewText(url) {
+  if (svgPreviewCache.has(url)) {
+    return svgPreviewCache.get(url);
+  }
+
+  let lastError = null;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    try {
+      const svgText = await fetchText(url);
+      if (!/<svg[\s>]/i.test(svgText)) {
+        throw new Error("Artifact response is not an SVG document");
+      }
+      if (svgText.length > 2_000_000) {
+        throw new Error("SVG preview exceeds the 2 MB cockpit preview limit");
+      }
+      svgPreviewCache.set(url, svgText);
+      return svgText;
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) {
+        await new Promise((resolve) => window.setTimeout(resolve, 350));
+      }
+    }
+  }
+  throw lastError;
+}
+
+async function loadSvgPreview(item, index, runId) {
+  const trigger = els.labArtifactPreview.querySelector(`[data-svg-index="${index}"]`);
+  if (!trigger) return;
+  const loading = trigger.querySelector("[data-svg-loading]");
+  const image = trigger.querySelector("[data-svg-preview-image]");
+  try {
+    const svgText = await fetchSvgPreviewText(item.url);
+    if (state.labResult?.run?.summary?.run_id !== runId) return;
+    const previewUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgText)}`;
+    image.src = previewUrl;
+    image.hidden = false;
+    loading.hidden = true;
+    trigger.dataset.artifactPreviewUrl = previewUrl;
+    trigger.disabled = false;
+    trigger.setAttribute("aria-busy", "false");
+  } catch (error) {
+    if (state.labResult?.run?.summary?.run_id !== runId) return;
+    loading.textContent = `Preview unavailable: ${error.message}. Use the artifact link above to open the source SVG.`;
+    trigger.setAttribute("aria-busy", "false");
+  }
+}
+
 function artifactCalloutByKey(callouts) {
   return new Map((callouts || []).map((item) => [item.artifact_key, item]));
 }
@@ -1101,14 +1152,19 @@ function renderArtifactPreviews(artifactLinks, runId, callouts = []) {
               class="artifact-expand-button"
               type="button"
               data-artifact-preview-url="${escapeHtml(item.url)}"
+              data-artifact-source-url="${escapeHtml(item.url)}"
+              data-svg-index="${index}"
               data-artifact-preview-title="${encodedTitle}"
               data-artifact-preview-name="${encodedName}"
               data-artifact-preview-callout="${encodedCallout}"
               data-artifact-preview-why="${encodedWhy}"
               aria-label="Expand ${title} scientific figure"
+              aria-busy="true"
+              disabled
             >
-              <img src="${escapeHtml(item.url)}" alt="${title} preview" loading="lazy" />
-              <span>Expand figure</span>
+              <span class="artifact-preview-loading" data-svg-loading>Preparing persistent SVG preview...</span>
+              <img data-svg-preview-image alt="${title} preview" hidden />
+              <span class="artifact-expand-label">Expand figure</span>
             </button>
             <div class="artifact-science-strip">
               <span>Scalable vector diagnostic</span>
@@ -1138,6 +1194,8 @@ function renderArtifactPreviews(artifactLinks, runId, callouts = []) {
   previewable.forEach((item, index) => {
     if (item.kind === "csv") {
       loadCsvPreview(item, index, runId);
+    } else if (item.kind === "svg") {
+      loadSvgPreview(item, index, runId);
     }
   });
 }
@@ -1160,7 +1218,7 @@ function openArtifactPreview(trigger) {
   );
   els.artifactPreviewImage.src = url;
   els.artifactPreviewImage.alt = `${title} expanded scientific figure`;
-  els.artifactPreviewSourceLink.href = url;
+  els.artifactPreviewSourceLink.href = trigger.dataset.artifactSourceUrl || url;
   els.artifactPreviewDialog.showModal();
 }
 
@@ -2237,21 +2295,21 @@ function renderResearchObjectSurface(researchObject) {
       <span class="status-badge ${statusTone}">${escapeHtml(researchObject.status)}</span>
     </header>
     <div class="research-object-grid">
-      <section class="research-object-card">
+      <section class="research-object-card research-object-summary-card">
         <p class="artifact-list-title">Scenario</p>
         <h5>${escapeHtml(researchObject.scenario.label)}</h5>
         <p>${escapeHtml(researchObject.scenario.description)}</p>
         <p class="research-object-boundary">${escapeHtml(researchObject.claimBoundary)}</p>
       </section>
-      <section class="research-object-card">
+      <section class="research-object-card research-object-metrics-card">
         <p class="artifact-list-title">Metrics</p>
         <dl class="lab-report-metrics">${researchObjectMetricsMarkup(researchObject)}</dl>
       </section>
-      <section class="research-object-card">
+      <section class="research-object-card research-object-evidence-card">
         <p class="artifact-list-title">Evidence And Replay</p>
         <ul class="research-object-evidence-list">${researchObjectEvidenceMarkup(researchObject)}</ul>
       </section>
-      <section class="research-object-card">
+      <section class="research-object-card research-object-artifacts-card">
         <p class="artifact-list-title">Figures And Data</p>
         <ul class="research-object-artifact-list">${researchObjectArtifactMarkup(researchObject)}</ul>
       </section>
@@ -2281,11 +2339,11 @@ function renderResearchObjectSurface(researchObject) {
         <p class="artifact-list-title">Campaign Study Template</p>
         ${researchObjectCampaignStudyMarkup(researchObject)}
       </section>
-      <section class="research-object-card">
+      <section class="research-object-card research-object-replay-card">
         <p class="artifact-list-title">Replay Instructions</p>
         <pre><code>${escapeHtml(researchObject.replayCommands.join("\n"))}</code></pre>
       </section>
-      <section class="research-object-card">
+      <section class="research-object-card research-object-citation-card">
         <p class="artifact-list-title">Citation</p>
         <p>
           Cite the project DOI
@@ -2303,7 +2361,7 @@ function renderResearchObjectSurface(researchObject) {
           <a href="${citationMetadata.pypiUrl}" target="_blank" rel="noreferrer">PyPI package</a>
         </div>
       </section>
-      <section class="research-object-card">
+      <section class="research-object-card research-object-provenance-card">
         <p class="artifact-list-title">Export Provenance</p>
         ${
           exportJob
@@ -3840,12 +3898,17 @@ function renderRecommendation(decision, rows = []) {
   }
 
   if (!decision.available) {
-    els.recommendationLabel.textContent = "Recommendation unavailable";
-    els.recommendationRun.textContent = "No ranked winner";
+    const mixedProfiles = decision.objective_profile_status === "mixed";
+    els.recommendationLabel.textContent = "Evidence-only comparison";
+    els.recommendationRun.textContent = mixedProfiles
+      ? "No cross-profile winner"
+      : "No ranked winner";
     els.recommendationReason.textContent = decision.reason;
-    els.recommendationStatus.textContent = decision.status || "Idle";
+    els.recommendationStatus.textContent = mixedProfiles
+      ? `${decision.profile_count || 0} objective profiles`
+      : decision.status || "Evidence only";
     els.recommendationStatus.className = `status-badge ${toneForStatus(decision.status)}`;
-    els.recommendationScore.textContent = "Score -";
+    els.recommendationScore.textContent = "Not scored";
     return;
   }
 
@@ -3881,9 +3944,12 @@ function renderComparison(comparison) {
 
   const shared = comparison.shared_experiment;
   els.compareTitle.textContent = shared ? shared.label : "Run Comparison";
-  els.compareContext.textContent = shared
+  const comparisonContext = shared
     ? sharedExperimentContext(shared)
     : `${comparison.rows.length} runs selected`;
+  els.compareContext.textContent = `${comparisonContext}${
+    comparison.decision?.mode === "evidence_only" ? " | evidence-only" : ""
+  }`;
   els.compareEnergySpan.textContent = formatScientific(comparison.ranges.energy_drift.span);
   els.compareNormSpan.textContent = formatScientific(comparison.ranges.norm_drift.span);
   els.compareDensitySpan.textContent = formatScientific(comparison.ranges.max_density.span);

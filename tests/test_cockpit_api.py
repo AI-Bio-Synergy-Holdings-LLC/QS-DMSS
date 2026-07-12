@@ -709,6 +709,67 @@ def test_cockpit_api_save_manual_experiment(tmp_path: Path) -> None:
     )
 
 
+def test_cockpit_api_exports_evidence_only_mixed_objective_comparison(
+    tmp_path: Path,
+) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    base_config = client.get("/api/configs").json()["items"][0]["config"]
+    stability_config = deepcopy(base_config)
+    stability_config["run"]["name"] = "stability-profile"
+    density_config = deepcopy(base_config)
+    density_config["run"]["name"] = "density-profile"
+    density_config["objective"] = {
+        "name": "Density-response review",
+        "summary": "Inspect the largest terminal density response.",
+        "primary_metric": "max_density",
+        "goal": "maximize",
+    }
+
+    run_ids = []
+    for source_name, config in (
+        ("stability.yaml", stability_config),
+        ("density.yaml", density_config),
+    ):
+        response = client.post(
+            "/api/runs",
+            json={"config": config, "source_name": source_name},
+        )
+        assert response.status_code == 200
+        run_ids.append(response.json()["summary"]["run_id"])
+
+    comparison_response = client.post("/api/compare", json={"run_ids": run_ids})
+    assert comparison_response.status_code == 200
+    comparison = comparison_response.json()
+    assert comparison["decision"]["mode"] == "evidence_only"
+    assert comparison["decision"]["objective_profile_status"] == "mixed"
+    assert comparison["decision"]["profile_count"] == 2
+    assert len(comparison["rows"]) == 2
+
+    experiment_response = client.post(
+        "/api/experiments",
+        json={"run_ids": run_ids, "label": "mixed objective review"},
+    )
+    assert experiment_response.status_code == 200
+    experiment = experiment_response.json()
+    assert experiment["summary"]["recommended_run_id"] is None
+    assert experiment["decision"]["mode"] == "evidence_only"
+
+    report = client.get(experiment["urls"]["report"])
+    assert report.status_code == 200
+    assert "Evidence-only comparison" in report.text
+    assert "No cross-profile winner" in report.text
+    assert "Norm drift" in report.text
+    assert "Evidence-only: no shared scoring contract" in report.text
+
+    workbook = client.get(experiment["urls"]["workbook"])
+    assert workbook.status_code == 200
+    assert "No cross-profile winner" in workbook.text
+    assert "select runs with one shared objective profile" in workbook.text
+
+
 def test_cockpit_api_launch_campaign(tmp_path: Path) -> None:
     repo_root = Path(__file__).resolve().parents[1]
     app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
