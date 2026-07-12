@@ -43,7 +43,7 @@ used:
 
 - Project concept DOI: `10.5281/zenodo.20074924`
 - Latest archived release DOI:
-  `10.5281/zenodo.21270512` (`v0.10.1`)
+  `10.5281/zenodo.21319023` (`v0.11.0`)
 
 Repository citation metadata lives in [`CITATION.cff`](../CITATION.cff), and
 additional citation notes live in [`zenodo-citation.md`](zenodo-citation.md).
@@ -64,8 +64,8 @@ Recommended reproducibility attribution:
 
 ```text
 This work used QS-DMSS v0.11.0 / qs-dmss==0.11.0. The project concept DOI is
-10.5281/zenodo.20074924. Until the v0.11.0 archive is minted, the latest
-archived release DOI is 10.5281/zenodo.21270512 (v0.10.1).
+10.5281/zenodo.20074924; the v0.11.0 archived release DOI is
+10.5281/zenodo.21319023.
 ```
 
 ## Contribution Basis

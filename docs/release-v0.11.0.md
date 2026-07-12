@@ -80,8 +80,8 @@ PyPI `0.11.0` and the `v0.11.0` GitHub release wheel.
 ## Citation Status
 
 - Project DOI: `10.5281/zenodo.20074924`
-- Latest archived release before v0.11.0: `v0.10.1` / `10.5281/zenodo.21270512`
-- v0.11.0 release DOI: pending Zenodo archive
+- v0.11.0 release DOI: `10.5281/zenodo.21319023`
+- Previous archived release: `v0.10.1` / `10.5281/zenodo.21270512`
 
-After Zenodo archives this release, update `CITATION.cff`, `README.md`,
-`codemeta.json`, citation docs, and public release notes in a metadata-only PR.
+The release DOI is recorded in `CITATION.cff`, `README.md`, `codemeta.json`,
+citation docs, and public release notes.

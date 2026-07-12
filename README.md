@@ -39,8 +39,8 @@ validation spine available from the local cockpit. The hosted service applies
 temporary-output and packaged-scenario guardrails; local installs retain
 persistent outputs and the broader local configuration surface.
 
-Until Zenodo archives `v0.11.0`, the latest archived release DOI remains
-[v0.10.1 / 10.5281/zenodo.21270512](https://doi.org/10.5281/zenodo.21270512).
+The latest archived release DOI is
+[v0.11.0 / 10.5281/zenodo.21319023](https://doi.org/10.5281/zenodo.21319023).
 
 Fractal SSFM scientific feedback is routed through
 [issue #105](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105).
@@ -528,7 +528,8 @@ use it when archiving GitHub releases.
 For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
-- Latest archived release DOI: [v0.10.1 / 10.5281/zenodo.21270512](https://doi.org/10.5281/zenodo.21270512)
+- Latest archived release DOI: [v0.11.0 / 10.5281/zenodo.21319023](https://doi.org/10.5281/zenodo.21319023)
+- Previous archived release DOI: [v0.10.1 / 10.5281/zenodo.21270512](https://doi.org/10.5281/zenodo.21270512)
 - Previous archived release DOI: [10.5281/zenodo.20693736](https://doi.org/10.5281/zenodo.20693736)
 - Previous archived release DOI: [v0.8.0 / 10.5281/zenodo.20673804](https://doi.org/10.5281/zenodo.20673804)
 - Previous archived release DOI: [v0.7.0 / 10.5281/zenodo.20671389](https://doi.org/10.5281/zenodo.20671389)

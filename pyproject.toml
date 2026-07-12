@@ -67,8 +67,8 @@ Review = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new/choo
 PyPI = "https://pypi.org/project/qs-dmss/"
 DOI = "https://doi.org/10.5281/zenodo.20074924"
 "First Archived Release DOI" = "https://doi.org/10.5281/zenodo.20074925"
-"Latest Archived Release DOI" = "https://doi.org/10.5281/zenodo.21270512"
-Zenodo = "https://zenodo.org/records/21270512"
+"Latest Archived Release DOI" = "https://doi.org/10.5281/zenodo.21319023"
+Zenodo = "https://zenodo.org/records/21319023"
 
 [project.optional-dependencies]
 dev = [

@@ -124,7 +124,7 @@ def test_static_site_metadata_hardening() -> None:
     assert "<loc>https://qs-dmss.studio/</loc>" in sitemap
     assert "<lastmod>2026-07-12</lastmod>" in sitemap
     assert "<image:loc>https://qs-dmss.studio/assets/social-preview.png</image:loc>" in sitemap
-    assert "Latest archived release DOI: https://doi.org/10.5281/zenodo.21270512" in llms
+    assert "Latest archived release DOI: https://doi.org/10.5281/zenodo.21319023" in llms
     assert "Hosted demo: https://app.qs-dmss.studio/" in llms
 
     json_ld_match = re.search(
