@@ -56,12 +56,20 @@ def test_static_site_front_door_contract() -> None:
         "Run the evidence-first workflow at app.qs-dmss.studio.",
         "https://app.qs-dmss.studio/",
         "Outputs expire after the hosted session. Do not upload sensitive data.",
+        "The hosted service is always available, with bounded runs and temporary artifacts.",
         "not peer-reviewed scientific validation",
         'name="twitter:card" content="summary_large_image"',
     ]
 
     for fragment in required_fragments:
         assert fragment in rendered_text
+
+
+def test_render_blueprint_matches_public_starter_service() -> None:
+    blueprint = (REPO_ROOT / "render.yaml").read_text(encoding="utf-8")
+
+    assert "plan: starter" in blueprint
+    assert "plan: free" not in blueprint
 
 
 def test_static_site_cname_matches_public_domain() -> None:

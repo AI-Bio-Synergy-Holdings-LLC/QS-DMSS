@@ -13,28 +13,57 @@
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
+    <a class="skip-link" href="#main-content">Skip to main content</a>
     <div class="shell">
-      <aside class="rail">
-        <div class="brand-mark" aria-hidden="true">
-          <div class="brand-ring"></div>
-          <div class="brand-core"></div>
+      <aside class="rail" aria-label="Application navigation">
+        <div class="rail-brand">
+          <div class="brand-mark" aria-hidden="true">
+            <div class="brand-ring"></div>
+            <div class="brand-core"></div>
+          </div>
+          <div class="rail-brand-copy">
+            <strong>QS-DMSS</strong>
+            <span>Research cockpit</span>
+          </div>
         </div>
-        <nav class="rail-nav" aria-label="Primary">
-          <a class="rail-item active" href="#cockpit">Cockpit</a>
-          <a class="rail-item" href="#lab-mode">Lab</a>
-          <a class="rail-item" href="#runs">Runs</a>
-          <a class="rail-item" href="#experiments">Experiments</a>
-          <a class="rail-item" href="#evidence">Evidence</a>
-          <a class="rail-item" href="#artifacts">Artifacts</a>
-          <a class="rail-item" href="#config">Config</a>
+        <p class="rail-label" id="primaryNavigationLabel">Workspace</p>
+        <nav class="rail-nav" aria-labelledby="primaryNavigationLabel">
+          <a class="rail-item active" href="#lab-mode" aria-current="location">
+            <span class="rail-index" aria-hidden="true">01</span>
+            <span>Lab Mode</span>
+          </a>
+          <a class="rail-item" href="#cockpit">
+            <span class="rail-index" aria-hidden="true">02</span>
+            <span>Run Setup</span>
+          </a>
+          <a class="rail-item" href="#config">
+            <span class="rail-index" aria-hidden="true">03</span>
+            <span>Configuration</span>
+          </a>
+          <a class="rail-item" href="#artifacts">
+            <span class="rail-index" aria-hidden="true">04</span>
+            <span>Run Detail</span>
+          </a>
+          <a class="rail-item" href="#runs">
+            <span class="rail-index" aria-hidden="true">05</span>
+            <span>Run Ledger</span>
+          </a>
+          <a class="rail-item" href="#experiments">
+            <span class="rail-index" aria-hidden="true">06</span>
+            <span>Experiments</span>
+          </a>
+          <a class="rail-item" href="#evidence">
+            <span class="rail-index" aria-hidden="true">07</span>
+            <span>Evidence</span>
+          </a>
         </nav>
         <div class="rail-footer">
-          <span class="rail-status-dot"></span>
+          <span class="rail-status-dot" aria-hidden="true"></span>
           <span id="railModeLabel">Local-first</span>
         </div>
       </aside>
 
-      <main class="workspace">
+      <main class="workspace" id="main-content" tabindex="-1">
         <header class="topbar">
           <div>
             <p class="eyebrow">Deterministic simulation and evidence operations</p>
@@ -652,11 +681,11 @@
                     Import Workspace JSON
                   </label>
                   <input
+                    class="visually-hidden-input"
                     id="workspaceImportInput"
                     name="workspaceImportInput"
                     type="file"
                     accept="application/json"
-                    hidden
                   />
                 </div>
                 <p class="scenario-library-note" id="workspaceExportFeedback">
@@ -943,7 +972,14 @@
                   <strong id="energyDriftValue">-</strong>
                 </div>
                 <div class="trace-wrap">
-                  <svg id="energyChart" class="trace" viewBox="0 0 280 110" preserveAspectRatio="none"></svg>
+                  <svg
+                    id="energyChart"
+                    class="trace"
+                    viewBox="0 0 280 110"
+                    preserveAspectRatio="none"
+                    role="img"
+                    aria-label="Energy drift over simulation steps"
+                  ></svg>
                   <div class="trace-axis">
                     <span>0</span>
                     <span id="energyAxisMid">mid</span>
@@ -958,7 +994,14 @@
                   <strong id="normDriftValue">-</strong>
                 </div>
                 <div class="trace-wrap">
-                  <svg id="normChart" class="trace" viewBox="0 0 280 110" preserveAspectRatio="none"></svg>
+                  <svg
+                    id="normChart"
+                    class="trace"
+                    viewBox="0 0 280 110"
+                    preserveAspectRatio="none"
+                    role="img"
+                    aria-label="Norm drift over simulation steps"
+                  ></svg>
                   <div class="trace-axis">
                     <span>0</span>
                     <span id="normAxisMid">mid</span>
@@ -969,9 +1012,14 @@
             </div>
 
             <div class="detail-actions">
-              <button class="secondary-button" id="verifyButton" type="button">Verify</button>
-              <button class="secondary-button teal" id="replayButton" type="button">Replay</button>
-              <a class="primary-button inline-button" id="bundleLink" href="#" download>
+              <button class="secondary-button" id="verifyButton" type="button" disabled>Verify</button>
+              <button class="secondary-button teal" id="replayButton" type="button" disabled>Replay</button>
+              <a
+                class="primary-button inline-button is-disabled"
+                id="bundleLink"
+                aria-disabled="true"
+                tabindex="-1"
+              >
                 Download Bundle
               </a>
             </div>
@@ -992,7 +1040,7 @@
             </div>
 
             <div class="table-shell">
-              <table>
+              <table aria-label="Recent simulation runs">
                 <thead>
                   <tr>
                     <th>Select</th>
@@ -1054,7 +1102,7 @@
             </div>
 
             <div class="table-shell compact">
-              <table>
+              <table aria-label="Run comparison metrics">
                 <thead>
                   <tr>
                     <th>Run</th>
@@ -1091,13 +1139,18 @@
               <button class="ghost-button" id="refreshExperimentsButton" type="button">
                 Refresh
               </button>
-              <button class="ghost-button" id="saveExperimentButton" type="button">
+              <button class="ghost-button" id="saveExperimentButton" type="button" disabled>
                 Save Current Comparison
               </button>
-              <button class="ghost-button" id="openExperimentReportButton" type="button">
+              <button class="ghost-button" id="openExperimentReportButton" type="button" disabled>
                 Open Experiment Report
               </button>
-              <a class="ghost-button" id="experimentBundleLink" href="#" download>
+              <a
+                class="ghost-button is-disabled"
+                id="experimentBundleLink"
+                aria-disabled="true"
+                tabindex="-1"
+              >
                 Download Experiment Bundle
               </a>
             </div>
@@ -1134,7 +1187,7 @@
             </div>
 
             <div class="table-shell compact">
-              <table>
+              <table aria-label="Saved experiment registry">
                 <thead>
                   <tr>
                     <th>Experiment</th>
@@ -1161,7 +1214,9 @@
                 <p class="panel-kicker">Evidence</p>
                 <h2>Bundle Overview</h2>
               </div>
-              <button class="ghost-button" id="openReportButton" type="button">Open Report</button>
+              <button class="ghost-button" id="openReportButton" type="button" disabled>
+                Open Report
+              </button>
             </div>
 
             <div class="evidence-grid">
@@ -1204,7 +1259,7 @@
 
     <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 
-    <dialog class="report-modal" id="reportDialog">
+    <dialog class="report-modal" id="reportDialog" aria-labelledby="reportHeading">
       <form method="dialog" class="report-frame-shell">
         <header class="report-head">
           <div>

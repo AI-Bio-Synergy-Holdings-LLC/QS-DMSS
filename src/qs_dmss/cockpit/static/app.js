@@ -513,6 +513,90 @@ function setControlsDisabled(container, disabled) {
   });
 }
 
+function setActionLinkEnabled(link, enabled, href = null) {
+  if (!link) {
+    return;
+  }
+  link.classList.toggle("is-disabled", !enabled);
+  if (enabled && href) {
+    link.href = href;
+    link.removeAttribute("aria-disabled");
+    link.tabIndex = 0;
+    return;
+  }
+  link.removeAttribute("href");
+  link.setAttribute("aria-disabled", "true");
+  link.tabIndex = -1;
+}
+
+function setupNavigation() {
+  const links = Array.from(document.querySelectorAll('.rail-item[href^="#"]'));
+  const pairs = links
+    .map((link) => ({ link, target: document.querySelector(link.getAttribute("href")) }))
+    .filter((item) => item.target);
+  const skipLink = document.querySelector(".skip-link");
+  const main = document.querySelector("#main-content");
+
+  const setActive = (activeLink) => {
+    links.forEach((link) => {
+      const active = link === activeLink;
+      link.classList.toggle("active", active);
+      if (active) {
+        link.setAttribute("aria-current", "location");
+      } else {
+        link.removeAttribute("aria-current");
+      }
+    });
+  };
+
+  const syncActiveSection = () => {
+    if (!pairs.length) {
+      return;
+    }
+    const offset = window.innerWidth <= 900 ? 120 : 40;
+    const ordered = [...pairs].sort(
+      (left, right) => left.target.offsetTop - right.target.offsetTop,
+    );
+    let current = ordered[0];
+    ordered.forEach((item) => {
+      if (item.target.getBoundingClientRect().top <= offset) {
+        current = item;
+      }
+    });
+    setActive(current.link);
+  };
+
+  let navigationFrame = null;
+  const requestNavigationSync = () => {
+    if (navigationFrame !== null) {
+      return;
+    }
+    navigationFrame = window.requestAnimationFrame(() => {
+      navigationFrame = null;
+      syncActiveSection();
+    });
+  };
+
+  links.forEach((link) =>
+    link.addEventListener("click", (event) => {
+      const target = document.querySelector(link.getAttribute("href"));
+      if (!target) {
+        return;
+      }
+      event.preventDefault();
+      target.scrollIntoView({ behavior: "auto", block: "start" });
+      window.history.pushState(null, "", link.hash);
+      setActive(link);
+    }),
+  );
+  window.addEventListener("scroll", requestNavigationSync, { passive: true });
+  window.addEventListener("resize", requestNavigationSync);
+  skipLink?.addEventListener("click", () => {
+    window.requestAnimationFrame(() => main?.focus({ preventScroll: true }));
+  });
+  syncActiveSection();
+}
+
 function applyHostedDemoMode() {
   const enabled = hostedDemoEnabled();
   els.hostedDemoBanner.hidden = !enabled;
@@ -3175,9 +3259,11 @@ function updateSelectionChip() {
 
 function setExperimentActionsEnabled(enabled) {
   els.openExperimentReportButton.disabled = !enabled;
-  els.experimentBundleLink.style.pointerEvents = enabled ? "auto" : "none";
-  els.experimentBundleLink.style.opacity = enabled ? "1" : "0.56";
-  els.experimentBundleLink.tabIndex = enabled ? 0 : -1;
+  setActionLinkEnabled(
+    els.experimentBundleLink,
+    enabled,
+    enabled ? state.selectedExperiment?.urls?.bundle : null,
+  );
 }
 
 function renderRunsTable() {
@@ -3202,7 +3288,13 @@ function renderRunsTable() {
       return `
         <tr class="${selected}" data-run-id="${run.run_id}">
           <td class="run-select-cell">
-            <input class="run-select" type="checkbox" data-run-check="${run.run_id}" ${checked} />
+            <input
+              class="run-select"
+              type="checkbox"
+              data-run-check="${run.run_id}"
+              aria-label="Select run ${escapeHtml(run.run_id)} for comparison"
+              ${checked}
+            />
           </td>
           <td>${run.run_id}</td>
           <td>
@@ -3401,6 +3493,10 @@ function renderSelectedRun(detail) {
 
   els.bundleLink.href = detail.urls.bundle;
   els.bundleLink.setAttribute("download", "");
+  setActionLinkEnabled(els.bundleLink, true, detail.urls.bundle);
+  els.verifyButton.disabled = false;
+  els.replayButton.disabled = false;
+  els.openReportButton.disabled = false;
   els.reportFrame.src = detail.urls.report;
   els.reportHeading.textContent = `Evidence Report - ${detail.summary.run_id}`;
 
@@ -3576,7 +3672,6 @@ function renderSelectedExperiment(detail) {
   els.experimentDecisionStatus.textContent = detail.summary.decision_status || "-";
   els.experimentBundleSize.textContent = detail.summary.bundle_size_label;
   els.experimentJobId.textContent = jobLabel(detail.execution_job || detail.summary.execution_job);
-  els.experimentBundleLink.href = detail.urls.bundle;
   els.experimentBundleLink.setAttribute("download", "");
   setExperimentActionsEnabled(true);
 
@@ -3595,7 +3690,6 @@ function renderExperimentPlaceholder() {
   els.experimentDecisionStatus.textContent = "-";
   els.experimentBundleSize.textContent = "-";
   els.experimentJobId.textContent = "-";
-  els.experimentBundleLink.href = "#";
   setExperimentActionsEnabled(false);
   renderExperimentRegistry();
 }
@@ -4286,6 +4380,7 @@ function bindEvents() {
   els.openExperimentReportButton.addEventListener("click", openExperimentReport);
 }
 
+setupNavigation();
 bindEvents();
 
 hydrate().catch((error) => {
