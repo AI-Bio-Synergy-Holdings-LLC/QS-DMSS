@@ -14,7 +14,7 @@ from tempfile import TemporaryDirectory
 from typing import Any, Callable
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -74,6 +74,25 @@ GENERIC_COCKPIT_ERROR_DETAIL = "Cockpit request failed; check server logs for de
 HOSTED_DEMO_COOKIE_NAME = "qs_dmss_demo_session"
 HOSTED_DEMO_ENV_VAR = "QS_DMSS_HOSTED_DEMO"
 HOSTED_DEMO_SELF_INTERACTION_TEMPLATE_ID = "self-interaction-sweep"
+HOSTED_DEMO_PUBLIC_URL = "https://app.qs-dmss.studio/"
+HOSTED_DEMO_ROBOTS = """User-agent: *
+Allow: /
+Allow: /static/
+Disallow: /api/
+Disallow: /docs
+Disallow: /redoc
+Disallow: /openapi.json
+
+Sitemap: https://app.qs-dmss.studio/sitemap.xml
+"""
+HOSTED_DEMO_SITEMAP = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://app.qs-dmss.studio/</loc>
+  </url>
+</urlset>
+"""
+NOINDEX_RESPONSE_PATHS = ("/api/", "/docs", "/redoc", "/openapi.json")
 _HOSTED_DEMO_ACTIVE_JOBS: set[str] = set()
 _HOSTED_DEMO_ACTIVE_JOBS_LOCK = threading.Lock()
 
@@ -2855,6 +2874,18 @@ def create_app(
     app.mount("/static", StaticFiles(directory=service.static_root), name="static")
 
     @app.middleware("http")
+    async def crawler_policy_middleware(
+        request: Request,
+        call_next: Callable,
+    ):
+        response = await call_next(request)
+        if request.url.path.startswith(NOINDEX_RESPONSE_PATHS):
+            response.headers["X-Robots-Tag"] = (
+                "noindex, nofollow, noarchive, nosnippet"
+            )
+        return response
+
+    @app.middleware("http")
     async def hosted_demo_session_middleware(
         request: Request,
         call_next: Callable,
@@ -2933,7 +2964,19 @@ def create_app(
 
     @app.get("/")
     def root() -> FileResponse:
-        return FileResponse(service.index_path(), media_type="text/html")
+        return FileResponse(
+            service.index_path(),
+            media_type="text/html",
+            headers={"Link": f"<{HOSTED_DEMO_PUBLIC_URL}>; rel=\"canonical\""},
+        )
+
+    @app.get("/robots.txt", include_in_schema=False)
+    def robots() -> PlainTextResponse:
+        return PlainTextResponse(HOSTED_DEMO_ROBOTS)
+
+    @app.get("/sitemap.xml", include_in_schema=False)
+    def sitemap() -> Response:
+        return Response(HOSTED_DEMO_SITEMAP, media_type="application/xml")
 
     @app.get("/api/health")
     def health(

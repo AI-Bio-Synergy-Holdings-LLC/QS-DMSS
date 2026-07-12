@@ -12,6 +12,13 @@ The Studio-hosted Open Graph/Twitter image lives at:
 site/assets/social-preview.png
 ```
 
+The hosted cockpit Open Graph/Twitter image and editable source live at:
+
+```text
+src/qs_dmss/cockpit/static/hosted-demo-social-preview.png
+docs/assets/hosted-demo-social-preview.svg
+```
+
 The GitHub repository preview is 1280x640. The Studio-hosted Open
 Graph/Twitter image is 1200x630. Both use the same Studio visual direction and
 public product-loop language:
@@ -37,6 +44,17 @@ Repository administrators can upload the image in GitHub:
 
 GitHub and social platforms may cache social previews, so link previews can
 take time to update after upload.
+
+## Hosted Demo Card
+
+The hosted card is 1200x630 and distinguishes the interactive demo from the
+canonical product website. It uses the Studio visual system while emphasizing
+the constrained workflow:
+
+```text
+Run. Compare. Verify. Export.
+Public demo. Temporary outputs. Packaged scenarios.
+```
 
 ## Positioning Guardrail
 

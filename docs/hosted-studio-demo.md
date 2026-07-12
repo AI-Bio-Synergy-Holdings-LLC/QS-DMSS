@@ -9,6 +9,24 @@ Production status: [https://app.qs-dmss.studio](https://app.qs-dmss.studio) is
 deployed from `render.yaml`, DNS-verified, HTTPS-enabled, and linked from the
 canonical Studio website.
 
+## Discovery and Social Previews
+
+The hosted application has its own canonical public URL:
+
+```text
+https://app.qs-dmss.studio/
+```
+
+Its Open Graph, X/Twitter, and `WebApplication` structured metadata describe it
+as an interactive demonstration that is part of the canonical QS-DMSS Studio
+website. The social card is served from
+`/static/hosted-demo-social-preview.png`.
+
+Only the stable application root is indexable. `/robots.txt`, `/sitemap.xml`,
+and the HTTP `X-Robots-Tag` policy keep API responses, generated reports,
+temporary artifacts, downloads, and interactive API documentation out of
+search indexes. This crawler policy does not change user access to those paths.
+
 ## Public Demo Contract
 
 Set `QS_DMSS_HOSTED_DEMO=1` to enable hosted-demo mode.

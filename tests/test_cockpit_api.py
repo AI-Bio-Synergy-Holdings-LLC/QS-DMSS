@@ -2,13 +2,83 @@ from __future__ import annotations
 
 from copy import deepcopy
 import hashlib
+import json
 import re
 from pathlib import Path
 
 from fastapi.testclient import TestClient
 
+from qs_dmss import __version__
 from qs_dmss.cockpit import api as cockpit_api
 from qs_dmss.cockpit.api import create_app
+
+
+def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+
+    root = client.get("/")
+    assert root.status_code == 200
+    assert root.headers["link"] == (
+        '<https://app.qs-dmss.studio/>; rel="canonical"'
+    )
+    assert "x-robots-tag" not in root.headers
+    assert '<link rel="canonical" href="https://app.qs-dmss.studio/"' in root.text
+    assert 'name="robots" content="index, follow, max-image-preview:large"' in root.text
+    assert 'property="og:type" content="website"' in root.text
+    assert (
+        'property="og:image"\n      '
+        'content="https://app.qs-dmss.studio/static/hosted-demo-social-preview.png"'
+        in root.text
+    )
+    assert 'name="twitter:card" content="summary_large_image"' in root.text
+
+    json_ld_match = re.search(
+        r'<script type="application/ld\+json">\s*(.*?)\s*</script>',
+        root.text,
+        flags=re.DOTALL,
+    )
+    assert json_ld_match is not None
+    structured_data = json.loads(json_ld_match.group(1))
+    assert structured_data["@type"] == "WebApplication"
+    assert structured_data["url"] == "https://app.qs-dmss.studio/"
+    assert structured_data["softwareVersion"] == __version__
+    assert structured_data["isPartOf"]["url"] == "https://qs-dmss.studio/"
+    assert structured_data["publisher"]["name"] == "AI-Bio Synergy Holdings LLC"
+    assert structured_data["citation"] == "https://doi.org/10.5281/zenodo.21319023"
+
+    social_preview = client.get("/static/hosted-demo-social-preview.png")
+    assert social_preview.status_code == 200
+    assert social_preview.headers["content-type"].startswith("image/png")
+    assert social_preview.content[:8] == b"\x89PNG\r\n\x1a\n"
+    assert int.from_bytes(social_preview.content[16:20], "big") == 1200
+    assert int.from_bytes(social_preview.content[20:24], "big") == 630
+
+    robots = client.get("/robots.txt")
+    assert robots.status_code == 200
+    assert "Disallow: /api/" in robots.text
+    assert "Disallow: /openapi.json" in robots.text
+    assert "Sitemap: https://app.qs-dmss.studio/sitemap.xml" in robots.text
+    assert "x-robots-tag" not in robots.headers
+
+    sitemap = client.get("/sitemap.xml")
+    assert sitemap.status_code == 200
+    assert sitemap.headers["content-type"].startswith("application/xml")
+    assert "<loc>https://app.qs-dmss.studio/</loc>" in sitemap.text
+    assert sitemap.text.count("<url>") == 1
+
+    health = client.get("/api/health")
+    assert health.status_code == 200
+    assert health.headers["x-robots-tag"] == (
+        "noindex, nofollow, noarchive, nosnippet"
+    )
+
+    openapi = client.get("/openapi.json")
+    assert openapi.status_code == 200
+    assert openapi.headers["x-robots-tag"] == (
+        "noindex, nofollow, noarchive, nosnippet"
+    )
 
 
 def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
@@ -148,10 +218,16 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     bundle_payload = client.get(f"/api/runs/{run_id}/bundle")
     assert bundle_payload.status_code == 200
     assert bundle_payload.headers["content-type"].startswith("application/zip")
+    assert bundle_payload.headers["x-robots-tag"] == (
+        "noindex, nofollow, noarchive, nosnippet"
+    )
 
     report_payload = client.get(f"/api/runs/{run_id}/report")
     assert report_payload.status_code == 200
     assert "QS-DMSS Evidence Report" in report_payload.text
+    assert report_payload.headers["x-robots-tag"] == (
+        "noindex, nofollow, noarchive, nosnippet"
+    )
 
     replay_payload = client.post(f"/api/runs/{run_id}/replay")
     assert replay_payload.status_code == 200

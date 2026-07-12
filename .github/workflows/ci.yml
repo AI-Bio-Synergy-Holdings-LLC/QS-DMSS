@@ -88,6 +88,7 @@ jobs:
               in wheel_names
           )
           assert "qs_dmss/cockpit/static/favicon.svg" in wheel_names
+          assert "qs_dmss/cockpit/static/hosted-demo-social-preview.png" in wheel_names
 
           sdist_root = f"qs_dmss-{version}/"
           with tarfile.open(sdist) as archive:
@@ -115,6 +116,11 @@ jobs:
               in sdist_names
           )
           assert sdist_root + "src/qs_dmss/cockpit/static/favicon.svg" in sdist_names
+          assert (
+              sdist_root
+              + "src/qs_dmss/cockpit/static/hosted-demo-social-preview.png"
+              in sdist_names
+          )
           PY
 
       - name: Smoke test installed wheel

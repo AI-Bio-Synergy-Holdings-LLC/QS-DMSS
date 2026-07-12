@@ -102,7 +102,7 @@ where = ["src"]
   "schemas/*.json",
   "showcases/*.yaml",
 ]
-"qs_dmss.cockpit" = ["static/*.css", "static/*.html", "static/*.js", "static/*.svg"]
+"qs_dmss.cockpit" = ["static/*.css", "static/*.html", "static/*.js", "static/*.png", "static/*.svg"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
