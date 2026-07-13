@@ -187,6 +187,7 @@ benchmark-validation/
 fractal-ssfm-validation/
 quantum-sidecar-validation/
 qpu-request-bundle/
+quantum-compilation-validation/
 reference-data-calibration/
 simulation-showcase/
 .codex-logs/

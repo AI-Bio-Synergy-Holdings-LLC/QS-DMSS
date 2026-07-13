@@ -212,6 +212,38 @@ def _build_parser() -> argparse.ArgumentParser:
         default=1e-10,
         help="Reference-sidecar equivalence tolerance required before transpilation.",
     )
+    quantum_compilation_parser = quantum_subparsers.add_parser(
+        "validate-compilation",
+        help="Validate target semantics and resource attribution across generic topologies.",
+    )
+    quantum_compilation_parser.add_argument(
+        "--output-root",
+        help="Empty directory for the compilation matrix and evidence bundle.",
+    )
+    quantum_compilation_parser.add_argument(
+        "--shots",
+        type=int,
+        default=4096,
+        help="Shots for the nested simulator/request evidence; never submitted.",
+    )
+    quantum_compilation_parser.add_argument(
+        "--seed",
+        type=int,
+        default=7,
+        help="Reference simulator and transpiler seed.",
+    )
+    quantum_compilation_parser.add_argument(
+        "--reference-tolerance",
+        type=float,
+        default=1e-10,
+        help="Strict tolerance for the source simulator-sidecar gate.",
+    )
+    quantum_compilation_parser.add_argument(
+        "--compilation-tolerance",
+        type=float,
+        default=1e-6,
+        help="Maximum bounded state/density/leakage error after target transpilation.",
+    )
 
     data_parser = subparsers.add_parser(
         "data",
@@ -627,6 +659,33 @@ def main(argv: list[str] | None = None) -> int:
             print("Authorization: no provider credentials; maximum authorized cost is $0.00.")
             print(f"Request: {report['request_path']}")
             print(f"Review instructions: {report['review_path']}")
+            print(f"Evidence bundle: {report['evidence_bundle_path']}")
+            return 0 if report["success"] else 1
+
+        if args.quantum_command == "validate-compilation":
+            from qs_dmss.quantum_compilation import (
+                validate_fractal_quantum_compilation,
+            )
+
+            try:
+                report = validate_fractal_quantum_compilation(
+                    output_root=args.output_root,
+                    shots=args.shots,
+                    seed=args.seed,
+                    reference_tolerance=args.reference_tolerance,
+                    compilation_tolerance=args.compilation_tolerance,
+                )
+            except (FileNotFoundError, RuntimeError, ValueError) as exc:
+                print(exc)
+                return 1
+
+            status = "passed" if report["success"] else "failed"
+            print(f"Fractal SSFM quantum compilation validation {status}.")
+            print("Execution: local ideal simulators only; no QPU job was submitted.")
+            print("Authorization: no provider credentials; maximum authorized cost is $0.00.")
+            print(f"Report: {report['report_path']}")
+            print(f"Reviewer summary: {report['markdown_report_path']}")
+            print(f"Matrix CSV: {report['matrix_csv_path']}")
             print(f"Evidence bundle: {report['evidence_bundle_path']}")
             return 0 if report["success"] else 1
 

@@ -128,6 +128,9 @@ evidence-first simulation lab:
 - Provider-neutral Fractal SSFM QPU request bundles that expose measurement,
   state-preparation, topology, routing, and gate costs while enforcing no
   credentials, no remote API calls, no submission, and zero authorized spend
+- Quantum compilation validation across generic linear, ring, and fully
+  connected targets, with semantic-equivalence classes, component resource
+  attribution, routing overhead, and fidelity/depth/CX Pareto evidence
 - Public reference-data provenance sandbox that materializes metadata-only
   source manifests, cache checksums, a tiny calibration fixture, and an evidence
   bundle for Planck Legacy Archive, DESI DR1, SDSS DR19, and Gaia DR3 source
@@ -224,6 +227,20 @@ credential and cost policies, checksums, and the complete reference evidence.
 It never reads provider credentials, contacts a remote API, or submits a QPU
 job; authorized spend is fixed at `$0.00`. See
 [docs/fractal-ssfm-qpu-request-bundle.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/fractal-ssfm-qpu-request-bundle.md).
+
+Validate logical-to-target semantics and compilation resource tradeoffs:
+
+```powershell
+qs-dmss quantum validate-compilation --output-root quantum-compilation-validation
+```
+
+This fixed 12-row matrix compares three generic five-qubit topologies across
+optimization levels `0–3`, reconstructs the logical state after target layout,
+and attributes costs to state preparation, SSFM evolution, routing, and
+measurement. It distinguishes near-machine-precision rows from bounded
+`1e-6` compilation approximations and emits JSON, Markdown, CSV, circuits,
+checksums, and an evidence ZIP. See
+[docs/quantum-compilation-validation.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/quantum-compilation-validation.md).
 
 Run the public reference-data provenance calibration sandbox:
 

@@ -62,8 +62,10 @@ QS-DMSS remains a classical simulation package. The optional Fractal SSFM
 quantum-readiness sidecar tests one small circuit encoding against the NumPy
 reference. Its provider-neutral QPU request bundle then makes topology,
 state-preparation, routing, and gate costs reviewable without credentials,
-provider access, or job submission. Neither surface establishes QPU
-acceleration or physical validation.
+provider access, or job submission. The compilation harness validates ideal
+logical-output preservation and attributes resource tradeoffs across fixed
+generic targets. None of these surfaces establishes QPU acceleration or
+physical validation.
 
 | Reference target | Suggested role in QS-DMSS | Notes |
 | --- | --- | --- |
