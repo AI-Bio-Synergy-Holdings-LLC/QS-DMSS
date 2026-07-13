@@ -67,6 +67,155 @@ def build_environment_lock() -> dict:
     }
 
 
+def _run_trace_series(metrics: dict, key: str) -> list[dict]:
+    samples = [
+        {
+            "step": float(item.get("step", index)),
+            "value": float(item[key]),
+        }
+        for index, item in enumerate(metrics.get("history") or [])
+        if item.get(key) is not None
+    ]
+    if not samples:
+        return []
+    initial = samples[0]["value"]
+    denominator = abs(initial) or 1.0
+    return [
+        {
+            **sample,
+            "relative": (sample["value"] - initial) / denominator,
+        }
+        for sample in samples
+    ]
+
+
+def _run_diagnostic_svg(metrics: dict) -> str:
+    width = 920
+    height = 570
+    plot_left = 104
+    plot_right = 868
+    plot_width = plot_right - plot_left
+    panels = (
+        ("energy", "Relative energy change", "#c45f28", 104),
+        ("norm", "Relative norm change", "#237777", 344),
+    )
+    panel_markup: list[str] = []
+    descriptions: list[str] = []
+
+    for key, label, color, top in panels:
+        series = _run_trace_series(metrics, key)
+        if not series:
+            continue
+        panel_height = 154
+        steps = [item["step"] for item in series]
+        values = [item["relative"] for item in series]
+        x_min = min(steps)
+        x_max = max(steps)
+        y_min = min(0.0, min(values))
+        y_max = max(0.0, max(values))
+        y_span = y_max - y_min
+        padding = y_span * 0.14 if y_span else max(abs(y_max) * 0.2, 1e-12)
+        y_min -= padding
+        y_max += padding
+
+        def x_scale(value: float) -> float:
+            return plot_left + ((value - x_min) / max(x_max - x_min, 1.0)) * plot_width
+
+        def y_scale(value: float) -> float:
+            return top + ((y_max - value) / max(y_max - y_min, 1e-18)) * panel_height
+
+        points = " ".join(
+            f'{x_scale(item["step"]):.2f},{y_scale(item["relative"]):.2f}'
+            for item in series
+        )
+        zero_y = y_scale(0.0)
+        peak = max(series, key=lambda item: abs(item["relative"]))
+        final = series[-1]
+        peak_x = x_scale(peak["step"])
+        peak_y = y_scale(peak["relative"])
+        final_x = x_scale(final["step"])
+        final_y = y_scale(final["relative"])
+        grid = "".join(
+            f'<line x1="{plot_left}" y1="{top + panel_height * fraction:.2f}" '
+            f'x2="{plot_right}" y2="{top + panel_height * fraction:.2f}" stroke="#e3e9e7" />'
+            for fraction in (0, 0.5, 1)
+        )
+        x_ticks = "".join(
+            f'<text x="{plot_left + plot_width * fraction:.2f}" y="{top + panel_height + 26}" '
+            f'text-anchor="middle" font-size="10" fill="#627176">'
+            f'{_format_scientific(x_min + (x_max - x_min) * fraction)}</text>'
+            for fraction in (0, 0.25, 0.5, 0.75, 1)
+        )
+        y_labels = "".join(
+            f'<text x="{plot_left - 12}" y="{y_scale(value) + 4:.2f}" text-anchor="end" '
+            f'font-size="10" fill="#627176">{_format_scientific(value)}</text>'
+            for value in (y_max, 0.0, y_min)
+        )
+        descriptions.append(
+            f"{label} ends at {_format_scientific(final['relative'])}; "
+            f"peak absolute change {_format_scientific(abs(peak['relative']))}."
+        )
+        panel_markup.append(
+            f"""
+    <g>
+      <text x="34" y="{top - 32}" font-size="16" font-weight="700" fill="#17383c">{html.escape(label)}</text>
+      <text x="{plot_right}" y="{top - 32}" text-anchor="end" font-size="10" fill="#627176">{len(series)} recorded samples</text>
+      {grid}
+      <line x1="{plot_left}" y1="{zero_y:.2f}" x2="{plot_right}" y2="{zero_y:.2f}" stroke="#40575c" stroke-dasharray="5 5" />
+      <polyline points="{points}" fill="none" stroke="{color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+      <circle cx="{peak_x:.2f}" cy="{peak_y:.2f}" r="6" fill="#fffdf8" stroke="{color}" stroke-width="3" />
+      <circle cx="{final_x:.2f}" cy="{final_y:.2f}" r="5" fill="{color}" />
+      <text x="{min(peak_x + 10, plot_right - 164):.2f}" y="{max(peak_y - 10, top + 14):.2f}" font-size="10" font-weight="700" fill="#40575c">peak |change| {_format_scientific(abs(peak['relative']))}</text>
+      {x_ticks}
+      {y_labels}
+    </g>"""
+        )
+
+    metadata = html.escape(
+        json.dumps(
+            {
+                "figure_type": "run_conservation_diagnostics",
+                "reference": "first recorded sample",
+                "sample_count": len(metrics.get("history") or []),
+                "claim_boundary": "numerical conservation diagnostics; not physical validation",
+            },
+            sort_keys=True,
+        )
+    )
+    description = " ".join(descriptions) or "No diagnostic history was recorded."
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width} {height}" role="img" aria-labelledby="run-diagnostic-title run-diagnostic-desc">
+  <title id="run-diagnostic-title">Run conservation diagnostics</title>
+  <desc id="run-diagnostic-desc">{html.escape(description)} Relative values use the first recorded sample as reference.</desc>
+  <metadata>{metadata}</metadata>
+  <rect width="100%" height="100%" rx="22" fill="#fffdf8" />
+  <text x="34" y="38" font-family="Georgia,serif" font-size="23" font-weight="700" fill="#17383c">Conservation evidence plate</text>
+  <text x="34" y="62" font-size="11" fill="#627176">Recorded solver history · relative to initial value · diagnostic only</text>
+  {''.join(panel_markup)}
+  <text x="{width / 2:.0f}" y="556" text-anchor="middle" font-size="11" font-weight="700" fill="#40575c">Simulation step</text>
+</svg>"""
+
+
+def _run_interpretation_markup(metrics: dict) -> str:
+    energy = _run_trace_series(metrics, "energy")
+    norm = _run_trace_series(metrics, "norm")
+    history = metrics.get("history") or []
+    if not energy or not norm:
+        return "<p>No step history was recorded, so conservation trajectories could not be interpreted.</p>"
+    energy_peak = max(abs(item["relative"]) for item in energy)
+    norm_peak = max(abs(item["relative"]) for item in norm)
+    density_values = [float(item["max_density"]) for item in history if item.get("max_density") is not None]
+    density_peak = max(density_values) if density_values else float(metrics.get("max_density", 0.0))
+    return f"""
+    <div class="insight-grid">
+      <article><span>Trajectory coverage</span><strong>{len(history)} samples</strong><p>Recorded from step {_format_scientific(energy[0]['step'])} through {_format_scientific(energy[-1]['step'])}.</p></article>
+      <article><span>Energy behavior</span><strong>{_format_scientific(energy[-1]['relative'])} final relative change</strong><p>Peak absolute relative change: {_format_scientific(energy_peak)}.</p></article>
+      <article><span>Norm behavior</span><strong>{_format_scientific(norm[-1]['relative'])} final relative change</strong><p>Peak absolute relative change: {_format_scientific(norm_peak)}.</p></article>
+      <article><span>Density envelope</span><strong>{_format_scientific(density_peak)} peak</strong><p>Largest sampled maximum-density value in the recorded history.</p></article>
+    </div>
+    <p class="interpretation-note"><strong>Interpretation:</strong> These traces document numerical conservation behavior for this configuration and execution. They support reproducibility review; they do not establish physical calibration, peer-reviewed validation, or quantum advantage.</p>
+    """
+
+
 def write_report(
     run_dir: Path,
     run_record: dict,
@@ -74,6 +223,8 @@ def write_report(
     decision: dict | None = None,
 ) -> None:
     report_path = run_dir / "report.html"
+    diagnostic_svg = _run_diagnostic_svg(metrics)
+    interpretation_markup = _run_interpretation_markup(metrics)
     rows = "\n".join(
         "<tr>"
         f"<td>{snapshot['step']}</td>"
@@ -184,36 +335,65 @@ def write_report(
 <html lang="en">
   <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>QS-DMSS Evidence Report</title>
     <style>
-      body {{ font-family: Arial, sans-serif; margin: 32px; color: #111827; }}
-      h1, h2 {{ margin-bottom: 0.4rem; }}
-      table {{ border-collapse: collapse; width: 100%; margin-top: 16px; }}
-      th, td {{ border: 1px solid #d1d5db; padding: 8px; text-align: left; }}
-      th {{ background: #f3f4f6; }}
-      code {{ background: #f3f4f6; padding: 2px 4px; }}
+      :root {{ --ink:#17383c; --muted:#627176; --line:#dce4e2; --paper:#fffdf8; --teal:#237777; --copper:#c45f28; }}
+      * {{ box-sizing:border-box; }}
+      body {{ margin:0; background:#edf0ea; color:var(--ink); font-family:Manrope,"Segoe UI",sans-serif; line-height:1.55; }}
+      main {{ width:min(1180px,calc(100% - 32px)); margin:28px auto; padding:clamp(24px,4vw,52px); border:1px solid var(--line); border-radius:28px; background:var(--paper); box-shadow:0 28px 80px rgba(24,56,61,.12); }}
+      h1,h2,h3 {{ font-family:Georgia,serif; line-height:1.14; }}
+      h1 {{ max-width:18ch; margin:.2rem 0 .7rem; font-size:clamp(2.4rem,5vw,4.4rem); }}
+      h2 {{ margin:2.2rem 0 .8rem; font-size:clamp(1.45rem,3vw,2.1rem); }}
+      .eyebrow {{ margin:0; color:var(--copper); font-size:.76rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase; }}
+      .lede {{ max-width:78ch; color:var(--muted); font-size:1.02rem; }}
+      .run-meta,.metric-grid,.insight-grid {{ display:grid; gap:12px; }}
+      .run-meta {{ grid-template-columns:repeat(2,minmax(0,1fr)); padding:18px; border:1px solid var(--line); border-radius:18px; background:#f8faf6; }}
+      .run-meta p {{ margin:0; overflow-wrap:anywhere; }}
+      .metric-grid,.insight-grid {{ grid-template-columns:repeat(4,minmax(0,1fr)); }}
+      .metric,.insight-grid article {{ min-width:0; padding:16px; border:1px solid var(--line); border-radius:18px; background:#f8faf6; }}
+      .metric span,.insight-grid span {{ color:var(--muted); font-size:.72rem; font-weight:800; letter-spacing:.07em; text-transform:uppercase; }}
+      .metric strong,.insight-grid strong {{ display:block; margin-top:7px; font-family:Georgia,serif; font-size:1.15rem; overflow-wrap:anywhere; }}
+      .insight-grid p {{ margin:7px 0 0; color:var(--muted); font-size:.86rem; }}
+      .interpretation-note,.boundary {{ padding:15px 17px; border-radius:13px; }}
+      .interpretation-note {{ border-left:4px solid var(--teal); background:#eef6f3; }}
+      .boundary {{ border-left:4px solid var(--copper); background:#fff4ea; font-weight:700; }}
+      figure {{ margin:22px 0; padding:12px; overflow:auto; border:1px solid var(--line); border-radius:22px; background:white; }}
+      figure svg {{ display:block; width:100%; min-width:760px; height:auto; }}
+      figcaption {{ padding:10px 8px 2px; color:var(--muted); font-size:.86rem; }}
+      .table-shell {{ overflow:auto; border:1px solid var(--line); border-radius:18px; }}
+      table {{ border-collapse:collapse; width:100%; min-width:720px; }}
+      th,td {{ padding:11px 12px; border-bottom:1px solid var(--line); text-align:left; }}
+      th {{ background:#edf5f2; color:#365257; font-size:.72rem; letter-spacing:.07em; text-transform:uppercase; }}
+      code {{ padding:2px 5px; border-radius:6px; background:#edf1ef; overflow-wrap:anywhere; }}
+      @media(max-width:760px) {{ main {{ width:calc(100% - 16px); margin:8px auto; padding:20px; border-radius:20px; }} .run-meta,.metric-grid,.insight-grid {{ grid-template-columns:1fr; }} }}
+      @media print {{ body {{ background:white; }} main {{ width:100%; margin:0; padding:20px; border:0; box-shadow:none; }} figure {{ break-inside:avoid; }} }}
     </style>
   </head>
-  <body>
+  <body><main>
+    <p class="eyebrow">QS-DMSS · Inspectable research object</p>
     <h1>QS-DMSS Evidence Report</h1>
-    <p><strong>Run ID:</strong> {html.escape(run_record['run_id'])}</p>
-    <p><strong>Name:</strong> {html.escape(run_record['name'])}</p>
-    <p><strong>Backend:</strong> {html.escape(run_record['backend'])}</p>
-    <p><strong>Config Digest:</strong> <code>{html.escape(run_record['config_digest'])}</code></p>
-    <p><strong>Elapsed Seconds:</strong> {metrics['elapsed_seconds']}</p>
-    <h2>Summary</h2>
-    <ul>
-      <li>Initial norm: {metrics['initial_norm']}</li>
-      <li>Final norm: {metrics['final_norm']}</li>
-      <li>Norm drift: {metrics['norm_drift']}</li>
-      <li>Initial energy: {metrics['initial_energy']}</li>
-      <li>Final energy: {metrics['final_energy']}</li>
-      <li>Energy drift: {metrics['energy_drift']}</li>
-    </ul>
+    <p class="lede">A deterministic run record with numerical diagnostics, configuration identity, experiment context, and complete step history.</p>
+    <div class="run-meta">
+      <p><strong>Run ID</strong><br><code>{html.escape(run_record['run_id'])}</code></p>
+      <p><strong>Name</strong><br>{html.escape(run_record['name'])}</p>
+      <p><strong>Backend</strong><br>{html.escape(run_record['backend'])}</p>
+      <p><strong>Config digest</strong><br><code>{html.escape(run_record['config_digest'])}</code></p>
+    </div>
+    <p class="boundary">Numerical workflow evidence only. Interpret conservation trajectories inside the documented configuration and do not treat this report as physical calibration or peer-reviewed validation.</p>
+    <h2>Executive diagnostic summary</h2>
+    <div class="metric-grid">
+      <article class="metric"><span>Norm drift</span><strong>{_format_scientific(metrics['norm_drift'])}</strong></article>
+      <article class="metric"><span>Energy drift</span><strong>{_format_scientific(metrics['energy_drift'])}</strong></article>
+      <article class="metric"><span>Maximum density</span><strong>{_format_scientific(metrics.get('max_density'))}</strong></article>
+      <article class="metric"><span>Elapsed time</span><strong>{float(metrics['elapsed_seconds']):.3f} s</strong></article>
+    </div>
+    {interpretation_markup}
+    <figure>{diagnostic_svg}<figcaption>Energy and norm use independent labeled scales and the first recorded sample as reference. Peak and final values are directly annotated; the table below remains the complete numerical record.</figcaption></figure>
     {experiment_markup}
     {decision_markup}
     <h2>Step History</h2>
-    <table>
+    <div class="table-shell"><table>
       <thead>
         <tr>
           <th>Step</th>
@@ -225,8 +405,8 @@ def write_report(
       <tbody>
         {rows}
       </tbody>
-    </table>
-  </body>
+    </table></div>
+  </main></body>
 </html>
 """
     report_path.write_text(html_body, encoding="utf-8")
@@ -450,12 +630,13 @@ def _experiment_report_styles() -> str:
       .actions { display:flex; flex-wrap:wrap; gap:10px; margin:22px 0; }
       .actions a,.actions button { display:inline-flex; min-height:44px; align-items:center; justify-content:center; padding:0 16px; border:1px solid var(--line); border-radius:14px; background:white; color:var(--teal); font:inherit; font-weight:800; text-decoration:none; cursor:pointer; }
       .actions .primary { border-color:var(--teal); background:var(--teal); color:white; }
-      .metric-grid,.readiness-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
-      .metric,.readiness-card { min-width:0; padding:16px; border:1px solid var(--line); border-radius:18px; background:#f8faf6; }
-      .metric span,.readiness-card span { color:var(--muted); font-size:.74rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+      .metric-grid,.readiness-grid,.insight-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; }
+      .metric,.readiness-card,.insight-card { min-width:0; padding:16px; border:1px solid var(--line); border-radius:18px; background:#f8faf6; }
+      .metric span,.readiness-card span,.insight-card span { color:var(--muted); font-size:.74rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
       .metric strong { display:block; margin-top:7px; font-family:Georgia,serif; font-size:1.28rem; overflow-wrap:anywhere; }
       .readiness-card strong { display:block; margin:7px 0; }
-      .readiness-card p { margin:0; color:var(--muted); font-size:.9rem; }
+      .insight-card strong { display:block; margin:7px 0; font-family:Georgia,serif; font-size:1.05rem; overflow-wrap:anywhere; }
+      .readiness-card p,.insight-card p { margin:0; color:var(--muted); font-size:.9rem; }
       .recommendation { padding:22px; border:1px solid rgba(215,163,61,.45); border-radius:22px; background:linear-gradient(135deg,rgba(215,163,61,.13),rgba(35,119,119,.07)); }
       .recommendation h2 { margin:0 0 8px; }
       figure { margin:22px 0; padding:12px; border:1px solid var(--line); border-radius:22px; background:white; overflow:auto; }
@@ -472,7 +653,7 @@ def _experiment_report_styles() -> str:
       [role=tab][aria-selected=true] { border-color:var(--teal); background:var(--teal); color:white; }
       [role=tabpanel][hidden] { display:none; }
       pre { padding:16px; overflow:auto; border-radius:16px; background:#152e32; color:#eff8f6; font-size:.82rem; }
-      @media(max-width:760px) { main { width:min(100% - 16px,1480px); margin:8px auto; padding:20px; border-radius:20px; } .metric-grid,.readiness-grid { grid-template-columns:1fr; } figure svg { min-width:720px; } }
+      @media(max-width:760px) { main { width:min(100% - 16px,1480px); margin:8px auto; padding:20px; border-radius:20px; } .metric-grid,.readiness-grid,.insight-grid { grid-template-columns:1fr; } figure svg { min-width:720px; } }
       @media print { body { background:white; } main { width:100%; margin:0; padding:20px; border:0; box-shadow:none; } .actions,.tab-list { display:none; } [role=tabpanel][hidden] { display:block; } figure { break-inside:avoid; } }
     """
 
@@ -552,6 +733,38 @@ def _comparison_metric_cards(experiment_record: dict, comparison: dict) -> str:
     )
 
 
+def _comparison_insights_markup(comparison: dict) -> str:
+    rows = comparison.get("rows") or []
+    if not rows:
+        return "<p>No comparison rows are available for interpretation.</p>"
+    indexed_rows = list(enumerate(rows))
+    energy_row = min(indexed_rows, key=lambda item: abs(float(item[1]["energy_drift"])))
+    norm_row = min(indexed_rows, key=lambda item: abs(float(item[1]["norm_drift"])))
+    density_row = max(indexed_rows, key=lambda item: float(item[1]["max_density"]))
+    elapsed_row = min(indexed_rows, key=lambda item: float(item[1]["elapsed_seconds"]))
+
+    def label(indexed_row: tuple[int, dict]) -> str:
+        return _comparison_variant_label(indexed_row[1], indexed_row[0])
+
+    decision = comparison.get("decision") or {}
+    decision_note = (
+        f"The active shared scoring contract recommends {html.escape(str(decision.get('recommended_run_id', ''))[-8:])}. "
+        "That recommendation is contract-dependent and should be reviewed alongside the individual metric tradeoffs."
+        if decision.get("available")
+        else "No shared scoring contract is available, so the report presents evidence without naming a cross-profile winner."
+    )
+    return f"""
+    <h2>Interpretive comparison summary</h2>
+    <div class="insight-grid">
+      <article class="insight-card"><span>Smallest |energy drift|</span><strong>{html.escape(label(energy_row))}</strong><p>{_format_scientific(energy_row[1]['energy_drift'])} recorded drift.</p></article>
+      <article class="insight-card"><span>Smallest |norm drift|</span><strong>{html.escape(label(norm_row))}</strong><p>{_format_scientific(norm_row[1]['norm_drift'])} recorded drift.</p></article>
+      <article class="insight-card"><span>Highest max density</span><strong>{html.escape(label(density_row))}</strong><p>{_format_scientific(density_row[1]['max_density'])} recorded maximum.</p></article>
+      <article class="insight-card"><span>Fastest observed run</span><strong>{html.escape(label(elapsed_row))}</strong><p>{float(elapsed_row[1]['elapsed_seconds']):.3f} seconds in the captured environment.</p></article>
+    </div>
+    <p class="boundary"><strong>Decision context:</strong> {decision_note} Runtime is environment-sensitive, and all numerical metrics remain workflow diagnostics rather than external scientific validation.</p>
+    """
+
+
 def _comparison_figure_caption(comparison: dict) -> str:
     decision = comparison.get("decision") or {}
     if decision.get("available"):
@@ -593,6 +806,7 @@ def write_experiment_workbook(
   <section role="tabpanel" id="panel-overview" aria-labelledby="tab-overview">
     <div class="metric-grid">{_comparison_metric_cards(experiment_record, comparison)}</div>
     {_recommendation_markup(comparison)}
+    {_comparison_insights_markup(comparison)}
     <figure>{_comparison_visual_svg(comparison)}<figcaption>{html.escape(_comparison_figure_caption(comparison))}</figcaption></figure>
   </section>
   <section role="tabpanel" id="panel-variants" aria-labelledby="tab-variants" hidden>
@@ -670,6 +884,7 @@ def write_experiment_report(
     <p class="boundary">Diagnostic workflow comparison only. This report does not claim peer-reviewed physical validation.</p>
     <div class="metric-grid">{_comparison_metric_cards(experiment_record, comparison)}</div>
     {_recommendation_markup(comparison)}
+    {_comparison_insights_markup(comparison)}
     <figure>{_comparison_visual_svg(comparison)}<figcaption>{html.escape(_comparison_figure_caption(comparison))}</figcaption></figure>
     {shared_markup}
     <h2>Evidence, validation, and HPC handoff</h2>

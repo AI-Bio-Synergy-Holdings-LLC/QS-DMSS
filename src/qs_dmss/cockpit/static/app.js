@@ -1,6 +1,10 @@
 const state = {
   hostedDemo: null,
   quantumValidation: null,
+  previousQuantumValidation: null,
+  quantumRuntime: null,
+  quantumAttributionPrimaryKey: null,
+  quantumAttributionCompareKey: null,
   configs: [],
   showcases: [],
   campaignStudio: null,
@@ -30,6 +34,11 @@ const state = {
   selectedTemplateName: null,
   selectedRunIds: [],
   comparison: null,
+  comparisonMetrics: {
+    main: "energy_drift",
+    lab: "energy_drift",
+    research: "energy_drift",
+  },
 };
 
 let artifactPreviewTrigger = null;
@@ -39,8 +48,22 @@ const els = {
   hostedDemoBanner: document.querySelector("#hostedDemoBanner"),
   railModeLabel: document.querySelector("#railModeLabel"),
   apiModePill: document.querySelector("#apiModePill"),
+  executionModeStatus: document.querySelector("#executionModeStatus"),
+  releaseVersion: document.querySelector("#releaseVersion"),
+  releaseDoi: document.querySelector("#releaseDoi"),
+  projectDoi: document.querySelector("#projectDoi"),
+  overviewResearchObjectTitle: document.querySelector("#overviewResearchObjectTitle"),
+  overviewResearchObjectSummary: document.querySelector("#overviewResearchObjectSummary"),
+  overviewObjectType: document.querySelector("#overviewObjectType"),
+  overviewObjectId: document.querySelector("#overviewObjectId"),
+  overviewObjectStatus: document.querySelector("#overviewObjectStatus"),
+  overviewObjectCreated: document.querySelector("#overviewObjectCreated"),
+  overviewObjectMethod: document.querySelector("#overviewObjectMethod"),
+  overviewObjectEvidence: document.querySelector("#overviewObjectEvidence"),
   quantumValidationStatus: document.querySelector("#quantumValidationStatus"),
   quantumRowsPassing: document.querySelector("#quantumRowsPassing"),
+  quantumReferenceExact: document.querySelector("#quantumReferenceExact"),
+  quantumBoundedApproximation: document.querySelector("#quantumBoundedApproximation"),
   quantumExecutionMode: document.querySelector("#quantumExecutionMode"),
   quantumAuthorizedSpend: document.querySelector("#quantumAuthorizedSpend"),
   quantumSnapshotDate: document.querySelector("#quantumSnapshotDate"),
@@ -50,7 +73,25 @@ const els = {
   quantumMatrixLink: document.querySelector("#quantumMatrixLink"),
   quantumReportLink: document.querySelector("#quantumReportLink"),
   quantumTopologyCharts: document.querySelector("#quantumTopologyCharts"),
+  quantumVisualProvenance: document.querySelector("#quantumVisualProvenance"),
+  quantumVisualSourceBadge: document.querySelector("#quantumVisualSourceBadge"),
+  quantumVisualProvenanceTitle: document.querySelector("#quantumVisualProvenanceTitle"),
+  quantumVisualProvenanceSummary: document.querySelector("#quantumVisualProvenanceSummary"),
+  quantumVisualRunId: document.querySelector("#quantumVisualRunId"),
+  quantumVisualParameters: document.querySelector("#quantumVisualParameters"),
+  quantumVisualDataDigest: document.querySelector("#quantumVisualDataDigest"),
+  quantumTopologySource: document.querySelector("#quantumTopologySource"),
+  quantumAttributionSource: document.querySelector("#quantumAttributionSource"),
+  quantumAttributionPrimarySelect: document.querySelector("#quantumAttributionPrimarySelect"),
+  quantumAttributionCompareSelect: document.querySelector("#quantumAttributionCompareSelect"),
+  quantumAttributionPrimaryLabel: document.querySelector("#quantumAttributionPrimaryLabel"),
+  quantumAttributionCompareLabel: document.querySelector("#quantumAttributionCompareLabel"),
   quantumAttributionChart: document.querySelector("#quantumAttributionChart"),
+  quantumAttributionCompareChart: document.querySelector("#quantumAttributionCompareChart"),
+  quantumAttributionDelta: document.querySelector("#quantumAttributionDelta"),
+  quantumAttributionCompareDelta: document.querySelector("#quantumAttributionCompareDelta"),
+  quantumAttributionRecommendationSummary: document.querySelector("#quantumAttributionRecommendationSummary"),
+  quantumAttributionRosterBody: document.querySelector("#quantumAttributionRosterBody"),
   quantumAttributionDescription: document.querySelector("#quantumAttributionDescription"),
   quantumMatrixSummary: document.querySelector("#quantumMatrixSummary"),
   quantumMatrixBody: document.querySelector("#quantumMatrixBody"),
@@ -59,9 +100,41 @@ const els = {
   quantumBundleSha: document.querySelector("#quantumBundleSha"),
   quantumArchiveInventory: document.querySelector("#quantumArchiveInventory"),
   quantumLimitations: document.querySelector("#quantumLimitations"),
+  quantumHarnessForm: document.querySelector("#quantumHarnessForm"),
+  quantumShotsInput: document.querySelector("#quantumShotsInput"),
+  quantumSeedInput: document.querySelector("#quantumSeedInput"),
+  quantumReferenceToleranceInput: document.querySelector("#quantumReferenceToleranceInput"),
+  quantumCompilationToleranceInput: document.querySelector("#quantumCompilationToleranceInput"),
+  quantumMatrixScope: document.querySelector("#quantumMatrixScope"),
+  quantumBasisGates: document.querySelector("#quantumBasisGates"),
+  runQuantumValidationButton: document.querySelector("#runQuantumValidationButton"),
+  quantumRunFeedback: document.querySelector("#quantumRunFeedback"),
+  quantumRunName: document.querySelector("#quantumRunName"),
+  quantumRunStatus: document.querySelector("#quantumRunStatus"),
+  quantumRunDuration: document.querySelector("#quantumRunDuration"),
+  quantumRunOutput: document.querySelector("#quantumRunOutput"),
+  quantumRunVerification: document.querySelector("#quantumRunVerification"),
+  quantumProgressSequence: document.querySelector("#quantumProgressSequence"),
+  quantumRecommendationBody: document.querySelector("#quantumRecommendationBody"),
   configTemplate: document.querySelector("#configTemplate"),
+  configContextTitle: document.querySelector("#configContextTitle"),
+  configContextSummary: document.querySelector("#configContextSummary"),
+  configLibraryCount: document.querySelector("#configLibraryCount"),
+  configStudyType: document.querySelector("#configStudyType"),
+  configModelSummary: document.querySelector("#configModelSummary"),
+  configEvidenceFocus: document.querySelector("#configEvidenceFocus"),
   loadTemplateButton: document.querySelector("#loadTemplateButton"),
   labScenarioSelect: document.querySelector("#labScenarioSelect"),
+  labFlowChoose: document.querySelector("#labFlowChoose"),
+  labFlowRun: document.querySelector("#labFlowRun"),
+  labFlowInspect: document.querySelector("#labFlowInspect"),
+  labFlowVerify: document.querySelector("#labFlowVerify"),
+  labFlowExport: document.querySelector("#labFlowExport"),
+  labFlowChooseStatus: document.querySelector("#labFlowChooseStatus"),
+  labFlowRunStatus: document.querySelector("#labFlowRunStatus"),
+  labFlowInspectStatus: document.querySelector("#labFlowInspectStatus"),
+  labFlowVerifyStatus: document.querySelector("#labFlowVerifyStatus"),
+  labFlowExportStatus: document.querySelector("#labFlowExportStatus"),
   demoPathStatus: document.querySelector("#demoPathStatus"),
   demoPathFeedback: document.querySelector("#demoPathFeedback"),
   demoRunStep: document.querySelector("#demoRunStep"),
@@ -105,6 +178,7 @@ const els = {
   labComparisonJsonLink: document.querySelector("#labComparisonJsonLink"),
   labComparisonResults: document.querySelector("#labComparisonResults"),
   labComparisonResultsBody: document.querySelector("#labComparisonResultsBody"),
+  labComparisonChart: document.querySelector("#labComparisonChart"),
   labComparisonProgressText: document.querySelector("#labComparisonProgressText"),
   campaignStudioStatus: document.querySelector("#campaignStudioStatus"),
   campaignStudioSummary: document.querySelector("#campaignStudioSummary"),
@@ -138,6 +212,9 @@ const els = {
   labReportPreviewTitle: document.querySelector("#labReportPreviewTitle"),
   labReportPreviewBody: document.querySelector("#labReportPreviewBody"),
   labReportMetrics: document.querySelector("#labReportMetrics"),
+  labDiagnosticSummary: document.querySelector("#labDiagnosticSummary"),
+  labEnergyChart: document.querySelector("#labEnergyChart"),
+  labNormChart: document.querySelector("#labNormChart"),
   labInterpretationTitle: document.querySelector("#labInterpretationTitle"),
   labInterpretationSummary: document.querySelector("#labInterpretationSummary"),
   labMeaningList: document.querySelector("#labMeaningList"),
@@ -171,14 +248,36 @@ const els = {
   selectedRunCount: document.querySelector("#selectedRunCount"),
   launchForm: document.querySelector("#launchForm"),
   launchButton: document.querySelector("#launchButton"),
+  runLaunchStatus: document.querySelector("#runLaunchStatus"),
+  runLaunchState: document.querySelector("#runLaunchState"),
+  runLaunchTitle: document.querySelector("#runLaunchTitle"),
+  runLaunchMessage: document.querySelector("#runLaunchMessage"),
+  runLaunchProgress: document.querySelector("#runLaunchProgress"),
+  runLaunchResultActions: document.querySelector("#runLaunchResultActions"),
+  runLaunchReviewBundle: document.querySelector("#runLaunchReviewBundle"),
+  runLaunchStateBundle: document.querySelector("#runLaunchStateBundle"),
+  runLaunchFullBundle: document.querySelector("#runLaunchFullBundle"),
   sweepForm: document.querySelector("#sweepForm"),
+  sweepBaseConfig: document.querySelector("#sweepBaseConfig"),
   sweepParameter: document.querySelector("#sweepParameter"),
+  sweepParameterDescription: document.querySelector("#sweepParameterDescription"),
   sweepValues: document.querySelector("#sweepValues"),
+  sweepValidation: document.querySelector("#sweepValidation"),
+  sweepPlannedCount: document.querySelector("#sweepPlannedCount"),
+  sweepLaunchNote: document.querySelector("#sweepLaunchNote"),
+  sweepInterpretationSummary: document.querySelector("#sweepInterpretationSummary"),
+  sweepChanged: document.querySelector("#sweepChanged"),
+  sweepHeldFixed: document.querySelector("#sweepHeldFixed"),
+  sweepCompared: document.querySelector("#sweepCompared"),
+  sweepScientificBoundary: document.querySelector("#sweepScientificBoundary"),
+  sweepPreviewBody: document.querySelector("#sweepPreviewBody"),
   experimentNameInput: document.querySelector("#experimentNameInput"),
   launchSweepButton: document.querySelector("#launchSweepButton"),
   verifyButton: document.querySelector("#verifyButton"),
   replayButton: document.querySelector("#replayButton"),
   bundleLink: document.querySelector("#bundleLink"),
+  reviewBundleLink: document.querySelector("#reviewBundleLink"),
+  stateBundleLink: document.querySelector("#stateBundleLink"),
   openReportButton: document.querySelector("#openReportButton"),
   reportDialog: document.querySelector("#reportDialog"),
   reportFrame: document.querySelector("#reportFrame"),
@@ -192,6 +291,7 @@ const els = {
   artifactPreviewSourceLink: document.querySelector("#artifactPreviewSourceLink"),
   runsTableBody: document.querySelector("#runsTableBody"),
   comparisonTableBody: document.querySelector("#comparisonTableBody"),
+  comparisonChart: document.querySelector("#comparisonChart"),
   compareTitle: document.querySelector("#compareTitle"),
   compareContext: document.querySelector("#compareContext"),
   compareEnergySpan: document.querySelector("#compareEnergySpan"),
@@ -501,8 +601,12 @@ function renderJobProvenance(jobDetail) {
 
 function toast(title, body, tone = "neutral") {
   const node = document.createElement("div");
+  const heading = document.createElement("strong");
+  const message = document.createElement("span");
   node.className = "toast";
-  node.innerHTML = `<strong>${title}</strong><span>${body}</span>`;
+  heading.textContent = String(title ?? "");
+  message.textContent = String(body ?? "");
+  node.append(heading, message);
   if (tone === "danger") {
     node.style.borderColor = "rgba(198, 79, 62, 0.3)";
   }
@@ -526,6 +630,11 @@ async function fetchJson(url, options) {
       const parsed = JSON.parse(text);
       if (typeof parsed.detail === "string") {
         message = parsed.detail;
+      } else if (Array.isArray(parsed.detail)) {
+        message = parsed.detail
+          .map((item) => item?.msg || item?.message)
+          .filter(Boolean)
+          .join("; ");
       } else if (parsed.detail?.message) {
         message = parsed.detail.message;
       }
@@ -665,7 +774,8 @@ function applyHostedDemoMode() {
   const enabled = hostedDemoEnabled();
   els.hostedDemoBanner.hidden = !enabled;
   els.railModeLabel.textContent = enabled ? "Hosted demo" : "Local-first";
-  els.apiModePill.textContent = enabled ? "Curated demo API" : "Local API";
+  els.apiModePill.textContent = enabled ? "Hosted" : "Local";
+  els.executionModeStatus.textContent = enabled ? "Curated demo" : "Local execution";
   document.body.classList.toggle("is-hosted-demo", enabled);
   window.dispatchEvent(new Event("resize"));
   if (!enabled) {
@@ -674,6 +784,7 @@ function applyHostedDemoMode() {
 
   setControlsDisabled(els.launchForm, true);
   setControlsDisabled(els.sweepForm, true);
+  setControlsDisabled(els.quantumHarnessForm, true);
   els.loadTemplateButton.disabled = true;
   els.launchButton.disabled = true;
   els.launchSweepButton.disabled = true;
@@ -683,6 +794,9 @@ function applyHostedDemoMode() {
   els.importCampaignStudyTemplateInput.disabled = true;
   els.exportWorkspaceButton.disabled = true;
   els.workspaceImportInput.disabled = true;
+  els.runQuantumValidationButton.disabled = true;
+  els.quantumRunFeedback.textContent =
+    "Hosted mode presents the verified packaged archive. Live compilation runs in the local full application.";
   els.workspaceExportSummary.textContent =
     "Workspace import/export is local-only in the public hosted demo. Compose a research-object export for shareable Markdown, or install QS-DMSS locally for portable workspace snapshots.";
   els.workspaceExportFeedback.textContent =
@@ -835,6 +949,68 @@ function setLabComparisonProgress(isRunning, message) {
   els.demoCompareButton.textContent = isRunning ? "Comparing variants..." : "Compare variants";
 }
 
+function updateLabWorkflow() {
+  const hasScenario = Boolean(els.labScenarioSelect.value || state.selectedShowcaseName);
+  const hasRun = Boolean(state.labResult);
+  const inspected = Boolean(state.labResult?.report);
+  const verificationPassed = Boolean(state.labResult?.report?.verification?.success);
+  const replayPassed = Boolean(state.labResult?.report?.replay?.final_density_allclose);
+  const reproduced = verificationPassed && replayPassed;
+  const hasExport = Boolean(state.researchObject);
+  const steps = [
+    {
+      element: els.labFlowChoose,
+      status: els.labFlowChooseStatus,
+      complete: hasScenario,
+      current: !hasScenario,
+      available: true,
+      label: hasScenario ? "Selected" : "Current",
+    },
+    {
+      element: els.labFlowRun,
+      status: els.labFlowRunStatus,
+      complete: hasRun,
+      current: hasScenario && !hasRun,
+      available: hasScenario,
+      label: hasRun ? "Complete" : hasScenario ? "Current" : "Queued",
+    },
+    {
+      element: els.labFlowInspect,
+      status: els.labFlowInspectStatus,
+      complete: inspected,
+      current: hasRun && !inspected,
+      available: hasRun,
+      label: inspected ? "Evidence loaded" : hasRun ? "Current" : "Locked",
+    },
+    {
+      element: els.labFlowVerify,
+      status: els.labFlowVerifyStatus,
+      complete: reproduced,
+      current: inspected && !reproduced,
+      available: inspected,
+      label: reproduced ? "Verified + replayed" : inspected ? "Review" : "Locked",
+    },
+    {
+      element: els.labFlowExport,
+      status: els.labFlowExportStatus,
+      complete: hasExport,
+      current: reproduced && !hasExport,
+      available: reproduced,
+      label: hasExport ? "Exported" : reproduced ? "Current" : "Locked",
+    },
+  ];
+
+  steps.forEach(({ element, status, complete, current, available, label }) => {
+    element.classList.toggle("is-complete", complete);
+    element.classList.toggle("is-current", current);
+    element.classList.toggle("is-available", available);
+    status.textContent = label;
+    const link = element.querySelector("a");
+    if (current) link.setAttribute("aria-current", "step");
+    else link.removeAttribute("aria-current");
+  });
+}
+
 function updateDemoPath() {
   const hasRun = Boolean(state.labResult);
   const hasComparison = Boolean(state.labComparisonResult);
@@ -864,6 +1040,7 @@ function updateDemoPath() {
     : hasRun
     ? "The showcase is verified and replayed. Continue with the three-variant comparison."
     : "Start with the packaged showcase. QS-DMSS will unlock each next action.";
+  updateLabWorkflow();
 }
 
 function revealDemoResult(element) {
@@ -877,8 +1054,10 @@ function renderLabComparisonResults(result) {
   els.labComparisonResults.hidden = !rows.length;
   if (!rows.length) {
     els.labComparisonResultsBody.innerHTML = "";
+    renderInteractiveComparisonChart(els.labComparisonChart, null, "lab");
     return;
   }
+  renderInteractiveComparisonChart(els.labComparisonChart, result.comparison, "lab");
   els.labComparisonResultsBody.innerHTML = rows
     .map((row) => {
       const summary = summaries.get(row.run_id) || {};
@@ -1257,6 +1436,20 @@ function renderLabEvidenceExplorer(result) {
     els.labReportPreviewBody.textContent =
       "Run Lab Mode to summarize the simulation narrative, claim boundary, and key numerical diagnostics directly inside the cockpit.";
     els.labReportMetrics.innerHTML = "";
+    els.labDiagnosticSummary.textContent =
+      "Energy and norm trajectories appear after the packaged run completes.";
+    renderScientificTrace(els.labEnergyChart, [], "energy", {
+      color: "#c45f28",
+      title: "Relative energy change",
+      description: "No recorded energy history yet.",
+      yLabel: "Relative energy change",
+    });
+    renderScientificTrace(els.labNormChart, [], "norm", {
+      color: "#237777",
+      title: "Relative norm change",
+      description: "No recorded norm history yet.",
+      yLabel: "Relative norm change",
+    });
     els.labEvidenceChecklist.innerHTML =
       "<li>Verification, replay, and bundle status appear after the showcase run.</li>";
     els.labArtifactPreview.innerHTML =
@@ -1265,12 +1458,31 @@ function renderLabEvidenceExplorer(result) {
     return;
   }
 
-  const { report, artifact_links: artifactLinks } = result;
+  const { report, run, artifact_links: artifactLinks } = result;
   els.labExplorerStatus.textContent = report.success ? "Research object ready" : "Needs review";
   els.labReportPreviewTitle.textContent = `${report.scenario} report summary`;
-  els.labReportPreviewBody.textContent = `${report.scenario_narrative} ${report.claim_boundary}`;
+  els.labReportPreviewBody.textContent =
+    `${report.scenario_narrative} The run preserved ${report.metrics.history_points} recorded diagnostic samples, ` +
+    `a ${run.evidence.file_count}-file evidence manifest, deterministic replay status, and the scoped claim boundary: ${report.claim_boundary}`;
   renderGuidedInterpretation(report);
   renderMetricPreview(report.metrics);
+  const history = run.metrics?.history || [];
+  const energyTrace = renderScientificTrace(els.labEnergyChart, history, "energy", {
+    color: "#c45f28",
+    title: "Relative energy change for the packaged run",
+    description: "Recorded energy history shown relative to the first solver sample.",
+    yLabel: "Relative energy change",
+  });
+  const normTrace = renderScientificTrace(els.labNormChart, history, "norm", {
+    color: "#237777",
+    title: "Relative norm change for the packaged run",
+    description: "Recorded norm history shown relative to the first solver sample.",
+    yLabel: "Relative norm change",
+  });
+  els.labDiagnosticSummary.textContent =
+    `${history.length} solver samples were recorded. Energy ended at ${formatSignedScientific(energyTrace?.finalRelative)} relative to its initial value; ` +
+    `norm ended at ${formatSignedScientific(normTrace?.finalRelative)}. Peak absolute changes were ${formatScientific(energyTrace?.peakRelative)} and ${formatScientific(normTrace?.peakRelative)}, respectively. ` +
+    "These trajectories are numerical conservation diagnostics, not physical validation.";
   renderEvidenceChecklist(result);
   renderArtifactPreviews(
     artifactLinks,
@@ -2203,6 +2415,7 @@ function researchObjectComparisonMarkup(researchObject) {
   }
   return `
     <p>${escapeHtml(researchObject.comparison.summary)}</p>
+    <div class="research-object-comparison-chart" data-research-comparison-chart></div>
     <div class="research-object-table-wrap">
       <table class="research-object-comparison-table">
         <thead>
@@ -2405,6 +2618,12 @@ function renderResearchObjectSurface(researchObject) {
       </section>
     </div>
   `;
+  const comparison = state.labComparisonResult?.comparison || state.lastCampaignStudioResult?.comparison;
+  renderInteractiveComparisonChart(
+    els.researchObjectSurface.querySelector("[data-research-comparison-chart]"),
+    comparison,
+    "research",
+  );
 }
 
 function renderResearchObjectComposer() {
@@ -3552,6 +3771,57 @@ function renderConfigOptions() {
         `<option value="${item.name}" ${item.name === state.selectedTemplateName ? "selected" : ""}>${item.label}</option>`,
     )
     .join("");
+  renderConfigContext(configByName(state.selectedTemplateName));
+}
+
+function renderConfigContext(item) {
+  if (!item) {
+    els.configContextTitle.textContent = "No configuration available";
+    els.configContextSummary.textContent = "Add a valid YAML study configuration to the local library.";
+    els.configLibraryCount.textContent = "0 configurations";
+    els.configStudyType.textContent = "—";
+    els.configModelSummary.textContent = "—";
+    els.configEvidenceFocus.textContent = "—";
+    return;
+  }
+  const engine = item.config?.engine || {};
+  const grid = Array.isArray(engine.grid_shape) ? engine.grid_shape.join(" × ") : "unspecified grid";
+  els.configContextTitle.textContent = item.label;
+  els.configContextSummary.textContent = item.summary || "Versioned deterministic study configuration.";
+  els.configLibraryCount.textContent = `${state.configs.length} curated configurations`;
+  els.configStudyType.textContent = item.study_type || "Deterministic study";
+  els.configModelSummary.textContent = `${engine.backend || "local"} · ${grid} · ${engine.num_steps || 0} steps`;
+  els.configEvidenceFocus.textContent = item.evidence_focus || "Metrics, provenance, verification, and replay.";
+}
+
+function setRunLaunchStatus(stateName, detail = null, message = "") {
+  const stateCopy = {
+    idle: ["Ready", "Ready for local execution", "is-idle"],
+    running: ["Running", "Local simulation in progress", "is-warning"],
+    complete: ["Complete", "Evidence package ready", "is-success"],
+    error: ["Action required", "Run launch failed", "is-danger"],
+  }[stateName] || ["Review", "Run state changed", "is-warning"];
+  els.runLaunchStatus.className = `run-launch-status is-${stateName}`;
+  els.runLaunchState.textContent = stateCopy[0];
+  els.runLaunchState.className = `status-badge ${stateCopy[2]}`;
+  els.runLaunchTitle.textContent = stateCopy[1];
+  els.runLaunchMessage.textContent = message || (
+    stateName === "running"
+      ? "Executing the solver, recording diagnostics, verifying the manifest, and packaging evidence."
+      : "Review the selected study contract, then launch a deterministic run."
+  );
+  els.runLaunchProgress.hidden = stateName !== "running";
+  els.runLaunchResultActions.hidden = stateName !== "complete" || !detail;
+  const links = [
+    [els.runLaunchReviewBundle, detail?.urls?.review_bundle],
+    [els.runLaunchStateBundle, detail?.urls?.state_bundle],
+    [els.runLaunchFullBundle, detail?.urls?.bundle],
+  ];
+  links.forEach(([link, url]) => {
+    setActionLinkEnabled(link, Boolean(url), url);
+    if (url) link.setAttribute("download", "");
+    else link.removeAttribute("download");
+  });
 }
 
 function renderSweepParameterOptions() {
@@ -3694,19 +3964,207 @@ function formatAxisValue(value) {
   return formatted.includes(".") ? formatted.replace(/0+$/, "").replace(/\.$/, "") : formatted;
 }
 
+const comparisonMetricDefinitions = {
+  energy_drift: {
+    label: "Energy drift",
+    shortLabel: "Energy",
+    description: "Absolute final-minus-initial energy drift recorded by each run.",
+    formatter: formatScientific,
+  },
+  norm_drift: {
+    label: "Norm drift",
+    shortLabel: "Norm",
+    description: "Absolute final-minus-initial norm drift recorded by each run.",
+    formatter: formatScientific,
+  },
+  max_density: {
+    label: "Maximum density",
+    shortLabel: "Density",
+    description: "Largest final density value recorded for each run.",
+    formatter: formatScientific,
+  },
+  elapsed_seconds: {
+    label: "Elapsed time",
+    shortLabel: "Elapsed",
+    description: "Observed local execution time; environment and workload affect this metric.",
+    formatter: formatSeconds,
+  },
+};
+
+function comparisonVariantLabel(row, index) {
+  return (
+    row.variant_label ||
+    row.parameter_value_label ||
+    (index === 0 ? "Baseline" : row.config_name) ||
+    `Variant ${index + 1}`
+  );
+}
+
+function comparisonMarkerMarkup(index, x, y, color) {
+  const shape = index % 4;
+  if (shape === 1) {
+    return `<rect x="${x - 7}" y="${y - 7}" width="14" height="14" rx="2" fill="${color}" />`;
+  }
+  if (shape === 2) {
+    return `<path d="M ${x} ${y - 9} L ${x + 9} ${y} L ${x} ${y + 9} L ${x - 9} ${y} Z" fill="${color}" />`;
+  }
+  if (shape === 3) {
+    return `<path d="M ${x} ${y - 9} L ${x + 9} ${y + 7} L ${x - 9} ${y + 7} Z" fill="${color}" />`;
+  }
+  return `<circle cx="${x}" cy="${y}" r="8" fill="${color}" />`;
+}
+
+function renderInteractiveComparisonChart(container, comparison, scope = "main") {
+  if (!container) return;
+  const rows = (comparison?.rows || []).filter((row) => row && row.run_id);
+  if (rows.length < 2) {
+    container.innerHTML = `
+      <p class="comparison-chart-placeholder">
+        Compare at least two runs to activate the metric explorer. The evidence table remains the complete numerical fallback.
+      </p>
+    `;
+    return;
+  }
+
+  const metricKey = comparisonMetricDefinitions[state.comparisonMetrics[scope]]
+    ? state.comparisonMetrics[scope]
+    : "energy_drift";
+  const metric = comparisonMetricDefinitions[metricKey];
+  const validRows = rows
+    .map((row, index) => ({ row, index, value: Number(row[metricKey]) }))
+    .filter((item) => Number.isFinite(item.value));
+  if (validRows.length < 2) {
+    container.innerHTML = `<p class="comparison-chart-placeholder">${escapeHtml(metric.label)} is unavailable for this comparison.</p>`;
+    return;
+  }
+
+  const baseline = validRows.find((item) => item.row.run_id === comparison.baseline_run_id) || validRows[0];
+  const values = validRows.map((item) => item.value);
+  let domainMin = Math.min(...values);
+  let domainMax = Math.max(...values);
+  if (["energy_drift", "norm_drift"].includes(metricKey)) {
+    domainMin = Math.min(0, domainMin);
+    domainMax = Math.max(0, domainMax);
+  }
+  const rawSpan = domainMax - domainMin;
+  const padding = rawSpan ? rawSpan * 0.1 : Math.max(Math.abs(domainMax) * 0.2, 1e-12);
+  domainMin -= padding;
+  domainMax += padding;
+
+  const width = 900;
+  const height = 132 + validRows.length * 64;
+  const plotLeft = 218;
+  const plotRight = 670;
+  const plotTop = 78;
+  const plotBottom = height - 48;
+  const xScale = (value) =>
+    plotLeft + ((value - domainMin) / Math.max(domainMax - domainMin, Number.EPSILON)) * (plotRight - plotLeft);
+  const palette = ["#237777", "#c45f28", "#78844c", "#3d5a80", "#9b5f78"];
+  const axisTicks = Array.from({ length: 5 }, (_, index) => {
+    const fraction = index / 4;
+    const value = domainMin + (domainMax - domainMin) * fraction;
+    const x = plotLeft + (plotRight - plotLeft) * fraction;
+    return `
+      <line x1="${x}" y1="${plotTop}" x2="${x}" y2="${plotBottom}" stroke="rgba(21,57,61,.1)" />
+      <text x="${x}" y="${height - 21}" text-anchor="middle" fill="#627176" font-size="11">${escapeHtml(formatAxisValue(value))}</text>
+    `;
+  }).join("");
+  const baselineX = xScale(baseline.value);
+  const marks = validRows
+    .map(({ row, index, value }, visibleIndex) => {
+      const y = 112 + visibleIndex * 64;
+      const x = xScale(value);
+      const color = palette[index % palette.length];
+      const label = comparisonVariantLabel(row, index);
+      const code = index === baseline.index ? "B" : `V${index}`;
+      const delta = value - baseline.value;
+      const deltaLabel = index === baseline.index
+        ? "baseline"
+        : `${delta >= 0 ? "+" : ""}${metric.formatter(delta)} vs baseline`;
+      const accessibleLabel = `${label}, ${metric.label} ${metric.formatter(value)}, ${deltaLabel}`;
+      return `
+        <line x1="${plotLeft}" y1="${y}" x2="${plotRight}" y2="${y}" stroke="rgba(21,57,61,.08)" />
+        <text x="26" y="${y - 4}" fill="#17383c" font-size="13" font-weight="800">${escapeHtml(code)} · ${escapeHtml(label.slice(0, 24))}</text>
+        <text x="26" y="${y + 15}" fill="#627176" font-size="10">${escapeHtml(shortRunId(row.run_id))}</text>
+        <g class="comparison-chart-point" tabindex="0" role="img" aria-label="${escapeHtml(accessibleLabel)}" data-chart-readout="${escapeHtml(accessibleLabel)}">
+          <circle class="chart-hit-target" cx="${x}" cy="${y}" r="18" fill="transparent" />
+          ${comparisonMarkerMarkup(index, x, y, color)}
+          <circle class="comparison-focus-ring" cx="${x}" cy="${y}" r="13" fill="none" stroke="${color}" stroke-width="2" />
+          <title>${escapeHtml(accessibleLabel)}</title>
+        </g>
+        <text x="696" y="${y - 3}" fill="#17383c" font-size="12" font-weight="800">${escapeHtml(metric.formatter(value))}</text>
+        <text x="696" y="${y + 15}" fill="#627176" font-size="10">${escapeHtml(deltaLabel)}</text>
+      `;
+    })
+    .join("");
+  const spread = Math.max(...values) - Math.min(...values);
+  const summary = `${metric.label} spans ${metric.formatter(spread)} across ${validRows.length} runs. Baseline ${comparisonVariantLabel(baseline.row, baseline.index)} is ${metric.formatter(baseline.value)}. Each metric uses its own labeled scale.`;
+
+  container.innerHTML = `
+    <div class="comparison-chart-head">
+      <div>
+        <p class="artifact-list-title">Interactive Metric Explorer</p>
+        <h3>${escapeHtml(metric.label)} across variants</h3>
+        <p>${escapeHtml(metric.description)}</p>
+      </div>
+      <div class="comparison-metric-toolbar" role="toolbar" aria-label="Choose comparison metric">
+        ${Object.entries(comparisonMetricDefinitions)
+          .map(
+            ([key, definition]) => `
+              <button type="button" data-comparison-metric="${key}" aria-pressed="${String(key === metricKey)}">
+                ${escapeHtml(definition.shortLabel)}
+              </button>
+            `,
+          )
+          .join("")}
+      </div>
+    </div>
+    <div class="comparison-chart-viewport">
+      <svg class="comparison-chart-svg" viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(metric.label)} dot plot for ${validRows.length} compared runs">
+        <title>${escapeHtml(metric.label)} comparison</title>
+        <desc>${escapeHtml(summary)} Focus a marker for its run value and baseline delta.</desc>
+        ${axisTicks}
+        <line x1="${baselineX}" y1="${plotTop}" x2="${baselineX}" y2="${plotBottom}" stroke="#d7a33d" stroke-width="2" stroke-dasharray="5 5" />
+        <text x="${Math.min(baselineX + 6, plotRight - 70)}" y="${plotTop - 12}" fill="#8a651d" font-size="10" font-weight="800">BASELINE</text>
+        ${marks}
+        <text x="${(plotLeft + plotRight) / 2}" y="${height - 4}" text-anchor="middle" fill="#40575c" font-size="11" font-weight="800">${escapeHtml(metric.label)} · direct recorded values</text>
+      </svg>
+    </div>
+    <p class="comparison-chart-readout" aria-live="polite">${escapeHtml(summary)}</p>
+  `;
+
+  const readout = container.querySelector(".comparison-chart-readout");
+  container.querySelectorAll(".comparison-chart-point").forEach((point) => {
+    const update = () => {
+      readout.textContent = point.dataset.chartReadout;
+    };
+    point.addEventListener("pointerenter", update);
+    point.addEventListener("focus", update);
+    point.addEventListener("click", update);
+  });
+  container.querySelectorAll("[data-comparison-metric]").forEach((button) => {
+    button.addEventListener("click", () => {
+      state.comparisonMetrics[scope] = button.dataset.comparisonMetric;
+      renderInteractiveComparisonChart(container, comparison, scope);
+    });
+  });
+}
+
 function renderScientificTrace(svg, history, key, options) {
   const width = 720;
   const height = 300;
   const margin = { top: 28, right: 32, bottom: 54, left: 82 };
   svg.innerHTML = "";
+  const readout = svg.parentElement?.querySelector("[data-chart-readout]");
 
-  const samples = history
+  const samples = (history || [])
     .map((item, index) => ({
       step: Number.isFinite(Number(item.step)) ? Number(item.step) : index,
       value: Number(item[key]),
     }))
     .filter((item) => Number.isFinite(item.step) && Number.isFinite(item.value));
   if (!samples.length) {
+    if (readout) readout.textContent = "No recorded samples are available for this diagnostic.";
     return null;
   }
 
@@ -3769,9 +4227,17 @@ function renderScientificTrace(svg, history, key, options) {
   const points = coordinates
     .map(
       (item) => `
-        <circle cx="${item.x}" cy="${item.y}" r="4" fill="#fffdf8" stroke="${options.color}" stroke-width="2">
+        <g
+          class="trace-point"
+          tabindex="0"
+          role="img"
+          aria-label="Step ${formatAxisValue(item.step)}: ${escapeHtml(key)} ${formatScientific(item.value)}, relative change ${formatScientific(item.delta)}"
+          data-chart-readout="Step ${formatAxisValue(item.step)} · ${escapeHtml(key)} ${formatScientific(item.value)} · relative change ${formatSignedScientific(item.delta)}"
+        >
+          <circle class="chart-hit-target" cx="${item.x}" cy="${item.y}" r="12" fill="transparent" />
+          <circle class="trace-visible-point" cx="${item.x}" cy="${item.y}" r="4" fill="#fffdf8" stroke="${options.color}" stroke-width="2" />
           <title>Step ${formatAxisValue(item.step)}: ${key} ${formatScientific(item.value)}, relative change ${formatScientific(item.delta)}</title>
-        </circle>
+        </g>
       `,
     )
     .join("");
@@ -3799,6 +4265,20 @@ function renderScientificTrace(svg, history, key, options) {
     <text x="18" y="${height / 2}" transform="rotate(-90 18 ${height / 2})" text-anchor="middle" fill="#40575c" font-size="12" font-weight="700">${escapeHtml(options.yLabel)}</text>
     <text x="${width - margin.right}" y="${margin.top + 2}" text-anchor="end" fill="#627176" font-size="10" font-weight="700">Diagnostic trajectory · ${coordinates.length} samples</text>
   `;
+
+  if (readout) {
+    if (!readout.id) readout.id = `${svg.id}-readout`;
+    svg.setAttribute("aria-describedby", readout.id);
+    readout.textContent = `Final step ${formatAxisValue(final.step)} · ${key} ${formatScientific(final.value)} · relative change ${formatSignedScientific(final.delta)}. Peak absolute change ${formatScientific(Math.abs(peak.delta))}.`;
+    svg.querySelectorAll(".trace-point").forEach((point) => {
+      const update = () => {
+        readout.textContent = point.dataset.chartReadout;
+      };
+      point.addEventListener("pointerenter", update);
+      point.addEventListener("focus", update);
+      point.addEventListener("click", update);
+    });
+  }
 
   return {
     initial,
@@ -3849,9 +4329,68 @@ function renderEvidence(detail) {
     .join("");
 }
 
+function renderReleaseIdentity(release = {}) {
+  const version = String(release.version || "0.12.0").replace(/^v/i, "");
+  const archivedDoi = release.archived_release_doi || "10.5281/zenodo.21329711";
+  const archivedDoiUrl = release.archived_release_doi_url || `https://doi.org/${archivedDoi}`;
+  const projectDoi = release.project_doi || "10.5281/zenodo.20074924";
+  const projectDoiUrl = release.project_doi_url || `https://doi.org/${projectDoi}`;
+
+  els.releaseVersion.textContent = `v${version}`;
+  els.releaseDoi.textContent = `Release DOI ${archivedDoi}`;
+  els.releaseDoi.href = archivedDoiUrl;
+  els.releaseDoi.title = `Open archived QS-DMSS v${version} release`;
+  els.projectDoi.textContent = `Project DOI ${projectDoi}`;
+  els.projectDoi.href = projectDoiUrl;
+  els.projectDoi.title = `Project DOI ${projectDoi}`;
+}
+
+function renderOverviewResearchObject(detail = null) {
+  if (!detail?.summary?.run_id) {
+    els.overviewObjectType.textContent = "No object selected";
+    els.overviewResearchObjectTitle.textContent = "Run a packaged or quantum study";
+    els.overviewObjectId.textContent = "—";
+    els.overviewObjectStatus.textContent = "Awaiting execution";
+    els.overviewObjectCreated.textContent = "—";
+    els.overviewObjectMethod.textContent = "—";
+    els.overviewObjectEvidence.textContent = "Open run ledger";
+    els.overviewObjectEvidence.href = "#runs";
+    els.overviewResearchObjectSummary.textContent = "No research object selected.";
+    return;
+  }
+
+  const verification = detail.verification?.success
+    ? `verified across ${detail.verification.checked_files} evidence files`
+    : "verification pending";
+  els.overviewObjectType.textContent = detail.run_record?.experiment ? "Study run" : "Local simulation";
+  els.overviewResearchObjectTitle.textContent = detail.summary.name || shortRunId(detail.summary.run_id);
+  els.overviewObjectId.textContent = shortRunId(detail.summary.run_id);
+  els.overviewObjectStatus.textContent = detail.verification?.success ? "✓ Evidence ready" : "Verification pending";
+  els.overviewObjectCreated.textContent = formatTimestamp(detail.summary.finished_at);
+  els.overviewObjectMethod.textContent = "Deterministic local execution";
+  els.overviewObjectEvidence.textContent = "Open evidence package ↗";
+  els.overviewObjectEvidence.href = "#evidence";
+  els.overviewResearchObjectSummary.textContent =
+    `${shortRunId(detail.summary.run_id)} · ${verification} · finished ${formatTimestamp(detail.summary.finished_at)}.`;
+}
+
+function renderOverviewQuantumObject(payload) {
+  if (payload?.source !== "live_local_run" || !payload.run?.run_id) return;
+  els.overviewObjectType.textContent = "Quantum validation";
+  els.overviewResearchObjectTitle.textContent = "Fractal SSFM compilation matrix";
+  els.overviewObjectId.textContent = shortRunId(payload.run.run_id);
+  els.overviewObjectStatus.textContent = payload.status === "pass" ? "✓ Evidence ready" : "Review required";
+  els.overviewObjectCreated.textContent = formatTimestamp(payload.run.completed_at || payload.generated_at);
+  els.overviewObjectMethod.textContent = "Live local ideal simulator";
+  els.overviewObjectEvidence.textContent = "Open evidence package ↗";
+  els.overviewObjectEvidence.href = payload.downloads?.summary || "#quantum-validation";
+  els.overviewResearchObjectSummary.textContent = `${payload.run.run_id} · ${payload.validation?.rows_passing || 0}/${payload.validation?.row_count || 0} rows pass.`;
+}
+
 function renderSelectedRun(detail) {
   state.selectedRun = detail;
   state.selectedRunId = detail.summary.run_id;
+  renderOverviewResearchObject(detail);
 
   els.statusHeading.textContent = detail.run_record.status;
   els.statusBadge.textContent = detail.run_record.status;
@@ -3905,6 +4444,13 @@ function renderSelectedRun(detail) {
   els.bundleLink.href = detail.urls.bundle;
   els.bundleLink.setAttribute("download", "");
   setActionLinkEnabled(els.bundleLink, true, detail.urls.bundle);
+  [
+    [els.reviewBundleLink, detail.urls.review_bundle],
+    [els.stateBundleLink, detail.urls.state_bundle],
+  ].forEach(([link, url]) => {
+    setActionLinkEnabled(link, Boolean(url), url);
+    if (url) link.setAttribute("download", "");
+  });
   els.verifyButton.disabled = false;
   els.replayButton.disabled = false;
   els.openReportButton.disabled = false;
@@ -3970,6 +4516,7 @@ function renderComparison(comparison) {
         <td colspan="10">Select at least two runs to compare.</td>
       </tr>
     `;
+    renderInteractiveComparisonChart(els.comparisonChart, null, "main");
     return;
   }
 
@@ -3985,6 +4532,7 @@ function renderComparison(comparison) {
   els.compareNormSpan.textContent = formatScientific(comparison.ranges.norm_drift.span);
   els.compareDensitySpan.textContent = formatScientific(comparison.ranges.max_density.span);
   els.compareFastestRun.textContent = shortRunId(comparison.ranges.elapsed_seconds.min_run_id);
+  renderInteractiveComparisonChart(els.comparisonChart, comparison, "main");
 
   els.comparisonTableBody.innerHTML = comparison.rows
     .map((row, index) => `
@@ -4028,6 +4576,7 @@ async function refreshRuns() {
   if (state.selectedRunId && !availableRunIds.has(state.selectedRunId)) {
     state.selectedRunId = null;
     state.selectedRun = null;
+    renderOverviewResearchObject();
   }
 
   renderRunsTable();
@@ -4077,6 +4626,129 @@ function parseSweepValues(text) {
     .split(",")
     .map((value) => value.trim())
     .filter(Boolean);
+}
+
+const sweepDefaultValues = {
+  "engine.g_int": "0.02, 0.05, 0.08",
+  "engine.time_step": "0.01, 0.02, 0.03",
+  "engine.num_steps": "4, 6, 8",
+  "initial.amplitude": "0.8, 1.0, 1.2",
+  "initial.width": "0.18, 0.22, 0.28",
+  "run.seed": "7, 17, 27",
+};
+
+function validateSweepValues(parameter, text) {
+  const entries = parseSweepValues(text);
+  if (!parameter) {
+    return { valid: false, values: [], message: "Choose a supported parameter." };
+  }
+  if (entries.length < 2) {
+    return {
+      valid: false,
+      values: [],
+      message: "Enter at least two comma-separated values to create a comparison.",
+    };
+  }
+
+  const values = entries.map((entry) => Number(entry));
+  if (values.some((value) => !Number.isFinite(value))) {
+    return {
+      valid: false,
+      values: [],
+      message: `${parameter.label} accepts numeric values only.`,
+    };
+  }
+  if (parameter.value_type === "int" && values.some((value) => !Number.isInteger(value))) {
+    return {
+      valid: false,
+      values: [],
+      message: `${parameter.label} requires whole numbers.`,
+    };
+  }
+  if (
+    parameter.minimum !== null
+    && parameter.minimum !== undefined
+    && values.some((value) => value < Number(parameter.minimum))
+  ) {
+    return {
+      valid: false,
+      values: [],
+      message: `${parameter.label} values must be at least ${parameter.minimum}.`,
+    };
+  }
+  if (new Set(values.map((value) => String(value))).size !== values.length) {
+    return {
+      valid: false,
+      values: [],
+      message: "Remove duplicate values so every planned run represents a distinct comparison point.",
+    };
+  }
+  return {
+    valid: true,
+    values,
+    message: `Preflight passed: ${values.length} distinct ${parameter.value_type === "int" ? "integer" : "numeric"} values.`,
+  };
+}
+
+function updateSweepContract({ applyDefault = false } = {}) {
+  const parameter = sweepParameterByPath(els.sweepParameter.value);
+  if (applyDefault && parameter && !els.sweepValues.value.trim()) {
+    els.sweepValues.value = sweepDefaultValues[parameter.path] || "";
+  }
+
+  const validation = validateSweepValues(parameter, els.sweepValues.value);
+  const activeConfig = configByName(els.configTemplate.value);
+  const config = currentConfig();
+  const seed = Number.isFinite(config.run?.seed) ? config.run.seed : "-";
+  const grid = Array.isArray(config.engine?.grid_shape) ? config.engine.grid_shape.join(" × ") : "-";
+  const hosted = hostedDemoEnabled();
+
+  els.sweepBaseConfig.options[0].textContent = activeConfig?.label || activeConfig?.name || "Active configuration";
+  els.sweepParameterDescription.textContent = parameter?.description || "Choose the single variable under test.";
+  els.sweepInterpretationSummary.textContent = parameter
+    ? `${parameter.description} Review metric movement across distinct deterministic evidence objects; the recommended row is a workflow result, not physical calibration.`
+    : "Select a parameter to see what changes, what stays controlled, and which diagnostics support interpretation.";
+  els.sweepChanged.textContent = parameter ? `${parameter.label} · ${parameter.path}` : "One declared parameter";
+  els.sweepHeldFixed.textContent =
+    "Every other active configuration field, plus the solver, initial-state, and evidence contracts";
+  els.sweepCompared.textContent =
+    "Energy drift, norm drift, peak density, runtime, verification, and evidence identity";
+  els.sweepValidation.textContent = hosted
+    ? "Custom sweeps are local-only. Use the packaged Self-Interaction Sweep in hosted mode."
+    : validation.message;
+  els.sweepValidation.classList.toggle("is-valid", validation.valid && !hosted);
+  els.sweepValidation.classList.toggle("is-invalid", !validation.valid || hosted);
+  els.sweepValues.setAttribute("aria-invalid", String(!validation.valid));
+  els.sweepPlannedCount.textContent = validation.valid
+    ? `${validation.values.length} planned runs`
+    : "Preflight required";
+  els.launchSweepButton.disabled = hosted || !validation.valid;
+  els.launchSweepButton.textContent = validation.valid
+    ? `Launch ${validation.values.length}-run sweep`
+    : "Launch Sweep";
+  els.sweepLaunchNote.textContent = hosted
+    ? "Hosted mode preserves this contract for review; custom execution remains local-only."
+    : validation.valid
+      ? `${validation.values.length} deterministic local runs; each receives an evidence bundle, verification result, and shared experiment identifier.`
+      : "Complete preflight to create verified runs with a shared experiment identifier.";
+
+  els.sweepPreviewBody.innerHTML = validation.valid
+    ? validation.values
+      .map(
+        (value, index) => `
+          <tr>
+            <td>${index + 1}</td>
+            <td><strong>${escapeHtml(value)}</strong></td>
+            <td>${escapeHtml(seed)}</td>
+            <td>${escapeHtml(grid)}</td>
+            <td><span class="quantum-table-chip">Planned</span></td>
+          </tr>
+        `,
+      )
+      .join("")
+    : '<tr><td colspan="5">Enter at least two valid, distinct values to preview the run plan.</td></tr>';
+
+  return validation;
 }
 
 function renderSelectedExperiment(detail) {
@@ -4129,10 +4801,45 @@ function restoreInitialHashPosition() {
   });
 }
 
-function quantumTopologyChartMarkup(topologyLabel, rows) {
+function quantumPayloadRunId(payload) {
+  return payload?.run?.run_id || payload?.showcase_id || "packaged-reference";
+}
+
+function quantumResourceDelta(currentValue, previousValue) {
+  const current = Number(currentValue);
+  const previous = Number(previousValue);
+  if (!Number.isFinite(current) || !Number.isFinite(previous) || current === previous) return null;
+  const delta = current - previous;
+  return `${delta > 0 ? "+" : ""}${delta}`;
+}
+
+function topologyResourceChanges(rows, previousRows) {
+  const previousByOptimization = new Map(
+    (previousRows || []).map((row) => [row.optimization_level, row]),
+  );
+  const changes = [];
+  rows.forEach((row) => {
+    const previous = previousByOptimization.get(row.optimization_level);
+    if (!previous) return;
+    [
+      ["depth", "depth"],
+      ["two_qubit_gates", "CX"],
+    ].forEach(([key, label]) => {
+      const delta = quantumResourceDelta(row.resources?.[key], previous.resources?.[key]);
+      if (delta !== null) changes.push({ optimization: row.optimization_level, key, label, delta });
+    });
+  });
+  return changes;
+}
+
+function quantumTopologyChartMarkup(topologyLabel, rows, previousRows, hasPreviousResult) {
   const sortedRows = [...rows].sort(
     (first, second) => first.optimization_level - second.optimization_level,
   );
+  const previousByOptimization = new Map(
+    (previousRows || []).map((row) => [row.optimization_level, row]),
+  );
+  const changes = topologyResourceChanges(sortedRows, previousRows);
   const maxValue = Math.max(
     1,
     ...sortedRows.flatMap((row) => [row.resources?.depth || 0, row.resources?.two_qubit_gates || 0]),
@@ -4164,20 +4871,28 @@ function quantumTopologyChartMarkup(topologyLabel, rows) {
       const x = xFor(index);
       const depth = row.resources?.depth || 0;
       const cx = row.resources?.two_qubit_gates || 0;
+      const previous = previousByOptimization.get(row.optimization_level);
+      const depthDelta = quantumResourceDelta(depth, previous?.resources?.depth);
+      const cxDelta = quantumResourceDelta(cx, previous?.resources?.two_qubit_gates);
       const depthY = yFor(depth);
       const cxY = yFor(cx);
       return `
-        <circle cx="${x}" cy="${depthY}" r="5" class="quantum-depth-point" />
-        <text x="${x}" y="${Math.max(14, depthY - 8)}" text-anchor="middle" class="quantum-point-label quantum-depth-label">${depth}</text>
-        <rect x="${x - 4.5}" y="${cxY - 4.5}" width="9" height="9" rx="1" class="quantum-cx-point" />
-        <text x="${x}" y="${Math.min(151, cxY + 15)}" text-anchor="middle" class="quantum-point-label quantum-cx-label">${cx}</text>
+        <circle cx="${x}" cy="${depthY}" r="5" class="quantum-depth-point${depthDelta !== null ? " is-changed" : ""}" data-value="${depth}" data-optimization="${escapeHtml(row.optimization_level)}" />
+        <text x="${x}" y="${Math.max(14, depthY - 8)}" text-anchor="middle" class="quantum-point-label quantum-depth-label${depthDelta !== null ? " is-changed" : ""}" data-value="${depth}">${depth}</text>
+        <rect x="${x - 4.5}" y="${cxY - 4.5}" width="9" height="9" rx="1" class="quantum-cx-point${cxDelta !== null ? " is-changed" : ""}" data-value="${cx}" data-optimization="${escapeHtml(row.optimization_level)}" />
+        <text x="${x}" y="${Math.min(151, cxY + 15)}" text-anchor="middle" class="quantum-point-label quantum-cx-label${cxDelta !== null ? " is-changed" : ""}" data-value="${cx}">${cx}</text>
         <text x="${x}" y="173" text-anchor="middle" class="quantum-axis-label">Opt ${escapeHtml(row.optimization_level)}</text>
       `;
     })
     .join("");
+  const refreshText = !hasPreviousResult
+    ? `${sortedRows.length * 2} resource values bound from this result.`
+    : changes.length
+      ? `Recomputed: ${changes.length} of ${sortedRows.length * 2} values changed — ${changes.map((item) => `Opt ${item.optimization} ${item.label} ${item.delta}`).join(" · ")}.`
+      : `Recomputed: all ${sortedRows.length * 2} values match the previous result.`;
 
   return `
-    <article class="quantum-topology-card">
+    <article class="quantum-topology-card${hasPreviousResult ? (changes.length ? " is-updated" : " is-recomputed") : ""}">
       <div class="quantum-topology-card-head">
         <h4>${escapeHtml(topologyLabel)}</h4>
         <div class="quantum-chart-key" aria-label="Chart key">
@@ -4191,36 +4906,129 @@ function quantumTopologyChartMarkup(topologyLabel, rows) {
         <polyline points="${cxPoints}" class="quantum-cx-line" />
         ${points}
       </svg>
+      <p class="quantum-chart-refresh${changes.length ? " has-changes" : ""}">${escapeHtml(refreshText)}</p>
     </article>
   `;
 }
 
-function renderQuantumTopologyCharts(payload) {
+function renderQuantumTopologyCharts(payload, previousPayload = null) {
   const rows = payload.matrix || [];
   const topologies = payload.matrix_definition?.topologies || [];
+  const previousRows = previousPayload?.matrix || [];
+  const hasPreviousResult = Boolean(previousRows.length) && quantumPayloadRunId(previousPayload) !== quantumPayloadRunId(payload);
   els.quantumTopologyCharts.innerHTML = topologies
     .map((topology) =>
       quantumTopologyChartMarkup(
         topology.label,
         rows.filter((row) => row.topology_id === topology.profile_id),
+        previousRows.filter((row) => row.topology_id === topology.profile_id),
+        hasPreviousResult,
       ),
     )
     .join("");
+  const changeCount = hasPreviousResult
+    ? topologies.reduce(
+      (total, topology) => total + topologyResourceChanges(
+        rows.filter((row) => row.topology_id === topology.profile_id),
+        previousRows.filter((row) => row.topology_id === topology.profile_id),
+      ).length,
+      0,
+    )
+    : null;
+  const valueCount = rows.length * 2;
+  const runId = quantumPayloadRunId(payload);
+  els.quantumTopologyCharts.dataset.runId = runId;
+  els.quantumTopologyCharts.dataset.resourceFingerprint = payload.visualization?.resource_fingerprint || "";
+  els.quantumTopologySource.textContent = hasPreviousResult
+    ? changeCount
+      ? `Live ${shortRunId(runId)} · ${changeCount}/${valueCount} values changed`
+      : `Live ${shortRunId(runId)} · recomputed, deterministic match`
+    : `${payload.source === "live_local_run" ? "Live harness" : "Reference"} · ${shortRunId(runId)} · ${valueCount} values bound`;
+  const figure = els.quantumTopologyCharts.closest(".quantum-figure");
+  figure.dataset.runId = runId;
+  figure.classList.remove("is-updated", "is-recomputed");
+  void figure.offsetWidth;
+  figure.classList.add(hasPreviousResult && changeCount ? "is-updated" : "is-recomputed");
 }
 
-function renderQuantumAttribution(payload) {
-  const recommended = payload.recommended_configuration || {};
-  const attribution = recommended.attribution || {};
-  const components = [
-    ["state_preparation", "State preparation"],
-    ["ssfm_evolution", "SSFM evolution"],
-    ["measurement", "Measurement"],
-    ["full_experiment", "Full circuit"],
-  ].map(([key, label]) => ({ key, label, ...(attribution[key] || {}) }));
-  const maxValue = Math.max(
-    1,
-    ...components.flatMap((component) => [component.depth || 0, component.two_qubit_gates || 0]),
-  );
+function renderQuantumVisualProvenance(payload) {
+  const isLive = payload.source === "live_local_run";
+  const parameters = payload.run?.parameters || {};
+  const runId = payload.run?.run_id || payload.showcase_id || "packaged-reference";
+  const generated = formatTimestamp(payload.run?.completed_at || payload.generated_at);
+  const sourceLabel = isLive ? `Live harness · ${shortRunId(runId)}` : "Packaged reference · not a fresh run";
+  els.quantumVisualProvenance.classList.toggle("is-live", isLive);
+  els.quantumVisualProvenance.classList.toggle("is-reference", !isLive);
+  els.quantumVisualSourceBadge.textContent = isLive ? "Live harness result" : "Packaged reference";
+  els.quantumVisualSourceBadge.className = `quantum-source-badge ${isLive ? "is-live" : "is-reference"}`;
+  els.quantumVisualProvenanceTitle.textContent = isLive
+    ? `Figures redrawn from ${shortRunId(runId)}`
+    : "Figures drawn from the packaged reference payload";
+  els.quantumVisualProvenanceSummary.textContent = isLive
+    ? `Completed ${generated}. Every point, bar, recommendation, and table row below uses this persisted local harness result.`
+    : `Generated ${generated}. Run the local harness to replace this reference with a newly identified result.`;
+  els.quantumVisualRunId.textContent = shortRunId(runId);
+  els.quantumVisualRunId.title = runId;
+  els.quantumVisualParameters.textContent = isLive
+    ? `${Number(parameters.shots || 0).toLocaleString()} shots · seed ${parameters.seed ?? "—"} · tol ${formatScientific(parameters.reference_tolerance)} / ${formatScientific(parameters.compilation_tolerance)}`
+    : "Packaged validation parameters";
+  const dataFingerprint = payload.visualization?.resource_fingerprint;
+  els.quantumVisualDataDigest.textContent = dataFingerprint
+    ? `${dataFingerprint.slice(0, 16)}…`
+    : "—";
+  els.quantumVisualDataDigest.title = dataFingerprint || "Chart data fingerprint unavailable";
+  els.quantumVisualProvenance.dataset.resourceFingerprint = dataFingerprint || "";
+  els.quantumTopologySource.textContent = sourceLabel;
+  els.quantumAttributionSource.textContent = sourceLabel;
+}
+
+const quantumAttributionComponents = [
+  ["state_preparation", "State preparation"],
+  ["ssfm_evolution", "SSFM evolution"],
+  ["measurement", "Measurement"],
+  ["full_experiment", "Full circuit"],
+];
+
+function quantumAttributionRowKey(row) {
+  return `${row?.topology_id || "unknown"}::${row?.optimization_level ?? "unknown"}`;
+}
+
+function quantumAttributionRowLabel(row, topologyLabels) {
+  return `${topologyLabels.get(row.topology_id) || row.topology_label || row.topology_id || "Unknown topology"} · Opt ${row.optimization_level ?? "—"}`;
+}
+
+function quantumAttributionForRow(row, recommended) {
+  if (row?.attribution) return row.attribution;
+  return quantumAttributionRowKey(row) === quantumAttributionRowKey(recommended)
+    ? recommended.attribution || {}
+    : {};
+}
+
+function quantumAttributionChartData(row, previousRow, recommended) {
+  const attribution = quantumAttributionForRow(row, recommended);
+  const previousAttribution = previousRow?.attribution || {};
+  return quantumAttributionComponents.map(([key, label]) => ({
+    key,
+    label,
+    ...(attribution[key] || {}),
+    previous: previousAttribution[key] || null,
+  }));
+}
+
+function renderQuantumAttributionChart({
+  svg,
+  status,
+  label,
+  row,
+  previousRow,
+  recommended,
+  topologyLabels,
+  payload,
+  hasPreviousResult,
+  maxValue,
+  slot,
+}) {
+  const components = quantumAttributionChartData(row, previousRow, recommended);
   const barStart = 178;
   const barWidth = 440;
   const rowHeight = 61;
@@ -4229,22 +5037,33 @@ function renderQuantumAttribution(payload) {
       const y = 42 + index * rowHeight;
       const depthWidth = ((component.depth || 0) / maxValue) * barWidth;
       const cxWidth = ((component.two_qubit_gates || 0) / maxValue) * barWidth;
+      const depthDelta = quantumResourceDelta(component.depth, component.previous?.depth);
+      const cxDelta = quantumResourceDelta(
+        component.two_qubit_gates,
+        component.previous?.two_qubit_gates,
+      );
       return `
-        <g>
+        <g class="quantum-attribution-row${depthDelta !== null || cxDelta !== null ? " is-changed" : ""}" data-component="${escapeHtml(component.key)}">
           <text x="8" y="${y + 15}" class="quantum-attribution-label">${escapeHtml(component.label)}</text>
           <rect x="${barStart}" y="${y}" width="${barWidth}" height="12" rx="6" class="quantum-bar-track" />
-          <rect x="${barStart}" y="${y}" width="${depthWidth}" height="12" rx="6" class="quantum-depth-bar" />
-          <text x="${Math.min(716, barStart + depthWidth + 9)}" y="${y + 10}" class="quantum-bar-value quantum-depth-label">${component.depth || 0}</text>
+          <rect x="${barStart}" y="${y}" width="${depthWidth}" height="12" rx="6" class="quantum-depth-bar${depthDelta !== null ? " is-changed" : ""}" data-value="${component.depth || 0}" />
+          <text x="${Math.min(716, barStart + depthWidth + 9)}" y="${y + 10}" class="quantum-bar-value quantum-depth-label${depthDelta !== null ? " is-changed" : ""}" data-value="${component.depth || 0}">${component.depth || 0}</text>
           <rect x="${barStart}" y="${y + 19}" width="${barWidth}" height="12" rx="6" class="quantum-bar-track" />
-          <rect x="${barStart}" y="${y + 19}" width="${cxWidth}" height="12" rx="6" class="quantum-cx-bar" />
-          <text x="${Math.min(716, barStart + cxWidth + 9)}" y="${y + 29}" class="quantum-bar-value quantum-cx-label">${component.two_qubit_gates || 0}</text>
+          <rect x="${barStart}" y="${y + 19}" width="${cxWidth}" height="12" rx="6" class="quantum-cx-bar${cxDelta !== null ? " is-changed" : ""}" data-value="${component.two_qubit_gates || 0}" />
+          <text x="${Math.min(716, barStart + cxWidth + 9)}" y="${y + 29}" class="quantum-bar-value quantum-cx-label${cxDelta !== null ? " is-changed" : ""}" data-value="${component.two_qubit_gates || 0}">${component.two_qubit_gates || 0}</text>
         </g>
       `;
     })
     .join("");
-  els.quantumAttributionChart.innerHTML = `
-    <title id="quantumAttributionTitle">Recommended circuit resource attribution</title>
-    <desc id="quantumAttributionDescription">Depth and CX gate counts for state preparation, SSFM evolution, measurement, and the full recommended circuit.</desc>
+  const sourceDescription = payload.source === "live_local_run"
+    ? `Live local harness run ${payload.run?.run_id || "unknown"}`
+    : "Packaged validation reference";
+  const rowLabel = quantumAttributionRowLabel(row, topologyLabels);
+  const titleId = slot === "A" ? "quantumAttributionTitle" : "quantumAttributionCompareTitle";
+  const descriptionId = slot === "A" ? "quantumAttributionDescription" : "quantumAttributionCompareDescription";
+  svg.innerHTML = `
+    <title id="${titleId}">Configuration ${slot}: ${escapeHtml(rowLabel)} resource attribution</title>
+    <desc id="${descriptionId}">${escapeHtml(sourceDescription)}. Depth and CX gate counts for ${escapeHtml(rowLabel)} across state preparation, SSFM evolution, measurement, and the full circuit.</desc>
     <g class="quantum-attribution-key" aria-hidden="true">
       <rect x="178" y="10" width="12" height="12" rx="3" class="quantum-depth-bar" />
       <text x="198" y="20">Depth</text>
@@ -4253,6 +5072,171 @@ function renderQuantumAttribution(payload) {
     </g>
     ${markup}
   `;
+  const changes = components.flatMap((component) => [
+    [component.label, "depth", quantumResourceDelta(component.depth, component.previous?.depth)],
+    [component.label, "CX", quantumResourceDelta(component.two_qubit_gates, component.previous?.two_qubit_gates)],
+  ]).filter((item) => item[2] !== null);
+  const valueCount = components.length * 2;
+  const runId = quantumPayloadRunId(payload);
+  const recommendedKey = quantumAttributionRowKey(recommended);
+  const isRecommended = quantumAttributionRowKey(row) === recommendedKey;
+  svg.dataset.runId = runId;
+  svg.dataset.configurationKey = quantumAttributionRowKey(row);
+  svg.dataset.resourceFingerprint = payload.visualization?.resource_fingerprint || "";
+  label.textContent = `${rowLabel}${isRecommended ? " · Recommended" : ""}`;
+  status.textContent = !hasPreviousResult
+    ? `${valueCount} attribution values bound from ${shortRunId(runId)}${isRecommended ? "; recommendation highlighted" : ""}.`
+    : changes.length
+      ? `Recomputed: ${changes.length} of ${valueCount} values changed — ${changes.map(([component, metric, delta]) => `${component} ${metric} ${delta}`).join(" · ")}.`
+      : `Recomputed from ${shortRunId(runId)}: all ${valueCount} attribution values are a deterministic match to the previous result.`;
+  status.classList.toggle("has-changes", changes.length > 0);
+  return { changes, valueCount, isRecommended };
+}
+
+function renderQuantumAttribution(payload, previousPayload = null) {
+  const rows = payload.matrix || [];
+  const recommended = payload.recommended_configuration || {};
+  const topologyLabels = new Map(
+    (payload.matrix_definition?.topologies || []).map((item) => [item.profile_id, item.label]),
+  );
+  const recommendedKey = quantumAttributionRowKey(recommended);
+  const rowKeys = new Set(rows.map(quantumAttributionRowKey));
+  if (!rowKeys.has(state.quantumAttributionPrimaryKey)) {
+    state.quantumAttributionPrimaryKey = rowKeys.has(recommendedKey)
+      ? recommendedKey
+      : quantumAttributionRowKey(rows[0]);
+  }
+  if (
+    !rowKeys.has(state.quantumAttributionCompareKey)
+    || state.quantumAttributionCompareKey === state.quantumAttributionPrimaryKey
+  ) {
+    const alternative = rows.find(
+      (row) => row.pareto_optimal && quantumAttributionRowKey(row) !== state.quantumAttributionPrimaryKey,
+    ) || rows.find((row) => quantumAttributionRowKey(row) !== state.quantumAttributionPrimaryKey);
+    state.quantumAttributionCompareKey = quantumAttributionRowKey(alternative);
+  }
+  const primaryRow = rows.find(
+    (row) => quantumAttributionRowKey(row) === state.quantumAttributionPrimaryKey,
+  ) || rows[0];
+  const compareRow = rows.find(
+    (row) => quantumAttributionRowKey(row) === state.quantumAttributionCompareKey,
+  ) || rows.find((row) => row !== primaryRow) || primaryRow;
+  if (!primaryRow || !compareRow) return;
+
+  const optionMarkup = rows.map((row) => {
+    const key = quantumAttributionRowKey(row);
+    const suffix = key === recommendedKey ? " — Recommended" : "";
+    return `<option value="${escapeHtml(key)}">${escapeHtml(quantumAttributionRowLabel(row, topologyLabels) + suffix)}</option>`;
+  }).join("");
+  els.quantumAttributionPrimarySelect.innerHTML = optionMarkup;
+  els.quantumAttributionCompareSelect.innerHTML = optionMarkup;
+  els.quantumAttributionPrimarySelect.value = state.quantumAttributionPrimaryKey;
+  els.quantumAttributionCompareSelect.value = state.quantumAttributionCompareKey;
+
+  const previousRowsByKey = new Map(
+    (previousPayload?.matrix || []).map((row) => [quantumAttributionRowKey(row), row]),
+  );
+  const hasPreviousResult = Boolean(previousPayload)
+    && quantumPayloadRunId(previousPayload) !== quantumPayloadRunId(payload);
+  const primaryComponents = quantumAttributionChartData(
+    primaryRow,
+    previousRowsByKey.get(state.quantumAttributionPrimaryKey),
+    recommended,
+  );
+  const compareComponents = quantumAttributionChartData(
+    compareRow,
+    previousRowsByKey.get(state.quantumAttributionCompareKey),
+    recommended,
+  );
+  const maxValue = Math.max(
+    1,
+    ...[...primaryComponents, ...compareComponents].flatMap(
+      (component) => [component.depth || 0, component.two_qubit_gates || 0],
+    ),
+  );
+  const primaryResult = renderQuantumAttributionChart({
+    svg: els.quantumAttributionChart,
+    status: els.quantumAttributionDelta,
+    label: els.quantumAttributionPrimaryLabel,
+    row: primaryRow,
+    previousRow: previousRowsByKey.get(state.quantumAttributionPrimaryKey),
+    recommended,
+    topologyLabels,
+    payload,
+    hasPreviousResult,
+    maxValue,
+    slot: "A",
+  });
+  const compareResult = renderQuantumAttributionChart({
+    svg: els.quantumAttributionCompareChart,
+    status: els.quantumAttributionCompareDelta,
+    label: els.quantumAttributionCompareLabel,
+    row: compareRow,
+    previousRow: previousRowsByKey.get(state.quantumAttributionCompareKey),
+    recommended,
+    topologyLabels,
+    payload,
+    hasPreviousResult,
+    maxValue,
+    slot: "B",
+  });
+
+  const recommendedRow = rows.find((row) => quantumAttributionRowKey(row) === recommendedKey);
+  els.quantumAttributionRecommendationSummary.textContent = recommendedRow
+    ? `Highlighted recommendation: ${quantumAttributionRowLabel(recommendedRow, topologyLabels)} · depth ${recommendedRow.resources?.depth ?? "—"} · ${recommendedRow.resources?.two_qubit_gates ?? "—"} CX. Selection remains unrestricted.`
+    : "No recommendation is available; every evidence row remains selectable.";
+  els.quantumAttributionRosterBody.innerHTML = rows.map((row) => {
+    const key = quantumAttributionRowKey(row);
+    const isPrimary = key === state.quantumAttributionPrimaryKey;
+    const isComparison = key === state.quantumAttributionCompareKey;
+    const isRecommended = key === recommendedKey;
+    const roles = [
+      isRecommended ? '<span class="quantum-table-chip is-recommended">Recommended</span>' : "",
+      isPrimary ? '<span class="quantum-table-chip is-slot-a">A</span>' : "",
+      isComparison ? '<span class="quantum-table-chip is-slot-b">B</span>' : "",
+    ].filter(Boolean).join(" ") || "—";
+    return `
+      <tr class="${[isRecommended ? "is-recommended" : "", isPrimary ? "is-primary" : "", isComparison ? "is-comparison" : ""].filter(Boolean).join(" ")}">
+        <td><strong>${escapeHtml(topologyLabels.get(row.topology_id) || row.topology_label || row.topology_id)}</strong></td>
+        <td>${escapeHtml(row.optimization_level)}</td>
+        <td>${escapeHtml(String(row.semantics?.acceptance_class || "—").replaceAll("_", " "))}</td>
+        <td>${escapeHtml(row.resources?.depth ?? "—")}</td>
+        <td>${escapeHtml(row.resources?.two_qubit_gates ?? "—")}</td>
+        <td>${escapeHtml(formatScientific(row.semantics?.state_l2_error))}</td>
+        <td>${roles}</td>
+        <td><span class="attribution-assign-actions"><button type="button" data-attribution-slot="primary" data-attribution-key="${escapeHtml(key)}" aria-pressed="${isPrimary}" aria-label="Assign ${escapeHtml(quantumAttributionRowLabel(row, topologyLabels))} to Configuration A">A</button><button type="button" data-attribution-slot="compare" data-attribution-key="${escapeHtml(key)}" aria-pressed="${isComparison}" aria-label="Assign ${escapeHtml(quantumAttributionRowLabel(row, topologyLabels))} to Configuration B">B</button></span></td>
+      </tr>
+    `;
+  }).join("");
+
+  const runId = quantumPayloadRunId(payload);
+  const totalChanges = primaryResult.changes.length + compareResult.changes.length;
+  els.quantumAttributionSource.textContent = `${payload.source === "live_local_run" ? "Live" : "Reference"} ${shortRunId(runId)} · A/B comparison · ${rows.length} configurations available`;
+  const figure = els.quantumAttributionChart.closest(".quantum-figure");
+  figure.dataset.runId = runId;
+  figure.dataset.primaryConfiguration = state.quantumAttributionPrimaryKey;
+  figure.dataset.compareConfiguration = state.quantumAttributionCompareKey;
+  figure.classList.remove("is-updated", "is-recomputed");
+  void figure.offsetWidth;
+  figure.classList.add(hasPreviousResult && totalChanges ? "is-updated" : "is-recomputed");
+}
+
+function setQuantumAttributionSelection(slot, key) {
+  if (!state.quantumValidation) return;
+  if (slot === "primary") {
+    const previousPrimary = state.quantumAttributionPrimaryKey;
+    state.quantumAttributionPrimaryKey = key;
+    if (state.quantumAttributionCompareKey === key) {
+      state.quantumAttributionCompareKey = previousPrimary;
+    }
+  } else {
+    const previousComparison = state.quantumAttributionCompareKey;
+    state.quantumAttributionCompareKey = key;
+    if (state.quantumAttributionPrimaryKey === key) {
+      state.quantumAttributionPrimaryKey = previousComparison;
+    }
+  }
+  renderQuantumAttribution(state.quantumValidation, state.previousQuantumValidation);
 }
 
 function renderQuantumMatrix(payload) {
@@ -4278,6 +5262,62 @@ function renderQuantumMatrix(payload) {
   els.quantumMatrixSummary.textContent = `${payload.validation?.rows_passing || 0} of ${payload.validation?.row_count || rows.length} rows pass; ${payload.validation?.reference_exact_rows || 0} preserve the reference exactly and ${payload.validation?.bounded_approximation_rows || 0} remain within the configured approximation tolerance. Scroll inside the matrix to inspect every row.`;
 }
 
+function renderQuantumRuntime(runtime = {}) {
+  state.quantumRuntime = runtime;
+  const defaults = runtime.defaults || {};
+  const scope = runtime.matrix_scope || {};
+  if (defaults.shots) els.quantumShotsInput.value = defaults.shots;
+  if (defaults.seed !== undefined) els.quantumSeedInput.value = defaults.seed;
+  if (defaults.reference_tolerance) els.quantumReferenceToleranceInput.value = defaults.reference_tolerance;
+  if (defaults.compilation_tolerance) els.quantumCompilationToleranceInput.value = defaults.compilation_tolerance;
+  els.quantumMatrixScope.textContent = `${scope.topology_count || 3} generic topologies × ${(scope.optimization_levels || [0, 1, 2, 3]).length} optimization levels = ${scope.row_count || 12} configurations`;
+  els.quantumBasisGates.textContent = `Basis gates: ${(scope.basis_gates || ["rz", "sx", "x", "cx"]).join(", ")}`;
+
+  const executable = Boolean(runtime.live_execution) && !hostedDemoEnabled();
+  setControlsDisabled(els.quantumHarnessForm, !executable);
+  els.runQuantumValidationButton.disabled = !executable;
+  if (executable) {
+    els.quantumRunFeedback.textContent = "Ready for a fresh local simulator run.";
+  } else if (hostedDemoEnabled()) {
+    els.quantumRunFeedback.textContent = "Hosted mode is a read-only evidence archive. Use the local full application to execute the harness.";
+  } else {
+    els.quantumRunFeedback.textContent = `Simulator stack unavailable. ${runtime.install_command || "Install the quantum optional dependency."}`;
+  }
+}
+
+function setQuantumProgress(stateName) {
+  els.quantumProgressSequence.className = `quantum-progress-sequence is-${stateName}`;
+}
+
+function renderQuantumRecommendation(payload) {
+  const topologyLabels = new Map(
+    (payload.matrix_definition?.topologies || []).map((item) => [item.profile_id, item.label]),
+  );
+  const candidates = (payload.matrix || [])
+    .filter((row) => row.success && row.pareto_optimal)
+    .sort((left, right) => (
+      (left.resources?.two_qubit_gates || 0) - (right.resources?.two_qubit_gates || 0)
+      || (left.resources?.depth || 0) - (right.resources?.depth || 0)
+    ))
+    .slice(0, 4);
+  const recommended = payload.recommended_configuration || {};
+  const rows = candidates.length ? candidates : [{
+    topology_id: recommended.topology_id,
+    optimization_level: recommended.optimization_level,
+    resources: { depth: recommended.depth, two_qubit_gates: recommended.two_qubit_gates },
+    semantics: { acceptance_class: recommended.acceptance_class },
+  }];
+  els.quantumRecommendationBody.innerHTML = rows.map((row, index) => `
+    <tr${index === 0 ? ' class="is-recommended"' : ""}>
+      <td>${escapeHtml(topologyLabels.get(row.topology_id) || row.topology_label || row.topology_id || "-")}</td>
+      <td>${escapeHtml(row.optimization_level ?? "-")}</td>
+      <td>${escapeHtml(row.resources?.depth ?? "-")}</td>
+      <td>${escapeHtml(row.resources?.two_qubit_gates ?? "-")}</td>
+      <td>${escapeHtml(String(row.semantics?.acceptance_class || "-").replaceAll("_", " "))}</td>
+    </tr>
+  `).join("");
+}
+
 function renderQuantumValidation(payload) {
   if (!payload || payload.error) {
     els.quantumValidationStatus.textContent = "Snapshot unavailable";
@@ -4288,7 +5328,15 @@ function renderQuantumValidation(payload) {
     return;
   }
 
+  const previousQuantumValidation = state.quantumValidation;
+  if (
+    previousQuantumValidation
+    && quantumPayloadRunId(previousQuantumValidation) !== quantumPayloadRunId(payload)
+  ) {
+    state.previousQuantumValidation = previousQuantumValidation;
+  }
   state.quantumValidation = payload;
+  renderQuantumRuntime(payload.runtime || {});
   const validation = payload.validation || {};
   const policy = payload.execution_policy || {};
   const recommended = payload.recommended_configuration || {};
@@ -4298,13 +5346,40 @@ function renderQuantumValidation(payload) {
     (item) => item.profile_id === recommended.topology_id,
   );
 
-  els.quantumValidationStatus.textContent = payload.status === "pass" ? "PASS / evidence ready" : "Review required";
+  const isLive = payload.source === "live_local_run";
+  if (isLive) {
+    const parameters = payload.run?.parameters || {};
+    if (parameters.shots !== undefined) els.quantumShotsInput.value = parameters.shots;
+    if (parameters.seed !== undefined) els.quantumSeedInput.value = parameters.seed;
+    if (parameters.reference_tolerance !== undefined) {
+      els.quantumReferenceToleranceInput.value = parameters.reference_tolerance;
+    }
+    if (parameters.compilation_tolerance !== undefined) {
+      els.quantumCompilationToleranceInput.value = parameters.compilation_tolerance;
+    }
+    els.quantumRunFeedback.textContent =
+      "Latest persisted evidence loaded. Run the harness again to create a new, independently identified evidence package.";
+  }
+  els.quantumValidationStatus.textContent = payload.status === "pass"
+    ? (isLive ? "PASS / fresh evidence" : (payload.runtime?.live_execution ? "Simulator stack ready" : "PASS / archive ready"))
+    : "Review required";
   els.quantumValidationStatus.className = `status-badge ${payload.status === "pass" ? "is-success" : "is-warning"}`;
   els.quantumRowsPassing.textContent = `${validation.rows_passing || 0} / ${validation.row_count || 0}`;
+  els.quantumReferenceExact.textContent = String(validation.reference_exact_rows || 0);
+  els.quantumBoundedApproximation.textContent = String(validation.bounded_approximation_rows || 0);
   els.quantumExecutionMode.textContent = policy.local_simulation_only ? "Local simulator" : "Review";
   els.quantumAuthorizedSpend.textContent = `$${Number(policy.max_authorized_cost_usd || 0).toFixed(2)}`;
   els.quantumSnapshotDate.textContent = formatTimestamp(payload.generated_at);
   els.quantumSnapshotId.textContent = payload.showcase_id || "packaged evidence";
+  els.quantumRunName.textContent = payload.run?.name || "Packaged v0.12.0 reference";
+  els.quantumRunStatus.textContent = payload.status === "pass"
+    ? (isLive ? "✓ PASS / evidence ready" : "Verified reference · run to refresh")
+    : "Review required";
+  els.quantumRunDuration.textContent = payload.run?.duration_seconds !== undefined
+    ? formatSeconds(payload.run.duration_seconds)
+    : "Precomputed";
+  els.quantumRunOutput.textContent = payload.run?.output_directory || "Bundled application asset";
+  els.quantumRunVerification.textContent = archive.readable ? "✓ Verified" : "Review required";
   els.quantumBundleSize.textContent = formatBytes(payload.bundle?.size_bytes);
   els.quantumBundleSha.textContent = payload.bundle?.sha256
     ? `${payload.bundle.sha256.slice(0, 16)}...`
@@ -4322,15 +5397,20 @@ function renderQuantumValidation(payload) {
     [els.quantumMatrixLink, downloads.matrix],
     [els.quantumReportLink, downloads.report],
   ].forEach(([link, url]) => setActionLinkEnabled(link, Boolean(url), url));
-  renderQuantumTopologyCharts(payload);
-  renderQuantumAttribution(payload);
+  renderQuantumVisualProvenance(payload);
+  renderQuantumTopologyCharts(payload, state.previousQuantumValidation);
+  renderQuantumAttribution(payload, state.previousQuantumValidation);
   renderQuantumMatrix(payload);
+  renderQuantumRecommendation(payload);
+  setQuantumProgress(isLive ? "complete" : "reference");
+  renderOverviewQuantumObject(payload);
 }
 
 async function hydrate() {
   const [
     healthPayload,
     quantumValidationPayload,
+    latestQuantumValidationPayload,
     configPayload,
     sweepPayload,
     showcasePayload,
@@ -4339,6 +5419,7 @@ async function hydrate() {
   ] = await Promise.all([
     fetchJson("/api/health"),
     fetchJson("/api/quantum-validation").catch((error) => ({ error: error.message })),
+    fetchJson("/api/quantum-validation/runs/latest").catch(() => ({ available: false })),
     fetchJson("/api/configs"),
     fetchJson("/api/sweeps/parameters"),
     fetchJson("/api/showcases"),
@@ -4346,7 +5427,12 @@ async function hydrate() {
     fetchJson("/api/campaign-studies"),
   ]);
   state.hostedDemo = healthPayload.hosted_demo || null;
-  renderQuantumValidation(quantumValidationPayload);
+  renderReleaseIdentity(healthPayload.release || { version: healthPayload.version });
+  renderQuantumValidation(
+    latestQuantumValidationPayload.available
+      ? latestQuantumValidationPayload.result
+      : quantumValidationPayload,
+  );
   state.configs = configPayload.items;
   state.sweepParameters = sweepPayload.items;
   state.showcases = showcasePayload.items;
@@ -4373,6 +5459,7 @@ async function hydrate() {
   const defaultSweepParameter = state.sweepParameters[0];
   if (defaultSweepParameter) {
     els.sweepParameter.value = defaultSweepParameter.path;
+    updateSweepContract({ applyDefault: true });
   }
 
   await refreshRuns();
@@ -4397,7 +5484,11 @@ async function handleLaunch(event) {
     return;
   }
   els.launchButton.disabled = true;
-  els.launchButton.textContent = "Launching...";
+  els.launchForm.setAttribute("aria-busy", "true");
+  els.launchButton.innerHTML = '<span class="button-spinner" aria-hidden="true"></span>Running locally…';
+  setRunLaunchStatus("running");
+  els.runLaunchStatus.focus({ preventScroll: true });
+  toast("Run started", "Local deterministic execution is now in progress.", "success");
 
   try {
     const detail = await fetchJson("/api/runs", {
@@ -4408,13 +5499,77 @@ async function handleLaunch(event) {
       }),
     });
     toast("Run complete", `Created ${detail.summary.run_id}`, "success");
+    setRunLaunchStatus(
+      "complete",
+      detail,
+      `${shortRunId(detail.summary.run_id)} completed in ${formatSeconds(detail.summary.elapsed_seconds)}; ${detail.verification.checked_files} evidence files verified. Choose a purpose-built package below or inspect the full run detail.`,
+    );
     state.runs = [detail.summary, ...state.runs.filter((item) => item.run_id !== detail.summary.run_id)];
     renderSelectedRun(detail);
   } catch (error) {
     toast("Launch failed", error.message, "danger");
+    setRunLaunchStatus("error", null, error.message);
   } finally {
+    els.launchForm.removeAttribute("aria-busy");
     els.launchButton.disabled = false;
     els.launchButton.textContent = "Launch Run";
+  }
+}
+
+async function handleQuantumValidationRun(event) {
+  event.preventDefault();
+  if (hostedDemoBlocked("Live quantum validation")) return;
+
+  const payload = {
+    shots: Number(els.quantumShotsInput.value),
+    seed: Number(els.quantumSeedInput.value),
+    reference_tolerance: Number(els.quantumReferenceToleranceInput.value),
+    compilation_tolerance: Number(els.quantumCompilationToleranceInput.value),
+  };
+  const invalid = (
+    !Number.isInteger(payload.shots)
+    || payload.shots < 128
+    || payload.shots > 100000
+    || !Number.isInteger(payload.seed)
+    || payload.seed < 0
+    || !Number.isFinite(payload.reference_tolerance)
+    || payload.reference_tolerance <= 0
+    || !Number.isFinite(payload.compilation_tolerance)
+    || payload.compilation_tolerance <= 0
+  );
+  if (invalid) {
+    els.quantumRunFeedback.textContent = "Correct the harness inputs before execution: shots 128–100000, non-negative integer seed, and positive tolerances.";
+    toast("Quantum preflight failed", "Review the declared shots, seed, and tolerance values.", "danger");
+    return;
+  }
+
+  setControlsDisabled(els.quantumHarnessForm, true);
+  els.runQuantumValidationButton.disabled = true;
+  els.runQuantumValidationButton.innerHTML = '<span class="run-icon" aria-hidden="true">◌</span>Running local harness…';
+  els.quantumRunFeedback.textContent = "Compiling 12 target configurations, checking semantic equivalence, verifying the manifest, and packaging evidence.";
+  els.quantumValidationStatus.textContent = "RUNNING / local simulator";
+  els.quantumValidationStatus.className = "status-badge is-warning";
+  setQuantumProgress("running");
+
+  try {
+    const result = await fetchJson("/api/quantum-validation/runs", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+    renderQuantumValidation(result);
+    els.quantumRunFeedback.textContent = `Fresh evidence package completed in ${formatSeconds(result.run?.duration_seconds)}. No provider, credential, remote API, or QPU was used.`;
+    toast("Quantum validation complete", `${result.validation?.rows_passing || 0}/${result.validation?.row_count || 0} compilation rows passed.`, "success");
+  } catch (error) {
+    els.quantumValidationStatus.textContent = "RUN FAILED / review required";
+    els.quantumValidationStatus.className = "status-badge is-danger";
+    els.quantumRunFeedback.textContent = error.message;
+    setQuantumProgress("error");
+    toast("Quantum validation failed", error.message, "danger");
+  } finally {
+    const executable = Boolean(state.quantumRuntime?.live_execution) && !hostedDemoEnabled();
+    setControlsDisabled(els.quantumHarnessForm, !executable);
+    els.runQuantumValidationButton.disabled = !executable;
+    els.runQuantumValidationButton.innerHTML = '<span class="run-icon" aria-hidden="true">▶</span>Run validation harness';
   }
 }
 
@@ -4706,9 +5861,9 @@ async function handleLaunchSweep(event) {
     return;
   }
   const selectedParameter = sweepParameterByPath(els.sweepParameter.value);
-  const values = parseSweepValues(els.sweepValues.value);
-  if (!selectedParameter || !values.length) {
-    toast("Sweep needs values", "Enter one or more comma-separated values.", "danger");
+  const validation = updateSweepContract();
+  if (!selectedParameter || !validation.valid) {
+    toast("Sweep preflight failed", validation.message, "danger");
     return;
   }
 
@@ -4721,7 +5876,7 @@ async function handleLaunchSweep(event) {
       body: JSON.stringify({
         config: currentConfig(),
         parameter_path: selectedParameter.path,
-        values,
+        values: validation.values,
         source_name: els.configTemplate.value || "sweep.yaml",
         experiment_name: els.experimentNameInput.value.trim() || null,
       }),
@@ -4738,8 +5893,7 @@ async function handleLaunchSweep(event) {
   } catch (error) {
     toast("Sweep failed", error.message, "danger");
   } finally {
-    els.launchSweepButton.disabled = false;
-    els.launchSweepButton.textContent = "Launch Sweep";
+    updateSweepContract();
   }
 }
 
@@ -4989,6 +6143,8 @@ function bindEvents() {
       fillForm(selected.config);
       renderDecisionProfile(selected.config);
       renderCampaignProfile(selected.config);
+      renderConfigContext(selected);
+      updateSweepContract();
       toast("Template loaded", `Using ${selected.name}`, "success");
     }
   });
@@ -5000,8 +6156,19 @@ function bindEvents() {
       fillForm(selected.config);
       renderDecisionProfile(selected.config);
       renderCampaignProfile(selected.config);
+      renderConfigContext(selected);
+      setRunLaunchStatus("idle");
+      updateSweepContract();
     }
   });
+
+  els.sweepParameter.addEventListener("change", () => {
+    const parameter = sweepParameterByPath(els.sweepParameter.value);
+    els.sweepValues.value = sweepDefaultValues[parameter?.path] || "";
+    updateSweepContract();
+  });
+  els.sweepValues.addEventListener("input", () => updateSweepContract());
+  els.launchForm.addEventListener("input", () => updateSweepContract());
 
   els.refreshRunsButton.addEventListener("click", async () => {
     try {
@@ -5025,6 +6192,18 @@ function bindEvents() {
   els.clearCompareButton.addEventListener("click", clearComparison);
   els.saveExperimentButton.addEventListener("click", handleSaveExperiment);
   els.launchCampaignButton.addEventListener("click", handleLaunchCampaign);
+  els.quantumAttributionPrimarySelect.addEventListener("change", (event) => {
+    setQuantumAttributionSelection("primary", event.target.value);
+  });
+  els.quantumAttributionCompareSelect.addEventListener("change", (event) => {
+    setQuantumAttributionSelection("compare", event.target.value);
+  });
+  els.quantumAttributionRosterBody.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-attribution-slot][data-attribution-key]");
+    if (!button) return;
+    setQuantumAttributionSelection(button.dataset.attributionSlot, button.dataset.attributionKey);
+  });
+  els.quantumHarnessForm.addEventListener("submit", handleQuantumValidationRun);
   els.launchForm.addEventListener("submit", handleLaunch);
   els.sweepForm.addEventListener("submit", handleLaunchSweep);
   els.verifyButton.addEventListener("click", handleVerify);

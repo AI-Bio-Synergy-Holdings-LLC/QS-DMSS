@@ -191,3 +191,4 @@ quantum-compilation-validation/
 reference-data-calibration/
 simulation-showcase/
 .codex-logs/
+/output/playwright/

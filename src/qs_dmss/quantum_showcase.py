@@ -50,6 +50,21 @@ def quantum_compilation_showcase_artifact_key(artifact_name: str) -> str:
     raise ValueError(f"Unknown quantum compilation showcase artifact: {artifact_name}")
 
 
+def quantum_compilation_artifact_path(
+    root: str | Path,
+    artifact_name: str,
+) -> Path:
+    filename = QUANTUM_SHOWCASE_FILES.get(artifact_name)
+    if filename is None and artifact_name in QUANTUM_SHOWCASE_FILES.values():
+        filename = artifact_name
+    if filename is None:
+        raise ValueError(f"Unknown quantum compilation artifact: {artifact_name}")
+    path = contained_path(Path(root).resolve(), filename)
+    if not path.is_file():
+        raise FileNotFoundError(f"Quantum compilation artifact not found: {filename}")
+    return path
+
+
 def _archive_inventory(bundle_path: Path) -> dict[str, Any]:
     with zipfile.ZipFile(bundle_path) as archive:
         corrupt_member = archive.testzip()
@@ -68,9 +83,18 @@ def _archive_inventory(bundle_path: Path) -> dict[str, Any]:
     }
 
 
-def load_quantum_compilation_showcase() -> dict[str, Any]:
-    report_path = quantum_compilation_showcase_path("report")
-    bundle_path = quantum_compilation_showcase_path("bundle")
+def load_quantum_compilation_directory(
+    root: str | Path,
+    *,
+    showcase_id: str,
+    title: str,
+    subtitle: str,
+    limitations: list[str],
+    download_prefix: str,
+) -> dict[str, Any]:
+    resolved_root = Path(root).resolve()
+    report_path = quantum_compilation_artifact_path(resolved_root, "report")
+    bundle_path = quantum_compilation_artifact_path(resolved_root, "bundle")
     report = json.loads(report_path.read_text(encoding="utf-8"))
     matrix = report.get("matrix", [])
     exact_rows = [
@@ -89,11 +113,9 @@ def load_quantum_compilation_showcase() -> dict[str, Any]:
 
     return {
         "schema_version": QUANTUM_SHOWCASE_SCHEMA_VERSION,
-        "showcase_id": QUANTUM_SHOWCASE_ID,
-        "title": "Fractal SSFM Quantum Compilation Validation",
-        "subtitle": (
-            "Precomputed simulator-only compilation matrix and resource attribution"
-        ),
+        "showcase_id": showcase_id,
+        "title": title,
+        "subtitle": subtitle,
         "status": "pass" if report.get("success") and archive["readable"] else "review",
         "generated_at": report.get("generated_at"),
         "claim_boundary": report.get("claim_boundary"),
@@ -109,14 +131,9 @@ def load_quantum_compilation_showcase() -> dict[str, Any]:
             "all_rows_pass": bool(matrix) and success_count == len(matrix),
             "archive": archive,
         },
-        "limitations": [
-            "Precomputed from the v0.12.0 local ideal-simulator harness; the hosted app does not transpile circuits.",
-            "Generic topology profiles are not named provider devices or calibration snapshots.",
-            "The resource counts are not runtime, price, error-rate, or quantum-advantage predictions.",
-            "This does not scientifically validate the underlying Fractal SSFM model.",
-        ],
+        "limitations": limitations,
         "downloads": {
-            key: f"/api/quantum-validation/files/{key}"
+            key: f"{download_prefix}/{key}"
             for key in QUANTUM_SHOWCASE_FILES
         },
         "bundle": {
@@ -124,3 +141,19 @@ def load_quantum_compilation_showcase() -> dict[str, Any]:
             "size_bytes": bundle_path.stat().st_size,
         },
     }
+
+
+def load_quantum_compilation_showcase() -> dict[str, Any]:
+    return load_quantum_compilation_directory(
+        quantum_compilation_showcase_root(),
+        showcase_id=QUANTUM_SHOWCASE_ID,
+        title="Fractal SSFM Quantum Compilation Validation",
+        subtitle="Precomputed simulator-only compilation matrix and resource attribution",
+        limitations=[
+            "Precomputed from the v0.12.0 local ideal-simulator harness; the hosted app does not transpile circuits.",
+            "Generic topology profiles are not named provider devices or calibration snapshots.",
+            "The resource counts are not runtime, price, error-rate, or quantum-advantage predictions.",
+            "This does not scientifically validate the underlying Fractal SSFM model.",
+        ],
+        download_prefix="/api/quantum-validation/files",
+    )
