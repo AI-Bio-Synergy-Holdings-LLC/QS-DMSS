@@ -102,6 +102,7 @@ def test_cockpit_quantum_validation_showcase_is_read_only(tmp_path: Path) -> Non
     assert payload["validation"]["bounded_approximation_rows"] == 6
     assert payload["validation"]["archive"]["readable"] is True
     assert payload["validation"]["archive"]["contains_manifest"] is True
+    assert payload["validation"]["archive"]["contains_html_report"] is True
     assert payload["execution_policy"] == {
         "credentials_read": False,
         "local_simulation_only": True,
@@ -119,7 +120,8 @@ def test_cockpit_quantum_validation_showcase_is_read_only(tmp_path: Path) -> Non
 
     expected_types = {
         "report": "application/json",
-        "summary": "text/markdown",
+        "summary": "text/html",
+        "markdown": "text/markdown",
         "matrix": "text/csv",
         "manifest": "application/json",
         "bundle": "application/zip",
@@ -128,7 +130,19 @@ def test_cockpit_quantum_validation_showcase_is_read_only(tmp_path: Path) -> Non
         download = client.get(payload["downloads"][artifact_name])
         assert download.status_code == 200
         assert download.headers["content-type"].startswith(content_type)
-        assert "attachment" in download.headers["content-disposition"]
+        if artifact_name == "summary":
+            assert "content-disposition" not in download.headers
+            assert "default-src 'none'" in download.headers["content-security-policy"]
+            assert "QS-DMSS Quantum Compilation Validation" in download.text
+            assert "What this does not claim" in download.text
+        else:
+            assert "attachment" in download.headers["content-disposition"]
+
+    portable_json_link = client.get(
+        "/api/quantum-validation/files/quantum-compilation-validation.json"
+    )
+    assert portable_json_link.status_code == 200
+    assert portable_json_link.headers["content-type"].startswith("application/json")
 
     bundle = client.get(payload["downloads"]["bundle"])
     assert hashlib.sha256(bundle.content).hexdigest() == payload["bundle"]["sha256"]

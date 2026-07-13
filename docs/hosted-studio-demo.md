@@ -42,7 +42,7 @@ Allowed in hosted mode:
   export downloads.
 - A read-only Fractal SSFM quantum compilation validation snapshot with the
   full 12-row matrix, resource-attribution charts, scientific limitations, and
-  a downloadable evidence bundle.
+  a polished HTML validation report plus a downloadable evidence bundle.
 
 Disabled in hosted mode:
 

@@ -11,17 +11,43 @@ from qs_dmss.cli import main
 from qs_dmss.quantum_compilation import (
     COMPILATION_BUNDLE,
     COMPILATION_CSV,
+    COMPILATION_HTML_REPORT,
     COMPILATION_JSON_REPORT,
     COMPILATION_MANIFEST,
     COMPILATION_MARKDOWN_REPORT,
     validate_fractal_quantum_compilation,
 )
+from qs_dmss.quantum_compilation_report import (
+    write_quantum_compilation_html_report,
+)
+from qs_dmss.quantum_showcase import quantum_compilation_showcase_root
 
 
 QUANTUM_STACK_AVAILABLE = (
     importlib.util.find_spec("qiskit") is not None
     and importlib.util.find_spec("qiskit_aer") is not None
 )
+
+
+def test_html_report_renders_packaged_snapshot_deterministically(tmp_path: Path) -> None:
+    report = json.loads(
+        (
+            quantum_compilation_showcase_root()
+            / "quantum-compilation-validation.json"
+        ).read_text(encoding="utf-8")
+    )
+    first = tmp_path / "first.html"
+    second = tmp_path / "second.html"
+
+    write_quantum_compilation_html_report(first, report)
+    write_quantum_compilation_html_report(second, report)
+
+    html_report = first.read_text(encoding="utf-8")
+    assert first.read_bytes() == second.read_bytes()
+    assert "Minimum-cost passing rows" in html_report
+    assert "What this does not claim" in html_report
+    assert "quantum-compilation-validation.json" in html_report
+    assert "<script" not in html_report
 
 
 @pytest.mark.skipif(not QUANTUM_STACK_AVAILABLE, reason="optional quantum stack not installed")
@@ -95,6 +121,7 @@ def test_compilation_harness_validates_matrix_and_attribution(tmp_path: Path) ->
 
     expected_files = {
         COMPILATION_JSON_REPORT,
+        COMPILATION_HTML_REPORT,
         COMPILATION_MARKDOWN_REPORT,
         COMPILATION_CSV,
         COMPILATION_MANIFEST,
@@ -121,11 +148,19 @@ def test_compilation_harness_validates_matrix_and_attribution(tmp_path: Path) ->
     )
     assert "Resource Attribution" in markdown
     assert "bounded_approximation" in markdown
+    html_report = (output_root / COMPILATION_HTML_REPORT).read_text(
+        encoding="utf-8"
+    )
+    assert "<!doctype html>" in html_report
+    assert "Minimum-cost passing rows" in html_report
+    assert "What this does not claim" in html_report
+    assert "quantum-compilation-validation.json" in html_report
 
     with zipfile.ZipFile(output_root / COMPILATION_BUNDLE) as bundle:
         names = set(bundle.namelist())
     prefix = f"{output_root.name}/"
     assert prefix + COMPILATION_JSON_REPORT in names
+    assert prefix + COMPILATION_HTML_REPORT in names
     assert prefix + "circuits/generic-all-to-all-5q-opt3.openqasm" in names
 
 
@@ -139,6 +174,7 @@ def test_compilation_cli_routes_to_harness(monkeypatch, tmp_path: Path, capsys) 
         return {
             "success": True,
             "report_path": str(tmp_path / COMPILATION_JSON_REPORT),
+            "html_report_path": str(tmp_path / COMPILATION_HTML_REPORT),
             "markdown_report_path": str(tmp_path / COMPILATION_MARKDOWN_REPORT),
             "matrix_csv_path": str(tmp_path / COMPILATION_CSV),
             "evidence_bundle_path": str(tmp_path / COMPILATION_BUNDLE),
@@ -179,6 +215,7 @@ def test_compilation_cli_routes_to_harness(monkeypatch, tmp_path: Path, capsys) 
     assert "quantum compilation validation passed" in output
     assert "no QPU job was submitted" in output
     assert "maximum authorized cost is $0.00" in output
+    assert "Polished HTML report:" in output
 
 
 @pytest.mark.parametrize(

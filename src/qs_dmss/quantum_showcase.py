@@ -12,7 +12,8 @@ QUANTUM_SHOWCASE_SCHEMA_VERSION = 1
 QUANTUM_SHOWCASE_ID = "fractal-ssfm-compilation-v0.12.0"
 QUANTUM_SHOWCASE_FILES = {
     "report": "quantum-compilation-validation.json",
-    "summary": "quantum-compilation-validation.md",
+    "summary": "quantum-compilation-validation.html",
+    "markdown": "quantum-compilation-validation.md",
     "matrix": "quantum-compilation-matrix.csv",
     "manifest": "manifest.sha256.json",
     "bundle": "quantum-compilation-evidence.zip",
@@ -30,12 +31,23 @@ def quantum_compilation_showcase_root() -> Path:
 
 def quantum_compilation_showcase_path(artifact_name: str) -> Path:
     filename = QUANTUM_SHOWCASE_FILES.get(artifact_name)
+    if filename is None and artifact_name in QUANTUM_SHOWCASE_FILES.values():
+        filename = artifact_name
     if filename is None:
         raise ValueError(f"Unknown quantum compilation showcase artifact: {artifact_name}")
     path = contained_path(quantum_compilation_showcase_root(), filename)
     if not path.is_file():
         raise FileNotFoundError(f"Quantum compilation showcase artifact not found: {filename}")
     return path
+
+
+def quantum_compilation_showcase_artifact_key(artifact_name: str) -> str:
+    if artifact_name in QUANTUM_SHOWCASE_FILES:
+        return artifact_name
+    for key, filename in QUANTUM_SHOWCASE_FILES.items():
+        if artifact_name == filename:
+            return key
+    raise ValueError(f"Unknown quantum compilation showcase artifact: {artifact_name}")
 
 
 def _archive_inventory(bundle_path: Path) -> dict[str, Any]:
@@ -49,6 +61,9 @@ def _archive_inventory(bundle_path: Path) -> dict[str, Any]:
         "contains_manifest": any(name.endswith("/manifest.sha256.json") for name in names),
         "contains_json_report": any(
             name.endswith("/quantum-compilation-validation.json") for name in names
+        ),
+        "contains_html_report": any(
+            name.endswith("/quantum-compilation-validation.html") for name in names
         ),
     }
 

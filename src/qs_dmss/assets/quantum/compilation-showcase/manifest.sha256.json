@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-07-13T02:26:19.909376+00:00",
+  "generated_at": "2026-07-13T04:06:18.291178+00:00",
   "algorithm": "sha256",
   "files": [
     {
@@ -232,6 +232,11 @@
       "path": "quantum-compilation-matrix.csv",
       "sha256": "5b4edb5969a435d92d8e8976e138e9f9ea437235b42f11916a0fb583c454ed4b",
       "size_bytes": 1721
+    },
+    {
+      "path": "quantum-compilation-validation.html",
+      "sha256": "c3dd727c18cfce94272a8b907f4c84fcb4e01f8ff843a5c87372b9c2253e8113",
+      "size_bytes": 24587
     },
     {
       "path": "quantum-compilation-validation.json",

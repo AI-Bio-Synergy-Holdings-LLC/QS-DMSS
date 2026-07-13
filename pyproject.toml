@@ -108,6 +108,7 @@ where = ["src"]
   "quantum/*.yaml",
   "quantum/compilation-showcase/*.csv",
   "quantum/compilation-showcase/*.json",
+  "quantum/compilation-showcase/*.html",
   "quantum/compilation-showcase/*.md",
   "quantum/compilation-showcase/*.zip",
   "schemas/*.json",

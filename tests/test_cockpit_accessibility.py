@@ -73,6 +73,7 @@ def test_cockpit_shell_has_accessible_navigation_and_landmarks() -> None:
         html,
     )
     assert 'role="img"' in _element_tag(html, "quantumAttributionChart")
+    assert ">Open Polished Report</a>" in html
 
 
 def test_cockpit_static_research_surfaces_are_named() -> None:
