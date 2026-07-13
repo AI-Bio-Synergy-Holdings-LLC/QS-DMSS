@@ -81,6 +81,63 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     )
 
 
+def test_cockpit_quantum_validation_showcase_is_read_only(tmp_path: Path) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    app = create_app(
+        repo_root=repo_root,
+        output_root=tmp_path / "hosted-runs",
+        hosted_demo=True,
+    )
+    client = TestClient(app)
+
+    response = client.get("/api/quantum-validation")
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["showcase_id"] == "fractal-ssfm-compilation-v0.12.0"
+    assert payload["status"] == "pass"
+    assert payload["validation"]["rows_passing"] == 12
+    assert payload["validation"]["row_count"] == 12
+    assert payload["validation"]["reference_exact_rows"] == 6
+    assert payload["validation"]["bounded_approximation_rows"] == 6
+    assert payload["validation"]["archive"]["readable"] is True
+    assert payload["validation"]["archive"]["contains_manifest"] is True
+    assert payload["execution_policy"] == {
+        "credentials_read": False,
+        "local_simulation_only": True,
+        "max_authorized_cost_usd": 0.0,
+        "provider": None,
+        "remote_api_called": False,
+        "submitted": False,
+    }
+    assert payload["recommended_configuration"]["topology_id"] == (
+        "generic-all-to-all-5q"
+    )
+    assert payload["recommended_configuration"]["optimization_level"] == 3
+    assert len(payload["bundle"]["sha256"]) == 64
+    assert "hosted app does not transpile circuits" in payload["limitations"][0]
+
+    expected_types = {
+        "report": "application/json",
+        "summary": "text/markdown",
+        "matrix": "text/csv",
+        "manifest": "application/json",
+        "bundle": "application/zip",
+    }
+    for artifact_name, content_type in expected_types.items():
+        download = client.get(payload["downloads"][artifact_name])
+        assert download.status_code == 200
+        assert download.headers["content-type"].startswith(content_type)
+        assert "attachment" in download.headers["content-disposition"]
+
+    bundle = client.get(payload["downloads"]["bundle"])
+    assert hashlib.sha256(bundle.content).hexdigest() == payload["bundle"]["sha256"]
+    assert client.get("/api/quantum-validation/files/../../pyproject.toml").status_code == 404
+    assert client.get("/api/quantum-validation/files/not-allowlisted").status_code == 404
+    assert client.post("/api/quantum-validation").status_code == 405
+    assert client.get("/api/jobs/not-a-job").status_code == 404
+
+
 def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     repo_root = Path(__file__).resolve().parents[1]
     app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
@@ -144,6 +201,11 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
     assert 'id="jobProvenanceLifecycle"' in root.text
     assert 'id="jobProvenanceArtifacts"' in root.text
     assert 'id="hostedDemoBanner"' in root.text
+    assert 'id="quantum-validation"' in root.text
+    assert 'id="quantumTopologyCharts"' in root.text
+    assert 'id="quantumAttributionChart"' in root.text
+    assert 'id="quantumMatrixBody"' in root.text
+    assert 'aria-label="Quantum compilation validation matrix"' in root.text
     assert "Public hosted demo outputs are temporary" in root.text
     markdown_link = re.search(r'<a[^>]+id="labMarkdownLink"[^>]*>', root.text)
     json_link = re.search(r'<a[^>]+id="labJsonLink"[^>]*>', root.text)
@@ -250,6 +312,9 @@ def test_cockpit_hosted_demo_uses_session_scoped_outputs(tmp_path: Path) -> None
     health_payload = health.json()
     assert health_payload["hosted_demo"]["enabled"] is True
     assert health_payload["hosted_demo"]["max_campaign_runs"] == 5
+    assert health_payload["hosted_demo"]["read_only_surfaces"] == [
+        "precomputed Fractal SSFM quantum compilation validation"
+    ]
     assert "qs_dmss_demo_session" in first_client.cookies
     assert Path(health_payload["output_root"]).parents[1].name == "sessions"
 

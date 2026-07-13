@@ -10,6 +10,11 @@ except ModuleNotFoundError:  # pragma: no cover - exercised on Python 3.10
     import tomli as tomllib
 
 import qs_dmss
+from qs_dmss.quantum_showcase import (
+    QUANTUM_SHOWCASE_FILES,
+    load_quantum_compilation_showcase,
+    quantum_compilation_showcase_root,
+)
 
 
 def test_version_metadata_is_aligned() -> None:
@@ -89,3 +94,15 @@ def test_codemeta_release_metadata_is_aligned() -> None:
     assert codemeta["citation"] == "https://doi.org/10.5281/zenodo.21329711"
     assert codemeta["url"] == "https://qs-dmss.studio"
     assert codemeta["releaseNotes"].endswith(f"/releases/tag/v{declared_version}")
+
+
+def test_quantum_validation_showcase_assets_are_packaged() -> None:
+    root = quantum_compilation_showcase_root()
+
+    assert {path.name for path in root.iterdir() if path.is_file()} == set(
+        QUANTUM_SHOWCASE_FILES.values()
+    )
+    payload = load_quantum_compilation_showcase()
+    assert payload["status"] == "pass"
+    assert payload["validation"]["all_rows_pass"] is True
+    assert payload["validation"]["archive"]["contains_json_report"] is True

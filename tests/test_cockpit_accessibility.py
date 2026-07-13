@@ -46,6 +46,7 @@ def test_cockpit_shell_has_accessible_navigation_and_landmarks() -> None:
 
     navigation_labels = [
         "Lab Mode",
+        "Quantum Validation",
         "Run Setup",
         "Configuration",
         "Run Detail",
@@ -61,6 +62,10 @@ def test_cockpit_shell_has_accessible_navigation_and_landmarks() -> None:
     assert 'id="demoCompareButton"' in html
     assert 'id="demoExportButton"' in html
     assert '<table aria-label="Guided comparison variant evidence">' in html
+    assert '<table aria-label="Quantum compilation validation matrix">' in html
+    assert 'aria-labelledby="quantumValidationTitle"' in html
+    assert 'aria-label="Quantum validation gate summary"' in html
+    assert 'role="img"' in _element_tag(html, "quantumAttributionChart")
 
 
 def test_cockpit_static_research_surfaces_are_named() -> None:
@@ -128,6 +133,10 @@ def test_cockpit_styles_encode_wcag_interaction_baseline() -> None:
     assert "width: min(1480px, calc(100vw - 32px))" in css
     assert "grid-template-columns: repeat(12, minmax(0, 1fr))" in css
     assert ".lab-report-metrics dd" in css
+    assert ".quantum-validation-panel" in css
+    assert ".quantum-topology-charts" in css
+    assert ".quantum-attribution-chart" in css
+    assert ".quantum-table-wrap" in css
 
     foreground = "#fff8ef"
     action_colors = [
@@ -141,6 +150,7 @@ def test_cockpit_navigation_and_dynamic_controls_preserve_semantics() -> None:
     script = (STATIC_ROOT / "app.js").read_text(encoding="utf-8")
 
     assert "function setupNavigation()" in script
+    assert "function restoreInitialHashPosition()" in script
     assert 'setAttribute("aria-current", "location")' in script
     assert "target.offsetTop" not in script
     assert "atPageEnd" in script
@@ -157,5 +167,10 @@ def test_cockpit_navigation_and_dynamic_controls_preserve_semantics() -> None:
     assert "artifact-expand-label" not in script
     assert "state.selectedExperiment.urls.workbook" in script
     assert "Research Workbook - ${state.selectedExperiment.summary.experiment_id}" in script
+    assert "function renderQuantumValidation(" in script
+    assert "function renderQuantumTopologyCharts(" in script
+    assert "function renderQuantumAttribution(" in script
+    assert 'fetchJson("/api/quantum-validation")' in script
     assert 'aria-label="Select run ${escapeHtml(run.run_id)} for comparison"' in script
     assert "setupNavigation();" in script
+    assert "restoreInitialHashPosition();" in script

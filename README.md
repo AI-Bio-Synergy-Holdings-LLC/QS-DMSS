@@ -255,6 +255,11 @@ measurement. It distinguishes near-machine-precision rows from bounded
 checksums, and an evidence ZIP. See
 [docs/quantum-compilation-validation.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/quantum-compilation-validation.md).
 
+The [hosted Studio](https://app.qs-dmss.studio/#quantum-validation) presents a
+read-only snapshot of this matrix with resource-attribution charts and the
+downloadable evidence bundle. The hosted view never transpiles circuits,
+contacts a provider, reads credentials, submits a QPU job, or authorizes spend.
+
 Run the public reference-data provenance calibration sandbox:
 
 ```powershell

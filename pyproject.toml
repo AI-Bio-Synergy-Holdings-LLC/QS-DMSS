@@ -106,6 +106,10 @@ where = ["src"]
   "data/*.json",
   "data/calibration/*.json",
   "quantum/*.yaml",
+  "quantum/compilation-showcase/*.csv",
+  "quantum/compilation-showcase/*.json",
+  "quantum/compilation-showcase/*.md",
+  "quantum/compilation-showcase/*.zip",
   "schemas/*.json",
   "showcases/*.yaml",
 ]
