@@ -1,5 +1,6 @@
 const state = {
   hostedDemo: null,
+  quantumValidation: null,
   configs: [],
   showcases: [],
   campaignStudio: null,
@@ -38,6 +39,26 @@ const els = {
   hostedDemoBanner: document.querySelector("#hostedDemoBanner"),
   railModeLabel: document.querySelector("#railModeLabel"),
   apiModePill: document.querySelector("#apiModePill"),
+  quantumValidationStatus: document.querySelector("#quantumValidationStatus"),
+  quantumRowsPassing: document.querySelector("#quantumRowsPassing"),
+  quantumExecutionMode: document.querySelector("#quantumExecutionMode"),
+  quantumAuthorizedSpend: document.querySelector("#quantumAuthorizedSpend"),
+  quantumSnapshotDate: document.querySelector("#quantumSnapshotDate"),
+  quantumSnapshotId: document.querySelector("#quantumSnapshotId"),
+  quantumBundleLink: document.querySelector("#quantumBundleLink"),
+  quantumSummaryLink: document.querySelector("#quantumSummaryLink"),
+  quantumMatrixLink: document.querySelector("#quantumMatrixLink"),
+  quantumReportLink: document.querySelector("#quantumReportLink"),
+  quantumTopologyCharts: document.querySelector("#quantumTopologyCharts"),
+  quantumAttributionChart: document.querySelector("#quantumAttributionChart"),
+  quantumAttributionDescription: document.querySelector("#quantumAttributionDescription"),
+  quantumMatrixSummary: document.querySelector("#quantumMatrixSummary"),
+  quantumMatrixBody: document.querySelector("#quantumMatrixBody"),
+  quantumRecommendedSummary: document.querySelector("#quantumRecommendedSummary"),
+  quantumBundleSize: document.querySelector("#quantumBundleSize"),
+  quantumBundleSha: document.querySelector("#quantumBundleSha"),
+  quantumArchiveInventory: document.querySelector("#quantumArchiveInventory"),
+  quantumLimitations: document.querySelector("#quantumLimitations"),
   configTemplate: document.querySelector("#configTemplate"),
   loadTemplateButton: document.querySelector("#loadTemplateButton"),
   labScenarioSelect: document.querySelector("#labScenarioSelect"),
@@ -357,6 +378,14 @@ function formatSeconds(value) {
   const minutes = Math.floor(total / 60);
   const seconds = total % 60;
   return `${minutes}m ${seconds}s`;
+}
+
+function formatBytes(value) {
+  const bytes = Number(value);
+  if (!Number.isFinite(bytes) || bytes < 0) return "-";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 ** 2) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / 1024 ** 2).toFixed(1)} MB`;
 }
 
 function formatScientific(value) {
@@ -4087,9 +4116,221 @@ function renderExperimentPlaceholder() {
   renderExperimentRegistry();
 }
 
+function restoreInitialHashPosition() {
+  if (!window.location.hash) {
+    return;
+  }
+  const target = document.querySelector(window.location.hash);
+  if (!target) {
+    return;
+  }
+  window.requestAnimationFrame(() => {
+    target.scrollIntoView({ block: "start" });
+  });
+}
+
+function quantumTopologyChartMarkup(topologyLabel, rows) {
+  const sortedRows = [...rows].sort(
+    (first, second) => first.optimization_level - second.optimization_level,
+  );
+  const maxValue = Math.max(
+    1,
+    ...sortedRows.flatMap((row) => [row.resources?.depth || 0, row.resources?.two_qubit_gates || 0]),
+  );
+  const chartLeft = 44;
+  const chartRight = 318;
+  const chartTop = 24;
+  const chartBottom = 132;
+  const xFor = (index) => chartLeft + (index * (chartRight - chartLeft)) / Math.max(1, sortedRows.length - 1);
+  const yFor = (value) => chartBottom - (Number(value) / maxValue) * (chartBottom - chartTop);
+  const depthPoints = sortedRows
+    .map((row, index) => `${xFor(index)},${yFor(row.resources?.depth || 0)}`)
+    .join(" ");
+  const cxPoints = sortedRows
+    .map((row, index) => `${xFor(index)},${yFor(row.resources?.two_qubit_gates || 0)}`)
+    .join(" ");
+  const grid = [0, 0.5, 1]
+    .map((ratio) => {
+      const y = chartBottom - ratio * (chartBottom - chartTop);
+      const label = Math.round(maxValue * ratio);
+      return `
+        <line x1="${chartLeft}" y1="${y}" x2="${chartRight}" y2="${y}" class="quantum-chart-grid" />
+        <text x="${chartLeft - 8}" y="${y + 4}" text-anchor="end" class="quantum-axis-label">${label}</text>
+      `;
+    })
+    .join("");
+  const points = sortedRows
+    .map((row, index) => {
+      const x = xFor(index);
+      const depth = row.resources?.depth || 0;
+      const cx = row.resources?.two_qubit_gates || 0;
+      const depthY = yFor(depth);
+      const cxY = yFor(cx);
+      return `
+        <circle cx="${x}" cy="${depthY}" r="5" class="quantum-depth-point" />
+        <text x="${x}" y="${Math.max(14, depthY - 8)}" text-anchor="middle" class="quantum-point-label quantum-depth-label">${depth}</text>
+        <rect x="${x - 4.5}" y="${cxY - 4.5}" width="9" height="9" rx="1" class="quantum-cx-point" />
+        <text x="${x}" y="${Math.min(151, cxY + 15)}" text-anchor="middle" class="quantum-point-label quantum-cx-label">${cx}</text>
+        <text x="${x}" y="173" text-anchor="middle" class="quantum-axis-label">Opt ${escapeHtml(row.optimization_level)}</text>
+      `;
+    })
+    .join("");
+
+  return `
+    <article class="quantum-topology-card">
+      <div class="quantum-topology-card-head">
+        <h4>${escapeHtml(topologyLabel)}</h4>
+        <div class="quantum-chart-key" aria-label="Chart key">
+          <span><i class="is-depth" aria-hidden="true"></i>Depth</span>
+          <span><i class="is-cx" aria-hidden="true"></i>CX gates</span>
+        </div>
+      </div>
+      <svg viewBox="0 0 340 184" role="img" aria-label="${escapeHtml(topologyLabel)} depth and CX count by optimization level">
+        ${grid}
+        <polyline points="${depthPoints}" class="quantum-depth-line" />
+        <polyline points="${cxPoints}" class="quantum-cx-line" />
+        ${points}
+      </svg>
+    </article>
+  `;
+}
+
+function renderQuantumTopologyCharts(payload) {
+  const rows = payload.matrix || [];
+  const topologies = payload.matrix_definition?.topologies || [];
+  els.quantumTopologyCharts.innerHTML = topologies
+    .map((topology) =>
+      quantumTopologyChartMarkup(
+        topology.label,
+        rows.filter((row) => row.topology_id === topology.profile_id),
+      ),
+    )
+    .join("");
+}
+
+function renderQuantumAttribution(payload) {
+  const recommended = payload.recommended_configuration || {};
+  const attribution = recommended.attribution || {};
+  const components = [
+    ["state_preparation", "State preparation"],
+    ["ssfm_evolution", "SSFM evolution"],
+    ["measurement", "Measurement"],
+    ["full_experiment", "Full circuit"],
+  ].map(([key, label]) => ({ key, label, ...(attribution[key] || {}) }));
+  const maxValue = Math.max(
+    1,
+    ...components.flatMap((component) => [component.depth || 0, component.two_qubit_gates || 0]),
+  );
+  const barStart = 178;
+  const barWidth = 440;
+  const rowHeight = 61;
+  const markup = components
+    .map((component, index) => {
+      const y = 42 + index * rowHeight;
+      const depthWidth = ((component.depth || 0) / maxValue) * barWidth;
+      const cxWidth = ((component.two_qubit_gates || 0) / maxValue) * barWidth;
+      return `
+        <g>
+          <text x="8" y="${y + 15}" class="quantum-attribution-label">${escapeHtml(component.label)}</text>
+          <rect x="${barStart}" y="${y}" width="${barWidth}" height="12" rx="6" class="quantum-bar-track" />
+          <rect x="${barStart}" y="${y}" width="${depthWidth}" height="12" rx="6" class="quantum-depth-bar" />
+          <text x="${Math.min(716, barStart + depthWidth + 9)}" y="${y + 10}" class="quantum-bar-value quantum-depth-label">${component.depth || 0}</text>
+          <rect x="${barStart}" y="${y + 19}" width="${barWidth}" height="12" rx="6" class="quantum-bar-track" />
+          <rect x="${barStart}" y="${y + 19}" width="${cxWidth}" height="12" rx="6" class="quantum-cx-bar" />
+          <text x="${Math.min(716, barStart + cxWidth + 9)}" y="${y + 29}" class="quantum-bar-value quantum-cx-label">${component.two_qubit_gates || 0}</text>
+        </g>
+      `;
+    })
+    .join("");
+  els.quantumAttributionChart.innerHTML = `
+    <title id="quantumAttributionTitle">Recommended circuit resource attribution</title>
+    <desc id="quantumAttributionDescription">Depth and CX gate counts for state preparation, SSFM evolution, measurement, and the full recommended circuit.</desc>
+    <g class="quantum-attribution-key" aria-hidden="true">
+      <rect x="178" y="10" width="12" height="12" rx="3" class="quantum-depth-bar" />
+      <text x="198" y="20">Depth</text>
+      <rect x="270" y="10" width="12" height="12" rx="3" class="quantum-cx-bar" />
+      <text x="290" y="20">CX gates</text>
+    </g>
+    ${markup}
+  `;
+}
+
+function renderQuantumMatrix(payload) {
+  const rows = payload.matrix || [];
+  els.quantumMatrixBody.innerHTML = rows
+    .map((row) => {
+      const semantics = row.semantics || {};
+      return `
+        <tr${row.pareto_optimal ? ' class="is-pareto"' : ""}>
+          <td><strong>${escapeHtml(row.topology_label || row.topology_id)}</strong></td>
+          <td>${escapeHtml(row.optimization_level)}</td>
+          <td>${escapeHtml(String(semantics.acceptance_class || "-").replaceAll("_", " "))}</td>
+          <td>${escapeHtml(row.resources?.depth ?? "-")}</td>
+          <td>${escapeHtml(row.resources?.two_qubit_gates ?? "-")}</td>
+          <td>${escapeHtml(formatScientific(semantics.state_l2_error))}</td>
+          <td>${escapeHtml(Number(semantics.state_fidelity || 0).toFixed(9))}</td>
+          <td>${row.pareto_optimal ? '<span class="quantum-table-chip is-pareto">Pareto</span>' : "-"}</td>
+          <td><span class="quantum-table-chip ${row.success ? "is-pass" : "is-review"}">${row.success ? "PASS" : "REVIEW"}</span></td>
+        </tr>
+      `;
+    })
+    .join("");
+  els.quantumMatrixSummary.textContent = `${payload.validation?.rows_passing || 0} of ${payload.validation?.row_count || rows.length} rows pass; ${payload.validation?.reference_exact_rows || 0} preserve the reference exactly and ${payload.validation?.bounded_approximation_rows || 0} remain within the configured approximation tolerance.`;
+}
+
+function renderQuantumValidation(payload) {
+  if (!payload || payload.error) {
+    els.quantumValidationStatus.textContent = "Snapshot unavailable";
+    els.quantumValidationStatus.className = "status-badge is-danger";
+    els.quantumMatrixBody.innerHTML = '<tr><td colspan="9">The packaged validation snapshot could not be loaded.</td></tr>';
+    [els.quantumBundleLink, els.quantumSummaryLink, els.quantumMatrixLink, els.quantumReportLink]
+      .forEach((link) => setActionLinkEnabled(link, false));
+    return;
+  }
+
+  state.quantumValidation = payload;
+  const validation = payload.validation || {};
+  const policy = payload.execution_policy || {};
+  const recommended = payload.recommended_configuration || {};
+  const archive = validation.archive || {};
+  const downloads = payload.downloads || {};
+  const topology = (payload.matrix_definition?.topologies || []).find(
+    (item) => item.profile_id === recommended.topology_id,
+  );
+
+  els.quantumValidationStatus.textContent = payload.status === "pass" ? "PASS / evidence ready" : "Review required";
+  els.quantumValidationStatus.className = `status-badge ${payload.status === "pass" ? "is-success" : "is-warning"}`;
+  els.quantumRowsPassing.textContent = `${validation.rows_passing || 0} / ${validation.row_count || 0}`;
+  els.quantumExecutionMode.textContent = policy.local_simulation_only ? "Local simulator" : "Review";
+  els.quantumAuthorizedSpend.textContent = `$${Number(policy.max_authorized_cost_usd || 0).toFixed(2)}`;
+  els.quantumSnapshotDate.textContent = formatTimestamp(payload.generated_at);
+  els.quantumSnapshotId.textContent = payload.showcase_id || "packaged evidence";
+  els.quantumBundleSize.textContent = formatBytes(payload.bundle?.size_bytes);
+  els.quantumBundleSha.textContent = payload.bundle?.sha256
+    ? `${payload.bundle.sha256.slice(0, 16)}...`
+    : "-";
+  els.quantumArchiveInventory.textContent = archive.readable
+    ? `${archive.file_count || 0} files; manifest and JSON report present`
+    : "Archive requires review";
+  els.quantumRecommendedSummary.textContent = `${topology?.label || recommended.topology_id || "The recommended generic target"}, optimization level ${recommended.optimization_level ?? "-"}, is the minimum-CX tolerance-passing Pareto result: depth ${recommended.depth ?? "-"}, ${recommended.two_qubit_gates ?? "-"} CX gates, and state L2 error ${formatScientific(recommended.state_l2_error)}.`;
+  els.quantumLimitations.innerHTML = (payload.limitations || [])
+    .map((item) => `<li>${escapeHtml(item)}</li>`)
+    .join("");
+  [
+    [els.quantumBundleLink, downloads.bundle],
+    [els.quantumSummaryLink, downloads.summary],
+    [els.quantumMatrixLink, downloads.matrix],
+    [els.quantumReportLink, downloads.report],
+  ].forEach(([link, url]) => setActionLinkEnabled(link, Boolean(url), url));
+  renderQuantumTopologyCharts(payload);
+  renderQuantumAttribution(payload);
+  renderQuantumMatrix(payload);
+}
+
 async function hydrate() {
   const [
     healthPayload,
+    quantumValidationPayload,
     configPayload,
     sweepPayload,
     showcasePayload,
@@ -4097,6 +4338,7 @@ async function hydrate() {
     campaignStudyPayload,
   ] = await Promise.all([
     fetchJson("/api/health"),
+    fetchJson("/api/quantum-validation").catch((error) => ({ error: error.message })),
     fetchJson("/api/configs"),
     fetchJson("/api/sweeps/parameters"),
     fetchJson("/api/showcases"),
@@ -4104,6 +4346,7 @@ async function hydrate() {
     fetchJson("/api/campaign-studies"),
   ]);
   state.hostedDemo = healthPayload.hosted_demo || null;
+  renderQuantumValidation(quantumValidationPayload);
   state.configs = configPayload.items;
   state.sweepParameters = sweepPayload.items;
   state.showcases = showcasePayload.items;
@@ -4145,6 +4388,7 @@ async function hydrate() {
     renderExperimentPlaceholder();
   }
   applyHostedDemoMode();
+  restoreInitialHashPosition();
 }
 
 async function handleLaunch(event) {

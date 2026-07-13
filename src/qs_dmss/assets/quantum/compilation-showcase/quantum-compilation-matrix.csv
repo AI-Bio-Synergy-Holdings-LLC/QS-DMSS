@@ -1,0 +1,13 @@
+topology_id,optimization_level,success,pareto_optimal,depth,size,cx_count,acceptance_class,state_l2_error,state_fidelity,density_tvd,unused_qubit_leakage,routing_depth_overhead,routing_cx_overhead
+generic-linear-5q,0,True,False,173,288,156,reference_exact,2.5656995182340938e-15,1.0,2.4228394897990446e-15,0.0,60,72
+generic-linear-5q,1,True,False,147,261,144,reference_exact,2.2817907822158273e-15,1.0,2.1291833313813457e-15,0.0,39,60
+generic-linear-5q,2,True,False,43,102,20,bounded_approximation,7.066009696241246e-07,0.9999999999995011,5.491404992945218e-07,0.0,8,6
+generic-linear-5q,3,True,False,42,102,19,bounded_approximation,7.066009699414536e-07,0.9999999999995008,5.491405668347335e-07,0.0,8,6
+generic-ring-5q,0,True,False,159,279,147,reference_exact,2.028945494539992e-15,1.0,1.8851023173005466e-15,0.0,46,63
+generic-ring-5q,1,True,False,147,252,135,reference_exact,2.0254035927191206e-15,1.0,1.9015821903223262e-15,0.0,39,51
+generic-ring-5q,2,True,False,43,102,20,bounded_approximation,7.06600969842448e-07,0.9999999999995006,5.491404996591865e-07,0.0,8,6
+generic-ring-5q,3,True,False,42,102,19,bounded_approximation,7.066009699947229e-07,0.9999999999995004,5.49140566836082e-07,0.0,8,6
+generic-all-to-all-5q,0,True,False,113,216,84,reference_exact,2.167883212752228e-15,1.0,1.995318244397276e-15,0.0,0,0
+generic-all-to-all-5q,1,True,True,108,201,84,reference_exact,1.5298805897715317e-15,1.0,1.2746084027646931e-15,0.0,0,0
+generic-all-to-all-5q,2,True,False,35,95,14,bounded_approximation,7.066009698369342e-07,0.9999999999995013,5.491404994920364e-07,0.0,0,0
+generic-all-to-all-5q,3,True,True,34,95,13,bounded_approximation,7.066009700060183e-07,0.9999999999995013,5.491405668302951e-07,0.0,0,0

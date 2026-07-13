@@ -59,6 +59,10 @@ from qs_dmss.paths import (
     runs_root,
     safe_filename,
 )
+from qs_dmss.quantum_showcase import (
+    load_quantum_compilation_showcase,
+    quantum_compilation_showcase_path,
+)
 from qs_dmss.showcase import (
     DEFAULT_SHOWCASE_NAME,
     SHOWCASE_JSON_REPORT,
@@ -130,6 +134,9 @@ class HostedDemoSettings:
                 "packaged guided comparison",
                 "packaged self-interaction Campaign Studio study",
                 "verification, replay, reports, bundles, and research-object export",
+            ],
+            "read_only_surfaces": [
+                "precomputed Fractal SSFM quantum compilation validation",
             ],
             "temporary_output_notice": (
                 "Public hosted demo outputs are temporary; do not upload sensitive data."
@@ -449,6 +456,18 @@ class CockpitService:
 
     def list_showcases(self) -> list[dict]:
         return [self._build_showcase_summary(name) for name in list_showcase_scenarios()]
+
+    def quantum_validation_showcase(self) -> dict[str, Any]:
+        payload = load_quantum_compilation_showcase()
+        bundle_path = quantum_compilation_showcase_path("bundle")
+        payload["bundle"]["sha256"] = _file_sha256(bundle_path)
+        return payload
+
+    def quantum_validation_artifact_path(self, artifact_name: str) -> Path:
+        try:
+            return quantum_compilation_showcase_path(artifact_name)
+        except (FileNotFoundError, ValueError) as exc:
+            raise HTTPException(status_code=404, detail="Quantum artifact not found") from exc
 
     def campaign_studio_preview(self) -> dict:
         configs = self.list_configs()
@@ -3022,6 +3041,40 @@ def create_app(
             "default_name": DEFAULT_SHOWCASE_NAME,
             "campaign_studio": campaign_studio,
         }
+
+    @app.get("/api/quantum-validation")
+    def quantum_validation(
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        try:
+            return active_service.quantum_validation_showcase()
+        except HTTPException:
+            raise
+        except Exception:
+            raise HTTPException(
+                status_code=500,
+                detail=GENERIC_COCKPIT_ERROR_DETAIL,
+            ) from None
+
+    @app.get("/api/quantum-validation/files/{artifact_name}")
+    def quantum_validation_artifact(
+        artifact_name: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        path = active_service.quantum_validation_artifact_path(artifact_name)
+        media_types = {
+            "report": "application/json",
+            "summary": "text/markdown",
+            "matrix": "text/csv",
+            "manifest": "application/json",
+            "bundle": "application/zip",
+        }
+        return guarded_file_response(
+            active_service,
+            path,
+            media_type=media_types.get(artifact_name, "application/octet-stream"),
+            filename=path.name,
+        )
 
     @app.post("/api/showcases/{scenario}/run")
     def launch_showcase(

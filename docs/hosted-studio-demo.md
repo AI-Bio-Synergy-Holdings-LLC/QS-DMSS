@@ -40,6 +40,9 @@ Allowed in hosted mode:
 - Evidence verification and replay for generated runs.
 - Report, portable HTML workbook, bundle, artifact, and research-object Markdown
   export downloads.
+- A read-only Fractal SSFM quantum compilation validation snapshot with the
+  full 12-row matrix, resource-attribution charts, scientific limitations, and
+  a downloadable evidence bundle.
 
 Disabled in hosted mode:
 
@@ -48,6 +51,8 @@ Disabled in hosted mode:
 - Edited/custom Campaign Studio launches.
 - Study-template save/import uploads.
 - Workspace import/export uploads and snapshots.
+- Live quantum compilation, arbitrary circuits, provider credentials, remote
+  APIs, QPU submission, and authorized spend.
 
 Visible user notice:
 

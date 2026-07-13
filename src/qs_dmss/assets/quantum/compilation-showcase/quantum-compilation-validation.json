@@ -1,0 +1,2266 @@
+{
+  "acceptance": {
+    "compilation_tolerance": 1e-06,
+    "reference_tolerance": 1e-10,
+    "required_checks": [
+      "state_l2_error",
+      "state_fidelity",
+      "density_total_variation",
+      "unused_qubit_leakage"
+    ]
+  },
+  "baseline_request": {
+    "directory": "baseline-request",
+    "evidence_bundle": "baseline-request/qpu-request-evidence.zip",
+    "request": "baseline-request/qpu-request.json",
+    "success": true
+  },
+  "claim_boundary": "Local, ideal-simulator validation of logical-to-target circuit semantics and resource attribution across fixed generic topologies. It is not physical hardware validation, calibrated-noise analysis, provider selection, QPU execution, cost prediction, quantum advantage, or scientific validation of the underlying Fractal SSFM model.",
+  "execution_policy": {
+    "credentials_read": false,
+    "local_simulation_only": true,
+    "max_authorized_cost_usd": 0.0,
+    "provider": null,
+    "remote_api_called": false,
+    "submitted": false
+  },
+  "generated_at": "2026-07-13T02:26:19.563879+00:00",
+  "matrix": [
+    {
+      "artifacts": {
+        "openqasm3": "circuits/generic-linear-5q-opt0.openqasm",
+        "qpy": "circuits/generic-linear-5q-opt0.qpy"
+      },
+      "attribution": {
+        "full_experiment": {
+          "depth": 173,
+          "operations": {
+            "cx": 156,
+            "measure": 4,
+            "reset": 4,
+            "rz": 98,
+            "sx": 26
+          },
+          "qubits": 5,
+          "size": 288,
+          "two_qubit_gates": 156
+        },
+        "measurement": {
+          "depth": 1,
+          "operations": {
+            "measure": 4
+          },
+          "qubits": 5,
+          "size": 4,
+          "two_qubit_gates": 0
+        },
+        "ssfm_evolution": {
+          "depth": 166,
+          "operations": {
+            "cx": 154,
+            "rz": 83,
+            "sx": 16
+          },
+          "qubits": 5,
+          "size": 253,
+          "two_qubit_gates": 154
+        },
+        "state_preparation": {
+          "depth": 12,
+          "operations": {
+            "cx": 2,
+            "reset": 4,
+            "rz": 15,
+            "sx": 10
+          },
+          "qubits": 5,
+          "size": 31,
+          "two_qubit_gates": 2
+        }
+      },
+      "basis_gates": [
+        "rz",
+        "sx",
+        "x",
+        "cx",
+        "reset",
+        "delay",
+        "measure"
+      ],
+      "coupling_map": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          3
+        ]
+      ],
+      "optimization_level": 0,
+      "pareto_optimal": false,
+      "resources": {
+        "depth": 173,
+        "operations": {
+          "cx": 156,
+          "measure": 4,
+          "reset": 4,
+          "rz": 98,
+          "sx": 26
+        },
+        "qubits": 5,
+        "size": 288,
+        "two_qubit_gates": 156
+      },
+      "routing_overhead": {
+        "cx_above_all_to_all": 72,
+        "depth_above_all_to_all": 60
+      },
+      "semantics": {
+        "acceptance_class": "reference_exact",
+        "acceptance_rank": 0,
+        "density_total_variation": 2.4228394897990446e-15,
+        "global_phase_aligned": true,
+        "measurement_map": [
+          {
+            "classical_bit": 0,
+            "physical_qubit": 0
+          },
+          {
+            "classical_bit": 1,
+            "physical_qubit": 1
+          },
+          {
+            "classical_bit": 2,
+            "physical_qubit": 2
+          },
+          {
+            "classical_bit": 3,
+            "physical_qubit": 3
+          }
+        ],
+        "state_fidelity": 1.0,
+        "state_l2_error": 2.5656995182340938e-15,
+        "unused_qubit_leakage": 0.0
+      },
+      "success": true,
+      "topology_id": "generic-linear-5q",
+      "topology_label": "Linear five-qubit chain"
+    },
+    {
+      "artifacts": {
+        "openqasm3": "circuits/generic-linear-5q-opt1.openqasm",
+        "qpy": "circuits/generic-linear-5q-opt1.qpy"
+      },
+      "attribution": {
+        "full_experiment": {
+          "depth": 147,
+          "operations": {
+            "cx": 144,
+            "measure": 4,
+            "reset": 4,
+            "rz": 85,
+            "sx": 24
+          },
+          "qubits": 5,
+          "size": 261,
+          "two_qubit_gates": 144
+        },
+        "measurement": {
+          "depth": 1,
+          "operations": {
+            "measure": 4
+          },
+          "qubits": 5,
+          "size": 4,
+          "two_qubit_gates": 0
+        },
+        "ssfm_evolution": {
+          "depth": 140,
+          "operations": {
+            "cx": 142,
+            "rz": 73,
+            "sx": 16
+          },
+          "qubits": 5,
+          "size": 231,
+          "two_qubit_gates": 142
+        },
+        "state_preparation": {
+          "depth": 9,
+          "operations": {
+            "cx": 2,
+            "reset": 4,
+            "rz": 12,
+            "sx": 8
+          },
+          "qubits": 5,
+          "size": 26,
+          "two_qubit_gates": 2
+        }
+      },
+      "basis_gates": [
+        "rz",
+        "sx",
+        "x",
+        "cx",
+        "reset",
+        "delay",
+        "measure"
+      ],
+      "coupling_map": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          3
+        ]
+      ],
+      "optimization_level": 1,
+      "pareto_optimal": false,
+      "resources": {
+        "depth": 147,
+        "operations": {
+          "cx": 144,
+          "measure": 4,
+          "reset": 4,
+          "rz": 85,
+          "sx": 24
+        },
+        "qubits": 5,
+        "size": 261,
+        "two_qubit_gates": 144
+      },
+      "routing_overhead": {
+        "cx_above_all_to_all": 60,
+        "depth_above_all_to_all": 39
+      },
+      "semantics": {
+        "acceptance_class": "reference_exact",
+        "acceptance_rank": 0,
+        "density_total_variation": 2.1291833313813457e-15,
+        "global_phase_aligned": true,
+        "measurement_map": [
+          {
+            "classical_bit": 0,
+            "physical_qubit": 3
+          },
+          {
+            "classical_bit": 1,
+            "physical_qubit": 2
+          },
+          {
+            "classical_bit": 2,
+            "physical_qubit": 0
+          },
+          {
+            "classical_bit": 3,
+            "physical_qubit": 1
+          }
+        ],
+        "state_fidelity": 1.0,
+        "state_l2_error": 2.2817907822158273e-15,
+        "unused_qubit_leakage": 0.0
+      },
+      "success": true,
+      "topology_id": "generic-linear-5q",
+      "topology_label": "Linear five-qubit chain"
+    },
+    {
+      "artifacts": {
+        "openqasm3": "circuits/generic-linear-5q-opt2.openqasm",
+        "qpy": "circuits/generic-linear-5q-opt2.qpy"
+      },
+      "attribution": {
+        "full_experiment": {
+          "depth": 43,
+          "operations": {
+            "cx": 20,
+            "measure": 4,
+            "reset": 4,
+            "rz": 43,
+            "sx": 30,
+            "x": 1
+          },
+          "qubits": 5,
+          "size": 102,
+          "two_qubit_gates": 20
+        },
+        "measurement": {
+          "depth": 1,
+          "operations": {
+            "measure": 4
+          },
+          "qubits": 5,
+          "size": 4,
+          "two_qubit_gates": 0
+        },
+        "ssfm_evolution": {
+          "depth": 35,
+          "operations": {
+            "cx": 18,
+            "rz": 37,
+            "sx": 21,
+            "x": 2
+          },
+          "qubits": 5,
+          "size": 78,
+          "two_qubit_gates": 18
+        },
+        "state_preparation": {
+          "depth": 9,
+          "operations": {
+            "cx": 2,
+            "reset": 4,
+            "rz": 12,
+            "sx": 8
+          },
+          "qubits": 5,
+          "size": 26,
+          "two_qubit_gates": 2
+        }
+      },
+      "basis_gates": [
+        "rz",
+        "sx",
+        "x",
+        "cx",
+        "reset",
+        "delay",
+        "measure"
+      ],
+      "coupling_map": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          3
+        ]
+      ],
+      "optimization_level": 2,
+      "pareto_optimal": false,
+      "resources": {
+        "depth": 43,
+        "operations": {
+          "cx": 20,
+          "measure": 4,
+          "reset": 4,
+          "rz": 43,
+          "sx": 30,
+          "x": 1
+        },
+        "qubits": 5,
+        "size": 102,
+        "two_qubit_gates": 20
+      },
+      "routing_overhead": {
+        "cx_above_all_to_all": 6,
+        "depth_above_all_to_all": 8
+      },
+      "semantics": {
+        "acceptance_class": "bounded_approximation",
+        "acceptance_rank": 1,
+        "density_total_variation": 5.491404992945218e-07,
+        "global_phase_aligned": true,
+        "measurement_map": [
+          {
+            "classical_bit": 0,
+            "physical_qubit": 2
+          },
+          {
+            "classical_bit": 1,
+            "physical_qubit": 1
+          },
+          {
+            "classical_bit": 2,
+            "physical_qubit": 3
+          },
+          {
+            "classical_bit": 3,
+            "physical_qubit": 4
+          }
+        ],
+        "state_fidelity": 0.9999999999995011,
+        "state_l2_error": 7.066009696241246e-07,
+        "unused_qubit_leakage": 0.0
+      },
+      "success": true,
+      "topology_id": "generic-linear-5q",
+      "topology_label": "Linear five-qubit chain"
+    },
+    {
+      "artifacts": {
+        "openqasm3": "circuits/generic-linear-5q-opt3.openqasm",
+        "qpy": "circuits/generic-linear-5q-opt3.qpy"
+      },
+      "attribution": {
+        "full_experiment": {
+          "depth": 42,
+          "operations": {
+            "cx": 19,
+            "measure": 4,
+            "reset": 4,
+            "rz": 44,
+            "sx": 30,
+            "x": 1
+          },
+          "qubits": 5,
+          "size": 102,
+          "two_qubit_gates": 19
+        },
+        "measurement": {
+          "depth": 1,
+          "operations": {
+            "measure": 4
+          },
+          "qubits": 5,
+          "size": 4,
+          "two_qubit_gates": 0
+        },
+        "ssfm_evolution": {
+          "depth": 35,
+          "operations": {
+            "cx": 18,
+            "rz": 37,
+            "sx": 21,
+            "x": 2
+          },
+          "qubits": 5,
+          "size": 78,
+          "two_qubit_gates": 18
+        },
+        "state_preparation": {
+          "depth": 9,
+          "operations": {
+            "cx": 2,
+            "reset": 4,
+            "rz": 12,
+            "sx": 8
+          },
+          "qubits": 5,
+          "size": 26,
+          "two_qubit_gates": 2
+        }
+      },
+      "basis_gates": [
+        "rz",
+        "sx",
+        "x",
+        "cx",
+        "reset",
+        "delay",
+        "measure"
+      ],
+      "coupling_map": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          3
+        ]
+      ],
+      "optimization_level": 3,
+      "pareto_optimal": false,
+      "resources": {
+        "depth": 42,
+        "operations": {
+          "cx": 19,
+          "measure": 4,
+          "reset": 4,
+          "rz": 44,
+          "sx": 30,
+          "x": 1
+        },
+        "qubits": 5,
+        "size": 102,
+        "two_qubit_gates": 19
+      },
+      "routing_overhead": {
+        "cx_above_all_to_all": 6,
+        "depth_above_all_to_all": 8
+      },
+      "semantics": {
+        "acceptance_class": "bounded_approximation",
+        "acceptance_rank": 1,
+        "density_total_variation": 5.491405668347335e-07,
+        "global_phase_aligned": true,
+        "measurement_map": [
+          {
+            "classical_bit": 0,
+            "physical_qubit": 2
+          },
+          {
+            "classical_bit": 1,
+            "physical_qubit": 1
+          },
+          {
+            "classical_bit": 2,
+            "physical_qubit": 3
+          },
+          {
+            "classical_bit": 3,
+            "physical_qubit": 4
+          }
+        ],
+        "state_fidelity": 0.9999999999995008,
+        "state_l2_error": 7.066009699414536e-07,
+        "unused_qubit_leakage": 0.0
+      },
+      "success": true,
+      "topology_id": "generic-linear-5q",
+      "topology_label": "Linear five-qubit chain"
+    },
+    {
+      "artifacts": {
+        "openqasm3": "circuits/generic-ring-5q-opt0.openqasm",
+        "qpy": "circuits/generic-ring-5q-opt0.qpy"
+      },
+      "attribution": {
+        "full_experiment": {
+          "depth": 159,
+          "operations": {
+            "cx": 147,
+            "measure": 4,
+            "reset": 4,
+            "rz": 98,
+            "sx": 26
+          },
+          "qubits": 5,
+          "size": 279,
+          "two_qubit_gates": 147
+        },
+        "measurement": {
+          "depth": 1,
+          "operations": {
+            "measure": 4
+          },
+          "qubits": 5,
+          "size": 4,
+          "two_qubit_gates": 0
+        },
+        "ssfm_evolution": {
+          "depth": 152,
+          "operations": {
+            "cx": 145,
+            "rz": 83,
+            "sx": 16
+          },
+          "qubits": 5,
+          "size": 244,
+          "two_qubit_gates": 145
+        },
+        "state_preparation": {
+          "depth": 12,
+          "operations": {
+            "cx": 2,
+            "reset": 4,
+            "rz": 15,
+            "sx": 10
+          },
+          "qubits": 5,
+          "size": 31,
+          "two_qubit_gates": 2
+        }
+      },
+      "basis_gates": [
+        "rz",
+        "sx",
+        "x",
+        "cx",
+        "reset",
+        "delay",
+        "measure"
+      ],
+      "coupling_map": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      "optimization_level": 0,
+      "pareto_optimal": false,
+      "resources": {
+        "depth": 159,
+        "operations": {
+          "cx": 147,
+          "measure": 4,
+          "reset": 4,
+          "rz": 98,
+          "sx": 26
+        },
+        "qubits": 5,
+        "size": 279,
+        "two_qubit_gates": 147
+      },
+      "routing_overhead": {
+        "cx_above_all_to_all": 63,
+        "depth_above_all_to_all": 46
+      },
+      "semantics": {
+        "acceptance_class": "reference_exact",
+        "acceptance_rank": 0,
+        "density_total_variation": 1.8851023173005466e-15,
+        "global_phase_aligned": true,
+        "measurement_map": [
+          {
+            "classical_bit": 0,
+            "physical_qubit": 2
+          },
+          {
+            "classical_bit": 1,
+            "physical_qubit": 1
+          },
+          {
+            "classical_bit": 2,
+            "physical_qubit": 4
+          },
+          {
+            "classical_bit": 3,
+            "physical_qubit": 0
+          }
+        ],
+        "state_fidelity": 1.0,
+        "state_l2_error": 2.028945494539992e-15,
+        "unused_qubit_leakage": 0.0
+      },
+      "success": true,
+      "topology_id": "generic-ring-5q",
+      "topology_label": "Five-qubit ring"
+    },
+    {
+      "artifacts": {
+        "openqasm3": "circuits/generic-ring-5q-opt1.openqasm",
+        "qpy": "circuits/generic-ring-5q-opt1.qpy"
+      },
+      "attribution": {
+        "full_experiment": {
+          "depth": 147,
+          "operations": {
+            "cx": 135,
+            "measure": 4,
+            "reset": 4,
+            "rz": 85,
+            "sx": 24
+          },
+          "qubits": 5,
+          "size": 252,
+          "two_qubit_gates": 135
+        },
+        "measurement": {
+          "depth": 1,
+          "operations": {
+            "measure": 4
+          },
+          "qubits": 5,
+          "size": 4,
+          "two_qubit_gates": 0
+        },
+        "ssfm_evolution": {
+          "depth": 140,
+          "operations": {
+            "cx": 133,
+            "rz": 73,
+            "sx": 16
+          },
+          "qubits": 5,
+          "size": 222,
+          "two_qubit_gates": 133
+        },
+        "state_preparation": {
+          "depth": 9,
+          "operations": {
+            "cx": 2,
+            "reset": 4,
+            "rz": 12,
+            "sx": 8
+          },
+          "qubits": 5,
+          "size": 26,
+          "two_qubit_gates": 2
+        }
+      },
+      "basis_gates": [
+        "rz",
+        "sx",
+        "x",
+        "cx",
+        "reset",
+        "delay",
+        "measure"
+      ],
+      "coupling_map": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      "optimization_level": 1,
+      "pareto_optimal": false,
+      "resources": {
+        "depth": 147,
+        "operations": {
+          "cx": 135,
+          "measure": 4,
+          "reset": 4,
+          "rz": 85,
+          "sx": 24
+        },
+        "qubits": 5,
+        "size": 252,
+        "two_qubit_gates": 135
+      },
+      "routing_overhead": {
+        "cx_above_all_to_all": 51,
+        "depth_above_all_to_all": 39
+      },
+      "semantics": {
+        "acceptance_class": "reference_exact",
+        "acceptance_rank": 0,
+        "density_total_variation": 1.9015821903223262e-15,
+        "global_phase_aligned": true,
+        "measurement_map": [
+          {
+            "classical_bit": 0,
+            "physical_qubit": 0
+          },
+          {
+            "classical_bit": 1,
+            "physical_qubit": 4
+          },
+          {
+            "classical_bit": 2,
+            "physical_qubit": 3
+          },
+          {
+            "classical_bit": 3,
+            "physical_qubit": 2
+          }
+        ],
+        "state_fidelity": 1.0,
+        "state_l2_error": 2.0254035927191206e-15,
+        "unused_qubit_leakage": 0.0
+      },
+      "success": true,
+      "topology_id": "generic-ring-5q",
+      "topology_label": "Five-qubit ring"
+    },
+    {
+      "artifacts": {
+        "openqasm3": "circuits/generic-ring-5q-opt2.openqasm",
+        "qpy": "circuits/generic-ring-5q-opt2.qpy"
+      },
+      "attribution": {
+        "full_experiment": {
+          "depth": 43,
+          "operations": {
+            "cx": 20,
+            "measure": 4,
+            "reset": 4,
+            "rz": 43,
+            "sx": 30,
+            "x": 1
+          },
+          "qubits": 5,
+          "size": 102,
+          "two_qubit_gates": 20
+        },
+        "measurement": {
+          "depth": 1,
+          "operations": {
+            "measure": 4
+          },
+          "qubits": 5,
+          "size": 4,
+          "two_qubit_gates": 0
+        },
+        "ssfm_evolution": {
+          "depth": 35,
+          "operations": {
+            "cx": 18,
+            "rz": 37,
+            "sx": 21,
+            "x": 2
+          },
+          "qubits": 5,
+          "size": 78,
+          "two_qubit_gates": 18
+        },
+        "state_preparation": {
+          "depth": 9,
+          "operations": {
+            "cx": 2,
+            "reset": 4,
+            "rz": 12,
+            "sx": 8
+          },
+          "qubits": 5,
+          "size": 26,
+          "two_qubit_gates": 2
+        }
+      },
+      "basis_gates": [
+        "rz",
+        "sx",
+        "x",
+        "cx",
+        "reset",
+        "delay",
+        "measure"
+      ],
+      "coupling_map": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      "optimization_level": 2,
+      "pareto_optimal": false,
+      "resources": {
+        "depth": 43,
+        "operations": {
+          "cx": 20,
+          "measure": 4,
+          "reset": 4,
+          "rz": 43,
+          "sx": 30,
+          "x": 1
+        },
+        "qubits": 5,
+        "size": 102,
+        "two_qubit_gates": 20
+      },
+      "routing_overhead": {
+        "cx_above_all_to_all": 6,
+        "depth_above_all_to_all": 8
+      },
+      "semantics": {
+        "acceptance_class": "bounded_approximation",
+        "acceptance_rank": 1,
+        "density_total_variation": 5.491404996591865e-07,
+        "global_phase_aligned": true,
+        "measurement_map": [
+          {
+            "classical_bit": 0,
+            "physical_qubit": 4
+          },
+          {
+            "classical_bit": 1,
+            "physical_qubit": 0
+          },
+          {
+            "classical_bit": 2,
+            "physical_qubit": 3
+          },
+          {
+            "classical_bit": 3,
+            "physical_qubit": 2
+          }
+        ],
+        "state_fidelity": 0.9999999999995006,
+        "state_l2_error": 7.06600969842448e-07,
+        "unused_qubit_leakage": 0.0
+      },
+      "success": true,
+      "topology_id": "generic-ring-5q",
+      "topology_label": "Five-qubit ring"
+    },
+    {
+      "artifacts": {
+        "openqasm3": "circuits/generic-ring-5q-opt3.openqasm",
+        "qpy": "circuits/generic-ring-5q-opt3.qpy"
+      },
+      "attribution": {
+        "full_experiment": {
+          "depth": 42,
+          "operations": {
+            "cx": 19,
+            "measure": 4,
+            "reset": 4,
+            "rz": 44,
+            "sx": 30,
+            "x": 1
+          },
+          "qubits": 5,
+          "size": 102,
+          "two_qubit_gates": 19
+        },
+        "measurement": {
+          "depth": 1,
+          "operations": {
+            "measure": 4
+          },
+          "qubits": 5,
+          "size": 4,
+          "two_qubit_gates": 0
+        },
+        "ssfm_evolution": {
+          "depth": 35,
+          "operations": {
+            "cx": 18,
+            "rz": 37,
+            "sx": 21,
+            "x": 2
+          },
+          "qubits": 5,
+          "size": 78,
+          "two_qubit_gates": 18
+        },
+        "state_preparation": {
+          "depth": 9,
+          "operations": {
+            "cx": 2,
+            "reset": 4,
+            "rz": 12,
+            "sx": 8
+          },
+          "qubits": 5,
+          "size": 26,
+          "two_qubit_gates": 2
+        }
+      },
+      "basis_gates": [
+        "rz",
+        "sx",
+        "x",
+        "cx",
+        "reset",
+        "delay",
+        "measure"
+      ],
+      "coupling_map": [
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          3
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          0,
+          4
+        ]
+      ],
+      "optimization_level": 3,
+      "pareto_optimal": false,
+      "resources": {
+        "depth": 42,
+        "operations": {
+          "cx": 19,
+          "measure": 4,
+          "reset": 4,
+          "rz": 44,
+          "sx": 30,
+          "x": 1
+        },
+        "qubits": 5,
+        "size": 102,
+        "two_qubit_gates": 19
+      },
+      "routing_overhead": {
+        "cx_above_all_to_all": 6,
+        "depth_above_all_to_all": 8
+      },
+      "semantics": {
+        "acceptance_class": "bounded_approximation",
+        "acceptance_rank": 1,
+        "density_total_variation": 5.49140566836082e-07,
+        "global_phase_aligned": true,
+        "measurement_map": [
+          {
+            "classical_bit": 0,
+            "physical_qubit": 4
+          },
+          {
+            "classical_bit": 1,
+            "physical_qubit": 0
+          },
+          {
+            "classical_bit": 2,
+            "physical_qubit": 3
+          },
+          {
+            "classical_bit": 3,
+            "physical_qubit": 2
+          }
+        ],
+        "state_fidelity": 0.9999999999995004,
+        "state_l2_error": 7.066009699947229e-07,
+        "unused_qubit_leakage": 0.0
+      },
+      "success": true,
+      "topology_id": "generic-ring-5q",
+      "topology_label": "Five-qubit ring"
+    },
+    {
+      "artifacts": {
+        "openqasm3": "circuits/generic-all-to-all-5q-opt0.openqasm",
+        "qpy": "circuits/generic-all-to-all-5q-opt0.qpy"
+      },
+      "attribution": {
+        "full_experiment": {
+          "depth": 113,
+          "operations": {
+            "cx": 84,
+            "measure": 4,
+            "reset": 4,
+            "rz": 98,
+            "sx": 26
+          },
+          "qubits": 5,
+          "size": 216,
+          "two_qubit_gates": 84
+        },
+        "measurement": {
+          "depth": 1,
+          "operations": {
+            "measure": 4
+          },
+          "qubits": 5,
+          "size": 4,
+          "two_qubit_gates": 0
+        },
+        "ssfm_evolution": {
+          "depth": 106,
+          "operations": {
+            "cx": 82,
+            "rz": 83,
+            "sx": 16
+          },
+          "qubits": 5,
+          "size": 181,
+          "two_qubit_gates": 82
+        },
+        "state_preparation": {
+          "depth": 12,
+          "operations": {
+            "cx": 2,
+            "reset": 4,
+            "rz": 15,
+            "sx": 10
+          },
+          "qubits": 5,
+          "size": 31,
+          "two_qubit_gates": 2
+        }
+      },
+      "basis_gates": [
+        "rz",
+        "sx",
+        "x",
+        "cx",
+        "reset",
+        "delay",
+        "measure"
+      ],
+      "coupling_map": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          4,
+          3
+        ]
+      ],
+      "optimization_level": 0,
+      "pareto_optimal": false,
+      "resources": {
+        "depth": 113,
+        "operations": {
+          "cx": 84,
+          "measure": 4,
+          "reset": 4,
+          "rz": 98,
+          "sx": 26
+        },
+        "qubits": 5,
+        "size": 216,
+        "two_qubit_gates": 84
+      },
+      "routing_overhead": {
+        "cx_above_all_to_all": 0,
+        "depth_above_all_to_all": 0
+      },
+      "semantics": {
+        "acceptance_class": "reference_exact",
+        "acceptance_rank": 0,
+        "density_total_variation": 1.995318244397276e-15,
+        "global_phase_aligned": true,
+        "measurement_map": [
+          {
+            "classical_bit": 0,
+            "physical_qubit": 0
+          },
+          {
+            "classical_bit": 1,
+            "physical_qubit": 1
+          },
+          {
+            "classical_bit": 2,
+            "physical_qubit": 2
+          },
+          {
+            "classical_bit": 3,
+            "physical_qubit": 3
+          }
+        ],
+        "state_fidelity": 1.0,
+        "state_l2_error": 2.167883212752228e-15,
+        "unused_qubit_leakage": 0.0
+      },
+      "success": true,
+      "topology_id": "generic-all-to-all-5q",
+      "topology_label": "Fully connected five-qubit target"
+    },
+    {
+      "artifacts": {
+        "openqasm3": "circuits/generic-all-to-all-5q-opt1.openqasm",
+        "qpy": "circuits/generic-all-to-all-5q-opt1.qpy"
+      },
+      "attribution": {
+        "full_experiment": {
+          "depth": 108,
+          "operations": {
+            "cx": 84,
+            "measure": 4,
+            "reset": 4,
+            "rz": 85,
+            "sx": 24
+          },
+          "qubits": 5,
+          "size": 201,
+          "two_qubit_gates": 84
+        },
+        "measurement": {
+          "depth": 1,
+          "operations": {
+            "measure": 4
+          },
+          "qubits": 5,
+          "size": 4,
+          "two_qubit_gates": 0
+        },
+        "ssfm_evolution": {
+          "depth": 101,
+          "operations": {
+            "cx": 82,
+            "rz": 73,
+            "sx": 16
+          },
+          "qubits": 5,
+          "size": 171,
+          "two_qubit_gates": 82
+        },
+        "state_preparation": {
+          "depth": 9,
+          "operations": {
+            "cx": 2,
+            "reset": 4,
+            "rz": 12,
+            "sx": 8
+          },
+          "qubits": 5,
+          "size": 26,
+          "two_qubit_gates": 2
+        }
+      },
+      "basis_gates": [
+        "rz",
+        "sx",
+        "x",
+        "cx",
+        "reset",
+        "delay",
+        "measure"
+      ],
+      "coupling_map": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          4,
+          3
+        ]
+      ],
+      "optimization_level": 1,
+      "pareto_optimal": true,
+      "resources": {
+        "depth": 108,
+        "operations": {
+          "cx": 84,
+          "measure": 4,
+          "reset": 4,
+          "rz": 85,
+          "sx": 24
+        },
+        "qubits": 5,
+        "size": 201,
+        "two_qubit_gates": 84
+      },
+      "routing_overhead": {
+        "cx_above_all_to_all": 0,
+        "depth_above_all_to_all": 0
+      },
+      "semantics": {
+        "acceptance_class": "reference_exact",
+        "acceptance_rank": 0,
+        "density_total_variation": 1.2746084027646931e-15,
+        "global_phase_aligned": true,
+        "measurement_map": [
+          {
+            "classical_bit": 0,
+            "physical_qubit": 0
+          },
+          {
+            "classical_bit": 1,
+            "physical_qubit": 1
+          },
+          {
+            "classical_bit": 2,
+            "physical_qubit": 2
+          },
+          {
+            "classical_bit": 3,
+            "physical_qubit": 3
+          }
+        ],
+        "state_fidelity": 1.0,
+        "state_l2_error": 1.5298805897715317e-15,
+        "unused_qubit_leakage": 0.0
+      },
+      "success": true,
+      "topology_id": "generic-all-to-all-5q",
+      "topology_label": "Fully connected five-qubit target"
+    },
+    {
+      "artifacts": {
+        "openqasm3": "circuits/generic-all-to-all-5q-opt2.openqasm",
+        "qpy": "circuits/generic-all-to-all-5q-opt2.qpy"
+      },
+      "attribution": {
+        "full_experiment": {
+          "depth": 35,
+          "operations": {
+            "cx": 14,
+            "measure": 4,
+            "reset": 4,
+            "rz": 42,
+            "sx": 30,
+            "x": 1
+          },
+          "qubits": 5,
+          "size": 95,
+          "two_qubit_gates": 14
+        },
+        "measurement": {
+          "depth": 1,
+          "operations": {
+            "measure": 4
+          },
+          "qubits": 5,
+          "size": 4,
+          "two_qubit_gates": 0
+        },
+        "ssfm_evolution": {
+          "depth": 27,
+          "operations": {
+            "cx": 12,
+            "rz": 36,
+            "sx": 21,
+            "x": 2
+          },
+          "qubits": 5,
+          "size": 71,
+          "two_qubit_gates": 12
+        },
+        "state_preparation": {
+          "depth": 9,
+          "operations": {
+            "cx": 2,
+            "reset": 4,
+            "rz": 12,
+            "sx": 8
+          },
+          "qubits": 5,
+          "size": 26,
+          "two_qubit_gates": 2
+        }
+      },
+      "basis_gates": [
+        "rz",
+        "sx",
+        "x",
+        "cx",
+        "reset",
+        "delay",
+        "measure"
+      ],
+      "coupling_map": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          4,
+          3
+        ]
+      ],
+      "optimization_level": 2,
+      "pareto_optimal": false,
+      "resources": {
+        "depth": 35,
+        "operations": {
+          "cx": 14,
+          "measure": 4,
+          "reset": 4,
+          "rz": 42,
+          "sx": 30,
+          "x": 1
+        },
+        "qubits": 5,
+        "size": 95,
+        "two_qubit_gates": 14
+      },
+      "routing_overhead": {
+        "cx_above_all_to_all": 0,
+        "depth_above_all_to_all": 0
+      },
+      "semantics": {
+        "acceptance_class": "bounded_approximation",
+        "acceptance_rank": 1,
+        "density_total_variation": 5.491404994920364e-07,
+        "global_phase_aligned": true,
+        "measurement_map": [
+          {
+            "classical_bit": 0,
+            "physical_qubit": 0
+          },
+          {
+            "classical_bit": 1,
+            "physical_qubit": 1
+          },
+          {
+            "classical_bit": 2,
+            "physical_qubit": 2
+          },
+          {
+            "classical_bit": 3,
+            "physical_qubit": 3
+          }
+        ],
+        "state_fidelity": 0.9999999999995013,
+        "state_l2_error": 7.066009698369342e-07,
+        "unused_qubit_leakage": 0.0
+      },
+      "success": true,
+      "topology_id": "generic-all-to-all-5q",
+      "topology_label": "Fully connected five-qubit target"
+    },
+    {
+      "artifacts": {
+        "openqasm3": "circuits/generic-all-to-all-5q-opt3.openqasm",
+        "qpy": "circuits/generic-all-to-all-5q-opt3.qpy"
+      },
+      "attribution": {
+        "full_experiment": {
+          "depth": 34,
+          "operations": {
+            "cx": 13,
+            "measure": 4,
+            "reset": 4,
+            "rz": 43,
+            "sx": 30,
+            "x": 1
+          },
+          "qubits": 5,
+          "size": 95,
+          "two_qubit_gates": 13
+        },
+        "measurement": {
+          "depth": 1,
+          "operations": {
+            "measure": 4
+          },
+          "qubits": 5,
+          "size": 4,
+          "two_qubit_gates": 0
+        },
+        "ssfm_evolution": {
+          "depth": 27,
+          "operations": {
+            "cx": 12,
+            "rz": 36,
+            "sx": 21,
+            "x": 2
+          },
+          "qubits": 5,
+          "size": 71,
+          "two_qubit_gates": 12
+        },
+        "state_preparation": {
+          "depth": 9,
+          "operations": {
+            "cx": 2,
+            "reset": 4,
+            "rz": 12,
+            "sx": 8
+          },
+          "qubits": 5,
+          "size": 26,
+          "two_qubit_gates": 2
+        }
+      },
+      "basis_gates": [
+        "rz",
+        "sx",
+        "x",
+        "cx",
+        "reset",
+        "delay",
+        "measure"
+      ],
+      "coupling_map": [
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ],
+        [
+          0,
+          3
+        ],
+        [
+          0,
+          4
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          2
+        ],
+        [
+          1,
+          3
+        ],
+        [
+          1,
+          4
+        ],
+        [
+          2,
+          0
+        ],
+        [
+          2,
+          1
+        ],
+        [
+          2,
+          3
+        ],
+        [
+          2,
+          4
+        ],
+        [
+          3,
+          0
+        ],
+        [
+          3,
+          1
+        ],
+        [
+          3,
+          2
+        ],
+        [
+          3,
+          4
+        ],
+        [
+          4,
+          0
+        ],
+        [
+          4,
+          1
+        ],
+        [
+          4,
+          2
+        ],
+        [
+          4,
+          3
+        ]
+      ],
+      "optimization_level": 3,
+      "pareto_optimal": true,
+      "resources": {
+        "depth": 34,
+        "operations": {
+          "cx": 13,
+          "measure": 4,
+          "reset": 4,
+          "rz": 43,
+          "sx": 30,
+          "x": 1
+        },
+        "qubits": 5,
+        "size": 95,
+        "two_qubit_gates": 13
+      },
+      "routing_overhead": {
+        "cx_above_all_to_all": 0,
+        "depth_above_all_to_all": 0
+      },
+      "semantics": {
+        "acceptance_class": "bounded_approximation",
+        "acceptance_rank": 1,
+        "density_total_variation": 5.491405668302951e-07,
+        "global_phase_aligned": true,
+        "measurement_map": [
+          {
+            "classical_bit": 0,
+            "physical_qubit": 0
+          },
+          {
+            "classical_bit": 1,
+            "physical_qubit": 1
+          },
+          {
+            "classical_bit": 2,
+            "physical_qubit": 2
+          },
+          {
+            "classical_bit": 3,
+            "physical_qubit": 3
+          }
+        ],
+        "state_fidelity": 0.9999999999995013,
+        "state_l2_error": 7.066009700060183e-07,
+        "unused_qubit_leakage": 0.0
+      },
+      "success": true,
+      "topology_id": "generic-all-to-all-5q",
+      "topology_label": "Fully connected five-qubit target"
+    }
+  ],
+  "matrix_definition": {
+    "basis_gates": [
+      "rz",
+      "sx",
+      "x",
+      "cx",
+      "reset",
+      "delay",
+      "measure"
+    ],
+    "optimization_levels": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "row_count": 12,
+    "seed_transpiler": 7,
+    "topologies": [
+      {
+        "coupling_map": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            3
+          ]
+        ],
+        "label": "Linear five-qubit chain",
+        "num_qubits": 5,
+        "profile_id": "generic-linear-5q"
+      },
+      {
+        "coupling_map": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            3
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            0,
+            4
+          ]
+        ],
+        "label": "Five-qubit ring",
+        "num_qubits": 5,
+        "profile_id": "generic-ring-5q"
+      },
+      {
+        "coupling_map": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            1,
+            0
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            2,
+            0
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            3,
+            0
+          ],
+          [
+            3,
+            1
+          ],
+          [
+            3,
+            2
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            0
+          ],
+          [
+            4,
+            1
+          ],
+          [
+            4,
+            2
+          ],
+          [
+            4,
+            3
+          ]
+        ],
+        "label": "Fully connected five-qubit target",
+        "num_qubits": 5,
+        "profile_id": "generic-all-to-all-5q"
+      }
+    ]
+  },
+  "recommended_configuration": {
+    "acceptance_class": "bounded_approximation",
+    "attribution": {
+      "full_experiment": {
+        "depth": 34,
+        "operations": {
+          "cx": 13,
+          "measure": 4,
+          "reset": 4,
+          "rz": 43,
+          "sx": 30,
+          "x": 1
+        },
+        "qubits": 5,
+        "size": 95,
+        "two_qubit_gates": 13
+      },
+      "measurement": {
+        "depth": 1,
+        "operations": {
+          "measure": 4
+        },
+        "qubits": 5,
+        "size": 4,
+        "two_qubit_gates": 0
+      },
+      "ssfm_evolution": {
+        "depth": 27,
+        "operations": {
+          "cx": 12,
+          "rz": 36,
+          "sx": 21,
+          "x": 2
+        },
+        "qubits": 5,
+        "size": 71,
+        "two_qubit_gates": 12
+      },
+      "state_preparation": {
+        "depth": 9,
+        "operations": {
+          "cx": 2,
+          "reset": 4,
+          "rz": 12,
+          "sx": 8
+        },
+        "qubits": 5,
+        "size": 26,
+        "two_qubit_gates": 2
+      }
+    },
+    "depth": 34,
+    "optimization_level": 3,
+    "selection_rule": "minimum CX count, then depth and circuit size, among tolerance-passing Pareto rows",
+    "state_l2_error": 7.066009700060183e-07,
+    "topology_id": "generic-all-to-all-5q",
+    "two_qubit_gates": 13
+  },
+  "schema_version": 1,
+  "success": true
+}

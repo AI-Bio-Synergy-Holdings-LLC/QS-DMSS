@@ -127,28 +127,32 @@
             <span class="rail-index" aria-hidden="true">01</span>
             <span>Lab Mode</span>
           </a>
-          <a class="rail-item" href="#cockpit" data-local-only-nav>
+          <a class="rail-item" href="#quantum-validation">
             <span class="rail-index" aria-hidden="true">02</span>
+            <span>Quantum Validation</span>
+          </a>
+          <a class="rail-item" href="#cockpit" data-local-only-nav>
+            <span class="rail-index" aria-hidden="true">03</span>
             <span>Run Setup</span>
           </a>
           <a class="rail-item" href="#config" data-local-only-nav>
-            <span class="rail-index" aria-hidden="true">03</span>
+            <span class="rail-index" aria-hidden="true">04</span>
             <span>Configuration</span>
           </a>
           <a class="rail-item" href="#artifacts">
-            <span class="rail-index" aria-hidden="true">04</span>
+            <span class="rail-index" aria-hidden="true">05</span>
             <span>Run Detail</span>
           </a>
           <a class="rail-item" href="#runs">
-            <span class="rail-index" aria-hidden="true">05</span>
+            <span class="rail-index" aria-hidden="true">06</span>
             <span>Run Ledger</span>
           </a>
           <a class="rail-item" href="#experiments">
-            <span class="rail-index" aria-hidden="true">06</span>
+            <span class="rail-index" aria-hidden="true">07</span>
             <span>Experiments</span>
           </a>
           <a class="rail-item" href="#evidence">
-            <span class="rail-index" aria-hidden="true">07</span>
+            <span class="rail-index" aria-hidden="true">08</span>
             <span>Evidence</span>
           </a>
         </nav>
@@ -185,7 +189,8 @@
           <p>
             Public hosted demo outputs are temporary; do not upload sensitive data. This mode
             only runs packaged Lab Mode scenarios, guided comparison, the Self-Interaction
-            Sweep template, evidence checks, and research-object export.
+            Sweep template, evidence checks, and research-object export. Quantum Validation is
+            a precomputed, read-only snapshot and never submits compilation work.
           </p>
         </section>
 
@@ -885,6 +890,175 @@
                   Workspace snapshots preserve selected run, experiment, study template,
                   research-object, job, collaborator, and annotation references.
                 </p>
+              </section>
+            </div>
+          </section>
+
+          <section
+            class="panel quantum-validation-panel reveal"
+            id="quantum-validation"
+            aria-labelledby="quantumValidationTitle"
+          >
+            <header class="quantum-validation-head">
+              <div>
+                <p class="panel-kicker">Quantum Readiness / Read-only</p>
+                <h2 id="quantumValidationTitle">Compilation Validation Observatory</h2>
+                <p class="quantum-validation-lede">
+                  Inspect the packaged Fractal SSFM compilation matrix and see where target
+                  topology and transpiler optimization introduce circuit cost. This hosted view
+                  reads a fixed v0.12.0 evidence snapshot; it does not compile or submit circuits.
+                </p>
+              </div>
+              <span class="status-badge is-idle" id="quantumValidationStatus" aria-live="polite">
+                Loading snapshot
+              </span>
+            </header>
+
+            <div class="quantum-gate-grid" aria-label="Quantum validation gate summary">
+              <article class="quantum-gate-card">
+                <span>Semantic gate</span>
+                <strong id="quantumRowsPassing">-</strong>
+                <small>matrix rows passing</small>
+              </article>
+              <article class="quantum-gate-card">
+                <span>Execution mode</span>
+                <strong id="quantumExecutionMode">-</strong>
+                <small>no remote provider</small>
+              </article>
+              <article class="quantum-gate-card">
+                <span>Authorized spend</span>
+                <strong id="quantumAuthorizedSpend">-</strong>
+                <small>credentials not read</small>
+              </article>
+              <article class="quantum-gate-card">
+                <span>Snapshot generated</span>
+                <strong id="quantumSnapshotDate">-</strong>
+                <small id="quantumSnapshotId">packaged evidence</small>
+              </article>
+            </div>
+
+            <div class="quantum-downloads" aria-label="Quantum validation downloads">
+              <a
+                class="primary-button"
+                id="quantumBundleLink"
+                href="/api/quantum-validation/files/bundle"
+                download
+              >Download Evidence Bundle</a>
+              <a
+                class="ghost-button"
+                id="quantumSummaryLink"
+                href="/api/quantum-validation/files/summary"
+                target="_blank"
+                rel="noreferrer"
+              >Open Validation Summary</a>
+              <a
+                class="ghost-button"
+                id="quantumMatrixLink"
+                href="/api/quantum-validation/files/matrix"
+                download
+              >Download Matrix CSV</a>
+              <a
+                class="ghost-button"
+                id="quantumReportLink"
+                href="/api/quantum-validation/files/report"
+                download
+              >Download JSON Report</a>
+            </div>
+
+            <div class="quantum-visual-grid">
+              <figure class="quantum-figure quantum-topology-figure">
+                <figcaption>
+                  <strong>Compilation cost by target topology</strong>
+                  <span>Depth and CX counts across optimization levels 0-3.</span>
+                </figcaption>
+                <div
+                  class="quantum-topology-charts"
+                  id="quantumTopologyCharts"
+                  aria-live="polite"
+                ></div>
+              </figure>
+
+              <figure class="quantum-figure quantum-attribution-figure">
+                <figcaption>
+                  <strong>Recommended configuration attribution</strong>
+                  <span>Direct resource counts by experiment component.</span>
+                </figcaption>
+                <svg
+                  id="quantumAttributionChart"
+                  class="quantum-attribution-chart"
+                  viewBox="0 0 760 292"
+                  role="img"
+                  aria-labelledby="quantumAttributionTitle quantumAttributionDescription"
+                >
+                  <title id="quantumAttributionTitle">Recommended circuit resource attribution</title>
+                  <desc id="quantumAttributionDescription">
+                    Bar chart loads from the packaged quantum compilation validation snapshot.
+                  </desc>
+                </svg>
+              </figure>
+            </div>
+
+            <section class="quantum-matrix-shell" aria-labelledby="quantumMatrixTitle">
+              <div class="quantum-section-head">
+                <div>
+                  <p class="panel-kicker">Review Matrix</p>
+                  <h3 id="quantumMatrixTitle">Topology x Optimization Evidence</h3>
+                </div>
+                <p id="quantumMatrixSummary">Loading the packaged 12-row matrix.</p>
+              </div>
+              <div class="table-wrap quantum-table-wrap">
+                <table aria-label="Quantum compilation validation matrix">
+                  <thead>
+                    <tr>
+                      <th scope="col">Topology</th>
+                      <th scope="col">Opt</th>
+                      <th scope="col">Class</th>
+                      <th scope="col">Depth</th>
+                      <th scope="col">CX</th>
+                      <th scope="col">State L2</th>
+                      <th scope="col">Fidelity</th>
+                      <th scope="col">Pareto</th>
+                      <th scope="col">Gate</th>
+                    </tr>
+                  </thead>
+                  <tbody id="quantumMatrixBody">
+                    <tr>
+                      <td colspan="9">Loading packaged validation evidence.</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </section>
+
+            <div class="quantum-boundary-grid">
+              <section class="quantum-boundary-card" aria-labelledby="quantumFindingTitle">
+                <p class="panel-kicker">What the snapshot shows</p>
+                <h3 id="quantumFindingTitle">Resource cost is topology-sensitive</h3>
+                <p id="quantumRecommendedSummary">
+                  The recommended generic target and its resource attribution appear after the
+                  packaged snapshot loads.
+                </p>
+                <dl class="quantum-integrity-list">
+                  <div>
+                    <dt>Evidence ZIP</dt>
+                    <dd id="quantumBundleSize">-</dd>
+                  </div>
+                  <div>
+                    <dt>SHA-256</dt>
+                    <dd id="quantumBundleSha">-</dd>
+                  </div>
+                  <div>
+                    <dt>Archive inventory</dt>
+                    <dd id="quantumArchiveInventory">-</dd>
+                  </div>
+                </dl>
+              </section>
+              <section class="quantum-boundary-card" aria-labelledby="quantumLimitationsTitle">
+                <p class="panel-kicker">Scientific boundary</p>
+                <h3 id="quantumLimitationsTitle">What this does not claim</h3>
+                <ul id="quantumLimitations">
+                  <li>No provider, credential, remote API, QPU, or authorized spend is used.</li>
+                </ul>
               </section>
             </div>
           </section>

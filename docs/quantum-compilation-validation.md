@@ -25,6 +25,15 @@ building a fixed 12-row matrix:
 No named device, provider SDK, account, credential, calibration snapshot,
 pricing API, remote request, or QPU job is used.
 
+## Hosted Read-only Showcase
+
+The public [QS-DMSS Studio](https://app.qs-dmss.studio/#quantum-validation)
+ships a fixed v0.12.0 snapshot of this validation object. It exposes the
+matrix, topology/resource charts, validation status, limitations, Markdown and
+CSV summaries, JSON report, manifest, and evidence ZIP through allowlisted GET
+routes. It does not expose a compilation POST route and does not require the
+optional Qiskit stack at runtime.
+
 ## Semantic Gate
 
 Each transpiled circuit is run with the local ideal statevector simulator. The
