@@ -17,6 +17,7 @@ def test_version_metadata_is_aligned() -> None:
     pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
     declared_version = pyproject["project"]["version"]
 
+    assert declared_version == "0.12.0"
     assert qs_dmss.__version__ == declared_version
     assert metadata.version("qs-dmss") == declared_version
 
@@ -29,6 +30,7 @@ def test_public_discovery_metadata_is_present() -> None:
     pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
     project = pyproject["project"]
 
+    assert project["license"] == "Apache-2.0"
     classifiers = set(project["classifiers"])
     assert "Development Status :: 4 - Beta" in classifiers
     assert "Development Status :: 3 - Alpha" not in classifiers
@@ -73,6 +75,7 @@ def test_public_discovery_metadata_is_present() -> None:
     assert urls["Documentation"] == "https://qs-dmss.studio"
     assert urls["Latest Archived Release DOI"] == "https://doi.org/10.5281/zenodo.21319023"
     assert urls["Zenodo"] == "https://zenodo.org/records/21319023"
+    assert urls["Release Notes"].endswith("/docs/release-v0.12.0.md")
 
 
 def test_codemeta_release_metadata_is_aligned() -> None:

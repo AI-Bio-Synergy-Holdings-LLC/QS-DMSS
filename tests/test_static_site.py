@@ -51,6 +51,7 @@ def test_static_site_front_door_contract() -> None:
         "Publication Export",
         "Dry-Run Slurm Review",
         "Scientific Boundaries",
+        "Quantum-Readiness Evidence",
         "What researchers can find here.",
         "QuantumScalar dark matter simulation workflows",
         "Run the evidence-first workflow at app.qs-dmss.studio.",
@@ -59,6 +60,8 @@ def test_static_site_front_door_contract() -> None:
         "The hosted service is always available, with bounded runs and temporary artifacts.",
         "not peer-reviewed scientific validation",
         'name="twitter:card" content="summary_large_image"',
+        "qs-dmss==0.12.0",
+        "no provider submission, QPU execution, or spend",
     ]
 
     for fragment in required_fragments:
@@ -125,6 +128,8 @@ def test_static_site_metadata_hardening() -> None:
     assert "<lastmod>2026-07-12</lastmod>" in sitemap
     assert "<image:loc>https://qs-dmss.studio/assets/social-preview.png</image:loc>" in sitemap
     assert "Latest archived release DOI: https://doi.org/10.5281/zenodo.21319023" in llms
+    assert "Release target: v0.12.0" in llms
+    assert "provider credentials, remote API, QPU execution" in llms
     assert "Hosted demo: https://app.qs-dmss.studio/" in llms
 
     json_ld_match = re.search(

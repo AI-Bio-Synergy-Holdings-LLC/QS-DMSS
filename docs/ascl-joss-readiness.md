@@ -11,7 +11,7 @@ Last reviewed: 2026-06-01
 - Repository: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS`
 - Website: `https://qs-dmss.studio`
 - PyPI package: `https://pypi.org/project/qs-dmss/`
-- Latest release target: `v0.11.0`
+- Latest release target: `v0.12.0`
 - Latest archived release DOI: `10.5281/zenodo.21319023`
 - `v0.11.0` release DOI: `10.5281/zenodo.21319023`
 - Previous archived release DOI: `10.5281/zenodo.20693736`

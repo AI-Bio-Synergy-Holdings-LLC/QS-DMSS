@@ -7,7 +7,8 @@ workflows.
 Canonical website: https://qs-dmss.studio/
 Hosted demo: https://app.qs-dmss.studio/
 Repository: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
-PyPI package: https://pypi.org/project/qs-dmss/0.11.0/
+Release target: v0.12.0
+PyPI package: https://pypi.org/project/qs-dmss/0.12.0/
 Project DOI: https://doi.org/10.5281/zenodo.20074924
 Latest archived release DOI: https://doi.org/10.5281/zenodo.21319023
 Open Collective: https://opencollective.com/qs-dmss
@@ -22,6 +23,9 @@ Important boundaries:
 - Public source provenance is workflow evidence, not provider-data model
   calibration.
 - Dry-run Slurm request bundles do not submit scheduler jobs.
+- Quantum-readiness artifacts are provider-neutral and simulator-only: no
+  provider credentials, remote API, QPU execution, submission, or authorized
+  spend.
 - Hosted-demo outputs are temporary, and arbitrary configs/uploads are disabled.
 
 Key docs:
@@ -29,3 +33,4 @@ Key docs:
 - Conceptual reference map: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/conceptual-reference-map.md
 - Reference-data calibration: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reference-data-calibration.md
 - Fractal SSFM validation spine: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/fractal-quadrant-ssfm-validation-spine.md
+- Quantum compilation validation: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/quantum-compilation-validation.md

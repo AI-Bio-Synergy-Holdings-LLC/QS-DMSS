@@ -36,16 +36,24 @@ live in
 
 ## Current Public State
 
-The current release target is `qs-dmss==0.11.0`. It brings the hosted Studio
-experience into the downloadable package: an accessible Lab Mode workflow,
-scientific run and comparison views, portable HTML research workbooks,
-publication-oriented exports, and the same evidence, replay, provenance, and
-validation spine available from the local cockpit. The hosted service applies
-temporary-output and packaged-scenario guardrails; local installs retain
-persistent outputs and the broader local configuration surface.
+This source tree targets `qs-dmss==0.12.0`, the simulator-first quantum-readiness
+milestone. It adds a manifest-verified Fractal SSFM circuit sidecar, a
+provider-neutral QPU request bundle, and a 12-row compilation/resource
+attribution matrix over generic topologies. These are local review artifacts,
+not provider integrations: no provider credentials, remote API calls, QPU
+execution, job submission, or authorized spend are included.
+
+The latest published and archived baseline remains `v0.11.0` until the
+`v0.12.0` release is tagged, published through Trusted Publishing, and archived
+by Zenodo.
 
 The latest archived release DOI is
 [v0.11.0 / 10.5281/zenodo.21319023](https://doi.org/10.5281/zenodo.21319023).
+
+QS-DMSS remains beta for reproducible package/evidence workflows. Quantum
+readiness here means ideal-simulator semantic checks and transparent resource
+attribution; it is not QPU execution, quantum advantage, or peer-reviewed
+scientific validation.
 
 Fractal SSFM scientific feedback is routed through
 [issue #105](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105).

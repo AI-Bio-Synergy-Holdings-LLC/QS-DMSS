@@ -4,7 +4,10 @@ This packet is the shortest path for an external reviewer to understand what
 QS-DMSS is claiming, reproduce the public baseline, and decide where feedback
 would be most useful.
 
-Current public baseline: `v0.11.0` / `qs-dmss==0.11.0`
+Release target: `v0.12.0` / `qs-dmss==0.12.0`
+
+Latest archived public baseline at release preparation: `v0.11.0` /
+`qs-dmss==0.11.0`
 
 Canonical website: `https://qs-dmss.studio`
 
@@ -60,7 +63,7 @@ Use the published PyPI package from a clean environment:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.11.0
+python -m pip install qs-dmss==0.12.0
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo
@@ -89,6 +92,24 @@ Expected signals:
 Use [reviewer-wheel-quickstart.md](reviewer-wheel-quickstart.md) for the
 cross-platform PyPI and GitHub release-wheel commands.
 
+## Quantum-Readiness Review Path
+
+After `v0.12.0` is published, install the optional simulator stack and generate
+the full review chain:
+
+```powershell
+python -m pip install --upgrade "qs-dmss[quantum]==0.12.0"
+qs-dmss quantum validate-fractal --output-root quantum-sidecar-validation
+qs-dmss quantum prepare-qpu-request --output-root qpu-request-bundle
+qs-dmss quantum validate-compilation --output-root quantum-compilation-validation
+```
+
+Review one narrow point: encoding agreement, request-bundle policy, semantic
+classes, or component resource attribution. The path is provider-neutral and
+local: no credentials, remote API, submission, QPU execution, or authorized
+spend. It is not evidence of quantum advantage or peer-reviewed scientific
+validation.
+
 ## Scientific Review Gate
 
 The public package baseline includes `qs-dmss validation fractal-ssfm` for the
@@ -97,7 +118,7 @@ experimental `numpy_fractal_ssfm` backend.
 Use this review path when commenting on issue #105:
 
 ```powershell
-python -m pip install qs-dmss==0.11.0
+python -m pip install qs-dmss==0.12.0
 qs-dmss validation fractal-ssfm
 ```
 
@@ -117,7 +138,7 @@ technical feedback.
 
 ## Simulation Showcase Path
 
-The published `v0.11.0` package includes a canonical simulation showcase for
+The `v0.12.0` package includes the canonical simulation showcase for
 reviewers who want to inspect the actual simulated field output, not just the
 install and benchmark envelopes:
 
@@ -137,6 +158,12 @@ Expected signals:
 Use [simulation-showcase.md](simulation-showcase.md) for the detailed path.
 
 ## Lab Mode Cockpit Path
+
+`v0.12.0` adds the simulator-first quantum-readiness evidence path: a bounded
+Fractal SSFM circuit sidecar, provider-neutral QPU request bundle, and
+compilation/resource attribution matrix. These paths use no credentials,
+remote provider API, QPU execution, submission, or authorized spend, and do
+not claim peer-reviewed scientific validation.
 
 `v0.11.0` is the Hosted Studio baseline where the public reference-data
 provenance calibration sandbox, Fractal/Quadrant SSFM validation spine, Conceptual

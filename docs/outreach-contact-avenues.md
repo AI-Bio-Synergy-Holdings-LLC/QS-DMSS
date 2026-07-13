@@ -5,7 +5,7 @@ review contacts. It is intentionally conservative: do not scrape anonymous
 traffic, do not infer identities from downloads or clones, and do not collect
 private contact details in public repository files.
 
-Current public baseline target: `qs-dmss==0.11.0` / GitHub release `v0.11.0`
+Current public baseline target: `qs-dmss==0.12.0` / GitHub release `v0.12.0`
 
 Canonical public website:
 `https://qs-dmss.studio`
@@ -168,7 +168,7 @@ ready.
 ```text
 QS-DMSS Studio is live at https://qs-dmss.studio.
 
-QS-DMSS v0.11.0 is looking for a few focused external reviewers.
+QS-DMSS v0.12.0 is looking for a few focused external reviewers.
 
 The project is beta software for reproducible package/evidence workflows, not
 peer-reviewed scientific validation. The immediate goal is modest: a few public

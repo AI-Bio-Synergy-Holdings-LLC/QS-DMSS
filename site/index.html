@@ -6,11 +6,11 @@
     <title>QS-DMSS Studio | Reproducible QuantumScalar Simulation Lab</title>
     <meta
       name="description"
-      content="QS-DMSS Studio is an evidence-first Python simulation lab with a constrained hosted demo for QuantumScalar dark matter workflows, campaign comparison, data provenance, and citable research artifacts."
+      content="QS-DMSS Studio is an evidence-first Python simulation lab for QuantumScalar dark matter workflows, reproducible evidence, and provider-neutral quantum-readiness artifacts."
     />
     <meta
       name="keywords"
-      content="QS-DMSS, QuantumScalar dark matter, simulation lab, scientific Python, reproducible research, evidence bundles, Campaign Studio, Lab Mode, Schrodinger-Poisson, SSFM validation, public data provenance"
+      content="QS-DMSS, QuantumScalar dark matter, simulation lab, scientific Python, reproducible research, evidence bundles, Campaign Studio, Lab Mode, Schrodinger-Poisson, SSFM validation, quantum readiness, QPU resource estimation, public data provenance"
     />
     <meta name="author" content="AI-Bio Synergy Holdings LLC" />
     <meta name="creator" content="AI-Bio Synergy Holdings LLC" />
@@ -76,11 +76,11 @@
             "@type": "SoftwareSourceCode",
             "@id": "https://qs-dmss.studio/#software",
             "name": "QS-DMSS",
-            "description": "Apache-2.0 public beta software for reproducible package/evidence workflows around QuantumScalar dark matter simulation, public reference-data provenance, and validation spines.",
+            "description": "Apache-2.0 public beta software for reproducible QuantumScalar simulation, validation spines, and provider-neutral simulator-first quantum-readiness artifacts.",
             "codeRepository": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
             "programmingLanguage": "Python",
             "license": "https://www.apache.org/licenses/LICENSE-2.0",
-            "version": "0.11.0",
+            "version": "0.12.0",
             "runtimePlatform": "Python 3.10+",
             "keywords": [
               "QuantumScalar dark matter",
@@ -89,10 +89,12 @@
               "evidence bundles",
               "Schrodinger-Poisson",
               "split-step Fourier method",
+              "quantum readiness",
+              "QPU resource attribution",
               "public data provenance"
             ],
             "sameAs": [
-              "https://pypi.org/project/qs-dmss/0.11.0/",
+              "https://pypi.org/project/qs-dmss/0.12.0/",
               "https://doi.org/10.5281/zenodo.20074924",
               "https://doi.org/10.5281/zenodo.21319023",
               "https://opencollective.com/qs-dmss"
@@ -108,13 +110,13 @@
             "applicationCategory": "Scientific simulation software",
             "applicationSubCategory": "Reproducible research software",
             "operatingSystem": "Windows, macOS, Linux",
-            "softwareVersion": "0.11.0",
+            "softwareVersion": "0.12.0",
             "url": "https://app.qs-dmss.studio/",
             "isAccessibleForFree": true,
             "license": "https://www.apache.org/licenses/LICENSE-2.0",
-            "downloadUrl": "https://pypi.org/project/qs-dmss/0.11.0/",
-            "installUrl": "https://pypi.org/project/qs-dmss/0.11.0/",
-            "releaseNotes": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.11.0",
+            "downloadUrl": "https://pypi.org/project/qs-dmss/0.12.0/",
+            "installUrl": "https://pypi.org/project/qs-dmss/0.12.0/",
+            "releaseNotes": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.12.0",
             "codeRepository": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
             "citation": [
               "https://doi.org/10.5281/zenodo.20074924",
@@ -182,7 +184,7 @@
     <main id="main">
       <section class="hero" id="top" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <p class="eyebrow">Public beta | Apache-2.0 | PyPI v0.11.0</p>
+          <p class="eyebrow">Public beta | Apache-2.0 | v0.12.0 release target</p>
           <h1 id="hero-title">Run simulations. Inspect evidence. Compare campaigns. Publish reproducible artifacts.</h1>
           <p class="hero-lede">
             QS-DMSS is a deterministic, evidence-first simulation lab for
@@ -204,12 +206,12 @@
         </div>
 
         <aside class="hero-panel" aria-labelledby="release-title">
-          <p class="panel-kicker">Current public baseline</p>
-          <h2 id="release-title">qs-dmss==0.11.0</h2>
+          <p class="panel-kicker">Quantum-readiness milestone</p>
+          <h2 id="release-title">qs-dmss==0.12.0</h2>
           <dl>
             <div>
               <dt>GitHub release</dt>
-              <dd><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.11.0">v0.11.0 release notes and artifacts</a></dd>
+              <dd><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.12.0">v0.12.0 release notes and artifacts</a></dd>
             </div>
             <div>
               <dt>Latest archived DOI</dt>
@@ -217,7 +219,7 @@
             </div>
             <div>
               <dt>Package</dt>
-              <dd><a href="https://pypi.org/project/qs-dmss/0.11.0/">pypi.org/project/qs-dmss/0.11.0</a></dd>
+              <dd><a href="https://pypi.org/project/qs-dmss/0.12.0/">pypi.org/project/qs-dmss/0.12.0</a></dd>
             </div>
             <div>
               <dt>Stewardship</dt>
@@ -227,7 +229,8 @@
           <p class="claim-note">
             Beta for reproducible package/evidence workflows; not peer-reviewed
             scientific validation. Public source provenance is workflow evidence,
-            not provider-data model calibration.
+            not provider-data model calibration. Quantum artifacts use local
+            simulators only: no provider submission, QPU execution, or spend.
           </p>
         </aside>
       </section>
@@ -310,6 +313,14 @@
             </p>
           </article>
           <article class="capability-card">
+            <h3>Quantum-Readiness Evidence</h3>
+            <p>
+              Validate one bounded Fractal SSFM circuit encoding, prepare a
+              provider-neutral request bundle, and inspect compilation semantics
+              and resource attribution without credentials or QPU submission.
+            </p>
+          </article>
+          <article class="capability-card">
             <h3>Reference-Data Provenance</h3>
             <p>
               Record official Planck, DESI, SDSS, and Gaia source lanes with
@@ -350,7 +361,7 @@
         <pre aria-label="Local cockpit commands"><code>python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.11.0
+python -m pip install qs-dmss==0.12.0
 qs-dmss cockpit --host 127.0.0.1 --port 8001
 qs-dmss validation fractal-ssfm
 qs-dmss data calibration run --output-root reference-data-calibration</code></pre>
@@ -390,8 +401,8 @@ qs-dmss data calibration run --output-root reference-data-calibration</code></pr
             QuantumScalar dark matter simulation workflows. It combines a local
             cockpit, Campaign Studio study templates, deterministic evidence
             bundles, public reference-data provenance, Fractal/Quadrant SSFM
-            validation, dry-run Slurm request bundles, and publication export
-            composition.
+            validation, provider-neutral quantum-readiness evidence, dry-run
+            Slurm request bundles, and publication export composition.
           </p>
           <ul class="keyword-list" aria-label="QS-DMSS discovery topics">
             <li>QuantumScalar dark matter simulation workflows</li>
@@ -400,6 +411,7 @@ qs-dmss data calibration run --output-root reference-data-calibration</code></pr
             <li>Campaign Studio parameter grids and decision profiles</li>
             <li>Public data provenance for Planck, DESI, SDSS, and Gaia source lanes</li>
             <li>Fractal/Quadrant SSFM validation spine and claim-boundary notes</li>
+            <li>Simulator-first QPU request and compilation resource evidence</li>
           </ul>
         </div>
       </section>
@@ -408,14 +420,15 @@ qs-dmss data calibration run --output-root reference-data-calibration</code></pr
         <h2 id="links-title">Public entry points</h2>
         <ul>
           <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS">GitHub repository</a></li>
-          <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.11.0">v0.11.0 release</a></li>
-          <li><a href="https://pypi.org/project/qs-dmss/0.11.0/">PyPI package</a></li>
+          <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.12.0">v0.12.0 release</a></li>
+          <li><a href="https://pypi.org/project/qs-dmss/0.12.0/">PyPI package</a></li>
           <li><a href="https://doi.org/10.5281/zenodo.20074924">Project DOI</a></li>
           <li><a href="https://doi.org/10.5281/zenodo.21319023">Latest archived release DOI</a></li>
           <li><a href="https://opencollective.com/qs-dmss">Open Collective</a></li>
           <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reference-data-calibration.md">Reference-data calibration</a></li>
           <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/conceptual-reference-map.md">Conceptual reference map</a></li>
           <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/fractal-quadrant-ssfm-validation-spine.md">Fractal SSFM validation</a></li>
+          <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/quantum-compilation-validation.md">Quantum compilation validation</a></li>
           <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ownership-and-use.md">Ownership and use</a></li>
           <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57">Builder board</a></li>
           <li><a href="https://cosmos-cqa.org">COSMOS-CQA research portal</a></li>

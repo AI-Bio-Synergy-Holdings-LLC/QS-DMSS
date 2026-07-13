@@ -64,11 +64,35 @@ def test_contribution_and_release_policies_enforce_boundary() -> None:
         "Public release wheels and source distributions remain Apache-2.0"
         in release_policy
     )
-    assert "Before preparing `v0.12.0`" in release_policy
+    assert "governs `v0.12.0` preparation" in release_policy
+    assert "no provider credentials" in release_policy
+    assert "QPU execution" in release_policy
 
 
 def test_security_policy_names_current_supported_release() -> None:
     security = (REPO_ROOT / "SECURITY.md").read_text(encoding="utf-8")
 
-    assert "supported public release line is `v0.11.x`" in security
+    assert "supported public release line is `v0.12.x`" in security
+    assert "supported public release line is `v0.11.x`" not in security
     assert "supported public release line is `v0.9.x`" not in security
+
+
+def test_v012_release_notes_preserve_quantum_and_license_boundaries() -> None:
+    release_notes = (REPO_ROOT / "docs" / "release-v0.12.0.md").read_text(
+        encoding="utf-8"
+    )
+
+    for required in {
+        "no provider integration or provider submission",
+        "no provider credentials",
+        "no remote quantum API calls",
+        "no QPU execution",
+        "zero authorized spend",
+        "peer-reviewed scientific validation",
+        "Apache-2.0",
+        "Development Status :: 4 - Beta",
+    }:
+        assert required in release_notes
+
+    assert "research-only" in release_notes
+    assert "noncommercial" in release_notes

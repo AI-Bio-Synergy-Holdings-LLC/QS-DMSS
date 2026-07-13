@@ -159,39 +159,87 @@ jobs:
         with:
           python-version: "3.13"
 
-      - name: Install quantum sidecar dependencies
+      - name: Install quantum test dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .[dev,quantum]
+          python -m pip install -e .[dev,quantum] build
 
       - name: Run quantum sidecar tests
         run: pytest -q tests/test_quantum_sidecar.py tests/test_quantum_request.py tests/test_quantum_compilation.py
 
-      - name: Run packaged quantum sidecar
+      - name: Build quantum release wheel
+        run: python -m build --wheel
+
+      - name: Run quantum paths from installed wheel
+        shell: bash
         run: |
-          qs-dmss quantum validate-fractal \
+          python -m venv quantum-wheel-smoke
+          ./quantum-wheel-smoke/bin/pip install --upgrade pip
+          wheel=$(find dist -name '*.whl' -print -quit)
+          ./quantum-wheel-smoke/bin/pip install "${wheel}[quantum]"
+          smoke_root=/tmp/qs-dmss-quantum-wheel-smoke
+          mkdir -p "$smoke_root"
+          cd "$smoke_root"
+          "$GITHUB_WORKSPACE"/quantum-wheel-smoke/bin/qs-dmss quantum validate-fractal \
             --shots 1024 \
             --output-root quantum-sidecar-validation
-          qs-dmss quantum prepare-qpu-request \
+          "$GITHUB_WORKSPACE"/quantum-wheel-smoke/bin/qs-dmss quantum prepare-qpu-request \
             --shots 128 \
             --output-root qpu-request-validation
-          qs-dmss quantum validate-compilation \
+          "$GITHUB_WORKSPACE"/quantum-wheel-smoke/bin/qs-dmss quantum validate-compilation \
             --shots 128 \
             --output-root quantum-compilation-validation
 
-      - name: Check quantum evidence outputs
+      - name: Check quantum evidence and execution boundaries
+        shell: bash
         run: |
-          test -f quantum-sidecar-validation/quantum-sidecar-validation.json
-          test -f quantum-sidecar-validation/manifest.sha256.json
-          test -f quantum-sidecar-validation/quantum-sidecar-evidence.zip
-          test -f qpu-request-validation/qpu-request.json
-          test -f qpu-request-validation/artifacts/fractal-fuzzy-target.openqasm
-          test -f qpu-request-validation/manifest.sha256.json
-          test -f qpu-request-validation/qpu-request-evidence.zip
-          test -f quantum-compilation-validation/quantum-compilation-validation.json
-          test -f quantum-compilation-validation/quantum-compilation-matrix.csv
-          test -f quantum-compilation-validation/manifest.sha256.json
-          test -f quantum-compilation-validation/quantum-compilation-evidence.zip
+          smoke_root=/tmp/qs-dmss-quantum-wheel-smoke
+          test -f "$smoke_root"/quantum-sidecar-validation/quantum-sidecar-validation.json
+          test -f "$smoke_root"/quantum-sidecar-validation/manifest.sha256.json
+          test -f "$smoke_root"/quantum-sidecar-validation/quantum-sidecar-evidence.zip
+          test -f "$smoke_root"/qpu-request-validation/qpu-request.json
+          test -f "$smoke_root"/qpu-request-validation/artifacts/fractal-fuzzy-target.openqasm
+          test -f "$smoke_root"/qpu-request-validation/manifest.sha256.json
+          test -f "$smoke_root"/qpu-request-validation/qpu-request-evidence.zip
+          test -f "$smoke_root"/quantum-compilation-validation/quantum-compilation-validation.json
+          test -f "$smoke_root"/quantum-compilation-validation/quantum-compilation-matrix.csv
+          test -f "$smoke_root"/quantum-compilation-validation/manifest.sha256.json
+          test -f "$smoke_root"/quantum-compilation-validation/quantum-compilation-evidence.zip
+          SMOKE_ROOT="$smoke_root" "$GITHUB_WORKSPACE"/quantum-wheel-smoke/bin/python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ["SMOKE_ROOT"])
+          sidecar = json.loads(
+              (root / "quantum-sidecar-validation" / "quantum-sidecar-validation.json").read_text()
+          )
+          request = json.loads(
+              (root / "qpu-request-validation" / "qpu-request.json").read_text()
+          )
+          compilation = json.loads(
+              (root / "quantum-compilation-validation" / "quantum-compilation-validation.json").read_text()
+          )
+
+          assert sidecar["success"] is True
+          assert sidecar["submission_policy"]["qpu_used"] is False
+          assert sidecar["submission_policy"]["submitted"] is False
+          assert request["success"] is True
+          assert request["credential_policy"]["credentials_read"] is False
+          assert request["submission_policy"]["submitted"] is False
+          assert request["submission_policy"]["never_submit"] is True
+          assert request["cost_policy"]["max_authorized_cost_usd"] == 0.0
+          assert compilation["success"] is True
+          assert len(compilation["matrix"]) == 12
+          assert compilation["execution_policy"] == {
+              "credentials_read": False,
+              "local_simulation_only": True,
+              "max_authorized_cost_usd": 0.0,
+              "provider": None,
+              "remote_api_called": False,
+              "submitted": False,
+          }
+          PY
 
   docker:
     name: Docker smoke
