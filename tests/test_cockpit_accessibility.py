@@ -65,6 +65,13 @@ def test_cockpit_shell_has_accessible_navigation_and_landmarks() -> None:
     assert '<table aria-label="Quantum compilation validation matrix">' in html
     assert 'aria-labelledby="quantumValidationTitle"' in html
     assert 'aria-label="Quantum validation gate summary"' in html
+    assert re.search(
+        r'class="table-wrap quantum-table-wrap"\s+'
+        r'role="region"\s+'
+        r'aria-labelledby="quantumMatrixTitle"\s+'
+        r'tabindex="0"',
+        html,
+    )
     assert 'role="img"' in _element_tag(html, "quantumAttributionChart")
 
 
@@ -137,6 +144,17 @@ def test_cockpit_styles_encode_wcag_interaction_baseline() -> None:
     assert ".quantum-topology-charts" in css
     assert ".quantum-attribution-chart" in css
     assert ".quantum-table-wrap" in css
+    quantum_table_wrap = re.search(
+        r"\.quantum-table-wrap\s*\{(?P<rules>.*?)\}",
+        css,
+        flags=re.DOTALL,
+    )
+    assert quantum_table_wrap is not None
+    quantum_table_rules = quantum_table_wrap.group("rules")
+    assert "overflow: auto" in quantum_table_rules
+    assert "overscroll-behavior: contain" in quantum_table_rules
+    assert "scrollbar-gutter: stable" in quantum_table_rules
+    assert ".quantum-table-wrap:focus-visible" in css
 
     foreground = "#fff8ef"
     action_colors = [

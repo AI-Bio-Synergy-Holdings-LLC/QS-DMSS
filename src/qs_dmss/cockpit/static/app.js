@@ -4275,7 +4275,7 @@ function renderQuantumMatrix(payload) {
       `;
     })
     .join("");
-  els.quantumMatrixSummary.textContent = `${payload.validation?.rows_passing || 0} of ${payload.validation?.row_count || rows.length} rows pass; ${payload.validation?.reference_exact_rows || 0} preserve the reference exactly and ${payload.validation?.bounded_approximation_rows || 0} remain within the configured approximation tolerance.`;
+  els.quantumMatrixSummary.textContent = `${payload.validation?.rows_passing || 0} of ${payload.validation?.row_count || rows.length} rows pass; ${payload.validation?.reference_exact_rows || 0} preserve the reference exactly and ${payload.validation?.bounded_approximation_rows || 0} remain within the configured approximation tolerance. Scroll inside the matrix to inspect every row.`;
 }
 
 function renderQuantumValidation(payload) {

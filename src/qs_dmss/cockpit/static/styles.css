@@ -1935,10 +1935,19 @@ label.ghost-button:focus-within {
 }
 
 .quantum-table-wrap {
+  overflow: auto;
   margin-top: 16px;
   max-height: 520px;
   border: 1px solid var(--line);
   border-radius: 16px;
+  background: rgba(255, 253, 248, 0.94);
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.quantum-table-wrap:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 3px;
 }
 
 .quantum-table-wrap table {
