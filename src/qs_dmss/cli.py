@@ -684,6 +684,7 @@ def main(argv: list[str] | None = None) -> int:
             print("Execution: local ideal simulators only; no QPU job was submitted.")
             print("Authorization: no provider credentials; maximum authorized cost is $0.00.")
             print(f"Report: {report['report_path']}")
+            print(f"Polished HTML report: {report['html_report_path']}")
             print(f"Reviewer summary: {report['markdown_report_path']}")
             print(f"Matrix CSV: {report['matrix_csv_path']}")
             print(f"Evidence bundle: {report['evidence_bundle_path']}")

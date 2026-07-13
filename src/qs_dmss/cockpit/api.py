@@ -61,6 +61,7 @@ from qs_dmss.paths import (
 )
 from qs_dmss.quantum_showcase import (
     load_quantum_compilation_showcase,
+    quantum_compilation_showcase_artifact_key,
     quantum_compilation_showcase_path,
 )
 from qs_dmss.showcase import (
@@ -3062,9 +3063,24 @@ def create_app(
         active_service: CockpitService = Depends(current_service),
     ) -> FileResponse:
         path = active_service.quantum_validation_artifact_path(artifact_name)
+        artifact_key = quantum_compilation_showcase_artifact_key(artifact_name)
+        if path.suffix.lower() == ".html":
+            active_service.assert_hosted_download_allowed(path)
+            return FileResponse(
+                path,
+                media_type="text/html",
+                headers={
+                    "Content-Security-Policy": (
+                        "default-src 'none'; style-src 'unsafe-inline'; "
+                        "base-uri 'none'; form-action 'none'; frame-ancestors 'none'"
+                    ),
+                    "X-Content-Type-Options": "nosniff",
+                },
+            )
         media_types = {
             "report": "application/json",
-            "summary": "text/markdown",
+            "summary": "text/html",
+            "markdown": "text/markdown",
             "matrix": "text/csv",
             "manifest": "application/json",
             "bundle": "application/zip",
@@ -3072,7 +3088,7 @@ def create_app(
         return guarded_file_response(
             active_service,
             path,
-            media_type=media_types.get(artifact_name, "application/octet-stream"),
+            media_type=media_types.get(artifact_key, "application/octet-stream"),
             filename=path.name,
         )
 

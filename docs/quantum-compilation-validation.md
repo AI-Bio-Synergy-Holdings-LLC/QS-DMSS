@@ -29,9 +29,9 @@ pricing API, remote request, or QPU job is used.
 
 The public [QS-DMSS Studio](https://app.qs-dmss.studio/#quantum-validation)
 ships a fixed v0.12.0 snapshot of this validation object. It exposes the
-matrix, topology/resource charts, validation status, limitations, Markdown and
-CSV summaries, JSON report, manifest, and evidence ZIP through allowlisted GET
-routes. It does not expose a compilation POST route and does not require the
+matrix, topology/resource charts, validation status, limitations, a polished
+HTML report, Markdown and CSV summaries, JSON report, manifest, and evidence
+ZIP through allowlisted GET routes. It does not expose a compilation POST route and does not require the
 optional Qiskit stack at runtime.
 
 ## Semantic Gate
@@ -85,6 +85,7 @@ performance predictions.
 ```text
 quantum-compilation-validation/
   quantum-compilation-validation.json
+  quantum-compilation-validation.html
   quantum-compilation-validation.md
   quantum-compilation-matrix.csv
   manifest.sha256.json

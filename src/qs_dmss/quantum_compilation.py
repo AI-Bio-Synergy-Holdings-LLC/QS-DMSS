@@ -14,6 +14,9 @@ from qs_dmss.evidence.bundle import (
 )
 from qs_dmss.paths import contained_path
 from qs_dmss.quantum_request import prepare_fractal_qpu_request
+from qs_dmss.quantum_compilation_report import (
+    write_quantum_compilation_html_report,
+)
 from qs_dmss.quantum_sidecar import (
     DEFAULT_EXACT_TOLERANCE,
     DEFAULT_SHOTS,
@@ -24,6 +27,7 @@ from qs_dmss.quantum_sidecar import (
 COMPILATION_SCHEMA_VERSION = 1
 COMPILATION_JSON_REPORT = "quantum-compilation-validation.json"
 COMPILATION_MARKDOWN_REPORT = "quantum-compilation-validation.md"
+COMPILATION_HTML_REPORT = "quantum-compilation-validation.html"
 COMPILATION_CSV = "quantum-compilation-matrix.csv"
 COMPILATION_MANIFEST = "manifest.sha256.json"
 COMPILATION_BUNDLE = "quantum-compilation-evidence.zip"
@@ -598,9 +602,11 @@ def validate_fractal_quantum_compilation(
     }
     report_path = contained_path(output_path, COMPILATION_JSON_REPORT)
     markdown_path = contained_path(output_path, COMPILATION_MARKDOWN_REPORT)
+    html_path = contained_path(output_path, COMPILATION_HTML_REPORT)
     csv_path = contained_path(output_path, COMPILATION_CSV)
     _write_json(report_path, report)
     _write_markdown(markdown_path, report)
+    write_quantum_compilation_html_report(html_path, report)
     _write_matrix_csv(csv_path, rows)
     manifest_path = write_manifest_for_directory(
         output_path,
@@ -617,6 +623,7 @@ def validate_fractal_quantum_compilation(
         "success": report["success"] and verification["success"],
         "report_path": str(report_path),
         "markdown_report_path": str(markdown_path),
+        "html_report_path": str(html_path),
         "matrix_csv_path": str(csv_path),
         "manifest_path": str(manifest_path),
         "evidence_bundle_path": str(bundle_path),

@@ -106,3 +106,5 @@ def test_quantum_validation_showcase_assets_are_packaged() -> None:
     assert payload["status"] == "pass"
     assert payload["validation"]["all_rows_pass"] is True
     assert payload["validation"]["archive"]["contains_json_report"] is True
+    assert payload["validation"]["archive"]["contains_html_report"] is True
+    assert (root / "quantum-compilation-validation.html").is_file()
