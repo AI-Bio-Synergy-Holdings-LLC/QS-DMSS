@@ -95,6 +95,11 @@ jobs:
           with tarfile.open(sdist) as archive:
               sdist_names = set(archive.getnames())
           assert sdist_root + "RELEASE.md" in sdist_names
+          assert (
+              sdist_root
+              + "docs/decisions/0001-commercial-sustainability-and-licensing-boundary.md"
+              in sdist_names
+          )
           assert sdist_root + "benchmarks/README.md" in sdist_names
           assert sdist_root + "configs/demo.yaml" in sdist_names
           assert sdist_root + "schemas/run_config.schema.json" in sdist_names

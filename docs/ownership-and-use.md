@@ -36,6 +36,13 @@ Holdings LLC is required for ordinary use allowed by that license.
 The license is in [`LICENSE`](../LICENSE), and project attribution is recorded
 in [`NOTICE`](../NOTICE).
 
+The accepted
+[commercial sustainability and licensing boundary](decisions/0001-commercial-sustainability-and-licensing-boundary.md)
+keeps the public core and `qs-dmss` distributions under Apache-2.0. Managed
+hosting, private operations, integrations, support, or other paid services must
+remain clearly separated and cannot silently reduce the rights granted for the
+public software.
+
 ## Citation And Attribution
 
 For research references, cite the Zenodo record that matches the work being
@@ -121,3 +128,6 @@ Funding supports open-source stewardship, maintenance, documentation,
 reproducibility infrastructure, and public build milestones. Funding does not
 change the Apache-2.0 access terms and does not imply scientific endorsement or
 peer-reviewed validation.
+
+Paid services, support, or private deployments are commercial arrangements,
+not donations and not additional conditions on use of the Apache-2.0 core.
