@@ -9,8 +9,8 @@ The current QS-DMSS direction is:
 run simulations -> inspect evidence -> compare campaigns -> publish reproducible artifacts
 ```
 
-The current public baseline is `qs-dmss==0.11.0`. The latest archived DOI is
-`v0.11.0` / `10.5281/zenodo.21319023`.
+The current release target is `qs-dmss==0.12.0`. The latest archived DOI during
+release preparation remains `v0.11.0` / `10.5281/zenodo.21319023`.
 
 ## Strategic Shift
 
@@ -31,11 +31,11 @@ The full strategy now lives in:
 - [contributor-roadmap.md](contributor-roadmap.md)
 - [funding-roadmap.md](funding-roadmap.md)
 
-## Current Active Slice: v0.11.0 Hosted Studio Review Conversion
+## Current Active Slice: v0.12.0 Quantum-Readiness Review Conversion
 
 Lab Mode and Campaign Studio now make QS-DMSS feel meaningfully different from
 a generic open simulator. `v0.9.0` shipped the dry-run Slurm review target, and
-`v0.11.0` keeps the experimental Fractal/Quadrant SSFM validation harness plus
+`v0.12.0` keeps the experimental Fractal/Quadrant SSFM validation harness plus
 the public reference-data provenance calibration sandbox installable from PyPI,
 adds public Conceptual Reference Map links, and carries job-registry path
 hardening.
@@ -54,7 +54,7 @@ not another immediate feature release:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`;
 - ask for one public comment on Strang refinement, fuzzy-potential norm
   conservation, non-conservative mask labels, or diagnostics-only status;
-- use `v0.11.0` as the stable public package baseline while the validation and
+- use `v0.12.0` as the stable public package baseline while the validation and
   provenance gates are reviewed;
 - keep GPU expansion, real HPC submission, and decision-metric UI paused until
   the review target receives substantive technical feedback or exposes a

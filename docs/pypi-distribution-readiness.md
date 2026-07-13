@@ -18,14 +18,14 @@ Initial PyPI publication completed on `2026-05-05` through GitHub Actions
 Trusted Publishing.
 
 - Initial published version: `0.1.0`
-- Current release target: `0.11.0`
+- Current release target: `0.12.0`
 - Canonical website: `https://qs-dmss.studio`
 - PyPI project URL: `https://pypi.org/project/qs-dmss/`
 - Initial publish workflow run:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/actions/runs/25393532837`
 - Initial publish commit: `3cd208ff985041cf95261f8de289e4dd5a14df49`
 - Upload method: Trusted Publishing / GitHub OIDC
-- Current release files:
+- Latest published release files at v0.12.0 preparation:
   - `qs_dmss-0.11.0-py3-none-any.whl`
   - `qs_dmss-0.11.0.tar.gz`
 - Initial published files:
@@ -35,13 +35,16 @@ Trusted Publishing.
 Run post-publication smoke validation from a fresh virtual environment:
 
 ```powershell
-python -m pip install --no-cache-dir qs-dmss==0.11.0
+python -m pip install --no-cache-dir "qs-dmss[quantum]==0.12.0"
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 qs-dmss benchmarks validate --scenario demo-baseline
 qs-dmss showcase run --output-root simulation-showcase
 qs-dmss validation fractal-ssfm --output-root fractal-ssfm-validation
 qs-dmss data calibration run --output-root reference-data-calibration
+qs-dmss quantum validate-fractal --output-root quantum-sidecar-validation
+qs-dmss quantum prepare-qpu-request --output-root qpu-request-bundle
+qs-dmss quantum validate-compilation --output-root quantum-compilation-validation
 ```
 
 Cross-platform adoption validation lives in
@@ -102,7 +105,7 @@ Documentation, PyPI, DOI, Review, and Reviewer Quickstart before publication.
 - Organization: `AI-Bio Synergy Holdings LLC`
 - License: `Apache-2.0`
 - Supported Python range: `>=3.10`
-- CI validation range for `v0.11.x`: Python 3.10 through 3.13 plus Docker smoke
+- CI validation range for `v0.12.x`: Python 3.10 through 3.13 plus Docker smoke
 - Citation metadata: `CITATION.cff`
 
 ## Citation and Archival Metadata

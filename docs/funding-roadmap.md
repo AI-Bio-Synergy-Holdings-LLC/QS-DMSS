@@ -135,11 +135,11 @@ That is the strongest current donation story because Lab Mode, Campaign Studio,
 and publication exports have shipped. The next public value is making those
 workflows easier to scrutinize, reproduce, extend, and integrate safely.
 
-The current release target is `v0.11.0`, and the immediate
+The current release target is `v0.12.0`, and the immediate
 trust-building gate is scientific review of the installable Fractal/Quadrant
 SSFM validation harness on
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`. Funding
-support should help convert that review and the merged quantum compilation
-matrix into clearer validation artifacts, stronger documentation, and carefully
-staged future build slices, not premature GPU/provider expansion or unsupported
-scientific claims.
+support should help convert that review and the shipped simulator-first quantum
+readiness evidence into clearer validation artifacts, stronger documentation,
+and carefully staged future build slices, not premature GPU/provider expansion
+or unsupported scientific claims.

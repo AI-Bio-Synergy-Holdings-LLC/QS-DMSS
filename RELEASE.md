@@ -3,7 +3,7 @@
 This policy keeps release builds, Python package metadata, GitHub release
 artifacts, and PyPI distributions aligned before and after tags are published.
 
-Current release target: `v0.11.0` / `0.11.0`. Published release-candidate tags
+Current release target: `v0.12.0` / `0.12.0`. Published release-candidate tags
 such as `v0.1.0-rc.1` and `v0.1.0-rc.2` remain immutable; do not move or
 replace them.
 
@@ -57,8 +57,12 @@ replace them.
   provider-restricted components in public distributions.
 - Hosted-service terms and operational limits must not be presented as changes
   to local software rights.
-- Before preparing `v0.12.0`, verify the accepted
-  [commercial sustainability and licensing boundary](docs/decisions/0001-commercial-sustainability-and-licensing-boundary.md).
+- The accepted
+  [commercial sustainability and licensing boundary](docs/decisions/0001-commercial-sustainability-and-licensing-boundary.md)
+  governs `v0.12.0` preparation and must remain satisfied before tagging.
+- Quantum-readiness release artifacts must remain simulator-first and
+  provider-neutral: no provider credentials, remote API calls, submission,
+  QPU execution, or authorized spend.
 - A future license change requires a separate decision record, copyright and
   dependency inventory, program-eligibility review, and qualified legal review.
 

@@ -27,6 +27,26 @@ The next package release should expose the Studio site through project metadata:
 Keep Repository, Issues, Releases, PyPI, DOI, and Reviewer links as supporting
 project URLs.
 
+## v0.12.0 Quantum-Readiness Update
+
+Use after `v0.12.0` is published:
+
+```text
+QS-DMSS v0.12.0 adds a simulator-first quantum-readiness evidence path for the
+experimental Fractal SSFM lane. It validates one bounded circuit encoding,
+prepares a provider-neutral QPU request bundle, and reports compilation
+semantics and resource attribution across generic topologies.
+
+The boundary is explicit: no provider credentials, no remote quantum API, no
+QPU execution, no job submission, and $0.00 authorized spend. This is beta
+software for reproducible package/evidence workflows, not quantum advantage or
+peer-reviewed scientific validation.
+
+Install: python -m pip install "qs-dmss[quantum]==0.12.0"
+Studio: https://qs-dmss.studio
+Release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.12.0
+```
+
 ## Open Collective
 
 Recommended page link:

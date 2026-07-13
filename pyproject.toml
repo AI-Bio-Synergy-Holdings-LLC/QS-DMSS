@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "qs-dmss"
-version = "0.11.0"
-description = "Evidence-first QuantumScalar simulation lab with a hosted Studio workflow, scientific comparison workbooks, validation spines, provenance, replay, and publication-oriented research objects."
+version = "0.12.0"
+description = "Evidence-first QuantumScalar simulation lab with reproducible scientific workflows, validation spines, and simulator-first quantum-readiness artifacts."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
@@ -23,6 +23,8 @@ keywords = [
   "campaign studio",
   "research objects",
   "research software",
+  "quantum computing",
+  "quantum simulation",
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -51,7 +53,7 @@ Homepage = "https://qs-dmss.studio"
 Repository = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS"
 Issues = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues"
 Releases = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases"
-"Release Notes" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/release-v0.11.0.md"
+"Release Notes" = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/release-v0.12.0.md"
 Documentation = "https://qs-dmss.studio"
 Contributing = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/CONTRIBUTING.md"
 Review = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new/choose"
