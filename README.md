@@ -43,12 +43,12 @@ attribution matrix over generic topologies. These are local review artifacts,
 not provider integrations: no provider credentials, remote API calls, QPU
 execution, job submission, or authorized spend are included.
 
-The latest published and archived baseline remains `v0.11.0` until the
-`v0.12.0` release is tagged, published through Trusted Publishing, and archived
-by Zenodo.
+The current published and archived baseline is `v0.12.0`. The GitHub release,
+PyPI wheel/source distribution, and Zenodo record preserve the same release
+identity and simulator-first claim boundary.
 
 The latest archived release DOI is
-[v0.11.0 / 10.5281/zenodo.21319023](https://doi.org/10.5281/zenodo.21319023).
+[v0.12.0 / 10.5281/zenodo.21329711](https://doi.org/10.5281/zenodo.21329711).
 
 QS-DMSS remains beta for reproducible package/evidence workflows. Quantum
 readiness here means ideal-simulator semantic checks and transparent resource
@@ -600,7 +600,8 @@ use it when archiving GitHub releases.
 For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
-- Latest archived release DOI: [v0.11.0 / 10.5281/zenodo.21319023](https://doi.org/10.5281/zenodo.21319023)
+- Latest archived release DOI: [v0.12.0 / 10.5281/zenodo.21329711](https://doi.org/10.5281/zenodo.21329711)
+- Previous archived release DOI: [v0.11.0 / 10.5281/zenodo.21319023](https://doi.org/10.5281/zenodo.21319023)
 - Previous archived release DOI: [v0.10.1 / 10.5281/zenodo.21270512](https://doi.org/10.5281/zenodo.21270512)
 - Previous archived release DOI: [10.5281/zenodo.20693736](https://doi.org/10.5281/zenodo.20693736)
 - Previous archived release DOI: [v0.8.0 / 10.5281/zenodo.20673804](https://doi.org/10.5281/zenodo.20673804)

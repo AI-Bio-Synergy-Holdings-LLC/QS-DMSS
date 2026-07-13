@@ -10,7 +10,7 @@ Repository: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
 Release target: v0.12.0
 PyPI package: https://pypi.org/project/qs-dmss/0.12.0/
 Project DOI: https://doi.org/10.5281/zenodo.20074924
-Latest archived release DOI: https://doi.org/10.5281/zenodo.21319023
+Latest archived release DOI: https://doi.org/10.5281/zenodo.21329711
 Open Collective: https://opencollective.com/qs-dmss
 
 QS-DMSS helps users run simulations, inspect evidence, compare campaigns,

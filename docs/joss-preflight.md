@@ -40,7 +40,7 @@ workflow is a meaningful contribution to the research community.
 | --- | --- | --- | --- |
 | Public repository and issue workflow | Public GitHub repository, issue templates, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT | Ready | Keep development visible through ordinary issues and PRs |
 | OSI-approved license | Apache-2.0 `LICENSE` file | Ready | No action |
-| Installable package | PyPI `qs-dmss==0.12.0`, release wheel, Trusted Publishing, fresh-install smoke | Ready | `v0.12.0` adds provider-neutral simulator-first quantum-readiness evidence to the Hosted Studio, Fractal SSFM validation, public-data provenance, and reproducibility baseline; latest archived DOI during release preparation is the v0.11.0 record `10.5281/zenodo.21319023` |
+| Installable package | PyPI `qs-dmss==0.12.0`, release wheel, Trusted Publishing, fresh-install smoke | Ready | `v0.12.0` adds provider-neutral simulator-first quantum-readiness evidence to the Hosted Studio, Fractal SSFM validation, public-data provenance, and reproducibility baseline; archived release DOI is `10.5281/zenodo.21329711` |
 | Tests and CI | Pytest suite, benchmark smoke, wheel smoke, Docker smoke, CodeQL | Ready | Add tests only when behavior changes |
 | Documentation | README, reviewer quickstart, evidence glossary, benchmark docs, contributor map | Ready enough | Use reviewer feedback to patch confusing sections |
 | Example usage | `run-demo`, `campaigns run-demo`, `benchmarks validate` | Ready enough | Add a short tutorial only if reviewers need more context |

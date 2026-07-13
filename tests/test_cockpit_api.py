@@ -46,7 +46,7 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     assert structured_data["softwareVersion"] == __version__
     assert structured_data["isPartOf"]["url"] == "https://qs-dmss.studio/"
     assert structured_data["publisher"]["name"] == "AI-Bio Synergy Holdings LLC"
-    assert structured_data["citation"] == "https://doi.org/10.5281/zenodo.21319023"
+    assert structured_data["citation"] == "https://doi.org/10.5281/zenodo.21329711"
 
     social_preview = client.get("/static/hosted-demo-social-preview.png")
     assert social_preview.status_code == 200

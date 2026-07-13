@@ -6,12 +6,12 @@ would be most useful.
 
 Release target: `v0.12.0` / `qs-dmss==0.12.0`
 
-Latest archived public baseline at release preparation: `v0.11.0` /
-`qs-dmss==0.11.0`
+Current published and archived public baseline: `v0.12.0` /
+`qs-dmss==0.12.0`
 
 Canonical website: `https://qs-dmss.studio`
 
-Latest archived release DOI: `10.5281/zenodo.21319023` (`v0.11.0`).
+Latest archived release DOI: `10.5281/zenodo.21329711` (`v0.12.0`).
 
 Project DOI: `10.5281/zenodo.20074924`
 

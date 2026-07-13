@@ -12,7 +12,8 @@ Last reviewed: 2026-06-01
 - Website: `https://qs-dmss.studio`
 - PyPI package: `https://pypi.org/project/qs-dmss/`
 - Latest release target: `v0.12.0`
-- Latest archived release DOI: `10.5281/zenodo.21319023`
+- Latest archived release DOI: `10.5281/zenodo.21329711`
+- `v0.12.0` release DOI: `10.5281/zenodo.21329711`
 - `v0.11.0` release DOI: `10.5281/zenodo.21319023`
 - Previous archived release DOI: `10.5281/zenodo.20693736`
 - `v0.8.0` release DOI: `10.5281/zenodo.20673804`
