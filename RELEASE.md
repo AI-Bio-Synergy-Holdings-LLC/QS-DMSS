@@ -50,6 +50,18 @@ replace them.
 - The reviewer quickstart lives in
   [docs/reviewer-wheel-quickstart.md](docs/reviewer-wheel-quickstart.md).
 
+## Licensing And Commercial Boundary
+
+- Public release wheels and source distributions remain Apache-2.0.
+- Do not include research-only, proprietary, customer-confidential, or
+  provider-restricted components in public distributions.
+- Hosted-service terms and operational limits must not be presented as changes
+  to local software rights.
+- Before preparing `v0.12.0`, verify the accepted
+  [commercial sustainability and licensing boundary](docs/decisions/0001-commercial-sustainability-and-licensing-boundary.md).
+- A future license change requires a separate decision record, copyright and
+  dependency inventory, program-eligibility review, and qualified legal review.
+
 ## Patch Release Promotion Checklist
 
 1. Resolve reviewer feedback against the latest release branch.

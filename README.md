@@ -20,6 +20,11 @@ QS-DMSS is created, managed, and maintained by AI-Bio Synergy Holdings LLC.
 Access, use, attribution, contribution, funding, and claim-boundary details
 are summarized in
 [docs/ownership-and-use.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ownership-and-use.md).
+The accepted
+[commercial sustainability and licensing boundary](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/decisions/0001-commercial-sustainability-and-licensing-boundary.md)
+keeps the public core and package under Apache-2.0 while requiring paid
+services, private operations, and separately licensed integrations to remain
+clearly separated.
 
 The canonical public website front door is
 [qs-dmss.studio](https://qs-dmss.studio). It is a static GitHub Pages site
@@ -533,6 +538,9 @@ and GitHub social preview setup lives in
 Ownership, use, citation, contribution, funding, and claim-boundary guidance
 lives in
 [docs/ownership-and-use.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ownership-and-use.md).
+Commercial sustainability, hosted-service, contribution, and future licensing
+boundaries are recorded in
+[ADR 0001](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/decisions/0001-commercial-sustainability-and-licensing-boundary.md).
 
 Scholarly indexing readiness and public-launch materials live in
 [docs/ascl-joss-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/ascl-joss-readiness.md)
@@ -555,11 +563,12 @@ with paper strategy notes in
 QS-DMSS has been accepted into Open Source Collective. Support can be directed
 through [Open Collective](https://opencollective.com/qs-dmss).
 
-The current funding ask is concrete: help build QS-DMSS Lab Mode and the
-publication-grade artifact workflow around it. Funding should unlock visible
-public outcomes such as cockpit improvements, scenario packs, evidence
-exploration, report exports, campaign tooling, benchmark scenarios, and
-research-software documentation.
+The current funding ask is concrete: help strengthen independent validation,
+interoperability, and contributor-ready research workflows around the shipped
+Lab Mode and publication-artifact foundation. Funding should unlock visible
+public outcomes such as reviewer-ready validation evidence, scenario packs,
+safe dry-run HPC/quantum interfaces, report improvements, benchmark scenarios,
+and research-software documentation.
 
 The funding roadmap lives in
 [docs/funding-roadmap.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/funding-roadmap.md).
@@ -568,6 +577,10 @@ Funding support does not imply peer-reviewed scientific validation or
 endorsement of any physical model. Scientific claims should continue to be
 reviewed through reproducible evidence, public issues, and formal scholarly
 review.
+
+Donations and public milestone sponsorship are distinct from paid hosting,
+support, deployment, or integration services. Neither changes the Apache-2.0
+rights granted for the public core.
 
 ## Citation
 

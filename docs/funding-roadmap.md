@@ -15,6 +15,11 @@ Funding support does not change QS-DMSS access, license, ownership,
 attribution, or scientific-claim boundaries. See
 [`ownership-and-use.md`](ownership-and-use.md).
 
+Donations and public milestone sponsorship are distinct from paid hosting,
+support, deployment, or integration services. The separation rules are defined
+in the accepted
+[commercial sustainability and licensing boundary](decisions/0001-commercial-sustainability-and-licensing-boundary.md).
+
 ## Funding Principles
 
 - Fund outcomes, not vague maintenance.
@@ -121,17 +126,20 @@ claims, or hidden feature development that bypasses the public project.
 
 The best current ask is:
 
-> Help fund QS-DMSS Lab Mode: a cockpit experience for running simulations,
-> inspecting evidence, comparing campaigns, verifying/replaying results, and
-> exporting publication-grade artifacts.
+> Help fund independent validation and interoperability for QS-DMSS: strengthen
+> reviewer-ready numerical and quantum-compilation evidence, expand reproducible
+> scenarios, and improve safe dry-run HPC/provider interfaces without adding
+> unsupported execution or scientific claims.
 
-That is the strongest donation story because it is concrete, differentiated,
-and aligned with what already makes QS-DMSS more than another solver.
+That is the strongest current donation story because Lab Mode, Campaign Studio,
+and publication exports have shipped. The next public value is making those
+workflows easier to scrutinize, reproduce, extend, and integrate safely.
 
 The current release target is `v0.11.0`, and the immediate
 trust-building gate is scientific review of the installable Fractal/Quadrant
 SSFM validation harness on
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`. Funding
-support should help convert that kind of review into clearer validation
-artifacts, stronger documentation, and carefully staged future build slices, not
-premature GPU expansion or unsupported scientific claims.
+support should help convert that review and the merged quantum compilation
+matrix into clearer validation artifacts, stronger documentation, and carefully
+staged future build slices, not premature GPU/provider expansion or unsupported
+scientific claims.

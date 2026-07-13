@@ -46,3 +46,20 @@ node --check src\qs_dmss\cockpit\static\app.js
 - Do not commit local runtime outputs, build artifacts, `.env`, `.pypirc`, or
   generated run/experiment data.
 - Security concerns should follow `SECURITY.md`, not public issue threads.
+
+## Contribution Licensing
+
+The public QS-DMSS core is distributed under Apache-2.0. By intentionally
+submitting a contribution for inclusion in this repository, you agree that the
+contribution may be distributed under Apache-2.0 and confirm that you have the
+right to submit it.
+
+Do not submit code, data, model files, provider material, or documentation whose
+terms are incompatible with Apache-2.0 distribution. Identify relevant
+third-party sources and licenses in the pull request.
+
+QS-DMSS does not currently require copyright assignment or a contributor
+license agreement. Commercial or separately licensed work must not be submitted
+through the public repository unless the maintainer has established a separate,
+counsel-reviewed process first. See the
+[commercial sustainability and licensing boundary](docs/decisions/0001-commercial-sustainability-and-licensing-boundary.md).
