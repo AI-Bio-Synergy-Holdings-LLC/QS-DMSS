@@ -9,8 +9,8 @@ The current QS-DMSS direction is:
 run simulations -> inspect evidence -> compare campaigns -> publish reproducible artifacts
 ```
 
-The current release target is `qs-dmss==0.12.0`. The latest archived DOI during
-release preparation remains `v0.11.0` / `10.5281/zenodo.21319023`.
+The current public baseline is `qs-dmss==0.12.0`. The latest archived DOI is
+`v0.12.0` / `10.5281/zenodo.21329711`.
 
 ## Strategic Shift
 

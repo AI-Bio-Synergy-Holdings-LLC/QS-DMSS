@@ -125,9 +125,9 @@ def test_static_site_metadata_hardening() -> None:
     assert "Sitemap: https://qs-dmss.studio/sitemap.xml" in robots
     assert "Allow: /llms.txt" in robots
     assert "<loc>https://qs-dmss.studio/</loc>" in sitemap
-    assert "<lastmod>2026-07-12</lastmod>" in sitemap
+    assert "<lastmod>2026-07-13</lastmod>" in sitemap
     assert "<image:loc>https://qs-dmss.studio/assets/social-preview.png</image:loc>" in sitemap
-    assert "Latest archived release DOI: https://doi.org/10.5281/zenodo.21319023" in llms
+    assert "Latest archived release DOI: https://doi.org/10.5281/zenodo.21329711" in llms
     assert "Release target: v0.12.0" in llms
     assert "provider credentials, remote API, QPU execution" in llms
     assert "Hosted demo: https://app.qs-dmss.studio/" in llms

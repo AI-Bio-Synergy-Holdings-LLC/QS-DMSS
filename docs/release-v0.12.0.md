@@ -120,10 +120,8 @@ a quantum provider.
 ## Citation Status
 
 - Project DOI: `10.5281/zenodo.20074924`
-- Latest archived release at release preparation: `v0.11.0` /
-  `10.5281/zenodo.21319023`
+- v0.12.0 release DOI: `10.5281/zenodo.21329711`
+- Previous archived release: `v0.11.0` / `10.5281/zenodo.21319023`
 
-After Zenodo archives `v0.12.0`, update `CITATION.cff`, `README.md`,
-`codemeta.json`, citation docs, and the GitHub release notes with the newly
-minted version DOI. Do not delay package validation while waiting for that
-metadata-only follow-up.
+The v0.12.0 DOI is recorded in `CITATION.cff`, `README.md`, `codemeta.json`,
+Studio/cockpit metadata, citation docs, and the GitHub release notes.

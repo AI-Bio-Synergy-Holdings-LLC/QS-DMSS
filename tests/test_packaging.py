@@ -73,8 +73,8 @@ def test_public_discovery_metadata_is_present() -> None:
     assert urls["Homepage"] == "https://qs-dmss.studio"
     assert urls["QS-DMSS Studio"] == "https://qs-dmss.studio"
     assert urls["Documentation"] == "https://qs-dmss.studio"
-    assert urls["Latest Archived Release DOI"] == "https://doi.org/10.5281/zenodo.21319023"
-    assert urls["Zenodo"] == "https://zenodo.org/records/21319023"
+    assert urls["Latest Archived Release DOI"] == "https://doi.org/10.5281/zenodo.21329711"
+    assert urls["Zenodo"] == "https://zenodo.org/records/21329711"
     assert urls["Release Notes"].endswith("/docs/release-v0.12.0.md")
 
 
@@ -86,6 +86,6 @@ def test_codemeta_release_metadata_is_aligned() -> None:
 
     assert codemeta["softwareVersion"] == declared_version
     assert codemeta["version"] == declared_version
-    assert codemeta["citation"] == "https://doi.org/10.5281/zenodo.21319023"
+    assert codemeta["citation"] == "https://doi.org/10.5281/zenodo.21329711"
     assert codemeta["url"] == "https://qs-dmss.studio"
     assert codemeta["releaseNotes"].endswith(f"/releases/tag/v{declared_version}")

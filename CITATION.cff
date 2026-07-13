@@ -3,7 +3,7 @@ message: "If you use QS-DMSS, please cite the software release below."
 type: software
 title: "QS-DMSS: QuantumScalar Dark Matter Simulation Suite"
 version: 0.12.0
-date-released: 2026-07-12
+date-released: 2026-07-13
 license: Apache-2.0
 abstract: "Evidence-first QuantumScalar dark matter simulation software with deterministic local runs, hosted Studio workflows, validation spines, provider-neutral simulator-first quantum-readiness artifacts, public reference-data provenance, dry-run Slurm request bundles, publication exports, replay, and reproducible evidence bundles."
 authors:
@@ -11,8 +11,11 @@ authors:
 doi: 10.5281/zenodo.20074924
 identifiers:
   - type: doi
+    value: 10.5281/zenodo.21329711
+    description: "Archived release DOI for v0.12.0."
+  - type: doi
     value: 10.5281/zenodo.21319023
-    description: "Archived release DOI for v0.11.0."
+    description: "Previous archived release DOI for v0.11.0."
   - type: doi
     value: 10.5281/zenodo.21270512
     description: "Previous archived release DOI for v0.10.1."
