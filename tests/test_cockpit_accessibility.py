@@ -169,6 +169,7 @@ def test_cockpit_styles_encode_wcag_interaction_baseline() -> None:
 
     assert "--rail-width: 120px" in css
     assert ".skip-link:focus" in css
+    assert ".visually-hidden {" in css
     assert 'input[type="checkbox"]:not(.visually-hidden-input)' in css
     assert "min-width: 24px" in css
     assert "@media (forced-colors: active)" in css
@@ -198,6 +199,7 @@ def test_cockpit_styles_encode_wcag_interaction_baseline() -> None:
     assert ".research-runbook-step.is-current" in css
     assert ".evidence-assistant-prompts" in css
     assert '.evidence-assistant-prompts button[aria-pressed="true"]' in css
+    assert ".research-runbook-head .selection-chip" in css
     assert "@media (max-width: 1050px)" in css
     quantum_table_wrap = re.search(
         r"\.quantum-table-wrap\s*\{(?P<rules>.*?)\}",

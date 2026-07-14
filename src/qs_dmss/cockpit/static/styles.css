@@ -3678,6 +3678,18 @@ body {
   white-space: nowrap;
 }
 
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
 .demo-path,
 .scenario-library-card,
 .lab-comparison-card,
@@ -6102,6 +6114,13 @@ details[id] {
   font-size: clamp(1.35rem, 2.4vw, 1.8rem);
 }
 
+.research-runbook-head .selection-chip {
+  width: max-content;
+  max-width: 100%;
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .research-runbook-head p:not(.panel-kicker),
 .evidence-assistant-context,
 .evidence-assistant-response > p:not(.artifact-list-title),
@@ -6192,6 +6211,7 @@ details[id] {
   font-weight: 800;
   text-align: center;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .research-runbook-step > a:hover,
