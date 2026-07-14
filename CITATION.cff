@@ -13,6 +13,9 @@ identifiers:
     value: 10.5281/zenodo.20074924
     description: "Zenodo concept DOI for the continuing QS-DMSS project."
   - type: doi
+    value: 10.5281/zenodo.21348597
+    description: "Archived release DOI for v0.13.1."
+  - type: doi
     value: 10.5281/zenodo.21348257
     description: "Archived release DOI for v0.13.0."
   - type: doi

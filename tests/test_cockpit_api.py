@@ -50,7 +50,7 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     assert structured_data["softwareVersion"] == __version__
     assert structured_data["isPartOf"]["url"] == "https://qs-dmss.studio/"
     assert structured_data["publisher"]["name"] == "AI-Bio Synergy Holdings LLC"
-    assert structured_data["citation"] == "https://doi.org/10.5281/zenodo.21348257"
+    assert structured_data["citation"] == "https://doi.org/10.5281/zenodo.21348597"
 
     social_preview = client.get("/static/hosted-demo-social-preview.png")
     assert social_preview.status_code == 200
@@ -80,12 +80,12 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     assert health_payload["release"] == {
         "version": __version__,
         "tag": f"v{__version__}",
-        "latest_archived_release_tag": "v0.13.0",
+        "latest_archived_release_tag": "v0.13.1",
         "project_doi": "10.5281/zenodo.20074924",
         "project_doi_url": "https://doi.org/10.5281/zenodo.20074924",
-        "archived_release_doi": "10.5281/zenodo.21348257",
-        "archived_release_doi_url": "https://doi.org/10.5281/zenodo.21348257",
-        "archived_release_record_url": "https://zenodo.org/records/21348257",
+        "archived_release_doi": "10.5281/zenodo.21348597",
+        "archived_release_doi_url": "https://doi.org/10.5281/zenodo.21348597",
+        "archived_release_record_url": "https://zenodo.org/records/21348597",
     }
     assert Path(health_payload["package_root"]).name == "qs_dmss"
     capabilities = health_payload["capabilities"]

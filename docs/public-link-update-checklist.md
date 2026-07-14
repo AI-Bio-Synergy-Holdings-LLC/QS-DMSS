@@ -27,6 +27,19 @@ The next package release should expose the Studio site through project metadata:
 Keep Repository, Issues, Releases, PyPI, DOI, and Reviewer links as supporting
 project URLs.
 
+## v0.13.1 Publication Status
+
+v0.13.1 is published on GitHub, archived by Zenodo, and distributed on PyPI:
+
+- GitHub release: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.13.1`
+- Version DOI: `https://doi.org/10.5281/zenodo.21348597`
+- Zenodo record: `https://zenodo.org/records/21348597`
+- PyPI package: `https://pypi.org/project/qs-dmss/0.13.1/`
+
+v0.13.1 is a metadata-only patch. It publishes release-stable package metadata
+and the current citation record while carrying the local-first Studio features
+introduced in v0.13.0.
+
 ## v0.13.0 Publication Status
 
 v0.13.0 is published on GitHub and archived by Zenodo:

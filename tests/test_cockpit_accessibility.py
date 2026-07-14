@@ -50,7 +50,7 @@ def test_cockpit_shell_has_accessible_navigation_and_landmarks() -> None:
     assert 'id="releaseDoi"' in html
     assert 'id="projectDoi"' in html
     assert "Build v0.13.1" in html
-    assert "Latest archive v0.13.0 DOI 10.5281/zenodo.21348257" in html
+    assert "Latest archive v0.13.1 DOI 10.5281/zenodo.21348597" in html
     assert "Project DOI 10.5281/zenodo.20074924" in html
 
     navigation_labels = [
