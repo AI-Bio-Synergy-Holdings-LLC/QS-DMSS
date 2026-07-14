@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import html
 import json
+import os
 import re
 import shutil
 import uuid
@@ -596,16 +597,28 @@ def _copy_run_capture(
     destination_dir: Path,
     experiment_dir: Path,
 ) -> dict[str, str]:
-    destination_dir.mkdir(parents=True, exist_ok=True)
+    Path(_copy_compatible_path(destination_dir)).mkdir(parents=True, exist_ok=True)
     copied: dict[str, str] = {}
     for filename, key in _CAPTURED_RUN_FILES.items():
         source = run_dir / filename
         if not source.exists():
             continue
         target = destination_dir / filename
-        shutil.copy2(source, target)
+        shutil.copy2(_copy_compatible_path(source), _copy_compatible_path(target))
         copied[key] = target.relative_to(experiment_dir).as_posix()
     return copied
+
+
+def _copy_compatible_path(path: Path) -> Path | str:
+    """Return a copy-safe path, including extended-length Windows support."""
+    if os.name != "nt":
+        return path
+    absolute = str(path.resolve())
+    if absolute.startswith("\\\\?\\"):
+        return absolute
+    if absolute.startswith("\\\\"):
+        return f"\\\\?\\UNC\\{absolute[2:]}"
+    return f"\\\\?\\{absolute}"
 
 
 def _shared_context_from_campaign_plan(campaign_plan: dict[str, Any]) -> dict[str, Any]:

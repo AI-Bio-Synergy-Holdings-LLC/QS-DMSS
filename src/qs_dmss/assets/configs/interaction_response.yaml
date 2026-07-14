@@ -1,0 +1,32 @@
+run:
+  name: interaction-response
+  seed: 11
+  output_root: runs
+engine:
+  backend: numpy
+  grid_shape: [16, 16, 16]
+  box_size: 1.0
+  mass: 1.0
+  g_int: 0.12
+  time_step: 0.01
+  num_steps: 24
+  log_every: 2
+initial:
+  kind: gaussian
+  amplitude: 1.0
+  width: 0.25
+  random_phase: false
+objective:
+  name: Interaction response
+  summary: Quantify numerical response to a declared moderate self-interaction under a fixed Gaussian initial condition.
+  primary_metric: energy_drift
+  goal: minimize_abs
+constraints:
+  max_abs_energy_drift: 0.2
+  max_abs_norm_drift: 0.2
+  min_max_density: 0.4
+  max_elapsed_seconds: 15.0
+  require_verification: true
+ranking:
+  primary_metric_weight: 2.2
+  weights: {energy_drift: 1.0, norm_drift: 0.9, max_density: 0.5, elapsed_seconds: 0.2}

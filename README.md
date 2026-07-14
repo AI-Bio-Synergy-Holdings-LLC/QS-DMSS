@@ -260,6 +260,22 @@ read-only snapshot of this matrix with resource-attribution charts and the
 downloadable evidence bundle. The hosted view never transpiles circuits,
 contacts a provider, reads credentials, submits a QPU job, or authorizes spend.
 
+The full local Studio exposes the same validator as a live application
+workflow. Install the optional quantum stack, start the cockpit from this
+checkout, open **Quantum Validation**, choose the shot count, deterministic
+seed, and tolerances, and select **Run validation harness**:
+
+```powershell
+python -m pip install -e ".[dev,quantum]"
+python -m qs_dmss.cli cockpit --host 127.0.0.1 --port 8001
+```
+
+Each local execution runs the real 12-row compilation matrix and stores its
+JSON, Markdown, HTML, CSV, circuit, checksum, and evidence ZIP artifacts under
+the configured cockpit output root. The Studio reopens the latest persisted
+run after a restart. This remains simulator-only: it does not contact a
+provider, read credentials, submit to a QPU, or authorize spend.
+
 Run the public reference-data provenance calibration sandbox:
 
 ```powershell
@@ -357,8 +373,24 @@ qs-dmss cockpit --host 127.0.0.1 --port 8001
 
 Then open [http://127.0.0.1:8001](http://127.0.0.1:8001) in a browser.
 
+When validating an unreleased checkout, stop any older cockpit process before
+reinstalling and starting it from the same virtual environment:
+
+```powershell
+python -m pip install -e .
+python -m qs_dmss.cli cockpit --host 127.0.0.1 --port 8001
+```
+
+The `/api/health` response reports `version`, `package_root`, `ui_contract`, and
+runtime `capabilities`. Use those fields to confirm that the browser is served
+by the intended checkout rather than a stale installed wheel.
+
 Inside the cockpit you can:
 
+- Execute the live local quantum compilation-validation harness, inspect its
+  12 topology/optimization rows and verification gates, and reopen or download
+  the persisted evidence package; the hosted Studio intentionally remains a
+  read-only scientific archive
 - Use Lab Mode to launch the packaged canonical simulation showcase, read guided interpretation, run a guided variant comparison, inspect the Evidence Explorer, preview generated reports/artifacts, compose a research object export, and open the full evidence outputs
 - Inspect Scenario Library metadata for packaged scenarios, including purpose, expected runtime, artifacts, readiness, limitations, and suggested next actions
 - Select the packaged Self-Interaction Sweep study template to inspect purpose, expected runtime, metrics, limitations, non-claims, and guided interpretation for an `engine.g_int` campaign

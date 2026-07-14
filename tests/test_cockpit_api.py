@@ -2,8 +2,11 @@ from __future__ import annotations
 
 from copy import deepcopy
 import hashlib
+import io
 import json
 import re
+import shutil
+import zipfile
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -11,6 +14,7 @@ from fastapi.testclient import TestClient
 from qs_dmss import __version__
 from qs_dmss.cockpit import api as cockpit_api
 from qs_dmss.cockpit.api import create_app
+from qs_dmss.quantum_showcase import quantum_compilation_showcase_root
 
 
 def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
@@ -70,6 +74,24 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
 
     health = client.get("/api/health")
     assert health.status_code == 200
+    health_payload = health.json()
+    assert health_payload["version"] == __version__
+    assert health_payload["ui_contract"] == "research-command-center-v2"
+    assert health_payload["release"] == {
+        "version": __version__,
+        "tag": f"v{__version__}",
+        "project_doi": "10.5281/zenodo.20074924",
+        "project_doi_url": "https://doi.org/10.5281/zenodo.20074924",
+        "archived_release_doi": "10.5281/zenodo.21329711",
+        "archived_release_doi_url": "https://doi.org/10.5281/zenodo.21329711",
+        "archived_release_record_url": "https://zenodo.org/records/21329711",
+    }
+    assert Path(health_payload["package_root"]).name == "qs_dmss"
+    capabilities = health_payload["capabilities"]
+    assert capabilities["quantum_validation_snapshot"] is True
+    assert capabilities["quantum_validation_live"] is capabilities["quantum_stack_available"]
+    assert capabilities["client_sweep_preflight"] is True
+    assert capabilities["hosted_custom_compute"] is True
     assert health.headers["x-robots-tag"] == (
         "noindex, nofollow, noarchive, nosnippet"
     )
@@ -149,7 +171,90 @@ def test_cockpit_quantum_validation_showcase_is_read_only(tmp_path: Path) -> Non
     assert client.get("/api/quantum-validation/files/../../pyproject.toml").status_code == 404
     assert client.get("/api/quantum-validation/files/not-allowlisted").status_code == 404
     assert client.post("/api/quantum-validation").status_code == 405
+    live_response = client.post(
+        "/api/quantum-validation/runs",
+        json={"shots": 128, "seed": 7},
+    )
+    assert live_response.status_code == 403
+    assert "local full application" in live_response.json()["detail"]
     assert client.get("/api/jobs/not-a-job").status_code == 404
+
+
+def test_cockpit_local_quantum_validation_runs_and_persists_artifacts(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+
+    def fake_validation(*, output_root: str | Path, **kwargs) -> dict:
+        shutil.copytree(
+            quantum_compilation_showcase_root(),
+            Path(output_root),
+            dirs_exist_ok=True,
+        )
+        return {"success": True, "parameters": kwargs}
+
+    real_find_spec = cockpit_api.importlib.util.find_spec
+    monkeypatch.setattr(
+        cockpit_api.importlib.util,
+        "find_spec",
+        lambda name: object()
+        if name in {"qiskit", "qiskit_aer"}
+        else real_find_spec(name),
+    )
+    monkeypatch.setattr(
+        cockpit_api,
+        "validate_fractal_quantum_compilation",
+        fake_validation,
+    )
+
+    app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
+    client = TestClient(app)
+    response = client.post(
+        "/api/quantum-validation/runs",
+        json={
+            "shots": 128,
+            "seed": 11,
+            "reference_tolerance": 1e-10,
+            "compilation_tolerance": 1e-6,
+        },
+    )
+
+    assert response.status_code == 200
+    payload = response.json()
+    assert payload["source"] == "live_local_run"
+    assert payload["status"] == "pass"
+    assert payload["runtime"]["live_execution"] is True
+    assert payload["run"]["parameters"]["shots"] == 128
+    assert payload["run"]["parameters"]["seed"] == 11
+    assert payload["visualization"]["source_run_id"] == payload["run"]["run_id"]
+    assert len(payload["visualization"]["resource_fingerprint"]) == 64
+    assert payload["visualization"]["matrix_row_count"] == 12
+    assert payload["visualization"]["matrix_resource_value_count"] == 24
+    assert payload["visualization"]["attribution_component_count"] == 4
+    assert payload["visualization"]["attribution_resource_value_count"] == 8
+    assert Path(payload["run"]["output_directory"]).is_dir()
+    assert payload["validation"]["rows_passing"] == 12
+    assert payload["downloads"]["bundle"].startswith(
+        f"/api/quantum-validation/runs/{payload['run']['run_id']}/files/"
+    )
+
+    latest = client.get("/api/quantum-validation/runs/latest")
+    assert latest.status_code == 200
+    assert latest.json()["available"] is True
+    assert latest.json()["result"]["run"]["run_id"] == payload["run"]["run_id"]
+    assert (
+        latest.json()["result"]["visualization"]["resource_fingerprint"]
+        == payload["visualization"]["resource_fingerprint"]
+    )
+
+    bundle = client.get(payload["downloads"]["bundle"])
+    assert bundle.status_code == 200
+    assert bundle.headers["content-type"].startswith("application/zip")
+    traversal = client.get(
+        f"/api/quantum-validation/runs/{payload['run']['run_id']}/files/not-allowlisted"
+    )
+    assert traversal.status_code == 404
 
 
 def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
@@ -246,8 +351,18 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
 
     config_payload = client.get("/api/configs")
     assert config_payload.status_code == 200
-    config_item = config_payload.json()["items"][0]
+    config_items = config_payload.json()["items"]
+    config_item = config_items[0]
     assert config_item["name"] == "demo.yaml"
+    assert len(config_items) >= 5
+    assert {item["name"] for item in config_items}.issuperset(
+        {
+            "conservation_baseline.yaml",
+            "interaction_response.yaml",
+            "uniform_control.yaml",
+        }
+    )
+    assert all(item["summary"] and item["evidence_focus"] for item in config_items)
 
     launch_payload = client.post(
         "/api/runs",
@@ -298,9 +413,32 @@ def test_cockpit_api_launch_verify_and_replay(tmp_path: Path) -> None:
         "noindex, nofollow, noarchive, nosnippet"
     )
 
+    assert created_run["urls"]["review_bundle"].endswith("/review-bundle")
+    assert created_run["urls"]["state_bundle"].endswith("/state-bundle")
+    review_bundle = client.get(created_run["urls"]["review_bundle"])
+    state_bundle = client.get(created_run["urls"]["state_bundle"])
+    assert review_bundle.status_code == 200
+    assert state_bundle.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(review_bundle.content)) as archive:
+        review_names = set(archive.namelist())
+        review_profile = json.loads(archive.read("bundle-profile.json"))
+    assert review_profile["profile"] == "review"
+    assert review_profile["run_id"] == run_id
+    assert {"report.html", "metrics.json", "environment.lock.json"}.issubset(review_names)
+    assert "artifacts/final_state.npz" not in review_names
+    with zipfile.ZipFile(io.BytesIO(state_bundle.content)) as archive:
+        state_names = set(archive.namelist())
+        state_profile = json.loads(archive.read("bundle-profile.json"))
+    assert state_profile["profile"] == "state"
+    assert {"artifacts/final_density.npy", "artifacts/final_state.npz"}.issubset(state_names)
+
     report_payload = client.get(f"/api/runs/{run_id}/report")
     assert report_payload.status_code == 200
     assert "QS-DMSS Evidence Report" in report_payload.text
+    assert "Conservation evidence plate" in report_payload.text
+    assert "Executive diagnostic summary" in report_payload.text
+    assert "run_conservation_diagnostics" in report_payload.text
+    assert "numerical conservation diagnostics; not physical validation" in report_payload.text
     assert report_payload.headers["x-robots-tag"] == (
         "noindex, nofollow, noarchive, nosnippet"
     )
@@ -329,6 +467,11 @@ def test_cockpit_hosted_demo_uses_session_scoped_outputs(tmp_path: Path) -> None
     assert health_payload["hosted_demo"]["read_only_surfaces"] == [
         "precomputed Fractal SSFM quantum compilation validation"
     ]
+    capabilities = health_payload["capabilities"]
+    assert capabilities["quantum_validation_snapshot"] is True
+    assert capabilities["quantum_validation_live"] is False
+    assert capabilities["client_sweep_preflight"] is True
+    assert capabilities["hosted_custom_compute"] is False
     assert "qs_dmss_demo_session" in first_client.cookies
     assert Path(health_payload["output_root"]).parents[1].name == "sessions"
 
@@ -699,6 +842,8 @@ def test_cockpit_api_launches_guided_showcase_comparison(tmp_path: Path) -> None
     assert experiment_report.status_code == 200
     assert "QS-DMSS Experiment Report" in experiment_report.text
     assert "Variant evidence plate" in experiment_report.text
+    assert "Interpretive comparison summary" in experiment_report.text
+    assert "Smallest |energy drift|" in experiment_report.text
     assert "Marker key" in experiment_report.text
     assert "Dry-run Slurm" in experiment_report.text
     assert "Validation spine" in experiment_report.text
@@ -709,6 +854,7 @@ def test_cockpit_api_launches_guided_showcase_comparison(tmp_path: Path) -> None
     assert "QS-DMSS Research Workbook" in experiment_workbook.text
     assert 'role="tablist"' in experiment_workbook.text
     assert "Embedded comparison data" in experiment_workbook.text
+    assert "Interpretive comparison summary" in experiment_workbook.text
     assert experiment_workbook.text != experiment_report.text
 
     workbook_download = client.get(guided["urls"]["workbook_download"])

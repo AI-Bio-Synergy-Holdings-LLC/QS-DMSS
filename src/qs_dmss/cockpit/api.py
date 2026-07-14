@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import hashlib
+import importlib.util
 import json
 import os
 import secrets
 import shutil
 import threading
 import time
+import zipfile
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -18,6 +20,7 @@ from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Res
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
+from qs_dmss import __version__
 from qs_dmss.app import execute_run, replay_run as replay_existing_run
 from qs_dmss.decision import evaluate_run_decision
 from qs_dmss.evidence.verify import verify_run_path
@@ -59,8 +62,16 @@ from qs_dmss.paths import (
     runs_root,
     safe_filename,
 )
+from qs_dmss.quantum_compilation import (
+    BASIS_GATES,
+    OPTIMIZATION_LEVELS,
+    TOPOLOGY_PROFILES,
+    validate_fractal_quantum_compilation,
+)
 from qs_dmss.quantum_showcase import (
+    load_quantum_compilation_directory,
     load_quantum_compilation_showcase,
+    quantum_compilation_artifact_path,
     quantum_compilation_showcase_artifact_key,
     quantum_compilation_showcase_path,
 )
@@ -80,6 +91,9 @@ HOSTED_DEMO_COOKIE_NAME = "qs_dmss_demo_session"
 HOSTED_DEMO_ENV_VAR = "QS_DMSS_HOSTED_DEMO"
 HOSTED_DEMO_SELF_INTERACTION_TEMPLATE_ID = "self-interaction-sweep"
 HOSTED_DEMO_PUBLIC_URL = "https://app.qs-dmss.studio/"
+PROJECT_DOI = "10.5281/zenodo.20074924"
+RELEASE_DOI = "10.5281/zenodo.21329711"
+RELEASE_RECORD_URL = "https://zenodo.org/records/21329711"
 HOSTED_DEMO_ROBOTS = """User-agent: *
 Allow: /
 Allow: /static/
@@ -100,6 +114,75 @@ HOSTED_DEMO_SITEMAP = """<?xml version="1.0" encoding="UTF-8"?>
 NOINDEX_RESPONSE_PATHS = ("/api/", "/docs", "/redoc", "/openapi.json")
 _HOSTED_DEMO_ACTIVE_JOBS: set[str] = set()
 _HOSTED_DEMO_ACTIVE_JOBS_LOCK = threading.Lock()
+_QUANTUM_VALIDATION_ACTIVE_LOCK = threading.Lock()
+QUANTUM_RUN_METADATA = "cockpit-run.json"
+
+CONFIG_CATALOG_METADATA: dict[str, dict[str, str]] = {
+    "demo.yaml": {
+        "label": "Stability Frontier Demo",
+        "study_type": "Decision campaign",
+        "summary": "Small deterministic Gaussian-packet study with an objective, constraints, ranking, and a six-run campaign matrix.",
+        "evidence_focus": "Energy drift, norm drift, density retention, verification, and ranked selection.",
+    },
+    "conservation_baseline.yaml": {
+        "label": "Conservation Baseline",
+        "study_type": "Numerical control",
+        "summary": "Non-interacting Gaussian packet used to establish the solver's conservation baseline before interaction terms are introduced.",
+        "evidence_focus": "Relative energy and norm change under a declared zero-interaction control.",
+    },
+    "fractal_quadrant_ssfm.yaml": {
+        "label": "Fractal Quadrant SSFM",
+        "study_type": "Structured-potential study",
+        "summary": "Fractal fuzzy-potential reference using the quadrant-aware split-step Fourier solver.",
+        "evidence_focus": "Conservation diagnostics, spectral behavior, replay, and environment provenance.",
+    },
+    "interaction_response.yaml": {
+        "label": "Interaction Response",
+        "study_type": "Perturbation study",
+        "summary": "Moderate self-interaction study for inspecting how a fixed initial packet responds to a declared nonlinear term.",
+        "evidence_focus": "Energy and norm drift, peak density, elapsed time, and evidence verification.",
+    },
+    "uniform_control.yaml": {
+        "label": "Uniform Field Control",
+        "study_type": "Initial-state control",
+        "summary": "Uniform-field control that separates initial-profile effects from Gaussian localization effects.",
+        "evidence_focus": "Uniform-state stability, deterministic replay, and cross-profile comparison readiness.",
+    },
+}
+
+RUN_BUNDLE_PROFILES: dict[str, dict[str, Any]] = {
+    "review": {
+        "title": "Scientific review bundle",
+        "claim_boundary": (
+            "Human-readable configuration, diagnostics, report, environment, and integrity records. "
+            "This package supports review of numerical evidence; it is not physical validation."
+        ),
+        "files": (
+            "config.yaml",
+            "energy.csv",
+            "environment.lock.json",
+            "metrics.json",
+            "run.json",
+            "report.html",
+            "manifest.sha256.json",
+        ),
+    },
+    "state": {
+        "title": "Reproducibility state bundle",
+        "claim_boundary": (
+            "Configuration, final numerical state, run metadata, metrics, and integrity manifest "
+            "for controlled replay and downstream inspection."
+        ),
+        "files": (
+            "config.yaml",
+            "metrics.json",
+            "run.json",
+            "manifest.sha256.json",
+            "artifacts/final_density.npy",
+            "artifacts/final_state.npz",
+        ),
+    },
+}
 
 
 def _file_sha256(path: Path) -> str:
@@ -108,6 +191,43 @@ def _file_sha256(path: Path) -> str:
         for chunk in iter(lambda: handle.read(1024 * 1024), b""):
             digest.update(chunk)
     return digest.hexdigest()
+
+
+def _quantum_visualization_lineage(payload: dict[str, Any], source_id: str) -> dict[str, Any]:
+    matrix_resources = [
+        {
+            "topology_id": row.get("topology_id"),
+            "optimization_level": row.get("optimization_level"),
+            "depth": (row.get("resources") or {}).get("depth"),
+            "two_qubit_gates": (row.get("resources") or {}).get("two_qubit_gates"),
+        }
+        for row in payload.get("matrix", [])
+    ]
+    attribution = (payload.get("recommended_configuration") or {}).get("attribution") or {}
+    attribution_resources = {
+        name: {
+            "depth": resources.get("depth"),
+            "two_qubit_gates": resources.get("two_qubit_gates"),
+        }
+        for name, resources in sorted(attribution.items())
+    }
+    chart_data = {
+        "matrix_resources": matrix_resources,
+        "recommended_attribution": attribution_resources,
+    }
+    encoded = json.dumps(
+        chart_data,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode("utf-8")
+    return {
+        "source_run_id": source_id,
+        "resource_fingerprint": hashlib.sha256(encoded).hexdigest(),
+        "matrix_row_count": len(matrix_resources),
+        "matrix_resource_value_count": len(matrix_resources) * 2,
+        "attribution_component_count": len(attribution_resources),
+        "attribution_resource_value_count": len(attribution_resources) * 2,
+    }
 
 
 @dataclass(frozen=True)
@@ -225,6 +345,13 @@ class SweepRequest(BaseModel):
     values: list[int | float | str]
     source_name: str = "sweep.yaml"
     experiment_name: str | None = None
+
+
+class QuantumValidationRunRequest(BaseModel):
+    shots: int = Field(default=4096, ge=128, le=100_000)
+    seed: int = Field(default=7, ge=0)
+    reference_tolerance: float = Field(default=1e-10, gt=0.0)
+    compilation_tolerance: float = Field(default=1e-6, gt=0.0)
 
 
 class LaunchCampaignRequest(BaseModel):
@@ -427,17 +554,31 @@ class CockpitService:
 
     def list_configs(self) -> list[dict]:
         items: list[dict] = []
-        for path in sorted(self.config_root.glob("*.y*ml")):
+        config_paths = sorted(
+            self.config_root.glob("*.y*ml"),
+            key=lambda path: (path.name != "demo.yaml", path.name),
+        )
+        for path in config_paths:
             config = load_config(path)
+            metadata = CONFIG_CATALOG_METADATA.get(path.name, {})
             try:
                 relative_path = path.relative_to(self.repo_root).as_posix()
             except ValueError:
                 relative_path = f"configs/{path.name}"
             items.append(
                 {
-                    "label": path.stem.replace("_", " "),
+                    "label": metadata.get("label", path.stem.replace("_", " ").title()),
                     "name": path.name,
                     "path": relative_path,
+                    "study_type": metadata.get("study_type", "Deterministic study"),
+                    "summary": metadata.get(
+                        "summary",
+                        "Versioned local configuration with deterministic evidence capture.",
+                    ),
+                    "evidence_focus": metadata.get(
+                        "evidence_focus",
+                        "Run metrics, environment provenance, verification, and replay.",
+                    ),
                     "config": config.to_dict(),
                 }
             )
@@ -458,15 +599,181 @@ class CockpitService:
     def list_showcases(self) -> list[dict]:
         return [self._build_showcase_summary(name) for name in list_showcase_scenarios()]
 
+    def quantum_runtime_status(self) -> dict[str, Any]:
+        stack_available = bool(
+            importlib.util.find_spec("qiskit")
+            and importlib.util.find_spec("qiskit_aer")
+        )
+        return {
+            "mode": "hosted_read_only" if self.hosted_demo.enabled else "local_full",
+            "live_execution": stack_available and not self.hosted_demo.enabled,
+            "stack_available": stack_available,
+            "install_command": "python -m pip install -e '.[quantum]'",
+            "endpoint": "/api/quantum-validation/runs",
+            "defaults": {
+                "shots": 4096,
+                "seed": 7,
+                "reference_tolerance": 1e-10,
+                "compilation_tolerance": 1e-6,
+            },
+            "matrix_scope": {
+                "topology_count": len(TOPOLOGY_PROFILES),
+                "optimization_levels": list(OPTIMIZATION_LEVELS),
+                "row_count": len(TOPOLOGY_PROFILES) * len(OPTIMIZATION_LEVELS),
+                "basis_gates": list(BASIS_GATES),
+            },
+            "execution_policy": {
+                "local_simulation_only": True,
+                "provider": None,
+                "credentials_read": False,
+                "submitted": False,
+                "max_authorized_cost_usd": 0.0,
+            },
+        }
+
     def quantum_validation_showcase(self) -> dict[str, Any]:
         payload = load_quantum_compilation_showcase()
         bundle_path = quantum_compilation_showcase_path("bundle")
         payload["bundle"]["sha256"] = _file_sha256(bundle_path)
+        payload["source"] = "packaged_snapshot"
+        payload["runtime"] = self.quantum_runtime_status()
+        payload["visualization"] = _quantum_visualization_lineage(
+            payload,
+            payload.get("showcase_id", "packaged-reference"),
+        )
         return payload
 
     def quantum_validation_artifact_path(self, artifact_name: str) -> Path:
         try:
             return quantum_compilation_showcase_path(artifact_name)
+        except (FileNotFoundError, ValueError) as exc:
+            raise HTTPException(status_code=404, detail="Quantum artifact not found") from exc
+
+    def _quantum_validation_runs_root(self) -> Path:
+        root = contained_path(self.output_root, "quantum-validations")
+        root.mkdir(parents=True, exist_ok=True)
+        return root
+
+    def _quantum_validation_run_dir(self, run_id: str) -> Path:
+        if not run_id or safe_filename(run_id, default="run") != run_id:
+            raise HTTPException(status_code=404, detail="Quantum validation run not found")
+        run_dir = contained_path(self._quantum_validation_runs_root(), run_id)
+        if not run_dir.is_dir():
+            raise HTTPException(status_code=404, detail="Quantum validation run not found")
+        return run_dir
+
+    def _load_quantum_validation_run(self, run_dir: Path) -> dict[str, Any]:
+        run_id = run_dir.name
+        payload = load_quantum_compilation_directory(
+            run_dir,
+            showcase_id=run_id,
+            title="Live Fractal SSFM Quantum Compilation Validation",
+            subtitle="Fresh local ideal-simulator compilation matrix and resource attribution",
+            limitations=[
+                "The run uses local ideal simulators and generic topology profiles, not a provider device or calibration snapshot.",
+                "Resource counts are not runtime, price, error-rate, or quantum-advantage predictions.",
+                "This workflow validates compilation semantics; it does not scientifically validate the underlying Fractal SSFM model.",
+            ],
+            download_prefix=f"/api/quantum-validation/runs/{run_id}/files",
+        )
+        metadata_path = run_dir / QUANTUM_RUN_METADATA
+        metadata = (
+            json.loads(metadata_path.read_text(encoding="utf-8"))
+            if metadata_path.is_file()
+            else {
+                "run_id": run_id,
+                "name": run_id,
+                "generated_at": payload.get("generated_at"),
+                "output_directory": str(run_dir),
+            }
+        )
+        payload["source"] = "live_local_run"
+        payload["runtime"] = self.quantum_runtime_status()
+        payload["run"] = metadata
+        payload["bundle"]["sha256"] = _file_sha256(
+            quantum_compilation_artifact_path(run_dir, "bundle")
+        )
+        payload["visualization"] = _quantum_visualization_lineage(payload, run_id)
+        return payload
+
+    def latest_quantum_validation_run(self) -> dict[str, Any]:
+        if self.hosted_demo.enabled:
+            return {"available": False, "runtime": self.quantum_runtime_status()}
+        candidates = sorted(
+            (
+                path
+                for path in self._quantum_validation_runs_root().iterdir()
+                if path.is_dir() and (path / "quantum-compilation-validation.json").is_file()
+            ),
+            key=lambda path: path.name,
+            reverse=True,
+        )
+        if not candidates:
+            return {"available": False, "runtime": self.quantum_runtime_status()}
+        return {"available": True, "result": self._load_quantum_validation_run(candidates[0])}
+
+    def run_quantum_validation(
+        self,
+        payload: QuantumValidationRunRequest,
+    ) -> dict[str, Any]:
+        if self.hosted_demo.enabled:
+            raise HTTPException(
+                status_code=403,
+                detail="Live quantum validation is available only in the local full application.",
+            )
+        runtime = self.quantum_runtime_status()
+        if not runtime["stack_available"]:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "The optional quantum simulator stack is not installed. "
+                    "Run: python -m pip install -e '.[quantum]'"
+                ),
+            )
+
+        started_at = datetime.now(timezone.utc)
+        run_id = (
+            f"quantum-compilation-{started_at.strftime('%Y%m%dT%H%M%SZ')}-"
+            f"{secrets.token_hex(4)}"
+        )
+        run_dir = contained_path(self._quantum_validation_runs_root(), run_id)
+        started_clock = time.perf_counter()
+        validate_fractal_quantum_compilation(
+            output_root=run_dir,
+            shots=payload.shots,
+            seed=payload.seed,
+            reference_tolerance=payload.reference_tolerance,
+            compilation_tolerance=payload.compilation_tolerance,
+        )
+        completed_at = datetime.now(timezone.utc)
+        metadata = {
+            "run_id": run_id,
+            "name": run_id,
+            "status": "complete",
+            "started_at": started_at.isoformat(),
+            "completed_at": completed_at.isoformat(),
+            "duration_seconds": round(time.perf_counter() - started_clock, 3),
+            "output_directory": str(run_dir),
+            "parameters": payload.model_dump(),
+        }
+        (run_dir / QUANTUM_RUN_METADATA).write_text(
+            json.dumps(metadata, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+        return self._load_quantum_validation_run(run_dir)
+
+    def quantum_validation_run_artifact_path(
+        self,
+        run_id: str,
+        artifact_name: str,
+    ) -> Path:
+        if self.hosted_demo.enabled:
+            raise HTTPException(status_code=404, detail="Quantum artifact not found")
+        try:
+            return quantum_compilation_artifact_path(
+                self._quantum_validation_run_dir(run_id),
+                artifact_name,
+            )
         except (FileNotFoundError, ValueError) as exc:
             raise HTTPException(status_code=404, detail="Quantum artifact not found") from exc
 
@@ -1321,6 +1628,49 @@ class CockpitService:
         bundle_path = run_dir / "evidence_bundle.zip"
         if not bundle_path.exists():
             raise HTTPException(status_code=404, detail="Evidence bundle not found")
+        return bundle_path
+
+    def run_bundle_profile_path(self, run_id: str, profile_name: str) -> Path:
+        profile = RUN_BUNDLE_PROFILES.get(profile_name)
+        if profile is None:
+            raise HTTPException(status_code=404, detail="Evidence bundle profile not found")
+        run_dir = self._get_run_dir(run_id)
+        safe_run_id = safe_filename(run_id, default="run")
+        bundle_root = contained_path(self.output_root, "_derived_bundles")
+        bundle_root.mkdir(parents=True, exist_ok=True)
+        bundle_path = contained_path(
+            bundle_root,
+            f"{safe_run_id}-{safe_filename(profile_name, default='profile')}-bundle.zip",
+        )
+        if bundle_path.exists():
+            return bundle_path
+
+        included_files: list[str] = []
+        missing_files: list[str] = []
+        for relative_name in profile["files"]:
+            candidate = contained_path(run_dir, relative_name)
+            if candidate.exists() and candidate.is_file():
+                included_files.append(relative_name)
+            else:
+                missing_files.append(relative_name)
+
+        profile_record = {
+            "schema_version": "1.0",
+            "profile": profile_name,
+            "title": profile["title"],
+            "run_id": run_id,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "claim_boundary": profile["claim_boundary"],
+            "included_files": included_files,
+            "missing_optional_files": missing_files,
+        }
+        with zipfile.ZipFile(bundle_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr(
+                "bundle-profile.json",
+                json.dumps(profile_record, indent=2, sort_keys=True) + "\n",
+            )
+            for relative_name in included_files:
+                archive.write(contained_path(run_dir, relative_name), arcname=relative_name)
         return bundle_path
 
     def report_path(self, run_id: str) -> Path:
@@ -2765,6 +3115,8 @@ class CockpitService:
 
         urls = {
             "bundle": f"/api/runs/{run_record['run_id']}/bundle",
+            "review_bundle": f"/api/runs/{run_record['run_id']}/review-bundle",
+            "state_bundle": f"/api/runs/{run_record['run_id']}/state-bundle",
             "report": f"/api/runs/{run_record['run_id']}/report",
         }
         if execution_job and execution_job["summary"].get("job_id"):
@@ -3006,10 +3358,33 @@ def create_app(
         session_id = getattr(request.state, "hosted_demo_session_id", None)
         return {
             "status": "ok",
+            "version": __version__,
+            "ui_contract": "research-command-center-v2",
+            "release": {
+                "version": __version__,
+                "tag": f"v{__version__}",
+                "project_doi": PROJECT_DOI,
+                "project_doi_url": f"https://doi.org/{PROJECT_DOI}",
+                "archived_release_doi": RELEASE_DOI,
+                "archived_release_doi_url": f"https://doi.org/{RELEASE_DOI}",
+                "archived_release_record_url": RELEASE_RECORD_URL,
+            },
+            "package_root": str(Path(__file__).resolve().parents[1]),
             "repo_root": str(active_service.repo_root),
             "output_root": str(active_service.output_root),
             "experiments_root": str(active_service.experiments_root),
             "jobs_root": str(active_service.jobs_root),
+            "capabilities": {
+                "quantum_validation_snapshot": True,
+                "quantum_validation_live": (
+                    active_service.quantum_runtime_status()["live_execution"]
+                ),
+                "quantum_stack_available": (
+                    active_service.quantum_runtime_status()["stack_available"]
+                ),
+                "client_sweep_preflight": True,
+                "hosted_custom_compute": not active_service.hosted_demo.enabled,
+            },
             "hosted_demo": active_service.hosted_demo_status(session_id),
         }
 
@@ -3057,13 +3432,51 @@ def create_app(
                 detail=GENERIC_COCKPIT_ERROR_DETAIL,
             ) from None
 
-    @app.get("/api/quantum-validation/files/{artifact_name}")
-    def quantum_validation_artifact(
-        artifact_name: str,
+    @app.get("/api/quantum-validation/runs/latest")
+    def latest_quantum_validation_run(
         active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        try:
+            return active_service.latest_quantum_validation_run()
+        except HTTPException:
+            raise
+        except Exception:
+            raise HTTPException(
+                status_code=500,
+                detail=GENERIC_COCKPIT_ERROR_DETAIL,
+            ) from None
+
+    @app.post("/api/quantum-validation/runs")
+    def run_quantum_validation(
+        payload: QuantumValidationRunRequest,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict:
+        if not _QUANTUM_VALIDATION_ACTIVE_LOCK.acquire(blocking=False):
+            raise HTTPException(
+                status_code=409,
+                detail="A local quantum validation run is already active.",
+            )
+        try:
+            return active_service.run_quantum_validation(payload)
+        except HTTPException:
+            raise
+        except ValueError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        except RuntimeError as exc:
+            raise HTTPException(status_code=503, detail=str(exc)) from exc
+        except Exception:
+            raise HTTPException(
+                status_code=500,
+                detail=GENERIC_COCKPIT_ERROR_DETAIL,
+            ) from None
+        finally:
+            _QUANTUM_VALIDATION_ACTIVE_LOCK.release()
+
+    def quantum_validation_file_response(
+        active_service: CockpitService,
+        path: Path,
+        artifact_key: str,
     ) -> FileResponse:
-        path = active_service.quantum_validation_artifact_path(artifact_name)
-        artifact_key = quantum_compilation_showcase_artifact_key(artifact_name)
         if path.suffix.lower() == ".html":
             active_service.assert_hosted_download_allowed(path)
             return FileResponse(
@@ -3090,6 +3503,41 @@ def create_app(
             path,
             media_type=media_types.get(artifact_key, "application/octet-stream"),
             filename=path.name,
+        )
+
+    @app.get("/api/quantum-validation/files/{artifact_name}")
+    def quantum_validation_artifact(
+        artifact_name: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        path = active_service.quantum_validation_artifact_path(artifact_name)
+        artifact_key = quantum_compilation_showcase_artifact_key(artifact_name)
+        return quantum_validation_file_response(
+            active_service,
+            path,
+            artifact_key,
+        )
+
+    @app.get(
+        "/api/quantum-validation/runs/{run_id}/files/{artifact_name}"
+    )
+    def quantum_validation_run_artifact(
+        run_id: str,
+        artifact_name: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        path = active_service.quantum_validation_run_artifact_path(
+            run_id,
+            artifact_name,
+        )
+        try:
+            artifact_key = quantum_compilation_showcase_artifact_key(artifact_name)
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail="Quantum artifact not found") from exc
+        return quantum_validation_file_response(
+            active_service,
+            path,
+            artifact_key,
         )
 
     @app.post("/api/showcases/{scenario}/run")
@@ -3381,6 +3829,32 @@ def create_app(
             bundle_path,
             media_type="application/zip",
             filename=f"{safe_filename(run_id, default='run')}-evidence-bundle.zip",
+        )
+
+    @app.get("/api/runs/{run_id}/review-bundle")
+    def review_bundle_download(
+        run_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        bundle_path = active_service.run_bundle_profile_path(run_id, "review")
+        return guarded_file_response(
+            active_service,
+            bundle_path,
+            media_type="application/zip",
+            filename=f"{safe_filename(run_id, default='run')}-review-bundle.zip",
+        )
+
+    @app.get("/api/runs/{run_id}/state-bundle")
+    def state_bundle_download(
+        run_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        bundle_path = active_service.run_bundle_profile_path(run_id, "state")
+        return guarded_file_response(
+            active_service,
+            bundle_path,
+            media_type="application/zip",
+            filename=f"{safe_filename(run_id, default='run')}-state-bundle.zip",
         )
 
     @app.get("/api/runs/{run_id}/report")
