@@ -18,17 +18,17 @@ Initial PyPI publication completed on `2026-05-05` through GitHub Actions
 Trusted Publishing.
 
 - Initial published version: `0.1.0`
-- Next release target: `0.13.0` (release candidate; not yet published)
-- Latest published version: `0.12.0`
+- Current GitHub and Zenodo release: `0.13.0`
+- Latest published PyPI version: `0.12.0` (v0.13.0 Trusted Publishing pending)
 - Canonical website: `https://qs-dmss.studio`
 - PyPI project URL: `https://pypi.org/project/qs-dmss/`
 - Initial publish workflow run:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/actions/runs/25393532837`
 - Initial publish commit: `3cd208ff985041cf95261f8de289e4dd5a14df49`
 - Upload method: Trusted Publishing / GitHub OIDC
-- Latest published release files at v0.12.0 preparation:
-  - `qs_dmss-0.11.0-py3-none-any.whl`
-  - `qs_dmss-0.11.0.tar.gz`
+- Current GitHub release files for v0.13.0:
+  - `qs_dmss-0.13.0-py3-none-any.whl`
+  - `qs_dmss-0.13.0.tar.gz`
 - Initial published files:
   - `qs_dmss-0.1.0-py3-none-any.whl`
   - `qs_dmss-0.1.0.tar.gz`
@@ -119,9 +119,10 @@ The current citation metadata includes the Zenodo concept DOI so package-facing
 metadata has a stable citation target:
 
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: `10.5281/zenodo.21329711`
-- Latest archived release record: `https://zenodo.org/records/21329711`
-- `v0.12.0` release DOI: `10.5281/zenodo.21329711`
+- Latest archived release DOI: `10.5281/zenodo.21348257`
+- Latest archived release record: `https://zenodo.org/records/21348257`
+- `v0.13.0` release DOI: `10.5281/zenodo.21348257`
+- Previous `v0.12.0` release DOI: `10.5281/zenodo.21329711`
 - `v0.11.0` release DOI: `10.5281/zenodo.21319023`
 - Previous archived release DOI: `10.5281/zenodo.20693736`
 - Previous archived release record: `https://zenodo.org/records/20693736`

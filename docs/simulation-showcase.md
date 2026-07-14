@@ -24,10 +24,11 @@ verify/replay the evidence without needing private context?
 
 ## Run It From The Published Package
 
-Install the release package and run the showcase:
+Install the current GitHub release wheel and run the showcase. PyPI currently
+publishes `0.12.0`; use the wheel below for the v0.13.0 Studio release:
 
 ```powershell
-python -m pip install qs-dmss==0.12.0
+python -m pip install https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.0/qs_dmss-0.13.0-py3-none-any.whl
 qs-dmss showcase run --output-root simulation-showcase
 ```
 

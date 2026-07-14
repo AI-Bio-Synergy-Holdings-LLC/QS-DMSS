@@ -41,7 +41,7 @@ def test_static_site_front_door_contract() -> None:
     required_fragments = [
         "Run simulations. Inspect evidence. Compare campaigns. Publish reproducible artifacts.",
         "Install from PyPI",
-        "View GitHub",
+        "Download v0.13.0",
         "Run local cockpit",
         "Read DOI",
         "Support on Open Collective",
@@ -60,8 +60,8 @@ def test_static_site_front_door_contract() -> None:
         "The hosted service is always available, with bounded runs and temporary artifacts.",
         "not peer-reviewed scientific validation",
         'name="twitter:card" content="summary_large_image"',
-        "v0.13.0 release candidate",
-        "qs-dmss==0.12.0",
+        "v0.13.0 published",
+        "QS-DMSS v0.13.0",
         "no provider submission, QPU execution, or spend",
     ]
 
@@ -128,8 +128,8 @@ def test_static_site_metadata_hardening() -> None:
     assert "<loc>https://qs-dmss.studio/</loc>" in sitemap
     assert "<lastmod>2026-07-13</lastmod>" in sitemap
     assert "<image:loc>https://qs-dmss.studio/assets/social-preview.png</image:loc>" in sitemap
-    assert "Latest archived release DOI: https://doi.org/10.5281/zenodo.21329711" in llms
-    assert "Release target: v0.13.0 (release candidate; not yet published)" in llms
+    assert "Latest archived release DOI: https://doi.org/10.5281/zenodo.21348257" in llms
+    assert "Current GitHub and Zenodo release: v0.13.0" in llms
     assert "provider credentials, remote API, QPU execution" in llms
     assert "Hosted demo: https://app.qs-dmss.studio/" in llms
 

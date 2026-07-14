@@ -27,12 +27,17 @@ The next package release should expose the Studio site through project metadata:
 Keep Repository, Issues, Releases, PyPI, DOI, and Reviewer links as supporting
 project URLs.
 
-## v0.13.0 Release Candidate
+## v0.13.0 Publication Status
 
-Do not describe v0.13.0 as published or assign it a release DOI until the
-GitHub release, Zenodo archive, and PyPI Trusted Publishing workflow have all
-completed. Until then, link to the stable project DOI and name v0.12.0 as the
-latest public package and archived release.
+v0.13.0 is published on GitHub and archived by Zenodo:
+
+- GitHub release: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.13.0`
+- Version DOI: `https://doi.org/10.5281/zenodo.21348257`
+- Zenodo record: `https://zenodo.org/records/21348257`
+
+The latest PyPI package remains `0.12.0` while the v0.13.0 Trusted Publishing
+workflow is pending. Do not imply that `qs-dmss==0.13.0` is already installable
+from PyPI.
 
 After publication, use this verified summary:
 
@@ -52,7 +57,7 @@ Studio: https://qs-dmss.studio
 Hosted demo: https://app.qs-dmss.studio
 ```
 
-## v0.12.0 Quantum-Readiness Update
+## Historical v0.12.0 Quantum-Readiness Update
 
 Use after `v0.12.0` is published:
 

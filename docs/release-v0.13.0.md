@@ -1,11 +1,13 @@
-# QS-DMSS v0.13.0 Release Candidate
+# QS-DMSS v0.13.0 Release
 
 ## Status
 
-This document is release preparation, not a publication announcement. The
-current published package and archived Zenodo release remain `v0.12.0`.
-`v0.13.0` has no release DOI until the tagged GitHub release is archived by
-Zenodo.
+`v0.13.0` was released from merge commit
+`7321d126c184863c50e32c6d0c5b9d71674fcdb7` on 2026-07-14. The GitHub release
+contains the validated wheel and source distribution, and Zenodo archived the
+release as [10.5281/zenodo.21348257](https://doi.org/10.5281/zenodo.21348257).
+PyPI publication of those exact artifacts remains pending the Trusted
+Publishing workflow; the latest PyPI package is `0.12.0` until that completes.
 
 ## What Changes
 
@@ -28,31 +30,34 @@ it is not peer-reviewed scientific validation. Quantum validation remains
 simulator-first and provider-neutral: no provider credentials, remote API calls,
 QPU execution, job submission, or authorized spend are included.
 
-## Release Gates
+## Completed Release Gates
 
-Before `v0.13.0` is published:
+1. PRs #154 and #155 merged through green `main` CI.
+2. CodeQL reanalysis fixed alert #20; no open main-branch code-scanning alerts remain.
+3. The source distribution and wheel built from the clean merge commit and passed
+   `twine check`; fresh-install, quantum-sidecar, and Docker-smoke checks passed.
+4. GitHub release `v0.13.0` was created with the approved artifacts.
+5. Zenodo archived the release as `10.5281/zenodo.21348257`.
+6. GitHub Pages and the Render service deployed `main`; `/api/health` reports
+   `v0.13.0`.
 
-1. Merge PR #154, then PR #155, through green `main` CI.
-2. Confirm CodeQL reanalysis closes alert #20 on `main`.
-3. Build the source distribution and wheel from the clean merge commit; run
-   `twine check` and a fresh-install smoke test.
-4. Tag `v0.13.0`, create the GitHub release, and attach the approved artifacts.
-5. Wait for Zenodo to archive the GitHub release, then update the exact release
-   DOI in citation metadata, the cockpit, and the public Studio site.
-6. Use the Trusted Publishing workflow to publish those same assets to PyPI.
-7. Confirm GitHub Pages and the Render service have deployed `main` and report
-   healthy `/api/health` responses.
+## Remaining Publication Task
 
-## Citation During Preparation
+Publish the already-attached GitHub release wheel and source distribution to
+PyPI through the repository's Trusted Publishing workflow. No PyPI token or
+supported OIDC environment is available in this release session, so it would
+be inaccurate to describe `0.13.0` as available on PyPI yet.
 
-Use the stable QS-DMSS project concept DOI during preparation:
+## Citation
+
+Use this version DOI when citing the exact v0.13.0 release:
+
+```text
+10.5281/zenodo.21348257
+```
+
+Use the stable project concept DOI for project-level citation:
 
 ```text
 10.5281/zenodo.20074924
-```
-
-For the current archived baseline, use the exact v0.12.0 DOI:
-
-```text
-10.5281/zenodo.21329711
 ```

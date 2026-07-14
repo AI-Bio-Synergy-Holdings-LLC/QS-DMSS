@@ -91,7 +91,10 @@ def test_codemeta_release_metadata_is_aligned() -> None:
 
     assert codemeta["softwareVersion"] == declared_version
     assert codemeta["version"] == declared_version
-    assert codemeta["citation"] == "https://doi.org/10.5281/zenodo.20074924"
+    assert codemeta["citation"] == [
+        "https://doi.org/10.5281/zenodo.21348257",
+        "https://doi.org/10.5281/zenodo.20074924",
+    ]
     assert codemeta["url"] == "https://qs-dmss.studio"
     assert codemeta["releaseNotes"].endswith(f"/docs/release-v{declared_version}.md")
 
