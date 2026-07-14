@@ -22,7 +22,7 @@ def test_version_metadata_is_aligned() -> None:
     pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
     declared_version = pyproject["project"]["version"]
 
-    assert declared_version == "0.13.0"
+    assert declared_version == "0.13.1"
     assert qs_dmss.__version__ == declared_version
     assert metadata.version("qs-dmss") == declared_version
 
@@ -70,17 +70,20 @@ def test_public_discovery_metadata_is_present() -> None:
         "JOSS Preflight",
         "PyPI",
         "DOI",
-        "Latest Archived Release DOI",
-        "Latest Archived Zenodo Record",
     }:
         assert label in urls
 
     assert urls["Homepage"] == "https://qs-dmss.studio"
     assert urls["QS-DMSS Studio"] == "https://qs-dmss.studio"
     assert urls["Documentation"] == "https://qs-dmss.studio"
-    assert urls["Latest Archived Release DOI"] == "https://doi.org/10.5281/zenodo.21329711"
-    assert urls["Latest Archived Zenodo Record"] == "https://zenodo.org/records/21329711"
-    assert urls["Release Notes"].endswith("/docs/release-v0.13.0.md")
+    assert "Latest Archived Release DOI" not in urls
+    assert "Latest Archived Zenodo Record" not in urls
+    assert urls["Release Notes"].endswith("/docs/release-v0.13.1.md")
+    assert project["readme"] == "README-pypi.md"
+
+    package_readme = (repo_root / project["readme"]).read_text(encoding="utf-8")
+    assert "release candidate" not in package_readme
+    assert "python -m pip install --upgrade qs-dmss" in package_readme
 
 
 def test_codemeta_release_metadata_is_aligned() -> None:
@@ -91,10 +94,7 @@ def test_codemeta_release_metadata_is_aligned() -> None:
 
     assert codemeta["softwareVersion"] == declared_version
     assert codemeta["version"] == declared_version
-    assert codemeta["citation"] == [
-        "https://doi.org/10.5281/zenodo.21348257",
-        "https://doi.org/10.5281/zenodo.20074924",
-    ]
+    assert codemeta["citation"] == "https://doi.org/10.5281/zenodo.20074924"
     assert codemeta["url"] == "https://qs-dmss.studio"
     assert codemeta["releaseNotes"].endswith(f"/docs/release-v{declared_version}.md")
 

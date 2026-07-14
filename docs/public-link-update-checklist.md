@@ -35,9 +35,8 @@ v0.13.0 is published on GitHub and archived by Zenodo:
 - Version DOI: `https://doi.org/10.5281/zenodo.21348257`
 - Zenodo record: `https://zenodo.org/records/21348257`
 
-The latest PyPI package remains `0.12.0` while the v0.13.0 Trusted Publishing
-workflow is pending. Do not imply that `qs-dmss==0.13.0` is already installable
-from PyPI.
+`qs-dmss==0.13.0` is published on PyPI through Trusted Publishing. The package
+matches the v0.13.0 GitHub Release artifacts and Zenodo archive.
 
 After publication, use this verified summary:
 

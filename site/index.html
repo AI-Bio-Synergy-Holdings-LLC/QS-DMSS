@@ -198,7 +198,7 @@
           <div class="hero-actions" aria-label="Primary actions">
             <a class="button primary" href="https://app.qs-dmss.studio/">Open Hosted Demo</a>
             <a class="button" href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.13.0">Download v0.13.0</a>
-            <a class="button" href="https://pypi.org/project/qs-dmss/0.12.0/">Install latest PyPI (v0.12.0)</a>
+            <a class="button" href="https://pypi.org/project/qs-dmss/0.13.0/">Install latest PyPI (v0.13.0)</a>
             <a class="button" href="#local-cockpit">Run local cockpit</a>
             <a class="button" href="https://doi.org/10.5281/zenodo.20074924">Read DOI</a>
             <a class="button support" href="https://opencollective.com/qs-dmss">Support on Open Collective</a>
@@ -219,7 +219,7 @@
             </div>
             <div>
               <dt>Package</dt>
-              <dd>PyPI publication is pending; use the GitHub release wheel meanwhile.</dd>
+              <dd><a href="https://pypi.org/project/qs-dmss/0.13.0/">pypi.org/project/qs-dmss/0.13.0</a></dd>
             </div>
             <div>
               <dt>Stewardship</dt>
@@ -229,7 +229,7 @@
           <p class="claim-note">
             v0.13.0 adds the live local validation harness, Research Runbook, and
             contextual Evidence Assistant. Its GitHub release and Zenodo record are
-            published; PyPI Trusted Publishing remains pending.
+            published on GitHub, Zenodo, and PyPI.
           </p>
           <p class="claim-note">
             Beta for reproducible package/evidence workflows; not peer-reviewed
@@ -366,11 +366,8 @@
         <pre aria-label="Local cockpit commands"><code>python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-# Exact v0.13.0 GitHub release asset; PyPI currently publishes v0.12.0.
-python -m pip install https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.0/qs_dmss-0.13.0-py3-none-any.whl
-qs-dmss cockpit --host 127.0.0.1 --port 8001
-qs-dmss validation fractal-ssfm
-qs-dmss data calibration run --output-root reference-data-calibration</code></pre>
+python -m pip install --upgrade qs-dmss
+qs-dmss cockpit --host 127.0.0.1 --port 8001</code></pre>
       </section>
 
       <section class="live-demo" id="live-demo" aria-labelledby="live-demo-title">
@@ -428,7 +425,7 @@ qs-dmss data calibration run --output-root reference-data-calibration</code></pr
         <ul>
           <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS">GitHub repository</a></li>
           <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.13.0">v0.13.0 release</a></li>
-          <li><a href="https://pypi.org/project/qs-dmss/0.12.0/">Latest PyPI package (v0.12.0)</a></li>
+          <li><a href="https://pypi.org/project/qs-dmss/0.13.0/">Latest PyPI package (v0.13.0)</a></li>
           <li><a href="https://doi.org/10.5281/zenodo.20074924">Project DOI</a></li>
           <li><a href="https://doi.org/10.5281/zenodo.21348257">Latest archived release DOI</a></li>
           <li><a href="https://opencollective.com/qs-dmss">Open Collective</a></li>

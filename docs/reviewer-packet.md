@@ -57,14 +57,14 @@ endorsements of QS-DMSS or as validation against external datasets.
 
 ## Fast Review Path
 
-Use the current GitHub release wheel from a clean environment. PyPI remains on
-v0.12.0 while v0.13.0 Trusted Publishing is completed:
+Use the current PyPI package from a clean environment; it is the same v0.13.0
+distribution attached to the GitHub release:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.0/qs_dmss-0.13.0-py3-none-any.whl
+python -m pip install qs-dmss==0.13.0
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo

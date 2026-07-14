@@ -11,7 +11,7 @@ The intended beta claim is narrow:
 ## Current Decision
 
 - Current GitHub and Zenodo release: `v0.13.0` / `0.13.0`
-- Current PyPI baseline: `v0.12.0` / `0.12.0` (v0.13.0 Trusted Publishing pending)
+- Current PyPI baseline: `v0.13.0` / `0.13.0`
 - Current PyPI classifier target: `Development Status :: 4 - Beta`
 - Promotion basis: `v0.1.5` passed the beta-readiness gate
 - Current Zenodo concept DOI: `10.5281/zenodo.20074924`

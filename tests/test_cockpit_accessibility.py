@@ -43,13 +43,13 @@ def test_cockpit_shell_has_accessible_navigation_and_landmarks() -> None:
     assert '<aside class="rail" aria-label="Application navigation">' in html
     assert '<nav class="rail-nav" aria-labelledby="primaryNavigationLabel">' in html
     assert '<main class="workspace" id="main-content" tabindex="-1">' in html
-    assert '<meta name="application-version" content="0.13.0" />' in html
+    assert '<meta name="application-version" content="0.13.1" />' in html
     assert '<meta name="citation_doi" content="10.5281/zenodo.20074924" />' in html
     assert '<link rel="cite-as" href="https://doi.org/10.5281/zenodo.20074924" />' in html
     assert 'id="releaseVersion"' in html
     assert 'id="releaseDoi"' in html
     assert 'id="projectDoi"' in html
-    assert "Build v0.13.0" in html
+    assert "Build v0.13.1" in html
     assert "Latest archive v0.13.0 DOI 10.5281/zenodo.21348257" in html
     assert "Project DOI 10.5281/zenodo.20074924" in html
 

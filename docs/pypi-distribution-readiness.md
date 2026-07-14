@@ -19,14 +19,14 @@ Trusted Publishing.
 
 - Initial published version: `0.1.0`
 - Current GitHub and Zenodo release: `0.13.0`
-- Latest published PyPI version: `0.12.0` (v0.13.0 Trusted Publishing pending)
+- Latest published PyPI version: `0.13.0`
 - Canonical website: `https://qs-dmss.studio`
 - PyPI project URL: `https://pypi.org/project/qs-dmss/`
 - Initial publish workflow run:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/actions/runs/25393532837`
 - Initial publish commit: `3cd208ff985041cf95261f8de289e4dd5a14df49`
 - Upload method: Trusted Publishing / GitHub OIDC
-- Current GitHub release files for v0.13.0:
+- Current GitHub and PyPI release files for v0.13.0:
   - `qs_dmss-0.13.0-py3-none-any.whl`
   - `qs_dmss-0.13.0.tar.gz`
 - Initial published files:
@@ -36,7 +36,7 @@ Trusted Publishing.
 Run post-publication smoke validation from a fresh virtual environment:
 
 ```powershell
-python -m pip install --no-cache-dir "qs-dmss[quantum]==0.12.0"
+python -m pip install --no-cache-dir "qs-dmss[quantum]==0.13.0"
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 qs-dmss benchmarks validate --scenario demo-baseline

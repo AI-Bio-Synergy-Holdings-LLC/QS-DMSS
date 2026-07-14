@@ -3,10 +3,9 @@
 This policy keeps release builds, Python package metadata, GitHub release
 artifacts, and PyPI distributions aligned before and after tags are published.
 
-Current release: `v0.13.0` / `0.13.0`, published on GitHub and archived by
-Zenodo as `10.5281/zenodo.21348257`. The exact GitHub release wheel and source
-distribution await PyPI Trusted Publishing; `0.12.0` remains the latest PyPI
-package until that publication completes. Published release-candidate tags
+Current release: `v0.13.0` / `0.13.0`, published on GitHub, archived by
+Zenodo as `10.5281/zenodo.21348257`, and distributed on PyPI through Trusted
+Publishing. Published release-candidate tags
 such as `v0.1.0-rc.1` and `v0.1.0-rc.2` remain immutable; do not move or
 replace them.
 
