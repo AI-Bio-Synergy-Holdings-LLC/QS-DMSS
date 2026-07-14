@@ -22,7 +22,7 @@ def test_version_metadata_is_aligned() -> None:
     pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
     declared_version = pyproject["project"]["version"]
 
-    assert declared_version == "0.12.0"
+    assert declared_version == "0.13.0"
     assert qs_dmss.__version__ == declared_version
     assert metadata.version("qs-dmss") == declared_version
 
@@ -71,7 +71,7 @@ def test_public_discovery_metadata_is_present() -> None:
         "PyPI",
         "DOI",
         "Latest Archived Release DOI",
-        "Zenodo",
+        "Latest Archived Zenodo Record",
     }:
         assert label in urls
 
@@ -79,8 +79,8 @@ def test_public_discovery_metadata_is_present() -> None:
     assert urls["QS-DMSS Studio"] == "https://qs-dmss.studio"
     assert urls["Documentation"] == "https://qs-dmss.studio"
     assert urls["Latest Archived Release DOI"] == "https://doi.org/10.5281/zenodo.21329711"
-    assert urls["Zenodo"] == "https://zenodo.org/records/21329711"
-    assert urls["Release Notes"].endswith("/docs/release-v0.12.0.md")
+    assert urls["Latest Archived Zenodo Record"] == "https://zenodo.org/records/21329711"
+    assert urls["Release Notes"].endswith("/docs/release-v0.13.0.md")
 
 
 def test_codemeta_release_metadata_is_aligned() -> None:
@@ -91,9 +91,9 @@ def test_codemeta_release_metadata_is_aligned() -> None:
 
     assert codemeta["softwareVersion"] == declared_version
     assert codemeta["version"] == declared_version
-    assert codemeta["citation"] == "https://doi.org/10.5281/zenodo.21329711"
+    assert codemeta["citation"] == "https://doi.org/10.5281/zenodo.20074924"
     assert codemeta["url"] == "https://qs-dmss.studio"
-    assert codemeta["releaseNotes"].endswith(f"/releases/tag/v{declared_version}")
+    assert codemeta["releaseNotes"].endswith(f"/docs/release-v{declared_version}.md")
 
 
 def test_quantum_validation_showcase_assets_are_packaged() -> None:

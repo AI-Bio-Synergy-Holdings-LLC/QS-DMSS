@@ -36,16 +36,19 @@ live in
 
 ## Current Public State
 
-This source tree targets `qs-dmss==0.12.0`, the simulator-first quantum-readiness
-milestone. It adds a manifest-verified Fractal SSFM circuit sidecar, a
-provider-neutral QPU request bundle, and a 12-row compilation/resource
-attribution matrix over generic topologies. These are local review artifacts,
-not provider integrations: no provider credentials, remote API calls, QPU
-execution, job submission, or authorized spend are included.
+This source tree targets the `0.13.0` release candidate. It adds a live local
+quantum-validation harness with redrawable attribution figures, a research
+runbook, and an evidence assistant whose answers stay bound to the selected
+run, bundle, replay, or comparison context. The simulator-first Fractal SSFM
+sidecar and 12-row compilation/resource attribution matrix remain local review
+artifacts, not provider integrations: no provider credentials, remote API
+calls, QPU execution, job submission, or authorized spend are included.
 
 The current published and archived baseline is `v0.12.0`. The GitHub release,
 PyPI wheel/source distribution, and Zenodo record preserve the same release
-identity and simulator-first claim boundary.
+identity and simulator-first claim boundary while `v0.13.0` completes its
+release gates. The stable project citation remains the concept DOI until Zenodo
+archives the new version.
 
 The latest archived release DOI is
 [v0.12.0 / 10.5281/zenodo.21329711](https://doi.org/10.5281/zenodo.21329711).

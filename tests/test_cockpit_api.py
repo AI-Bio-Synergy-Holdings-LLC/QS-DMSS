@@ -50,7 +50,7 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     assert structured_data["softwareVersion"] == __version__
     assert structured_data["isPartOf"]["url"] == "https://qs-dmss.studio/"
     assert structured_data["publisher"]["name"] == "AI-Bio Synergy Holdings LLC"
-    assert structured_data["citation"] == "https://doi.org/10.5281/zenodo.21329711"
+    assert structured_data["citation"] == "https://doi.org/10.5281/zenodo.20074924"
 
     social_preview = client.get("/static/hosted-demo-social-preview.png")
     assert social_preview.status_code == 200
@@ -80,6 +80,7 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     assert health_payload["release"] == {
         "version": __version__,
         "tag": f"v{__version__}",
+        "latest_archived_release_tag": "v0.12.0",
         "project_doi": "10.5281/zenodo.20074924",
         "project_doi_url": "https://doi.org/10.5281/zenodo.20074924",
         "archived_release_doi": "10.5281/zenodo.21329711",

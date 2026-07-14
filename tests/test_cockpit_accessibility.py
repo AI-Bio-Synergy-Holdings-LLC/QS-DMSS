@@ -43,13 +43,14 @@ def test_cockpit_shell_has_accessible_navigation_and_landmarks() -> None:
     assert '<aside class="rail" aria-label="Application navigation">' in html
     assert '<nav class="rail-nav" aria-labelledby="primaryNavigationLabel">' in html
     assert '<main class="workspace" id="main-content" tabindex="-1">' in html
-    assert '<meta name="application-version" content="0.12.0" />' in html
-    assert '<meta name="citation_doi" content="10.5281/zenodo.21329711" />' in html
-    assert '<link rel="cite-as" href="https://doi.org/10.5281/zenodo.21329711" />' in html
+    assert '<meta name="application-version" content="0.13.0" />' in html
+    assert '<meta name="citation_doi" content="10.5281/zenodo.20074924" />' in html
+    assert '<link rel="cite-as" href="https://doi.org/10.5281/zenodo.20074924" />' in html
     assert 'id="releaseVersion"' in html
     assert 'id="releaseDoi"' in html
     assert 'id="projectDoi"' in html
-    assert "Release DOI 10.5281/zenodo.21329711" in html
+    assert "Build v0.13.0" in html
+    assert "Latest archive v0.12.0 DOI 10.5281/zenodo.21329711" in html
     assert "Project DOI 10.5281/zenodo.20074924" in html
 
     navigation_labels = [
@@ -169,6 +170,7 @@ def test_cockpit_styles_encode_wcag_interaction_baseline() -> None:
 
     assert "--rail-width: 120px" in css
     assert ".skip-link:focus" in css
+    assert ".visually-hidden {" in css
     assert 'input[type="checkbox"]:not(.visually-hidden-input)' in css
     assert "min-width: 24px" in css
     assert "@media (forced-colors: active)" in css
@@ -194,6 +196,12 @@ def test_cockpit_styles_encode_wcag_interaction_baseline() -> None:
     assert ".quantum-topology-charts" in css
     assert ".quantum-attribution-chart" in css
     assert ".quantum-table-wrap" in css
+    assert ".research-runbook-grid" in css
+    assert ".research-runbook-step.is-current" in css
+    assert ".evidence-assistant-prompts" in css
+    assert '.evidence-assistant-prompts button[aria-pressed="true"]' in css
+    assert ".research-runbook-head .selection-chip" in css
+    assert "@media (max-width: 1050px)" in css
     quantum_table_wrap = re.search(
         r"\.quantum-table-wrap\s*\{(?P<rules>.*?)\}",
         css,
@@ -229,6 +237,11 @@ def test_cockpit_navigation_and_dynamic_controls_preserve_semantics() -> None:
     assert "function comparisonExportPayload(" in script
     assert "function updateDemoPath()" in script
     assert "function updateLabWorkflow()" in script
+    assert "function renderResearchRunbook(" in script
+    assert "function renderEvidenceAssistant(" in script
+    assert "function evidenceAssistantAnswer(" in script
+    assert "function evidenceAssistantSources(" in script
+    assert "data-evidence-assistant-intent" in script
     assert "function renderScientificTrace(" in script
     assert "function renderInteractiveComparisonChart(" in script
     assert 'data-comparison-metric="${key}"' in script
@@ -273,6 +286,17 @@ def test_lab_workflow_and_live_chart_surfaces_are_semantic() -> None:
         "labFlowExport",
     ):
         assert f'id="{step_id}"' in html
+    assert 'id="researchRunbook"' in html
+    assert 'aria-labelledby="researchRunbookTitle"' in html
+    assert 'id="evidenceAssistantTitle"' in html
+    assert 'id="evidenceAssistantPromptGroup"' in html
+    assert 'id="evidenceAssistantResponseTitle"' in html
+    assert 'id="evidenceAssistantEvidenceList"' in html
+    assert 'data-evidence-assistant-intent="summary"' in html
+    assert 'data-evidence-assistant-intent="claim"' in html
+    assert 'data-evidence-assistant-intent="review"' in html
+    assert 'data-evidence-assistant-intent="next"' in html
+    assert "It does not create evidence" in html
     assert 'id="labComparisonChart"' in html
     assert 'id="comparisonChart"' in html
     assert 'id="labEnergyChart"' in html

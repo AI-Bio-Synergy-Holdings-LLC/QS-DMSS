@@ -9,17 +9,17 @@
     />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="application-name" content="QS-DMSS Studio Hosted Demo" />
-    <meta name="application-version" content="0.12.0" />
+    <meta name="application-version" content="0.13.0" />
     <meta name="citation_title" content="QS-DMSS: QuantumScalar Dark Matter Simulation Suite" />
-    <meta name="citation_doi" content="10.5281/zenodo.21329711" />
-    <meta name="DC.identifier" content="doi:10.5281/zenodo.21329711" />
+    <meta name="citation_doi" content="10.5281/zenodo.20074924" />
+    <meta name="DC.identifier" content="doi:10.5281/zenodo.20074924" />
     <meta name="author" content="AI-Bio Synergy Holdings LLC" />
     <meta name="theme-color" content="#0b1916" />
     <title>QS-DMSS Studio | Research Cockpit</title>
     <link rel="icon" href="/static/favicon.svg" type="image/svg+xml" />
     <link rel="canonical" href="https://app.qs-dmss.studio/" />
     <link rel="home" href="https://qs-dmss.studio/" />
-    <link rel="cite-as" href="https://doi.org/10.5281/zenodo.21329711" />
+    <link rel="cite-as" href="https://doi.org/10.5281/zenodo.20074924" />
     <link
       rel="sitemap"
       type="application/xml"
@@ -83,12 +83,12 @@
         "applicationSubCategory": "Research software demonstration",
         "operatingSystem": "Any modern web browser",
         "browserRequirements": "Requires JavaScript and a modern browser.",
-        "softwareVersion": "0.12.0",
+        "softwareVersion": "0.13.0",
         "isAccessibleForFree": true,
         "license": "https://www.apache.org/licenses/LICENSE-2.0",
         "codeRepository": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
         "downloadUrl": "https://pypi.org/project/qs-dmss/0.12.0/",
-        "citation": "https://doi.org/10.5281/zenodo.21329711",
+        "citation": "https://doi.org/10.5281/zenodo.20074924",
         "image": "https://app.qs-dmss.studio/static/hosted-demo-social-preview.png",
         "featureList": [
           "Packaged simulation scenarios",
@@ -171,9 +171,9 @@
           <div class="topbar-brand">
             <h1>QS-DMSS Studio</h1>
             <div class="release-identity" aria-label="Release identity">
-              <span id="releaseVersion">v0.12.0</span>
+              <span id="releaseVersion">Build v0.13.0</span>
               <span aria-hidden="true">·</span>
-              <a id="releaseDoi" href="https://doi.org/10.5281/zenodo.21329711">Release DOI 10.5281/zenodo.21329711</a>
+              <a id="releaseDoi" href="https://doi.org/10.5281/zenodo.21329711">Latest archive v0.12.0 DOI 10.5281/zenodo.21329711</a>
               <span class="release-project-separator" aria-hidden="true">·</span>
               <a class="release-project-link" id="projectDoi" href="https://doi.org/10.5281/zenodo.20074924">Project DOI 10.5281/zenodo.20074924</a>
             </div>
@@ -320,6 +320,100 @@
                 </li>
               </ol>
             </div>
+
+            <section class="research-runbook" id="researchRunbook" aria-labelledby="researchRunbookTitle">
+              <header class="research-runbook-head">
+                <div>
+                  <p class="panel-kicker">Research Runbook</p>
+                  <h3 id="researchRunbookTitle">A protocol that stays attached to the evidence</h3>
+                  <p id="researchRunbookSummary">
+                    Select a packaged scenario to establish the scope, then execute, inspect, verify, and communicate one evidence-bound research object.
+                  </p>
+                </div>
+                <span class="selection-chip" id="researchRunbookStatus">Define scope</span>
+              </header>
+              <div class="research-runbook-grid">
+                <ol class="research-runbook-steps" aria-label="Research Runbook protocol">
+                  <li class="research-runbook-step is-current" id="runbookStepDefine">
+                    <span class="runbook-step-number" aria-hidden="true">01</span>
+                    <div>
+                      <strong>Define scope</strong>
+                      <p id="runbookStepDefineSummary">Choose a scenario with a documented purpose and limitations.</p>
+                      <span class="runbook-step-status" id="runbookStepDefineStatus">Current</span>
+                    </div>
+                    <a href="#labRunWorkspace">Set scope<span class="visually-hidden"> for the research runbook</span></a>
+                  </li>
+                  <li class="research-runbook-step" id="runbookStepExecute">
+                    <span class="runbook-step-number" aria-hidden="true">02</span>
+                    <div>
+                      <strong>Execute deterministically</strong>
+                      <p id="runbookStepExecuteSummary">Create a recorded run with versioned inputs and artifacts.</p>
+                      <span class="runbook-step-status" id="runbookStepExecuteStatus">Queued</span>
+                    </div>
+                    <a href="#labRunWorkspace">Open run<span class="visually-hidden"> controls</span></a>
+                  </li>
+                  <li class="research-runbook-step" id="runbookStepInspect">
+                    <span class="runbook-step-number" aria-hidden="true">03</span>
+                    <div>
+                      <strong>Inspect evidence</strong>
+                      <p id="runbookStepInspectSummary">Read the report, diagnostics, artifacts, and claim boundary.</p>
+                      <span class="runbook-step-status" id="runbookStepInspectStatus">Locked</span>
+                    </div>
+                    <a href="#labEvidenceExplorer">Inspect evidence</a>
+                  </li>
+                  <li class="research-runbook-step" id="runbookStepVerify">
+                    <span class="runbook-step-number" aria-hidden="true">04</span>
+                    <div>
+                      <strong>Verify and replay</strong>
+                      <p id="runbookStepVerifySummary">Check the manifest and deterministic replay before interpretation.</p>
+                      <span class="runbook-step-status" id="runbookStepVerifyStatus">Locked</span>
+                    </div>
+                    <a href="#artifacts">Review checks</a>
+                  </li>
+                  <li class="research-runbook-step" id="runbookStepCommunicate">
+                    <span class="runbook-step-number" aria-hidden="true">05</span>
+                    <div>
+                      <strong>Communicate responsibly</strong>
+                      <p id="runbookStepCommunicateSummary">Export evidence, citations, methods, and stated non-claims.</p>
+                      <span class="runbook-step-status" id="runbookStepCommunicateStatus">Locked</span>
+                    </div>
+                    <a href="#researchObjectExportPanel">Open export</a>
+                  </li>
+                </ol>
+
+                <aside class="evidence-assistant" aria-labelledby="evidenceAssistantTitle">
+                  <div class="evidence-assistant-head">
+                    <div>
+                      <p class="panel-kicker">Evidence Assistant</p>
+                      <h3 id="evidenceAssistantTitle">Contextual, source-bound guidance</h3>
+                    </div>
+                    <span class="evidence-assistant-mode">Recorded context only</span>
+                  </div>
+                  <p class="evidence-assistant-context" id="evidenceAssistantContext">
+                    No scenario is selected yet. The assistant will use the study contract and recorded evidence when they are available.
+                  </p>
+                  <div class="evidence-assistant-prompts" id="evidenceAssistantPromptGroup" role="group" aria-label="Evidence Assistant prompts">
+                    <button type="button" data-evidence-assistant-intent="summary" aria-pressed="false">Summarize evidence</button>
+                    <button type="button" data-evidence-assistant-intent="claim" aria-pressed="false">What can I claim?</button>
+                    <button type="button" data-evidence-assistant-intent="review" aria-pressed="false">What needs review?</button>
+                    <button type="button" data-evidence-assistant-intent="next" aria-pressed="true">Next best action</button>
+                  </div>
+                  <section class="evidence-assistant-response" aria-live="polite" aria-labelledby="evidenceAssistantResponseTitle">
+                    <p class="artifact-list-title" id="evidenceAssistantResponseLabel">Runbook guidance</p>
+                    <h4 id="evidenceAssistantResponseTitle">Choose a scenario to begin</h4>
+                    <p id="evidenceAssistantResponseBody">
+                      The next defensible action is to select a packaged scenario, review its purpose and limitations, and establish the scientific boundary before execution.
+                    </p>
+                    <ul id="evidenceAssistantEvidenceList">
+                      <li>Evidence basis will appear after a scenario is selected.</li>
+                    </ul>
+                  </section>
+                  <p class="evidence-assistant-boundary">
+                    This assistant summarizes recorded QS-DMSS context. It does not create evidence, infer physical validity beyond the documented boundary, or make unstated scientific claims.
+                  </p>
+                </aside>
+              </div>
+            </section>
 
             <details class="demo-path" aria-labelledby="demoPathTitle">
               <summary class="demo-path-head">

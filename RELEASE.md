@@ -3,7 +3,9 @@
 This policy keeps release builds, Python package metadata, GitHub release
 artifacts, and PyPI distributions aligned before and after tags are published.
 
-Current release target: `v0.12.0` / `0.12.0`. Published release-candidate tags
+Current release target: `v0.13.0` / `0.13.0`. The latest published and archived
+baseline remains `v0.12.0` until the `v0.13.0` GitHub release has been archived
+by Zenodo and published to PyPI. Published release-candidate tags
 such as `v0.1.0-rc.1` and `v0.1.0-rc.2` remain immutable; do not move or
 replace them.
 
@@ -59,7 +61,8 @@ replace them.
   to local software rights.
 - The accepted
   [commercial sustainability and licensing boundary](docs/decisions/0001-commercial-sustainability-and-licensing-boundary.md)
-  governs `v0.12.0` preparation and must remain satisfied before tagging.
+  governed `v0.12.0` preparation; its Apache-2.0 and separation requirements
+  must remain satisfied before tagging `v0.13.0`.
 - Quantum-readiness release artifacts must remain simulator-first and
   provider-neutral: no provider credentials, remote API calls, submission,
   QPU execution, or authorized spend.

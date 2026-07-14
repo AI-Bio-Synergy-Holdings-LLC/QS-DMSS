@@ -18,7 +18,8 @@ Initial PyPI publication completed on `2026-05-05` through GitHub Actions
 Trusted Publishing.
 
 - Initial published version: `0.1.0`
-- Current release target: `0.12.0`
+- Next release target: `0.13.0` (release candidate; not yet published)
+- Latest published version: `0.12.0`
 - Canonical website: `https://qs-dmss.studio`
 - PyPI project URL: `https://pypi.org/project/qs-dmss/`
 - Initial publish workflow run:
