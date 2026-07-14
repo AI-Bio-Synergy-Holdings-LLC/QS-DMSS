@@ -43,6 +43,7 @@ def test_static_site_front_door_contract() -> None:
         "Install from PyPI",
         "Download v0.13.0",
         "Run local cockpit",
+        "python -m pip install --upgrade qs-dmss",
         "Read DOI",
         "Support on Open Collective",
         "Lab Mode",

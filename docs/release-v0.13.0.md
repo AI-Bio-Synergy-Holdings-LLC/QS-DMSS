@@ -6,8 +6,8 @@
 `7321d126c184863c50e32c6d0c5b9d71674fcdb7` on 2026-07-14. The GitHub release
 contains the validated wheel and source distribution, and Zenodo archived the
 release as [10.5281/zenodo.21348257](https://doi.org/10.5281/zenodo.21348257).
-PyPI publication of those exact artifacts remains pending the Trusted
-Publishing workflow; the latest PyPI package is `0.12.0` until that completes.
+The exact artifacts were published on PyPI as `qs-dmss==0.13.0` through the
+repository's Trusted Publishing workflow.
 
 ## What Changes
 
@@ -40,13 +40,8 @@ QPU execution, job submission, or authorized spend are included.
 5. Zenodo archived the release as `10.5281/zenodo.21348257`.
 6. GitHub Pages and the Render service deployed `main`; `/api/health` reports
    `v0.13.0`.
-
-## Remaining Publication Task
-
-Publish the already-attached GitHub release wheel and source distribution to
-PyPI through the repository's Trusted Publishing workflow. No PyPI token or
-supported OIDC environment is available in this release session, so it would
-be inaccurate to describe `0.13.0` as available on PyPI yet.
+7. The guarded `Publish to PyPI` workflow validated the exact release assets and
+   published both files through GitHub OIDC / PyPI Trusted Publishing.
 
 ## Citation
 

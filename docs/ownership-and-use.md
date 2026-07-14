@@ -72,8 +72,7 @@ Recommended reproducibility attribution:
 ```text
 This work used QS-DMSS v0.13.0. The project concept DOI is
 10.5281/zenodo.20074924; the v0.13.0 archived release DOI is
-10.5281/zenodo.21348257. The latest PyPI package remains 0.12.0 until the
-v0.13.0 Trusted Publishing workflow completes.
+10.5281/zenodo.21348257. The matching PyPI package is `qs-dmss==0.13.0`.
 ```
 
 ## Contribution Basis

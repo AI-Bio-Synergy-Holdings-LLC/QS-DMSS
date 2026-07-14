@@ -4,6 +4,7 @@ include CITATION.cff
 include LICENSE
 include NOTICE
 include README.md
+include README-pypi.md
 include RELEASE.md
 include SECURITY.md
 include codemeta.json

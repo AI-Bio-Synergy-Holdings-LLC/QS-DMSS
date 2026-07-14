@@ -9,9 +9,8 @@ The current QS-DMSS direction is:
 run simulations -> inspect evidence -> compare campaigns -> publish reproducible artifacts
 ```
 
-The current GitHub and Zenodo release is `v0.13.0`; its archived DOI is
-`10.5281/zenodo.21348257`. The latest PyPI package remains `qs-dmss==0.12.0`
-until the v0.13.0 Trusted Publishing workflow completes.
+The current GitHub, Zenodo, and PyPI release is `v0.13.0`; its archived DOI is
+`10.5281/zenodo.21348257`.
 
 ## Strategic Shift
 

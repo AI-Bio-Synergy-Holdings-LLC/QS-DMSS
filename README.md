@@ -44,10 +44,9 @@ sidecar and 12-row compilation/resource attribution matrix remain local review
 artifacts, not provider integrations: no provider credentials, remote API
 calls, QPU execution, job submission, or authorized spend are included.
 
-The GitHub release assets and Zenodo record preserve the same release identity
-and simulator-first claim boundary. PyPI publication of those exact artifacts
-is pending the repository's Trusted Publishing workflow; the latest PyPI
-package remains `0.12.0` until that workflow completes.
+The GitHub release assets, Zenodo record, and PyPI package preserve the same
+release identity and simulator-first claim boundary. Install
+`qs-dmss==0.13.0` from PyPI or use the matching GitHub Release asset.
 
 The v0.13.0 archived release DOI is
 [v0.13.0 / 10.5281/zenodo.21348257](https://doi.org/10.5281/zenodo.21348257).

@@ -425,7 +425,7 @@ const toneColorByEvidence = {
 };
 
 const citationMetadata = {
-  packageVersion: "0.13.0",
+  packageVersion: "0.13.1",
   releaseTag: "v0.13.0",
   conceptDoi: "10.5281/zenodo.20074924",
   releaseDoi: "10.5281/zenodo.21348257",
