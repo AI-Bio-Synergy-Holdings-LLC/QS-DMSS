@@ -23,6 +23,7 @@ const state = {
   labResult: null,
   labComparisonResult: null,
   comparisonDownloadUrl: null,
+  evidenceAssistantIntent: "next",
   researchObject: null,
   researchObjectDownloadUrl: null,
   workspaceExport: null,
@@ -135,6 +136,29 @@ const els = {
   labFlowInspectStatus: document.querySelector("#labFlowInspectStatus"),
   labFlowVerifyStatus: document.querySelector("#labFlowVerifyStatus"),
   labFlowExportStatus: document.querySelector("#labFlowExportStatus"),
+  researchRunbookStatus: document.querySelector("#researchRunbookStatus"),
+  researchRunbookSummary: document.querySelector("#researchRunbookSummary"),
+  runbookStepDefine: document.querySelector("#runbookStepDefine"),
+  runbookStepDefineSummary: document.querySelector("#runbookStepDefineSummary"),
+  runbookStepDefineStatus: document.querySelector("#runbookStepDefineStatus"),
+  runbookStepExecute: document.querySelector("#runbookStepExecute"),
+  runbookStepExecuteSummary: document.querySelector("#runbookStepExecuteSummary"),
+  runbookStepExecuteStatus: document.querySelector("#runbookStepExecuteStatus"),
+  runbookStepInspect: document.querySelector("#runbookStepInspect"),
+  runbookStepInspectSummary: document.querySelector("#runbookStepInspectSummary"),
+  runbookStepInspectStatus: document.querySelector("#runbookStepInspectStatus"),
+  runbookStepVerify: document.querySelector("#runbookStepVerify"),
+  runbookStepVerifySummary: document.querySelector("#runbookStepVerifySummary"),
+  runbookStepVerifyStatus: document.querySelector("#runbookStepVerifyStatus"),
+  runbookStepCommunicate: document.querySelector("#runbookStepCommunicate"),
+  runbookStepCommunicateSummary: document.querySelector("#runbookStepCommunicateSummary"),
+  runbookStepCommunicateStatus: document.querySelector("#runbookStepCommunicateStatus"),
+  evidenceAssistantContext: document.querySelector("#evidenceAssistantContext"),
+  evidenceAssistantPromptGroup: document.querySelector("#evidenceAssistantPromptGroup"),
+  evidenceAssistantResponseLabel: document.querySelector("#evidenceAssistantResponseLabel"),
+  evidenceAssistantResponseTitle: document.querySelector("#evidenceAssistantResponseTitle"),
+  evidenceAssistantResponseBody: document.querySelector("#evidenceAssistantResponseBody"),
+  evidenceAssistantEvidenceList: document.querySelector("#evidenceAssistantEvidenceList"),
   demoPathStatus: document.querySelector("#demoPathStatus"),
   demoPathFeedback: document.querySelector("#demoPathFeedback"),
   demoRunStep: document.querySelector("#demoRunStep"),
@@ -947,6 +971,345 @@ function setLabComparisonProgress(isRunning, message) {
   els.labComparisonProgressText.textContent = message;
   els.demoCompareButton.disabled = isRunning || !state.labResult;
   els.demoCompareButton.textContent = isRunning ? "Comparing variants..." : "Compare variants";
+}
+
+function setResearchRunbookStep(element, summary, status, details) {
+  const { complete, current, available, summaryText, statusText } = details;
+  element.classList.toggle("is-complete", complete);
+  element.classList.toggle("is-current", current);
+  element.classList.toggle("is-available", available);
+  summary.textContent = summaryText;
+  status.textContent = statusText;
+}
+
+function evidenceAssistantSources(scenario, result) {
+  const sources = [];
+  if (scenario) {
+    sources.push(`Scenario contract · ${scenario.label || scenario.name || "packaged study"}`);
+    const limitationCount = Array.isArray(scenario.limitations) ? scenario.limitations.length : 0;
+    sources.push(
+      limitationCount
+        ? `Declared limitations · ${limitationCount} recorded`
+        : "Declared limitations · review the scenario contract",
+    );
+  }
+
+  const run = result?.run?.summary;
+  if (run?.run_id) {
+    sources.push(`Run ledger · ${run.run_id}`);
+  }
+  const evidence = result?.run?.evidence;
+  if (evidence?.bundle_sha256) {
+    sources.push(`Evidence bundle · SHA-256 ${evidence.bundle_sha256.slice(0, 12)}`);
+  }
+  const verification = result?.report?.verification;
+  if (verification) {
+    sources.push(
+      verification.success
+        ? `Manifest verification · ${verification.checked_files || 0} files passed`
+        : "Manifest verification · requires review",
+    );
+  }
+  const replay = result?.report?.replay;
+  if (replay) {
+    sources.push(
+      replay.final_density_allclose
+        ? "Deterministic replay · matched final density"
+        : "Deterministic replay · requires review",
+    );
+  }
+  const comparisonCount = state.labComparisonResult?.comparison?.rows?.length || 0;
+  if (comparisonCount) {
+    sources.push(`Guided comparison · ${comparisonCount} recorded variants`);
+  }
+  if (state.researchObject) {
+    sources.push(`Research object · ${state.researchObject.fileName || "export composed"}`);
+  }
+  return sources;
+}
+
+function evidenceAssistantAnswer(scenario, result) {
+  const intent = ["summary", "claim", "review", "next"].includes(state.evidenceAssistantIntent)
+    ? state.evidenceAssistantIntent
+    : "next";
+  const report = result?.report || {};
+  const interpretation = report.interpretation || {};
+  const verificationPassed = Boolean(report.verification?.success);
+  const replayPassed = Boolean(report.replay?.final_density_allclose);
+  const reproduced = verificationPassed && replayPassed;
+  const limitations = Array.isArray(scenario?.limitations) ? scenario.limitations : [];
+  const nonClaims = Array.isArray(interpretation.what_this_result_does_not_claim)
+    ? interpretation.what_this_result_does_not_claim
+    : [];
+  const meanings = Array.isArray(interpretation.what_this_result_means)
+    ? interpretation.what_this_result_means
+    : [];
+  const sources = evidenceAssistantSources(scenario, result);
+
+  if (!scenario) {
+    return {
+      label: "Runbook guidance",
+      title: "Choose a scenario to begin",
+      body:
+        "The next defensible action is to select a packaged scenario, review its purpose and limitations, and establish the scientific boundary before execution.",
+      sources: ["Evidence basis will appear after a scenario is selected."],
+    };
+  }
+
+  if (!result) {
+    if (intent === "summary") {
+      return {
+        label: "Study contract",
+        title: `Prepared scope: ${scenario.label || scenario.name}`,
+        body:
+          scenario.purpose ||
+          scenario.description ||
+          "The selected scenario has no recorded result yet; its contract defines the intended workflow rather than a scientific outcome.",
+        sources,
+      };
+    }
+    if (intent === "claim") {
+      return {
+        label: "Claim boundary",
+        title: "No result claim is ready",
+        body:
+          limitations[0]
+            ? `Before execution, retain this constraint: ${limitations[0]}`
+            : "Before execution, the scenario contract—not an outcome—defines the available scientific boundary.",
+        sources,
+      };
+    }
+    if (intent === "review") {
+      return {
+        label: "Readiness review",
+        title: "Review the contract before running",
+        body:
+          limitations.length
+            ? `Review the ${limitations.length} documented limitation${limitations.length === 1 ? "" : "s"}, expected outputs, and next actions before creating the run.`
+            : "Review expected outputs, inputs, and the stated scope before creating the run.",
+        sources,
+      };
+    }
+    return {
+      label: "Next best action",
+      title: "Execute the declared scenario",
+      body:
+        "The scenario is selected. Launch one deterministic run to create the report, evidence manifest, replay record, and artifact set that the remaining runbook steps require.",
+      sources,
+    };
+  }
+
+  if (intent === "summary") {
+    return {
+      label: "Recorded evidence summary",
+      title: `What ${report.scenario_title || scenario.label || scenario.name} recorded`,
+      body:
+        interpretation.plain_language_summary ||
+        report.scenario_narrative ||
+        "The recorded run is available for evidence inspection; read the report and diagnostics before interpreting the outcome.",
+      sources,
+    };
+  }
+  if (intent === "claim") {
+    return {
+      label: "Supportable reading",
+      title: reproduced ? "Interpret within the recorded boundary" : "Verification gates are still open",
+      body: reproduced
+        ? meanings.slice(0, 2).join(" ") ||
+          "The run supports only the documented numerical and workflow observations captured in its report."
+        : "Do not promote this result to a supportable claim until manifest verification and deterministic replay are both recorded as passing.",
+      sources: [...sources, ...nonClaims.slice(0, 1).map((item) => `Boundary · ${item}`)],
+    };
+  }
+  if (intent === "review") {
+    return {
+      label: "Review queue",
+      title: reproduced ? "Review interpretation and non-claims" : "Resolve evidence gates before interpretation",
+      body: reproduced
+        ? interpretation.review_prompt ||
+          "Review whether the evidence, assumptions, and stated limitations support the planned communication."
+        : !verificationPassed
+          ? "Manifest verification did not pass. Inspect the evidence checklist and run artifacts before relying on this result."
+          : "Deterministic replay did not match. Inspect the replay record before relying on this result.",
+      sources: [...sources, ...nonClaims.slice(0, 2).map((item) => `Non-claim · ${item}`)],
+    };
+  }
+
+  if (!verificationPassed) {
+    return {
+      label: "Next best action",
+      title: "Resolve manifest verification",
+      body:
+        "Inspect the evidence checklist and generated artifacts. A research object should not be communicated while file-manifest verification remains incomplete or failing.",
+      sources,
+    };
+  }
+  if (!replayPassed) {
+    return {
+      label: "Next best action",
+      title: "Resolve deterministic replay",
+      body:
+        "Inspect the replay result and its run lineage before interpreting or exporting the run. Replay agreement is the runbook gate for reproducibility.",
+      sources,
+    };
+  }
+  if (!state.labComparisonResult) {
+    return {
+      label: "Next best action",
+      title: "Inspect the evidence, then compare variants if needed",
+      body:
+        "The recorded run is verified and replayed. Review its report and diagnostics; use Guided Comparison when the research question requires a controlled, multi-variant attribution rather than a single-run reading.",
+      sources,
+    };
+  }
+  if (!state.researchObject) {
+    return {
+      label: "Next best action",
+      title: "Compose the citable research object",
+      body:
+        "The runbook has recorded execution, evidence, reproducibility, and comparison context. Compose the export to package methods, citations, artifacts, evidence links, and non-claims for review.",
+      sources,
+    };
+  }
+  return {
+    label: "Runbook state",
+    title: "Evidence package ready for review",
+    body:
+      "The research object is composed. Before sharing, perform a human review of the report narrative, evidence links, limitations, and claim boundary; this assistant does not replace scientific review.",
+    sources,
+  };
+}
+
+function renderEvidenceAssistant(scenario) {
+  const result = state.labResult;
+  const answer = evidenceAssistantAnswer(scenario, result);
+  const runId = result?.run?.summary?.run_id;
+  els.evidenceAssistantContext.textContent = !scenario
+    ? "No scenario is selected yet. The assistant will use the study contract and recorded evidence when they are available."
+    : runId
+      ? `Working from ${scenario.label || scenario.name}, recorded run ${shortRunId(runId)}, and its attached evidence lineage.`
+      : `Working from the ${scenario.label || scenario.name} study contract. Run the scenario to attach evidence lineage.`;
+  els.evidenceAssistantResponseLabel.textContent = answer.label;
+  els.evidenceAssistantResponseTitle.textContent = answer.title;
+  els.evidenceAssistantResponseBody.textContent = answer.body;
+  renderPlainList(els.evidenceAssistantEvidenceList, answer.sources);
+  els.evidenceAssistantPromptGroup
+    .querySelectorAll("[data-evidence-assistant-intent]")
+    .forEach((button) => {
+      const isSelected = button.dataset.evidenceAssistantIntent === state.evidenceAssistantIntent;
+      button.setAttribute("aria-pressed", String(isSelected));
+    });
+}
+
+function renderResearchRunbook(scenario) {
+  const result = state.labResult;
+  const report = result?.report || {};
+  const run = result?.run?.summary;
+  const evidence = result?.run?.evidence;
+  const hasScenario = Boolean(scenario);
+  const hasRun = Boolean(run?.run_id);
+  const inspected = Boolean(report?.scenario || report?.scenario_title || report?.interpretation);
+  const verificationPassed = Boolean(report.verification?.success);
+  const replayPassed = Boolean(report.replay?.final_density_allclose);
+  const reproduced = verificationPassed && replayPassed;
+  const hasExport = Boolean(state.researchObject);
+  const limitationCount = Array.isArray(scenario?.limitations) ? scenario.limitations.length : 0;
+
+  setResearchRunbookStep(
+    els.runbookStepDefine,
+    els.runbookStepDefineSummary,
+    els.runbookStepDefineStatus,
+    {
+      complete: hasScenario,
+      current: !hasScenario,
+      available: true,
+      summaryText: hasScenario
+        ? `${scenario.label || scenario.name} selected with ${limitationCount || "documented"} limitation${limitationCount === 1 ? "" : "s"}.`
+        : "Choose a scenario with a documented purpose and limitations.",
+      statusText: hasScenario ? "Defined" : "Current",
+    },
+  );
+  setResearchRunbookStep(
+    els.runbookStepExecute,
+    els.runbookStepExecuteSummary,
+    els.runbookStepExecuteStatus,
+    {
+      complete: hasRun,
+      current: hasScenario && !hasRun,
+      available: hasScenario,
+      summaryText: hasRun
+        ? `Run ${shortRunId(run.run_id)} recorded with ${evidence?.file_count || 0} manifest files.`
+        : hasScenario
+          ? "The selected scenario is ready for one deterministic execution."
+          : "Create a recorded run with versioned inputs and artifacts.",
+      statusText: hasRun ? "Recorded" : hasScenario ? "Current" : "Queued",
+    },
+  );
+  setResearchRunbookStep(
+    els.runbookStepInspect,
+    els.runbookStepInspectSummary,
+    els.runbookStepInspectStatus,
+    {
+      complete: inspected,
+      current: hasRun && !inspected,
+      available: hasRun,
+      summaryText: inspected
+        ? "Report, diagnostics, artifacts, and the claim boundary are attached to the run."
+        : hasRun
+          ? "Open the recorded evidence before interpreting the outcome."
+          : "Read the report, diagnostics, artifacts, and claim boundary.",
+      statusText: inspected ? "Evidence loaded" : hasRun ? "Current" : "Locked",
+    },
+  );
+  setResearchRunbookStep(
+    els.runbookStepVerify,
+    els.runbookStepVerifySummary,
+    els.runbookStepVerifyStatus,
+    {
+      complete: reproduced,
+      current: inspected && !reproduced,
+      available: inspected,
+      summaryText: reproduced
+        ? "Manifest verification passed and deterministic replay matched the final density."
+        : inspected
+          ? "Review manifest verification and deterministic replay before drawing conclusions."
+          : "Check the manifest and deterministic replay before interpretation.",
+      statusText: reproduced ? "Reproduced" : inspected ? "Review" : "Locked",
+    },
+  );
+  setResearchRunbookStep(
+    els.runbookStepCommunicate,
+    els.runbookStepCommunicateSummary,
+    els.runbookStepCommunicateStatus,
+    {
+      complete: hasExport,
+      current: reproduced && !hasExport,
+      available: reproduced,
+      summaryText: hasExport
+        ? "Research object is composed with report, citations, evidence links, and non-claims."
+        : reproduced
+          ? "The reviewed evidence is ready to be composed into a citable research object."
+          : "Export evidence, citations, methods, and stated non-claims.",
+      statusText: hasExport ? "Ready for review" : reproduced ? "Current" : "Locked",
+    },
+  );
+
+  const currentPhase = !hasScenario
+    ? "Define scope"
+    : !hasRun
+      ? "Execute study"
+      : !inspected
+        ? "Inspect evidence"
+        : !reproduced
+          ? "Verify and replay"
+          : !hasExport
+            ? "Compose research object"
+            : "Human review";
+  els.researchRunbookStatus.textContent = currentPhase;
+  els.researchRunbookSummary.textContent = hasScenario
+    ? `The ${scenario.label || scenario.name} protocol keeps scope, execution, evidence, reproducibility, and responsible communication attached to one research object.`
+    : "Select a packaged scenario to establish the scope, then execute, inspect, verify, and communicate one evidence-bound research object.";
+  renderEvidenceAssistant(scenario);
 }
 
 function updateLabWorkflow() {
@@ -3532,6 +3895,7 @@ function renderLabMode() {
     ? `${scenario.grid_label} | ${scenario.steps} steps | ${scenario.expected_runtime}`
     : "No packaged showcase selected";
   renderScenarioLibrary(scenario);
+  renderResearchRunbook(scenario);
   renderCampaignStudioPreview(state.campaignStudio);
 
   if (!state.labResult) {
@@ -6039,6 +6403,12 @@ function bindEvents() {
   els.demoRunButton.addEventListener("click", () => els.launchLabButton.click());
   els.demoCompareButton.addEventListener("click", () => els.launchLabComparisonButton.click());
   els.demoExportButton.addEventListener("click", () => els.composeResearchObjectButton.click());
+  els.evidenceAssistantPromptGroup.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-evidence-assistant-intent]");
+    if (!button) return;
+    state.evidenceAssistantIntent = button.dataset.evidenceAssistantIntent;
+    renderResearchRunbook(showcaseByName(state.selectedShowcaseName));
+  });
   els.labScenarioSelect.addEventListener("change", (event) => {
     state.selectedShowcaseName = event.target.value;
     state.labResult = null;

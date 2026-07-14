@@ -194,6 +194,11 @@ def test_cockpit_styles_encode_wcag_interaction_baseline() -> None:
     assert ".quantum-topology-charts" in css
     assert ".quantum-attribution-chart" in css
     assert ".quantum-table-wrap" in css
+    assert ".research-runbook-grid" in css
+    assert ".research-runbook-step.is-current" in css
+    assert ".evidence-assistant-prompts" in css
+    assert '.evidence-assistant-prompts button[aria-pressed="true"]' in css
+    assert "@media (max-width: 1050px)" in css
     quantum_table_wrap = re.search(
         r"\.quantum-table-wrap\s*\{(?P<rules>.*?)\}",
         css,
@@ -229,6 +234,11 @@ def test_cockpit_navigation_and_dynamic_controls_preserve_semantics() -> None:
     assert "function comparisonExportPayload(" in script
     assert "function updateDemoPath()" in script
     assert "function updateLabWorkflow()" in script
+    assert "function renderResearchRunbook(" in script
+    assert "function renderEvidenceAssistant(" in script
+    assert "function evidenceAssistantAnswer(" in script
+    assert "function evidenceAssistantSources(" in script
+    assert "data-evidence-assistant-intent" in script
     assert "function renderScientificTrace(" in script
     assert "function renderInteractiveComparisonChart(" in script
     assert 'data-comparison-metric="${key}"' in script
@@ -273,6 +283,17 @@ def test_lab_workflow_and_live_chart_surfaces_are_semantic() -> None:
         "labFlowExport",
     ):
         assert f'id="{step_id}"' in html
+    assert 'id="researchRunbook"' in html
+    assert 'aria-labelledby="researchRunbookTitle"' in html
+    assert 'id="evidenceAssistantTitle"' in html
+    assert 'id="evidenceAssistantPromptGroup"' in html
+    assert 'id="evidenceAssistantResponseTitle"' in html
+    assert 'id="evidenceAssistantEvidenceList"' in html
+    assert 'data-evidence-assistant-intent="summary"' in html
+    assert 'data-evidence-assistant-intent="claim"' in html
+    assert 'data-evidence-assistant-intent="review"' in html
+    assert 'data-evidence-assistant-intent="next"' in html
+    assert "It does not create evidence" in html
     assert 'id="labComparisonChart"' in html
     assert 'id="comparisonChart"' in html
     assert 'id="labEnergyChart"' in html

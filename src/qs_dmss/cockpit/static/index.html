@@ -321,6 +321,100 @@
               </ol>
             </div>
 
+            <section class="research-runbook" id="researchRunbook" aria-labelledby="researchRunbookTitle">
+              <header class="research-runbook-head">
+                <div>
+                  <p class="panel-kicker">Research Runbook</p>
+                  <h3 id="researchRunbookTitle">A protocol that stays attached to the evidence</h3>
+                  <p id="researchRunbookSummary">
+                    Select a packaged scenario to establish the scope, then execute, inspect, verify, and communicate one evidence-bound research object.
+                  </p>
+                </div>
+                <span class="selection-chip" id="researchRunbookStatus">Define scope</span>
+              </header>
+              <div class="research-runbook-grid">
+                <ol class="research-runbook-steps" aria-label="Research Runbook protocol">
+                  <li class="research-runbook-step is-current" id="runbookStepDefine">
+                    <span class="runbook-step-number" aria-hidden="true">01</span>
+                    <div>
+                      <strong>Define scope</strong>
+                      <p id="runbookStepDefineSummary">Choose a scenario with a documented purpose and limitations.</p>
+                      <span class="runbook-step-status" id="runbookStepDefineStatus">Current</span>
+                    </div>
+                    <a href="#labRunWorkspace">Set scope<span class="visually-hidden"> for the research runbook</span></a>
+                  </li>
+                  <li class="research-runbook-step" id="runbookStepExecute">
+                    <span class="runbook-step-number" aria-hidden="true">02</span>
+                    <div>
+                      <strong>Execute deterministically</strong>
+                      <p id="runbookStepExecuteSummary">Create a recorded run with versioned inputs and artifacts.</p>
+                      <span class="runbook-step-status" id="runbookStepExecuteStatus">Queued</span>
+                    </div>
+                    <a href="#labRunWorkspace">Open run<span class="visually-hidden"> controls</span></a>
+                  </li>
+                  <li class="research-runbook-step" id="runbookStepInspect">
+                    <span class="runbook-step-number" aria-hidden="true">03</span>
+                    <div>
+                      <strong>Inspect evidence</strong>
+                      <p id="runbookStepInspectSummary">Read the report, diagnostics, artifacts, and claim boundary.</p>
+                      <span class="runbook-step-status" id="runbookStepInspectStatus">Locked</span>
+                    </div>
+                    <a href="#labEvidenceExplorer">Inspect evidence</a>
+                  </li>
+                  <li class="research-runbook-step" id="runbookStepVerify">
+                    <span class="runbook-step-number" aria-hidden="true">04</span>
+                    <div>
+                      <strong>Verify and replay</strong>
+                      <p id="runbookStepVerifySummary">Check the manifest and deterministic replay before interpretation.</p>
+                      <span class="runbook-step-status" id="runbookStepVerifyStatus">Locked</span>
+                    </div>
+                    <a href="#artifacts">Review checks</a>
+                  </li>
+                  <li class="research-runbook-step" id="runbookStepCommunicate">
+                    <span class="runbook-step-number" aria-hidden="true">05</span>
+                    <div>
+                      <strong>Communicate responsibly</strong>
+                      <p id="runbookStepCommunicateSummary">Export evidence, citations, methods, and stated non-claims.</p>
+                      <span class="runbook-step-status" id="runbookStepCommunicateStatus">Locked</span>
+                    </div>
+                    <a href="#researchObjectExportPanel">Open export</a>
+                  </li>
+                </ol>
+
+                <aside class="evidence-assistant" aria-labelledby="evidenceAssistantTitle">
+                  <div class="evidence-assistant-head">
+                    <div>
+                      <p class="panel-kicker">Evidence Assistant</p>
+                      <h3 id="evidenceAssistantTitle">Contextual, source-bound guidance</h3>
+                    </div>
+                    <span class="evidence-assistant-mode">Recorded context only</span>
+                  </div>
+                  <p class="evidence-assistant-context" id="evidenceAssistantContext">
+                    No scenario is selected yet. The assistant will use the study contract and recorded evidence when they are available.
+                  </p>
+                  <div class="evidence-assistant-prompts" id="evidenceAssistantPromptGroup" role="group" aria-label="Evidence Assistant prompts">
+                    <button type="button" data-evidence-assistant-intent="summary" aria-pressed="false">Summarize evidence</button>
+                    <button type="button" data-evidence-assistant-intent="claim" aria-pressed="false">What can I claim?</button>
+                    <button type="button" data-evidence-assistant-intent="review" aria-pressed="false">What needs review?</button>
+                    <button type="button" data-evidence-assistant-intent="next" aria-pressed="true">Next best action</button>
+                  </div>
+                  <section class="evidence-assistant-response" aria-live="polite" aria-labelledby="evidenceAssistantResponseTitle">
+                    <p class="artifact-list-title" id="evidenceAssistantResponseLabel">Runbook guidance</p>
+                    <h4 id="evidenceAssistantResponseTitle">Choose a scenario to begin</h4>
+                    <p id="evidenceAssistantResponseBody">
+                      The next defensible action is to select a packaged scenario, review its purpose and limitations, and establish the scientific boundary before execution.
+                    </p>
+                    <ul id="evidenceAssistantEvidenceList">
+                      <li>Evidence basis will appear after a scenario is selected.</li>
+                    </ul>
+                  </section>
+                  <p class="evidence-assistant-boundary">
+                    This assistant summarizes recorded QS-DMSS context. It does not create evidence, infer physical validity beyond the documented boundary, or make unstated scientific claims.
+                  </p>
+                </aside>
+              </div>
+            </section>
+
             <details class="demo-path" aria-labelledby="demoPathTitle">
               <summary class="demo-path-head">
                 <span>
