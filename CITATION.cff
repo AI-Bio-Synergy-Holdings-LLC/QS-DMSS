@@ -7,11 +7,14 @@ license: Apache-2.0
 abstract: "Evidence-first QuantumScalar dark matter simulation software with deterministic local runs, hosted Studio workflows, validation spines, provider-neutral simulator-first quantum-readiness artifacts, public reference-data provenance, dry-run Slurm request bundles, publication exports, replay, and reproducible evidence bundles."
 authors:
   - name: "AI-Bio Synergy Holdings LLC"
-doi: 10.5281/zenodo.20074924
+doi: 10.5281/zenodo.21348257
 identifiers:
   - type: doi
+    value: 10.5281/zenodo.20074924
+    description: "Zenodo concept DOI for the continuing QS-DMSS project."
+  - type: doi
     value: 10.5281/zenodo.21329711
-    description: "Latest archived release DOI for v0.12.0; v0.13.0 remains unarchived until its GitHub release is published."
+    description: "Previous archived release DOI for v0.12.0."
   - type: doi
     value: 10.5281/zenodo.21319023
     description: "Previous archived release DOI for v0.11.0."

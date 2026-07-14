@@ -50,7 +50,7 @@ used:
 
 - Project concept DOI: `10.5281/zenodo.20074924`
 - Latest archived release DOI:
-  `10.5281/zenodo.21329711` (`v0.12.0`)
+  `10.5281/zenodo.21348257` (`v0.13.0`)
 
 Repository citation metadata lives in [`CITATION.cff`](../CITATION.cff), and
 additional citation notes live in [`zenodo-citation.md`](zenodo-citation.md).
@@ -70,9 +70,10 @@ QS-DMSS, created and maintained by AI-Bio Synergy Holdings LLC.
 Recommended reproducibility attribution:
 
 ```text
-This work used QS-DMSS v0.12.0 / qs-dmss==0.12.0. The project concept DOI is
-10.5281/zenodo.20074924; the v0.12.0 archived release DOI is
-10.5281/zenodo.21329711.
+This work used QS-DMSS v0.13.0. The project concept DOI is
+10.5281/zenodo.20074924; the v0.13.0 archived release DOI is
+10.5281/zenodo.21348257. The latest PyPI package remains 0.12.0 until the
+v0.13.0 Trusted Publishing workflow completes.
 ```
 
 ## Contribution Basis
@@ -94,9 +95,11 @@ claim.
 QS-DMSS is beta software for reproducible package/evidence workflows. It is
 not peer-reviewed scientific validation.
 
-The current release target is `qs-dmss==0.12.0`. Fractal/Quadrant
-SSFM scientific feedback is routed through issue #105 before any GPU expansion
-or decision-metric UI exposure for spectral diagnostics.
+The current GitHub and Zenodo release is `v0.13.0` / DOI
+`10.5281/zenodo.21348257`; PyPI remains `qs-dmss==0.12.0` until Trusted
+Publishing completes. Fractal/Quadrant SSFM scientific feedback is routed
+through issue #105 before any GPU expansion or decision-metric UI exposure for
+spectral diagnostics.
 
 ## Names, Marks, And Endorsement
 
@@ -108,8 +111,8 @@ Ordinary nominative references are fine, for example:
 
 ```text
 Built with QS-DMSS
-Uses QS-DMSS v0.12.0
-Reproduced with qs-dmss==0.12.0
+Uses QS-DMSS v0.13.0
+Reproduced with QS-DMSS v0.13.0 release wheel
 ```
 
 Avoid wording that suggests AI-Bio Synergy Holdings LLC has reviewed,

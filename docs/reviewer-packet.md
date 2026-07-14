@@ -4,14 +4,14 @@ This packet is the shortest path for an external reviewer to understand what
 QS-DMSS is claiming, reproduce the public baseline, and decide where feedback
 would be most useful.
 
-Release target: `v0.12.0` / `qs-dmss==0.12.0`
+Current GitHub and Zenodo release: `v0.13.0`
 
-Current published and archived public baseline: `v0.12.0` /
-`qs-dmss==0.12.0`
+Current PyPI baseline: `v0.12.0` / `qs-dmss==0.12.0` (v0.13.0 Trusted
+Publishing pending)
 
 Canonical website: `https://qs-dmss.studio`
 
-Latest archived release DOI: `10.5281/zenodo.21329711` (`v0.12.0`).
+Latest archived release DOI: `10.5281/zenodo.21348257` (`v0.13.0`).
 
 Project DOI: `10.5281/zenodo.20074924`
 
@@ -57,13 +57,14 @@ endorsements of QS-DMSS or as validation against external datasets.
 
 ## Fast Review Path
 
-Use the published PyPI package from a clean environment:
+Use the current GitHub release wheel from a clean environment. PyPI remains on
+v0.12.0 while v0.13.0 Trusted Publishing is completed:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.12.0
+python -m pip install https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.0/qs_dmss-0.13.0-py3-none-any.whl
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo
@@ -90,15 +91,15 @@ Expected signals:
   config, and evidence ZIP records for public reference-data provenance.
 
 Use [reviewer-wheel-quickstart.md](reviewer-wheel-quickstart.md) for the
-cross-platform PyPI and GitHub release-wheel commands.
+cross-platform GitHub release-wheel commands and the PyPI baseline context.
 
 ## Quantum-Readiness Review Path
 
-After `v0.12.0` is published, install the optional simulator stack and generate
-the full review chain:
+For the v0.13.0 release, install the optional simulator stack and generate the
+full review chain:
 
 ```powershell
-python -m pip install --upgrade "qs-dmss[quantum]==0.12.0"
+python -m pip install --upgrade "qs-dmss[quantum] @ https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.0/qs_dmss-0.13.0-py3-none-any.whl"
 qs-dmss quantum validate-fractal --output-root quantum-sidecar-validation
 qs-dmss quantum prepare-qpu-request --output-root qpu-request-bundle
 qs-dmss quantum validate-compilation --output-root quantum-compilation-validation
@@ -118,7 +119,7 @@ experimental `numpy_fractal_ssfm` backend.
 Use this review path when commenting on issue #105:
 
 ```powershell
-python -m pip install qs-dmss==0.12.0
+python -m pip install https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.0/qs_dmss-0.13.0-py3-none-any.whl
 qs-dmss validation fractal-ssfm
 ```
 
@@ -138,7 +139,7 @@ technical feedback.
 
 ## Simulation Showcase Path
 
-The `v0.12.0` package includes the canonical simulation showcase for
+The `v0.13.0` package includes the canonical simulation showcase for
 reviewers who want to inspect the actual simulated field output, not just the
 install and benchmark envelopes:
 
@@ -159,7 +160,9 @@ Use [simulation-showcase.md](simulation-showcase.md) for the detailed path.
 
 ## Lab Mode Cockpit Path
 
-`v0.12.0` adds the simulator-first quantum-readiness evidence path: a bounded
+`v0.13.0` carries the simulator-first quantum-readiness evidence path, the
+live harness-backed attribution views, Research Runbook, and contextual
+Evidence Assistant. It retains the bounded
 Fractal SSFM circuit sidecar, provider-neutral QPU request bundle, and
 compilation/resource attribution matrix. These paths use no credentials,
 remote provider API, QPU execution, submission, or authorized spend, and do

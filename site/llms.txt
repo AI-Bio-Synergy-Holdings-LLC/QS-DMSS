@@ -7,19 +7,20 @@ workflows.
 Canonical website: https://qs-dmss.studio/
 Hosted demo: https://app.qs-dmss.studio/
 Repository: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
-Release target: v0.13.0 (release candidate; not yet published)
-Latest published PyPI package: https://pypi.org/project/qs-dmss/0.12.0/
+Current GitHub and Zenodo release: v0.13.0
+GitHub release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.13.0
+Latest published PyPI package: https://pypi.org/project/qs-dmss/0.12.0/ (v0.13.0 Trusted Publishing pending)
 Project DOI: https://doi.org/10.5281/zenodo.20074924
-Latest archived release DOI: https://doi.org/10.5281/zenodo.21329711
+Latest archived release DOI: https://doi.org/10.5281/zenodo.21348257
 Open Collective: https://opencollective.com/qs-dmss
 
 QS-DMSS helps users run simulations, inspect evidence, compare campaigns,
 record public reference-data provenance, verify/replay outputs, and publish
 reproducible research artifacts.
 
-The v0.13.0 release candidate adds a live local quantum-validation harness,
-Research Runbook, and contextual Evidence Assistant. It is not a published
-package or archived DOI until its release gates complete.
+v0.13.0 adds a live local quantum-validation harness, Research Runbook, and
+contextual Evidence Assistant. Its GitHub release and archived DOI are public;
+PyPI Trusted Publishing has not yet completed.
 
 Important boundaries:
 - QS-DMSS is beta for reproducible package/evidence workflows.
