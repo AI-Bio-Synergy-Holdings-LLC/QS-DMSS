@@ -5,13 +5,13 @@
 >
   <url>
     <loc>https://qs-dmss.studio/</loc>
-    <lastmod>2026-07-13</lastmod>
+    <lastmod>2026-07-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
     <image:image>
-      <image:loc>https://qs-dmss.studio/assets/social-preview.png</image:loc>
-      <image:title>QS-DMSS Studio social preview</image:title>
-      <image:caption>Evidence-first QuantumScalar dark matter simulation workflows with reproducible artifacts.</image:caption>
+      <image:loc>https://qs-dmss.studio/assets/social-preview-v0131.png</image:loc>
+      <image:title>QS-DMSS Studio research command center</image:title>
+      <image:caption>Evidence-first QuantumScalar simulation workflows with runbooks, local validation, and reviewable artifacts.</image:caption>
     </image:image>
   </url>
 </urlset>

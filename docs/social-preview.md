@@ -6,30 +6,32 @@ The repository social preview asset lives at:
 docs/assets/social-preview.png
 ```
 
-The Studio-hosted Open Graph/Twitter image lives at:
+The Studio portal Open Graph/Twitter image and editable source live at:
 
 ```text
-site/assets/social-preview.png
+site/assets/social-preview-v0131.png
+docs/assets/studio-portal-social-preview.svg
 ```
 
 The hosted cockpit Open Graph/Twitter image and editable source live at:
 
 ```text
-src/qs_dmss/cockpit/static/hosted-demo-social-preview.png
+src/qs_dmss/cockpit/static/hosted-demo-social-preview-v0131.png
 docs/assets/hosted-demo-social-preview.svg
 ```
 
-The GitHub repository preview is 1280x640. The Studio-hosted Open
-Graph/Twitter image is 1200x630. Both use the same Studio visual direction and
-public product-loop language:
+The GitHub repository preview is 1280x640. The Studio portal and hosted demo
+Open Graph/Twitter images are 1200x630. Their versioned filenames make a
+fresh social-image URL available when a crawler refreshes its metadata cache.
+The previews use the same Studio visual direction and clearly distinguish the
+local-first portal from the constrained hosted demo:
 
 ```text
-QS-DMSS STUDIO
-Evidence-first simulation lab
-Run simulations. Inspect evidence.
-Compare campaigns and publish reproducible artifacts.
+QS-DMSS STUDIO — Evidence-first research workflows
+Evidence before inference.
+Research Runbook · local validation · Evidence Assistant
 qs-dmss.studio
-Beta workflows. Not peer-reviewed scientific validation.
+Local-first public beta. Workflows are evidence, not scientific claims.
 ```
 
 ## Upload Steps
@@ -48,12 +50,12 @@ take time to update after upload.
 ## Hosted Demo Card
 
 The hosted card is 1200x630 and distinguishes the interactive demo from the
-canonical product website. It uses the Studio visual system while emphasizing
-the constrained workflow:
+local-first product portal. It emphasizes the constrained workflow, contextual
+guidance, and the temporary nature of exported outputs:
 
 ```text
-Run. Compare. Verify. Export.
-Public demo. Temporary outputs. Packaged scenarios.
+Guided work. Reviewable evidence.
+Packaged studies. Guided review. Temporary outputs.
 ```
 
 ## Positioning Guardrail

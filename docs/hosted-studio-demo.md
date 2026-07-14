@@ -20,7 +20,7 @@ https://app.qs-dmss.studio/
 Its Open Graph, X/Twitter, and `WebApplication` structured metadata describe it
 as an interactive demonstration that is part of the canonical QS-DMSS Studio
 website. The social card is served from
-`/static/hosted-demo-social-preview.png`.
+`/static/hosted-demo-social-preview-v0131.png`.
 
 Only the stable application root is indexable. `/robots.txt`, `/sitemap.xml`,
 and the HTTP `X-Robots-Tag` policy keep API responses, generated reports,

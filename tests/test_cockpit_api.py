@@ -33,7 +33,7 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     assert 'property="og:type" content="website"' in root.text
     assert re.search(
         r'property="og:image"\s+'
-        r'content="https://app\.qs-dmss\.studio/static/hosted-demo-social-preview\.png"',
+        r'content="https://app\.qs-dmss\.studio/static/hosted-demo-social-preview-v0131\.png"',
         root.text,
     )
     assert 'name="twitter:card" content="summary_large_image"' in root.text
@@ -52,7 +52,7 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     assert structured_data["publisher"]["name"] == "AI-Bio Synergy Holdings LLC"
     assert structured_data["citation"] == "https://doi.org/10.5281/zenodo.21348597"
 
-    social_preview = client.get("/static/hosted-demo-social-preview.png")
+    social_preview = client.get("/static/hosted-demo-social-preview-v0131.png")
     assert social_preview.status_code == 200
     assert social_preview.headers["content-type"].startswith("image/png")
     assert social_preview.content[:8] == b"\x89PNG\r\n\x1a\n"
