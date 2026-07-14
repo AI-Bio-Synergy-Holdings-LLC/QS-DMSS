@@ -4,17 +4,25 @@ from copy import deepcopy
 import hashlib
 import io
 import json
+import logging
 import re
 import shutil
 import zipfile
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+from httpx import Response
 
 from qs_dmss import __version__
 from qs_dmss.cockpit import api as cockpit_api
 from qs_dmss.cockpit.api import create_app
 from qs_dmss.quantum_showcase import quantum_compilation_showcase_root
+
+
+def assert_baseline_security_headers(response: Response) -> None:
+    headers = response.headers
+    for name, value in cockpit_api.BASELINE_SECURITY_HEADERS.items():
+        assert headers[name.lower()] == value
 
 
 def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
@@ -29,6 +37,7 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     )
     assert root.headers["cache-control"] == "no-cache, max-age=0, must-revalidate"
     assert "x-robots-tag" not in root.headers
+    assert_baseline_security_headers(root)
     assert re.search(
         r'<link rel="stylesheet" href="/static/styles\.css\?v=[0-9a-f]{12}"',
         root.text,
@@ -68,6 +77,7 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     assert social_preview.content[:8] == b"\x89PNG\r\n\x1a\n"
     assert int.from_bytes(social_preview.content[16:20], "big") == 1200
     assert int.from_bytes(social_preview.content[20:24], "big") == 630
+    assert_baseline_security_headers(social_preview)
 
     robots = client.get("/robots.txt")
     assert robots.status_code == 200
@@ -75,12 +85,14 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     assert "Disallow: /openapi.json" in robots.text
     assert "Sitemap: https://app.qs-dmss.studio/sitemap.xml" in robots.text
     assert "x-robots-tag" not in robots.headers
+    assert_baseline_security_headers(robots)
 
     sitemap = client.get("/sitemap.xml")
     assert sitemap.status_code == 200
     assert sitemap.headers["content-type"].startswith("application/xml")
     assert "<loc>https://app.qs-dmss.studio/</loc>" in sitemap.text
     assert sitemap.text.count("<url>") == 1
+    assert_baseline_security_headers(sitemap)
 
     health = client.get("/api/health")
     assert health.status_code == 200
@@ -97,7 +109,13 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
         "archived_release_doi_url": "https://doi.org/10.5281/zenodo.21348597",
         "archived_release_record_url": "https://zenodo.org/records/21348597",
     }
-    assert Path(health_payload["package_root"]).name == "qs_dmss"
+    assert {
+        "package_root",
+        "repo_root",
+        "output_root",
+        "experiments_root",
+        "jobs_root",
+    }.isdisjoint(health_payload)
     capabilities = health_payload["capabilities"]
     assert capabilities["quantum_validation_snapshot"] is True
     assert capabilities["quantum_validation_live"] is capabilities["quantum_stack_available"]
@@ -106,12 +124,14 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     assert health.headers["x-robots-tag"] == (
         "noindex, nofollow, noarchive, nosnippet"
     )
+    assert_baseline_security_headers(health)
 
     openapi = client.get("/openapi.json")
     assert openapi.status_code == 200
     assert openapi.headers["x-robots-tag"] == (
         "noindex, nofollow, noarchive, nosnippet"
     )
+    assert_baseline_security_headers(openapi)
 
 
 def test_cockpit_quantum_validation_showcase_is_read_only(tmp_path: Path) -> None:
@@ -488,7 +508,13 @@ def test_cockpit_hosted_demo_uses_session_scoped_outputs(tmp_path: Path) -> None
     assert capabilities["client_sweep_preflight"] is True
     assert capabilities["hosted_custom_compute"] is False
     assert "qs_dmss_demo_session" in first_client.cookies
-    assert Path(health_payload["output_root"]).parents[1].name == "sessions"
+    assert {
+        "package_root",
+        "repo_root",
+        "output_root",
+        "experiments_root",
+        "jobs_root",
+    }.isdisjoint(health_payload)
 
     showcase_payload = first_client.post("/api/showcases/canonical-simulation/run")
     assert showcase_payload.status_code == 200
@@ -778,6 +804,7 @@ def test_cockpit_api_campaign_studio_preview_hides_validation_details(
 def test_cockpit_api_global_exception_handler_hides_internal_exception_details(
     tmp_path: Path,
     monkeypatch,
+    caplog,
 ) -> None:
     repo_root = Path(__file__).resolve().parents[1]
 
@@ -791,6 +818,7 @@ def test_cockpit_api_global_exception_handler_hides_internal_exception_details(
     )
     app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
     client = TestClient(app, raise_server_exceptions=False)
+    caplog.set_level(logging.ERROR, logger="qs_dmss.cockpit")
 
     showcase_payload = client.post("/api/showcases/canonical-simulation/run")
 
@@ -800,6 +828,11 @@ def test_cockpit_api_global_exception_handler_hides_internal_exception_details(
     }
     assert "sensitive scenario failure" not in showcase_payload.text
     assert "Traceback" not in showcase_payload.text
+    assert (
+        "cockpit_request_failed method=POST "
+        "path=/api/showcases/canonical-simulation/run exception_type=RuntimeError"
+    ) in caplog.text
+    assert "sensitive scenario failure" not in caplog.text
 
 
 def test_cockpit_api_launches_guided_showcase_comparison(tmp_path: Path) -> None:

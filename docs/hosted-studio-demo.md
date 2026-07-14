@@ -143,6 +143,44 @@ Render notes:
 - Do not add API tokens or external data credentials to this service until an
   authenticated workspace model exists.
 
+## HTTP Boundary and Operational Observability
+
+Every cockpit response, including static assets and API responses, carries a
+baseline browser security policy: a restrictive CSP with
+`frame-ancestors 'none'`, `X-Frame-Options: DENY`,
+`X-Content-Type-Options: nosniff`,
+`Referrer-Policy: strict-origin-when-cross-origin`, and HSTS. Artifact HTML
+retains its stricter report-specific CSP. The public `/api/health` response is
+still noindexed and cache-free, but deliberately contains only release, status,
+and capability metadata; server filesystem paths are not a public contract.
+
+The cockpit emits a privacy-safe `cockpit_request_failed` error event for every
+unhandled request. It records the request method, path, and exception class but
+not exception text or request data. This makes Render log filtering and alert
+rules actionable without leaking user-provided values into routine error logs.
+
+Before materially increasing public traffic, make the following Render
+configuration a release gate:
+
+1. Keep the service on **Only failure notifications** (or set an equivalent
+   service override) with a workspace Email and/or Slack destination. Render
+   uses that level for failed builds/deploys and unhealthy services.
+2. In the workspace's **Observability → Log Streams**, set a default TLS syslog
+   or HTTPS destination for the team logging provider. Configure the provider
+   endpoint and token in Render only—never in `render.yaml`, source control, or
+   the application environment.
+3. In that provider, alert on `cockpit_request_failed` and retain a saved
+   error-level view for `qs-dmss-studio-app`. Pair it with Render's service
+   health and CPU/memory metrics during incident review.
+4. Test both paths after configuration: induce a controlled non-production
+   failure in a preview, confirm the Render failure notification arrives, and
+   confirm the corresponding safe error event reaches the centralized log view.
+
+Render's built-in Logs explorer remains the immediate diagnostic fallback. A
+centralized log destination is required for durable search, retention, and
+runtime-error alerting; it requires a workspace administrator and an approved
+provider endpoint/token, so it cannot be provisioned from this repository.
+
 ## Optional Python Enhancement Libraries
 
 The hosted baseline intentionally does not add visualization-specific runtime

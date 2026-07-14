@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import logging
 import os
 import secrets
 import shutil
@@ -87,6 +88,7 @@ from qs_dmss.showcase import (
 
 
 GENERIC_COCKPIT_ERROR_DETAIL = "Cockpit request failed; check server logs for details."
+COCKPIT_LOGGER = logging.getLogger("qs_dmss.cockpit")
 HOSTED_DEMO_COOKIE_NAME = "qs_dmss_demo_session"
 HOSTED_DEMO_ENV_VAR = "QS_DMSS_HOSTED_DEMO"
 HOSTED_DEMO_SELF_INTERACTION_TEMPLATE_ID = "self-interaction-sweep"
@@ -113,6 +115,19 @@ HOSTED_DEMO_SITEMAP = """<?xml version="1.0" encoding="UTF-8"?>
 </urlset>
 """
 NOINDEX_RESPONSE_PATHS = ("/api/", "/docs", "/redoc", "/openapi.json")
+BASELINE_SECURITY_HEADERS = {
+    "Content-Security-Policy": (
+        "default-src 'self'; base-uri 'self'; object-src 'none'; "
+        "script-src 'self'; style-src 'self' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data: blob:; connect-src 'self'; frame-src 'self'; "
+        "frame-ancestors 'none'; form-action 'self'"
+    ),
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
+}
 _HOSTED_DEMO_ACTIVE_JOBS: set[str] = set()
 _HOSTED_DEMO_ACTIVE_JOBS_LOCK = threading.Lock()
 _QUANTUM_VALIDATION_ACTIVE_LOCK = threading.Lock()
@@ -3248,9 +3263,15 @@ def create_app(
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(
-        _request: Request,
-        _exc: Exception,
+        request: Request,
+        exc: Exception,
     ) -> JSONResponse:
+        COCKPIT_LOGGER.error(
+            "cockpit_request_failed method=%s path=%s exception_type=%s",
+            request.method,
+            request.url.path,
+            type(exc).__name__,
+        )
         return JSONResponse(
             status_code=500,
             content={"detail": GENERIC_COCKPIT_ERROR_DETAIL},
@@ -3270,6 +3291,8 @@ def create_app(
             )
         if request.url.path.startswith("/api/"):
             response.headers["Cache-Control"] = "no-store"
+        for name, value in BASELINE_SECURITY_HEADERS.items():
+            response.headers.setdefault(name, value)
         return response
 
     @app.middleware("http")
@@ -3392,11 +3415,6 @@ def create_app(
                 "archived_release_doi_url": f"https://doi.org/{RELEASE_DOI}",
                 "archived_release_record_url": RELEASE_RECORD_URL,
             },
-            "package_root": str(Path(__file__).resolve().parents[1]),
-            "repo_root": str(active_service.repo_root),
-            "output_root": str(active_service.output_root),
-            "experiments_root": str(active_service.experiments_root),
-            "jobs_root": str(active_service.jobs_root),
             "capabilities": {
                 "quantum_validation_snapshot": True,
                 "quantum_validation_live": (
