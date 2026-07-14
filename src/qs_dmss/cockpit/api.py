@@ -3340,7 +3340,10 @@ def create_app(
         return FileResponse(
             service.index_path(),
             media_type="text/html",
-            headers={"Link": f"<{HOSTED_DEMO_PUBLIC_URL}>; rel=\"canonical\""},
+            headers={
+                "Cache-Control": "no-cache, max-age=0, must-revalidate",
+                "Link": f"<{HOSTED_DEMO_PUBLIC_URL}>; rel=\"canonical\"",
+            },
         )
 
     @app.get("/robots.txt", include_in_schema=False)

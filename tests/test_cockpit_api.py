@@ -27,6 +27,7 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     assert root.headers["link"] == (
         '<https://app.qs-dmss.studio/>; rel="canonical"'
     )
+    assert root.headers["cache-control"] == "no-cache, max-age=0, must-revalidate"
     assert "x-robots-tag" not in root.headers
     assert '<link rel="canonical" href="https://app.qs-dmss.studio/"' in root.text
     assert 'name="robots" content="index, follow, max-image-preview:large"' in root.text
