@@ -9,8 +9,8 @@ The current QS-DMSS direction is:
 run simulations -> inspect evidence -> compare campaigns -> publish reproducible artifacts
 ```
 
-The current GitHub, Zenodo, and PyPI release is `v0.13.0`; its archived DOI is
-`10.5281/zenodo.21348257`.
+The current GitHub, Zenodo, and PyPI release is `v0.13.1`; its archived DOI is
+`10.5281/zenodo.21348597`.
 
 ## Strategic Shift
 
@@ -31,7 +31,7 @@ The full strategy now lives in:
 - [contributor-roadmap.md](contributor-roadmap.md)
 - [funding-roadmap.md](funding-roadmap.md)
 
-## Current Active Slice: v0.13.0 Research-Grade Review Conversion
+## Current Active Slice: v0.13.1 Research-Grade Review Conversion
 
 Lab Mode and Campaign Studio now make QS-DMSS feel meaningfully different from
 a generic open simulator. `v0.9.0` shipped the dry-run Slurm review target, and
@@ -40,7 +40,7 @@ inside Studio, including redrawable topology and attribution figures, the
 Research Runbook, and a contextual Evidence Assistant. The released GitHub
 wheel also retains the public reference-data provenance calibration sandbox,
 Conceptual Reference Map links, and job-registry path hardening. PyPI remains
-on `v0.12.0` while Trusted Publishing is completed.
+on `v0.13.1` while the research and provenance gates are reviewed.
 
 The target user flow is:
 
@@ -56,7 +56,7 @@ not another immediate feature release:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`;
 - ask for one public comment on Strang refinement, fuzzy-potential norm
   conservation, non-conservative mask labels, or diagnostics-only status;
-- use the `v0.13.0` GitHub release wheel as the stable public review baseline
+- use the `v0.13.1` GitHub release wheel as the stable public review baseline
   while the validation and provenance gates are reviewed;
 - keep GPU expansion, real HPC submission, and decision-metric UI paused until
   the review target receives substantive technical feedback or exposes a

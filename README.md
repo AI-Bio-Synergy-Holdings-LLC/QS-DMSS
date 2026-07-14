@@ -36,20 +36,21 @@ live in
 
 ## Current Public State
 
-QS-DMSS `v0.13.0` is published on GitHub and archived by Zenodo. It adds a live local
-quantum-validation harness with redrawable attribution figures, a research
-runbook, and an evidence assistant whose answers stay bound to the selected
-run, bundle, replay, or comparison context. The simulator-first Fractal SSFM
-sidecar and 12-row compilation/resource attribution matrix remain local review
-artifacts, not provider integrations: no provider credentials, remote API
-calls, QPU execution, job submission, or authorized spend are included.
+QS-DMSS `v0.13.1` is published on GitHub and archived by Zenodo. This
+metadata-only patch establishes release-stable package metadata and the current
+citation record while carrying the live local quantum-validation harness,
+redrawable attribution figures, research runbook, and contextual Evidence
+Assistant introduced in v0.13.0. The simulator-first Fractal SSFM sidecar and
+12-row compilation/resource attribution matrix remain local review artifacts,
+not provider integrations: no provider credentials, remote API calls, QPU
+execution, job submission, or authorized spend are included.
 
 The GitHub release assets, Zenodo record, and PyPI package preserve the same
 release identity and simulator-first claim boundary. Install
-`qs-dmss==0.13.0` from PyPI or use the matching GitHub Release asset.
+`qs-dmss==0.13.1` from PyPI or use the matching GitHub Release asset.
 
-The v0.13.0 archived release DOI is
-[v0.13.0 / 10.5281/zenodo.21348257](https://doi.org/10.5281/zenodo.21348257).
+The v0.13.1 archived release DOI is
+[v0.13.1 / 10.5281/zenodo.21348597](https://doi.org/10.5281/zenodo.21348597).
 
 QS-DMSS remains beta for reproducible package/evidence workflows. Quantum
 readiness here means ideal-simulator semantic checks and transparent resource
@@ -638,7 +639,7 @@ use it when archiving GitHub releases.
 For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
-- Latest archived release DOI: [v0.13.0 / 10.5281/zenodo.21348257](https://doi.org/10.5281/zenodo.21348257)
+- Latest archived release DOI: [v0.13.1 / 10.5281/zenodo.21348597](https://doi.org/10.5281/zenodo.21348597)
 - Previous archived release DOI: [v0.12.0 / 10.5281/zenodo.21329711](https://doi.org/10.5281/zenodo.21329711)
 - Previous archived release DOI: [v0.11.0 / 10.5281/zenodo.21319023](https://doi.org/10.5281/zenodo.21319023)
 - Previous archived release DOI: [v0.10.1 / 10.5281/zenodo.21270512](https://doi.org/10.5281/zenodo.21270512)

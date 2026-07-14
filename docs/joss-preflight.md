@@ -40,7 +40,7 @@ workflow is a meaningful contribution to the research community.
 | --- | --- | --- | --- |
 | Public repository and issue workflow | Public GitHub repository, issue templates, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT | Ready | Keep development visible through ordinary issues and PRs |
 | OSI-approved license | Apache-2.0 `LICENSE` file | Ready | No action |
-| Installable package | GitHub v0.13.0 release wheel, PyPI `qs-dmss==0.13.0`, Trusted Publishing, fresh-install smoke | Ready | `v0.13.0` adds the live harness, Research Runbook, and contextual Evidence Assistant; archived release DOI is `10.5281/zenodo.21348257`. Exact release artifacts were published through Trusted Publishing. |
+| Installable package | GitHub v0.13.1 release wheel, PyPI `qs-dmss==0.13.1`, Trusted Publishing, fresh-install smoke | Ready | `v0.13.1` is the release-stable metadata patch that carries the live harness, Research Runbook, and contextual Evidence Assistant introduced in v0.13.0; archived release DOI is `10.5281/zenodo.21348597`. Exact release artifacts were published through Trusted Publishing. |
 | Tests and CI | Pytest suite, benchmark smoke, wheel smoke, Docker smoke, CodeQL | Ready | Add tests only when behavior changes |
 | Documentation | README, reviewer quickstart, evidence glossary, benchmark docs, contributor map | Ready enough | Use reviewer feedback to patch confusing sections |
 | Example usage | `run-demo`, `campaigns run-demo`, `benchmarks validate` | Ready enough | Add a short tutorial only if reviewers need more context |

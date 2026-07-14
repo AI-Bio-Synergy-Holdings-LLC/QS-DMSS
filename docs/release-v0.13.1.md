@@ -38,5 +38,10 @@ Use the stable project concept DOI for project-level citation:
 10.5281/zenodo.20074924
 ```
 
-After Zenodo archives this exact version, cite its version-specific record for
-release-level reproducibility.
+For exact release-level reproducibility, cite the v0.13.1 Zenodo record:
+
+```text
+10.5281/zenodo.21348597
+```
+
+Record: <https://zenodo.org/records/21348597>

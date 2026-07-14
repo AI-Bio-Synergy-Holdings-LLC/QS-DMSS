@@ -92,9 +92,9 @@ HOSTED_DEMO_ENV_VAR = "QS_DMSS_HOSTED_DEMO"
 HOSTED_DEMO_SELF_INTERACTION_TEMPLATE_ID = "self-interaction-sweep"
 HOSTED_DEMO_PUBLIC_URL = "https://app.qs-dmss.studio/"
 PROJECT_DOI = "10.5281/zenodo.20074924"
-LATEST_ARCHIVED_RELEASE_TAG = "v0.13.0"
-RELEASE_DOI = "10.5281/zenodo.21348257"
-RELEASE_RECORD_URL = "https://zenodo.org/records/21348257"
+LATEST_ARCHIVED_RELEASE_TAG = "v0.13.1"
+RELEASE_DOI = "10.5281/zenodo.21348597"
+RELEASE_RECORD_URL = "https://zenodo.org/records/21348597"
 HOSTED_DEMO_ROBOTS = """User-agent: *
 Allow: /
 Allow: /static/
