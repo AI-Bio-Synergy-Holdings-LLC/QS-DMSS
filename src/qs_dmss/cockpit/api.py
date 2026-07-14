@@ -92,6 +92,7 @@ HOSTED_DEMO_ENV_VAR = "QS_DMSS_HOSTED_DEMO"
 HOSTED_DEMO_SELF_INTERACTION_TEMPLATE_ID = "self-interaction-sweep"
 HOSTED_DEMO_PUBLIC_URL = "https://app.qs-dmss.studio/"
 PROJECT_DOI = "10.5281/zenodo.20074924"
+LATEST_ARCHIVED_RELEASE_TAG = "v0.12.0"
 RELEASE_DOI = "10.5281/zenodo.21329711"
 RELEASE_RECORD_URL = "https://zenodo.org/records/21329711"
 HOSTED_DEMO_ROBOTS = """User-agent: *
@@ -3363,6 +3364,7 @@ def create_app(
             "release": {
                 "version": __version__,
                 "tag": f"v{__version__}",
+                "latest_archived_release_tag": LATEST_ARCHIVED_RELEASE_TAG,
                 "project_doi": PROJECT_DOI,
                 "project_doi_url": f"https://doi.org/{PROJECT_DOI}",
                 "archived_release_doi": RELEASE_DOI,

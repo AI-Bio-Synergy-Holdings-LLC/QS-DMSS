@@ -4,13 +4,14 @@ QS-DMSS uses `CITATION.cff` as its canonical citation metadata file.
 
 ## Current Status
 
-- Release target: `v0.12.0` / `0.12.0`
+- Release target: `v0.13.0` / `0.13.0` (release candidate; not yet archived)
 - Latest published and archived public baseline: `v0.12.0` / `0.12.0`
 - Citation metadata file: `CITATION.cff`
-- DOI status: `v0.12.0` archived by Zenodo.
-- PyPI metadata status: `v0.12.0` published. Its immutable package metadata was
-  created before the archive DOI minted; repository and Studio metadata carry
-  the current release DOI.
+- DOI status: `v0.13.0` has no release DOI until its GitHub release is archived
+  by Zenodo. The current archive remains `v0.12.0`.
+- PyPI metadata status: `v0.12.0` is published. Its immutable package metadata
+  was created before the archive DOI minted; repository and Studio metadata
+  retain the stable project DOI and identify the current archived release.
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
 - Latest archived release DOI: `10.5281/zenodo.21329711` (`v0.12.0`)
 - Latest archived release record: `https://zenodo.org/records/21329711`
@@ -85,7 +86,8 @@ Future release workflow:
 1. Merge the release-prep PR through green CI.
 2. Tag the merge commit and create the GitHub release.
 3. Let Zenodo archive the release automatically.
-4. Add the new version DOI to the GitHub release notes.
+4. Add the newly minted version DOI to the GitHub release notes and public
+   metadata surfaces.
 5. Add the Software Heritage SWHID once archival completes.
 6. Keep the concept DOI in package-facing citation metadata unless the release
    process can inject the version DOI before PyPI publication.

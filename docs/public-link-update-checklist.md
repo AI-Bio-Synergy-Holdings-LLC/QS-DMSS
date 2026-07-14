@@ -27,6 +27,31 @@ The next package release should expose the Studio site through project metadata:
 Keep Repository, Issues, Releases, PyPI, DOI, and Reviewer links as supporting
 project URLs.
 
+## v0.13.0 Release Candidate
+
+Do not describe v0.13.0 as published or assign it a release DOI until the
+GitHub release, Zenodo archive, and PyPI Trusted Publishing workflow have all
+completed. Until then, link to the stable project DOI and name v0.12.0 as the
+latest public package and archived release.
+
+After publication, use this verified summary:
+
+```text
+QS-DMSS v0.13.0 aligns the local-first and hosted Studio research experience.
+It adds a live local quantum-validation harness with redrawable topology and
+attribution figures, a Research Runbook, and a contextual Evidence Assistant
+that stays grounded in the selected run, evidence bundle, replay, comparison,
+or export record.
+
+The scientific boundary is unchanged: quantum work remains simulator-first and
+provider-neutral, with no provider credentials, remote API calls, QPU execution,
+job submission, or authorized spend. QS-DMSS is beta workflow software, not
+peer-reviewed scientific validation.
+
+Studio: https://qs-dmss.studio
+Hosted demo: https://app.qs-dmss.studio
+```
+
 ## v0.12.0 Quantum-Readiness Update
 
 Use after `v0.12.0` is published:

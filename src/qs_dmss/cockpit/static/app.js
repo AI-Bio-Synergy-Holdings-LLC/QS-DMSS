@@ -425,7 +425,7 @@ const toneColorByEvidence = {
 };
 
 const citationMetadata = {
-  packageVersion: "0.12.0",
+  packageVersion: "0.13.0",
   releaseTag: "v0.12.0",
   conceptDoi: "10.5281/zenodo.20074924",
   releaseDoi: "10.5281/zenodo.21329711",
@@ -4694,16 +4694,17 @@ function renderEvidence(detail) {
 }
 
 function renderReleaseIdentity(release = {}) {
-  const version = String(release.version || "0.12.0").replace(/^v/i, "");
+  const version = String(release.version || citationMetadata.packageVersion).replace(/^v/i, "");
+  const archivedTag = String(release.latest_archived_release_tag || citationMetadata.releaseTag);
   const archivedDoi = release.archived_release_doi || "10.5281/zenodo.21329711";
   const archivedDoiUrl = release.archived_release_doi_url || `https://doi.org/${archivedDoi}`;
   const projectDoi = release.project_doi || "10.5281/zenodo.20074924";
   const projectDoiUrl = release.project_doi_url || `https://doi.org/${projectDoi}`;
 
-  els.releaseVersion.textContent = `v${version}`;
-  els.releaseDoi.textContent = `Release DOI ${archivedDoi}`;
+  els.releaseVersion.textContent = `Build v${version}`;
+  els.releaseDoi.textContent = `Latest archive ${archivedTag} DOI ${archivedDoi}`;
   els.releaseDoi.href = archivedDoiUrl;
-  els.releaseDoi.title = `Open archived QS-DMSS v${version} release`;
+  els.releaseDoi.title = `Open archived QS-DMSS ${archivedTag} release`;
   els.projectDoi.textContent = `Project DOI ${projectDoi}`;
   els.projectDoi.href = projectDoiUrl;
   els.projectDoi.title = `Project DOI ${projectDoi}`;

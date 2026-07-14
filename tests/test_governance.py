@@ -64,7 +64,7 @@ def test_contribution_and_release_policies_enforce_boundary() -> None:
         "Public release wheels and source distributions remain Apache-2.0"
         in release_policy
     )
-    assert "governs `v0.12.0` preparation" in release_policy
+    assert "governed `v0.12.0` preparation" in release_policy
     assert "no provider credentials" in release_policy
     assert "QPU execution" in release_policy
 
