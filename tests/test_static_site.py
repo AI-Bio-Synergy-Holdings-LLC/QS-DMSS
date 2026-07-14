@@ -113,11 +113,11 @@ def test_static_site_metadata_hardening() -> None:
         'rel="sitemap" type="application/xml" href="https://qs-dmss.studio/sitemap.xml"',
         'property="og:site_name" content="QS-DMSS Studio"',
         'property="og:locale" content="en_US"',
-        'property="og:image" content="https://qs-dmss.studio/assets/social-preview.png"',
+        'property="og:image" content="https://qs-dmss.studio/assets/social-preview-v0131.png"',
         'property="og:image:width" content="1200"',
         'property="og:image:height" content="630"',
         'name="twitter:card" content="summary_large_image"',
-        'name="twitter:image" content="https://qs-dmss.studio/assets/social-preview.png"',
+        'name="twitter:image" content="https://qs-dmss.studio/assets/social-preview-v0131.png"',
         'rel="icon" href="favicon.svg" type="image/svg+xml"',
     ]
 
@@ -127,8 +127,8 @@ def test_static_site_metadata_hardening() -> None:
     assert "Sitemap: https://qs-dmss.studio/sitemap.xml" in robots
     assert "Allow: /llms.txt" in robots
     assert "<loc>https://qs-dmss.studio/</loc>" in sitemap
-    assert "<lastmod>2026-07-13</lastmod>" in sitemap
-    assert "<image:loc>https://qs-dmss.studio/assets/social-preview.png</image:loc>" in sitemap
+    assert "<lastmod>2026-07-14</lastmod>" in sitemap
+    assert "<image:loc>https://qs-dmss.studio/assets/social-preview-v0131.png</image:loc>" in sitemap
     assert "Latest archived release DOI: https://doi.org/10.5281/zenodo.21348597" in llms
     assert "Current GitHub and Zenodo release: v0.13.1" in llms
     assert "provider credentials, remote API, QPU execution" in llms
@@ -157,7 +157,7 @@ def test_static_site_favicon_matches_studio_mark() -> None:
 
 
 def test_static_site_social_preview_dimensions() -> None:
-    assert _png_dimensions(SITE_ROOT / "assets" / "social-preview.png") == SITE_SOCIAL_PREVIEW_SIZE
+    assert _png_dimensions(SITE_ROOT / "assets" / "social-preview-v0131.png") == SITE_SOCIAL_PREVIEW_SIZE
 
 
 def test_static_site_local_anchor_links_resolve() -> None:
@@ -178,7 +178,7 @@ def test_static_site_local_anchor_links_resolve() -> None:
 
 def test_social_preview_assets_are_publishable() -> None:
     docs_asset = REPO_ROOT / "docs" / "assets" / "social-preview.png"
-    site_asset = SITE_ROOT / "assets" / "social-preview.png"
+    site_asset = SITE_ROOT / "assets" / "social-preview-v0131.png"
 
     assert _png_dimensions(docs_asset) == GITHUB_SOCIAL_PREVIEW_SIZE
     assert _png_dimensions(site_asset) == SITE_SOCIAL_PREVIEW_SIZE

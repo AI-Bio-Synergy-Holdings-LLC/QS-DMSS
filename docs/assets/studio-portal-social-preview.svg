@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
+  <title id="title">QS-DMSS Studio research command center</title>
+  <desc id="description">Social preview for the QS-DMSS Studio portal showing research runbooks, local validation, and reviewable evidence.</desc>
+  <defs>
+    <pattern id="grid" width="52" height="52" patternUnits="userSpaceOnUse">
+      <path d="M52 0H0V52" fill="none" stroke="#2b463d" stroke-width="1" opacity=".52"/>
+    </pattern>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f3d27c"/>
+      <stop offset="1" stop-color="#c89537"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#142a24"/>
+      <stop offset="1" stop-color="#0a1714"/>
+    </linearGradient>
+    <linearGradient id="row" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#18342c"/>
+      <stop offset="1" stop-color="#10221e"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="24" flood-color="#000" flood-opacity=".34"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="630" fill="#091712"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <path d="M0 0h338c63 90 57 192-21 270H0z" fill="#315249" opacity=".30"/>
+  <path d="M1200 0H906c-88 92-101 201-48 286h342z" fill="#8d7939" opacity=".19"/>
+  <circle cx="1090" cy="585" r="192" fill="#7d7135" opacity=".15"/>
+
+  <g transform="translate(72 60)">
+    <rect width="60" height="60" rx="18" fill="#101d19" stroke="#d9ad4c"/>
+    <text x="30" y="39" fill="#e5bc59" font-family="Georgia, serif" font-size="22" font-weight="700" text-anchor="middle">QS</text>
+    <text x="84" y="24" fill="#f5f0e6" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700" letter-spacing="1.1">QS-DMSS STUDIO</text>
+    <text x="84" y="51" fill="#8ce0c7" font-family="Segoe UI, Arial, sans-serif" font-size="18" font-weight="600">EVIDENCE-FIRST RESEARCH WORKFLOWS</text>
+  </g>
+
+  <g transform="translate(76 172)">
+    <text fill="#f7f2e6" font-family="Georgia, serif" font-size="65" font-weight="700">
+      <tspan x="0" y="0">Evidence before</tspan>
+      <tspan x="0" y="72" fill="url(#gold)">inference.</tspan>
+    </text>
+    <text x="2" y="128" fill="#becbc5" font-family="Segoe UI, Arial, sans-serif" font-size="23">Research runbooks, live local validation, and</text>
+    <text x="2" y="160" fill="#becbc5" font-family="Segoe UI, Arial, sans-serif" font-size="23">reviewable evidence for every research object.</text>
+    <g transform="translate(0 204)" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing=".5">
+      <rect width="143" height="42" rx="21" fill="#17382f" stroke="#4d8d79"/>
+      <text x="71.5" y="27" fill="#93e1ca" text-anchor="middle">LOCAL-FIRST</text>
+      <rect x="158" width="184" height="42" rx="21" fill="#17382f" stroke="#4d8d79"/>
+      <text x="250" y="27" fill="#93e1ca" text-anchor="middle">RESEARCH RUNBOOK</text>
+      <rect x="357" width="196" height="42" rx="21" fill="#17382f" stroke="#4d8d79"/>
+      <text x="455" y="27" fill="#93e1ca" text-anchor="middle">EVIDENCE ASSISTANT</text>
+    </g>
+  </g>
+
+  <g transform="translate(690 58)" filter="url(#shadow)">
+    <rect width="438" height="500" rx="26" fill="url(#panel)" stroke="#85733c"/>
+    <rect width="74" height="500" rx="26" fill="#0d1d18"/>
+    <rect x="73" width="1" height="500" fill="#2e5045"/>
+    <rect x="18" y="24" width="38" height="38" rx="12" fill="#101a18" stroke="#d9ae4e"/>
+    <text x="37" y="49" fill="#e5bc59" font-family="Georgia, serif" font-size="14" font-weight="700" text-anchor="middle">QS</text>
+    <g fill="#547a6e">
+      <rect x="22" y="94" width="30" height="5" rx="2.5" fill="#8edfc6"/>
+      <rect x="22" y="126" width="22" height="5" rx="2.5"/>
+      <rect x="22" y="158" width="29" height="5" rx="2.5"/>
+      <rect x="22" y="190" width="20" height="5" rx="2.5"/>
+      <rect x="22" y="222" width="28" height="5" rx="2.5"/>
+    </g>
+    <text x="102" y="42" fill="#91dfc8" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="1.45">RESEARCH COMMAND CENTER</text>
+    <text x="102" y="76" fill="#f4efe3" font-family="Georgia, serif" font-size="27" font-weight="700">Research Runbook</text>
+    <text x="102" y="100" fill="#a7b7b1" font-family="Segoe UI, Arial, sans-serif" font-size="14">Guide the work before interpreting results.</text>
+    <g transform="translate(102 126)" font-family="Segoe UI, Arial, sans-serif">
+      <rect width="302" height="70" rx="14" fill="url(#row)" stroke="#2f5146"/>
+      <rect x="14" y="15" width="40" height="40" rx="12" fill="#22483c"/>
+      <text x="34" y="40" fill="#8fe0c8" font-size="15" font-weight="700" text-anchor="middle">01</text>
+      <text x="68" y="29" fill="#f2eee3" font-size="15" font-weight="700">Define the boundary</text>
+      <text x="68" y="49" fill="#9fb3ab" font-size="12">Scope · assumptions · exclusions</text>
+      <rect x="279" y="16" width="9" height="9" rx="4.5" fill="#87d9c1"/>
+
+      <rect y="82" width="302" height="70" rx="14" fill="url(#row)" stroke="#2f5146"/>
+      <rect x="14" y="97" width="40" height="40" rx="12" fill="#22483c"/>
+      <text x="34" y="122" fill="#8fe0c8" font-size="15" font-weight="700" text-anchor="middle">02</text>
+      <text x="68" y="111" fill="#f2eee3" font-size="15" font-weight="700">Validate locally</text>
+      <text x="68" y="131" fill="#9fb3ab" font-size="12">Live harness · captured environment</text>
+      <path d="m277 111 5 5 10-11" fill="none" stroke="#8fe0c8" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <rect y="164" width="302" height="70" rx="14" fill="url(#row)" stroke="#2f5146"/>
+      <rect x="14" y="179" width="40" height="40" rx="12" fill="#22483c"/>
+      <text x="34" y="204" fill="#8fe0c8" font-size="15" font-weight="700" text-anchor="middle">03</text>
+      <text x="68" y="193" fill="#f2eee3" font-size="15" font-weight="700">Review the evidence</text>
+      <text x="68" y="213" fill="#9fb3ab" font-size="12">Artifacts · replay · citation context</text>
+      <path d="M272 194h17M281 185v18" fill="none" stroke="#d9ae4e" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <g transform="translate(102 387)">
+      <rect width="302" height="69" rx="14" fill="#d8b354"/>
+      <text x="18" y="25" fill="#17211e" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="1.1">CURRENT RELEASE</text>
+      <text x="18" y="49" fill="#17211e" font-family="Georgia, serif" font-size="16" font-weight="700">v0.13.1 · artifacts ready</text>
+      <path d="M267 23h15v15M282 23l-21 21" fill="none" stroke="#17211e" stroke-width="2.5"/>
+    </g>
+  </g>
+
+  <g transform="translate(76 568)" font-family="Segoe UI, Arial, sans-serif">
+    <text fill="#e6bd5c" font-size="20" font-weight="700">qs-dmss.studio</text>
+    <text x="236" fill="#8ea198" font-size="15">Local-first public beta · Workflows are evidence, not scientific claims.</text>
+  </g>
+</svg>
