@@ -29,6 +29,15 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     )
     assert root.headers["cache-control"] == "no-cache, max-age=0, must-revalidate"
     assert "x-robots-tag" not in root.headers
+    assert re.search(
+        r'<link rel="stylesheet" href="/static/styles\.css\?v=[0-9a-f]{12}"',
+        root.text,
+    )
+    assert re.search(
+        r'<script type="module" src="/static/app\.js\?v=[0-9a-f]{12}"></script>',
+        root.text,
+    )
+    assert "__QS_DMSS_STATIC_REVISION__" not in root.text
     assert '<link rel="canonical" href="https://app.qs-dmss.studio/"' in root.text
     assert 'name="robots" content="index, follow, max-image-preview:large"' in root.text
     assert 'property="og:type" content="website"' in root.text
@@ -227,6 +236,9 @@ def test_cockpit_local_quantum_validation_runs_and_persists_artifacts(
     assert payload["source"] == "live_local_run"
     assert payload["status"] == "pass"
     assert payload["runtime"]["live_execution"] is True
+    assert payload["runtime"]["package_version"] == __version__
+    assert payload["run"]["package_version"] == __version__
+    assert payload["run"]["runtime_mode"] == "local_full"
     assert payload["run"]["parameters"]["shots"] == 128
     assert payload["run"]["parameters"]["seed"] == 11
     assert payload["visualization"]["source_run_id"] == payload["run"]["run_id"]
@@ -243,6 +255,7 @@ def test_cockpit_local_quantum_validation_runs_and_persists_artifacts(
 
     latest = client.get("/api/quantum-validation/runs/latest")
     assert latest.status_code == 200
+    assert latest.headers["cache-control"] == "no-store"
     assert latest.json()["available"] is True
     assert latest.json()["result"]["run"]["run_id"] == payload["run"]["run_id"]
     assert (

@@ -16,7 +16,7 @@ from tempfile import TemporaryDirectory
 from typing import Any, Callable
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -607,6 +607,7 @@ class CockpitService:
         )
         return {
             "mode": "hosted_read_only" if self.hosted_demo.enabled else "local_full",
+            "package_version": __version__,
             "live_execution": stack_available and not self.hosted_demo.enabled,
             "stack_available": stack_available,
             "install_command": "python -m pip install -e '.[quantum]'",
@@ -751,6 +752,8 @@ class CockpitService:
             "run_id": run_id,
             "name": run_id,
             "status": "complete",
+            "package_version": __version__,
+            "runtime_mode": runtime["mode"],
             "started_at": started_at.isoformat(),
             "completed_at": completed_at.isoformat(),
             "duration_seconds": round(time.perf_counter() - started_clock, 3),
@@ -1746,6 +1749,15 @@ class CockpitService:
 
     def index_path(self) -> Path:
         return self.static_root / "index.html"
+
+    def static_asset_revision(self) -> str:
+        """Return a stable revision for the browser assets referenced by the cockpit shell."""
+        digest = hashlib.sha256()
+        for asset_name in ("styles.css", "app.js"):
+            asset_path = self.static_root / asset_name
+            digest.update(asset_name.encode("utf-8"))
+            digest.update(asset_path.read_bytes())
+        return digest.hexdigest()[:12]
 
     def _list_run_dirs(self) -> list[Path]:
         if not self.output_root.exists():
@@ -3256,6 +3268,8 @@ def create_app(
             response.headers["X-Robots-Tag"] = (
                 "noindex, nofollow, noarchive, nosnippet"
             )
+        if request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store"
         return response
 
     @app.middleware("http")
@@ -3336,10 +3350,14 @@ def create_app(
         return FileResponse(path, media_type=media_type, filename=filename)
 
     @app.get("/")
-    def root() -> FileResponse:
-        return FileResponse(
-            service.index_path(),
-            media_type="text/html",
+    def root() -> HTMLResponse:
+        index_html = service.index_path().read_text(encoding="utf-8")
+        rendered_index = index_html.replace(
+            "__QS_DMSS_STATIC_REVISION__",
+            service.static_asset_revision(),
+        )
+        return HTMLResponse(
+            rendered_index,
             headers={
                 "Cache-Control": "no-cache, max-age=0, must-revalidate",
                 "Link": f"<{HOSTED_DEMO_PUBLIC_URL}>; rel=\"canonical\"",

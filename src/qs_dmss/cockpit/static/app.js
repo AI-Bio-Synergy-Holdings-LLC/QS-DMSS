@@ -111,8 +111,10 @@ const els = {
   runQuantumValidationButton: document.querySelector("#runQuantumValidationButton"),
   quantumRunFeedback: document.querySelector("#quantumRunFeedback"),
   quantumRunName: document.querySelector("#quantumRunName"),
+  quantumRunFreshness: document.querySelector("#quantumRunFreshness"),
   quantumRunStatus: document.querySelector("#quantumRunStatus"),
   quantumRunDuration: document.querySelector("#quantumRunDuration"),
+  quantumRunPackageVersion: document.querySelector("#quantumRunPackageVersion"),
   quantumRunOutput: document.querySelector("#quantumRunOutput"),
   quantumRunVerification: document.querySelector("#quantumRunVerification"),
   quantumProgressSequence: document.querySelector("#quantumProgressSequence"),
@@ -643,6 +645,7 @@ function toast(title, body, tone = "neutral") {
 
 async function fetchJson(url, options) {
   const response = await fetch(url, {
+    cache: "no-store",
     headers: { "Content-Type": "application/json" },
     ...options,
   });
@@ -5712,6 +5715,9 @@ function renderQuantumValidation(payload) {
   );
 
   const isLive = payload.source === "live_local_run";
+  const recordedPackageVersion = payload.run?.package_version;
+  const currentPackageVersion = payload.runtime?.package_version;
+  const recordedBuildIsCurrent = recordedPackageVersion === currentPackageVersion;
   if (isLive) {
     const parameters = payload.run?.parameters || {};
     if (parameters.shots !== undefined) els.quantumShotsInput.value = parameters.shots;
@@ -5736,13 +5742,27 @@ function renderQuantumValidation(payload) {
   els.quantumAuthorizedSpend.textContent = `$${Number(policy.max_authorized_cost_usd || 0).toFixed(2)}`;
   els.quantumSnapshotDate.textContent = formatTimestamp(payload.generated_at);
   els.quantumSnapshotId.textContent = payload.showcase_id || "packaged evidence";
-  els.quantumRunName.textContent = payload.run?.name || "Packaged v0.12.0 reference";
+  els.quantumRunName.textContent = payload.run?.name || "Packaged reference snapshot";
+  els.quantumRunFreshness.textContent = isLive
+    ? recordedBuildIsCurrent
+      ? `Fresh local run · current build v${currentPackageVersion}`
+      : recordedPackageVersion
+        ? `Live run · build v${recordedPackageVersion}; current app v${currentPackageVersion || "unknown"} — rerun recommended`
+        : "Live run · build version not recorded — rerun recommended"
+    : payload.runtime?.live_execution
+      ? "Reference only · local run required"
+      : "Reference archive · local execution unavailable";
   els.quantumRunStatus.textContent = payload.status === "pass"
     ? (isLive ? "✓ PASS / evidence ready" : "Verified reference · run to refresh")
     : "Review required";
   els.quantumRunDuration.textContent = payload.run?.duration_seconds !== undefined
     ? formatSeconds(payload.run.duration_seconds)
     : "Precomputed";
+  els.quantumRunPackageVersion.textContent = isLive
+    ? recordedPackageVersion
+      ? `QS-DMSS v${recordedPackageVersion}`
+      : "Version not recorded"
+    : payload.showcase_id || "Packaged reference";
   els.quantumRunOutput.textContent = payload.run?.output_directory || "Bundled application asset";
   els.quantumRunVerification.textContent = archive.readable ? "✓ Verified" : "Review required";
   els.quantumBundleSize.textContent = formatBytes(payload.bundle?.size_bytes);
@@ -5921,9 +5941,11 @@ async function handleQuantumValidationRun(event) {
       method: "POST",
       body: JSON.stringify(payload),
     });
-    renderQuantumValidation(result);
-    els.quantumRunFeedback.textContent = `Fresh evidence package completed in ${formatSeconds(result.run?.duration_seconds)}. No provider, credential, remote API, or QPU was used.`;
-    toast("Quantum validation complete", `${result.validation?.rows_passing || 0}/${result.validation?.row_count || 0} compilation rows passed.`, "success");
+    const latest = await fetchJson("/api/quantum-validation/runs/latest").catch(() => ({ available: false }));
+    const persistedResult = latest.available ? latest.result : result;
+    renderQuantumValidation(persistedResult);
+    els.quantumRunFeedback.textContent = `Fresh persisted evidence package completed in ${formatSeconds(persistedResult.run?.duration_seconds)}. No provider, credential, remote API, or QPU was used.`;
+    toast("Quantum validation complete", `${persistedResult.validation?.rows_passing || 0}/${persistedResult.validation?.row_count || 0} compilation rows passed.`, "success");
   } catch (error) {
     els.quantumValidationStatus.textContent = "RUN FAILED / review required";
     els.quantumValidationStatus.className = "status-badge is-danger";
