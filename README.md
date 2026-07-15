@@ -36,27 +36,22 @@ live in
 
 ## Current Public State
 
-This source tree prepares `v0.13.2`, a backward-compatible patch that refreshes
-live quantum-validation evidence after each local harness run, hardens public
-cockpit responses, reduces health-endpoint disclosure, and adds safe hosted
-error telemetry. Until the final artifacts are tagged, archived, and published,
-`v0.13.1` remains the stable public package and citation baseline.
-
-QS-DMSS `v0.13.1` is published on GitHub and archived by Zenodo. This
-metadata-only patch establishes release-stable package metadata and the current
-citation record while carrying the live local quantum-validation harness,
-redrawable attribution figures, research runbook, and contextual Evidence
-Assistant introduced in v0.13.0. The simulator-first Fractal SSFM sidecar and
+QS-DMSS `v0.13.2` is published on GitHub, archived by Zenodo, and distributed
+on PyPI. This backward-compatible patch refreshes live quantum-validation
+evidence after each local harness run, hardens public cockpit responses,
+reduces health-endpoint disclosure, and adds safe hosted error telemetry while
+carrying the redrawable attribution figures, Research Runbook, and contextual
+Evidence Assistant introduced in v0.13.0. The simulator-first Fractal SSFM sidecar and
 12-row compilation/resource attribution matrix remain local review artifacts,
 not provider integrations: no provider credentials, remote API calls, QPU
 execution, job submission, or authorized spend are included.
 
 The GitHub release assets, Zenodo record, and PyPI package preserve the same
 release identity and simulator-first claim boundary. Install
-`qs-dmss==0.13.1` from PyPI or use the matching GitHub Release asset.
+`qs-dmss==0.13.2` from PyPI or use the matching GitHub Release asset.
 
-The v0.13.1 archived release DOI is
-[v0.13.1 / 10.5281/zenodo.21348597](https://doi.org/10.5281/zenodo.21348597).
+The v0.13.2 archived release DOI is
+[v0.13.2 / 10.5281/zenodo.21366910](https://doi.org/10.5281/zenodo.21366910).
 
 QS-DMSS remains beta for reproducible package/evidence workflows. Quantum
 readiness here means ideal-simulator semantic checks and transparent resource
@@ -645,7 +640,7 @@ use it when archiving GitHub releases.
 For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
-- Latest archived release DOI: [v0.13.1 / 10.5281/zenodo.21348597](https://doi.org/10.5281/zenodo.21348597)
+- Latest archived release DOI: [v0.13.2 / 10.5281/zenodo.21366910](https://doi.org/10.5281/zenodo.21366910)
 - Previous archived release DOI: [v0.12.0 / 10.5281/zenodo.21329711](https://doi.org/10.5281/zenodo.21329711)
 - Previous archived release DOI: [v0.11.0 / 10.5281/zenodo.21319023](https://doi.org/10.5281/zenodo.21319023)
 - Previous archived release DOI: [v0.10.1 / 10.5281/zenodo.21270512](https://doi.org/10.5281/zenodo.21270512)

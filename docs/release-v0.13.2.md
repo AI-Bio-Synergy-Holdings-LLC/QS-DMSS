@@ -39,7 +39,7 @@ software and is not peer-reviewed scientific validation.
 
 ## Release Verification
 
-Before publication:
+Publication completed from merge commit `7a063eb91af6c50e483c2d062bf6cee0daf709e4`:
 
 1. Run the full test suite and CodeQL checks.
 2. Build one wheel and one source distribution from the release commit.
@@ -49,8 +49,17 @@ Before publication:
 5. Confirm the local quantum extra can execute and persist a fresh 12-row
    compilation validation with all configured rows passing.
 6. Publish the exact GitHub release artifacts to PyPI through Trusted Publishing.
-7. Archive the final release through Zenodo, then synchronize the version DOI
-   and all public release surfaces in a separate post-publication change.
+7. Zenodo archived the release as `10.5281/zenodo.21366910`; the
+   post-publication change synchronizes that DOI and the release links across
+   public surfaces.
+
+Published artifacts:
+
+- GitHub: <https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.13.2>
+- PyPI: <https://pypi.org/project/qs-dmss/0.13.2/>
+- Zenodo: <https://zenodo.org/records/21366910>
+- Wheel SHA-256: `6f22876fa625681aa72b96d99e14de92cfd5cfae870fc53d9d41673ebf82416f`
+- Source archive SHA-256: `2c7c6a78974d0bcfd3cb558fe377b1425d3e265ee4e3b79b17f36207d822cfcf`
 
 ## Citation
 
@@ -60,6 +69,8 @@ Use the stable project concept DOI for project-level citation:
 10.5281/zenodo.20074924
 ```
 
-The version-specific v0.13.2 DOI is intentionally not recorded until Zenodo
-archives the final release. Until then, v0.13.1 remains the latest archived
-release at `10.5281/zenodo.21348597`.
+Use the version-specific DOI when citing this exact release:
+
+```text
+10.5281/zenodo.21366910
+```

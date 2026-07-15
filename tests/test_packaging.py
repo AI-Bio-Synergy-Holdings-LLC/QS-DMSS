@@ -113,7 +113,7 @@ def test_pull_requests_smoke_the_candidate_wheel() -> None:
     assert "--source candidate-wheel" in workflow
     assert "--wheel-path dist" in workflow
     assert "if: github.event_name == 'workflow_dispatch'" in workflow
-    assert 'default: "0.13.1"' in workflow
+    assert 'default: "0.13.2"' in workflow
     assert "0.11.0" not in workflow
     assert 'choices=["candidate-wheel", "pypi", "release-wheel"]' in script
     assert 'health_url = f"http://127.0.0.1:{port}/api/health"' in script

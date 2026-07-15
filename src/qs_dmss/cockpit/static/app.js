@@ -428,10 +428,10 @@ const toneColorByEvidence = {
 
 const citationMetadata = {
   packageVersion: "0.13.2",
-  releaseTag: "v0.13.1",
+  releaseTag: "v0.13.2",
   conceptDoi: "10.5281/zenodo.20074924",
-  releaseDoi: "10.5281/zenodo.21348597",
-  releaseUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.13.1",
+  releaseDoi: "10.5281/zenodo.21366910",
+  releaseUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.13.2",
   pypiUrl: "https://pypi.org/project/qs-dmss/",
   repositoryUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
   openCollectiveUrl: "https://opencollective.com/qs-dmss",
@@ -4699,7 +4699,7 @@ function renderEvidence(detail) {
 function renderReleaseIdentity(release = {}) {
   const version = String(release.version || citationMetadata.packageVersion).replace(/^v/i, "");
   const archivedTag = String(release.latest_archived_release_tag || citationMetadata.releaseTag);
-  const archivedDoi = release.archived_release_doi || "10.5281/zenodo.21348597";
+  const archivedDoi = release.archived_release_doi || "10.5281/zenodo.21366910";
   const archivedDoiUrl = release.archived_release_doi_url || `https://doi.org/${archivedDoi}`;
   const projectDoi = release.project_doi || "10.5281/zenodo.20074924";
   const projectDoiUrl = release.project_doi_url || `https://doi.org/${projectDoi}`;

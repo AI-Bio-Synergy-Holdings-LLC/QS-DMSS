@@ -18,18 +18,17 @@ Initial PyPI publication completed on `2026-05-05` through GitHub Actions
 Trusted Publishing.
 
 - Initial published version: `0.1.0`
-- Release-preparation target: `0.13.2` (not yet published)
-- Current GitHub and Zenodo release: `0.13.1`
-- Latest published PyPI version: `0.13.1`
+- Current GitHub and Zenodo release: `0.13.2`
+- Latest published PyPI version: `0.13.2`
 - Canonical website: `https://qs-dmss.studio`
 - PyPI project URL: `https://pypi.org/project/qs-dmss/`
 - Initial publish workflow run:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/actions/runs/25393532837`
 - Initial publish commit: `3cd208ff985041cf95261f8de289e4dd5a14df49`
 - Upload method: Trusted Publishing / GitHub OIDC
-- Current GitHub and PyPI release files for v0.13.1:
-  - `qs_dmss-0.13.1-py3-none-any.whl`
-  - `qs_dmss-0.13.1.tar.gz`
+- Current GitHub and PyPI release files for v0.13.2:
+  - `qs_dmss-0.13.2-py3-none-any.whl`
+  - `qs_dmss-0.13.2.tar.gz`
 - Initial published files:
   - `qs_dmss-0.1.0-py3-none-any.whl`
   - `qs_dmss-0.1.0.tar.gz`
@@ -37,7 +36,7 @@ Trusted Publishing.
 Run post-publication smoke validation from a fresh virtual environment:
 
 ```powershell
-python -m pip install --no-cache-dir "qs-dmss[quantum]==0.13.1"
+python -m pip install --no-cache-dir "qs-dmss[quantum]==0.13.2"
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 qs-dmss benchmarks validate --scenario demo-baseline
@@ -122,8 +121,9 @@ The current citation metadata includes the Zenodo concept DOI so package-facing
 metadata has a stable citation target:
 
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: `10.5281/zenodo.21348597`
-- Latest archived release record: `https://zenodo.org/records/21348597`
+- Latest archived release DOI: `10.5281/zenodo.21366910`
+- Latest archived release record: `https://zenodo.org/records/21366910`
+- `v0.13.2` release DOI: `10.5281/zenodo.21366910`
 - `v0.13.1` release DOI: `10.5281/zenodo.21348597`
 - Previous `v0.13.0` release DOI: `10.5281/zenodo.21348257`
 - Previous `v0.12.0` release DOI: `10.5281/zenodo.21329711`

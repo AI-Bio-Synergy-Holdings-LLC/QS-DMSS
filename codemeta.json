@@ -6,6 +6,10 @@
   "description": "Evidence-first QuantumScalar dark matter simulation lab with deterministic local runs, hosted Studio workflows, validation spines, provider-neutral simulator-first quantum-readiness artifacts, public reference-data provenance, publication exports, replay, and reproducible evidence bundles.",
   "identifier": "https://doi.org/10.5281/zenodo.20074924",
   "citation": "https://doi.org/10.5281/zenodo.20074924",
+  "sameAs": [
+    "https://doi.org/10.5281/zenodo.21366910",
+    "https://pypi.org/project/qs-dmss/0.13.2/"
+  ],
   "codeRepository": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
   "issueTracker": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues",
   "downloadUrl": "https://pypi.org/project/qs-dmss/",
