@@ -27,24 +27,22 @@ The next package release should expose the Studio site through project metadata:
 Keep Repository, Issues, Releases, PyPI, DOI, and Reviewer links as supporting
 project URLs.
 
-## v0.13.2 Preparation Status
+## v0.13.2 Publication Status
 
-The source tree targets `v0.13.2`, but `v0.13.1` remains the published GitHub,
-Zenodo, and PyPI baseline until promotion completes. Do not activate v0.13.2
-download, DOI, or versioned social-preview URLs before the corresponding public
-resources exist.
+v0.13.2 is published on GitHub, archived by Zenodo, and distributed on PyPI:
 
-Promotion order:
+- GitHub release: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.13.2`
+- Version DOI: `https://doi.org/10.5281/zenodo.21366910`
+- Zenodo record: `https://zenodo.org/records/21366910`
+- PyPI package: `https://pypi.org/project/qs-dmss/0.13.2/`
 
-1. Merge the green release-preparation PR.
-2. Build and verify the wheel and source distribution from the merge commit.
-3. Tag `v0.13.2` and attach the verified artifacts to the GitHub release.
-4. Archive the release through Zenodo and record its version DOI.
-5. Publish the identical GitHub release artifacts to PyPI through Trusted Publishing.
-6. Deploy the hosted cockpit and synchronize the Studio portal, social previews,
-   citation metadata, reviewer paths, and release links.
-7. Verify public security headers, health disclosure, DOI links, installs, and
-   New Relic log delivery before announcing the release.
+The GitHub and PyPI wheel SHA-256 is
+`6f22876fa625681aa72b96d99e14de92cfd5cfae870fc53d9d41673ebf82416f`;
+the source archive SHA-256 is
+`2c7c6a78974d0bcfd3cb558fe377b1425d3e265ee4e3b79b17f36207d822cfcf`.
+
+The post-publication change activates v0.13.2 DOI, download, and versioned
+social-preview URLs only after all corresponding public resources resolve.
 
 ## v0.13.1 Publication Status
 

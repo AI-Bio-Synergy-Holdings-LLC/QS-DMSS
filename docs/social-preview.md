@@ -9,14 +9,14 @@ docs/assets/social-preview.png
 The Studio portal Open Graph/Twitter image and editable source live at:
 
 ```text
-site/assets/social-preview-v0131.png
+site/assets/social-preview-v0132.png
 docs/assets/studio-portal-social-preview.svg
 ```
 
 The hosted cockpit Open Graph/Twitter image and editable source live at:
 
 ```text
-src/qs_dmss/cockpit/static/hosted-demo-social-preview-v0131.png
+src/qs_dmss/cockpit/static/hosted-demo-social-preview-v0132.png
 docs/assets/hosted-demo-social-preview.svg
 ```
 
