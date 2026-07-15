@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import logging
 import os
 import secrets
 import shutil
@@ -16,7 +17,7 @@ from tempfile import TemporaryDirectory
 from typing import Any, Callable
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, Response
+from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -87,6 +88,7 @@ from qs_dmss.showcase import (
 
 
 GENERIC_COCKPIT_ERROR_DETAIL = "Cockpit request failed; check server logs for details."
+COCKPIT_LOGGER = logging.getLogger("qs_dmss.cockpit")
 HOSTED_DEMO_COOKIE_NAME = "qs_dmss_demo_session"
 HOSTED_DEMO_ENV_VAR = "QS_DMSS_HOSTED_DEMO"
 HOSTED_DEMO_SELF_INTERACTION_TEMPLATE_ID = "self-interaction-sweep"
@@ -113,6 +115,19 @@ HOSTED_DEMO_SITEMAP = """<?xml version="1.0" encoding="UTF-8"?>
 </urlset>
 """
 NOINDEX_RESPONSE_PATHS = ("/api/", "/docs", "/redoc", "/openapi.json")
+BASELINE_SECURITY_HEADERS = {
+    "Content-Security-Policy": (
+        "default-src 'self'; base-uri 'self'; object-src 'none'; "
+        "script-src 'self'; style-src 'self' https://fonts.googleapis.com; "
+        "font-src 'self' https://fonts.gstatic.com; "
+        "img-src 'self' data: blob:; connect-src 'self'; frame-src 'self'; "
+        "frame-ancestors 'none'; form-action 'self'"
+    ),
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Strict-Transport-Security": "max-age=63072000; includeSubDomains",
+}
 _HOSTED_DEMO_ACTIVE_JOBS: set[str] = set()
 _HOSTED_DEMO_ACTIVE_JOBS_LOCK = threading.Lock()
 _QUANTUM_VALIDATION_ACTIVE_LOCK = threading.Lock()
@@ -607,6 +622,7 @@ class CockpitService:
         )
         return {
             "mode": "hosted_read_only" if self.hosted_demo.enabled else "local_full",
+            "package_version": __version__,
             "live_execution": stack_available and not self.hosted_demo.enabled,
             "stack_available": stack_available,
             "install_command": "python -m pip install -e '.[quantum]'",
@@ -751,6 +767,8 @@ class CockpitService:
             "run_id": run_id,
             "name": run_id,
             "status": "complete",
+            "package_version": __version__,
+            "runtime_mode": runtime["mode"],
             "started_at": started_at.isoformat(),
             "completed_at": completed_at.isoformat(),
             "duration_seconds": round(time.perf_counter() - started_clock, 3),
@@ -1746,6 +1764,15 @@ class CockpitService:
 
     def index_path(self) -> Path:
         return self.static_root / "index.html"
+
+    def static_asset_revision(self) -> str:
+        """Return a stable revision for the browser assets referenced by the cockpit shell."""
+        digest = hashlib.sha256()
+        for asset_name in ("styles.css", "app.js"):
+            asset_path = self.static_root / asset_name
+            digest.update(asset_name.encode("utf-8"))
+            digest.update(asset_path.read_bytes())
+        return digest.hexdigest()[:12]
 
     def _list_run_dirs(self) -> list[Path]:
         if not self.output_root.exists():
@@ -3236,9 +3263,15 @@ def create_app(
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(
-        _request: Request,
-        _exc: Exception,
+        request: Request,
+        exc: Exception,
     ) -> JSONResponse:
+        COCKPIT_LOGGER.error(
+            "cockpit_request_failed method=%s path=%s exception_type=%s",
+            request.method,
+            request.url.path,
+            type(exc).__name__,
+        )
         return JSONResponse(
             status_code=500,
             content={"detail": GENERIC_COCKPIT_ERROR_DETAIL},
@@ -3256,6 +3289,10 @@ def create_app(
             response.headers["X-Robots-Tag"] = (
                 "noindex, nofollow, noarchive, nosnippet"
             )
+        if request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store"
+        for name, value in BASELINE_SECURITY_HEADERS.items():
+            response.headers.setdefault(name, value)
         return response
 
     @app.middleware("http")
@@ -3336,10 +3373,14 @@ def create_app(
         return FileResponse(path, media_type=media_type, filename=filename)
 
     @app.get("/")
-    def root() -> FileResponse:
-        return FileResponse(
-            service.index_path(),
-            media_type="text/html",
+    def root() -> HTMLResponse:
+        index_html = service.index_path().read_text(encoding="utf-8")
+        rendered_index = index_html.replace(
+            "__QS_DMSS_STATIC_REVISION__",
+            service.static_asset_revision(),
+        )
+        return HTMLResponse(
+            rendered_index,
             headers={
                 "Cache-Control": "no-cache, max-age=0, must-revalidate",
                 "Link": f"<{HOSTED_DEMO_PUBLIC_URL}>; rel=\"canonical\"",
@@ -3374,11 +3415,6 @@ def create_app(
                 "archived_release_doi_url": f"https://doi.org/{RELEASE_DOI}",
                 "archived_release_record_url": RELEASE_RECORD_URL,
             },
-            "package_root": str(Path(__file__).resolve().parents[1]),
-            "repo_root": str(active_service.repo_root),
-            "output_root": str(active_service.output_root),
-            "experiments_root": str(active_service.experiments_root),
-            "jobs_root": str(active_service.jobs_root),
             "capabilities": {
                 "quantum_validation_snapshot": True,
                 "quantum_validation_live": (

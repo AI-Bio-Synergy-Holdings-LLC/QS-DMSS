@@ -77,6 +77,8 @@ def test_cockpit_shell_has_accessible_navigation_and_landmarks() -> None:
     assert '<table aria-label="Planned parameter sweep runs">' in html
     assert 'id="quantumHarnessForm"' in html
     assert 'id="runQuantumValidationButton"' in html
+    assert 'id="quantumRunFreshness"' in html
+    assert 'id="quantumRunPackageVersion"' in html
     assert 'id="quantumVisualProvenance"' in html
     assert 'id="quantumTopologySource"' in html
     assert 'id="quantumAttributionSource"' in html
@@ -259,6 +261,8 @@ def test_cockpit_navigation_and_dynamic_controls_preserve_semantics() -> None:
     assert "renderReleaseIdentity(healthPayload.release" in script
     assert "function renderQuantumTopologyCharts(" in script
     assert "function renderQuantumAttribution(" in script
+    assert 'fetchJson("/api/quantum-validation/runs/latest")' in script
+    assert "Fresh persisted evidence package completed" in script
     assert 'fetchJson("/api/quantum-validation")' in script
     assert 'fetchJson("/api/quantum-validation/runs/latest")' in script
     assert 'fetchJson("/api/quantum-validation/runs", {' in script

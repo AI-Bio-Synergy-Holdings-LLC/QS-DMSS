@@ -5217,6 +5217,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 35;
+  align-items: center;
   min-height: 88px;
   margin: 0;
   padding: 0 36px;
@@ -5238,7 +5239,8 @@ details[id] {
 .topbar-brand {
   display: grid;
   gap: 5px;
-  min-width: 355px;
+  min-width: 0;
+  flex: 1 1 420px;
 }
 
 .release-identity {
@@ -5250,7 +5252,7 @@ details[id] {
   font-weight: 700;
   letter-spacing: 0.025em;
   line-height: 1.2;
-  white-space: nowrap;
+  flex-wrap: wrap;
 }
 
 .release-identity > span:first-child {
@@ -5277,6 +5279,8 @@ details[id] {
 
 .topbar-meta {
   gap: 0;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
 }
 
 .meta-pill,
@@ -5310,6 +5314,25 @@ details[id] {
 .environment-status strong {
   color: inherit;
   font-weight: 500;
+}
+
+@media (max-width: 1380px) {
+  .topbar {
+    gap: 12px;
+    padding-inline: 28px;
+  }
+
+  .release-identity {
+    gap: 5px;
+    font-size: 0.68rem;
+  }
+
+  .meta-pill,
+  .environment-status {
+    gap: 7px;
+    padding-inline: 12px;
+    font-size: 0.79rem;
+  }
 }
 
 .hosted-demo-banner {
@@ -5971,7 +5994,7 @@ details[id] {
 @media (max-width: 1100px) {
   :root { --rail-width: 104px; }
   .topbar { padding-inline: 24px; }
-  .topbar-brand { min-width: 320px; }
+  .topbar-brand { min-width: 0; }
   .release-project-link,
   .release-project-separator { display: none; }
   .meta-pill { padding-inline: 12px; }
