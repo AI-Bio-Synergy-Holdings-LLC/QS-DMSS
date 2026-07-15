@@ -27,6 +27,25 @@ The next package release should expose the Studio site through project metadata:
 Keep Repository, Issues, Releases, PyPI, DOI, and Reviewer links as supporting
 project URLs.
 
+## v0.13.2 Preparation Status
+
+The source tree targets `v0.13.2`, but `v0.13.1` remains the published GitHub,
+Zenodo, and PyPI baseline until promotion completes. Do not activate v0.13.2
+download, DOI, or versioned social-preview URLs before the corresponding public
+resources exist.
+
+Promotion order:
+
+1. Merge the green release-preparation PR.
+2. Build and verify the wheel and source distribution from the merge commit.
+3. Tag `v0.13.2` and attach the verified artifacts to the GitHub release.
+4. Archive the release through Zenodo and record its version DOI.
+5. Publish the identical GitHub release artifacts to PyPI through Trusted Publishing.
+6. Deploy the hosted cockpit and synchronize the Studio portal, social previews,
+   citation metadata, reviewer paths, and release links.
+7. Verify public security headers, health disclosure, DOI links, installs, and
+   New Relic log delivery before announcing the release.
+
 ## v0.13.1 Publication Status
 
 v0.13.1 is published on GitHub, archived by Zenodo, and distributed on PyPI:

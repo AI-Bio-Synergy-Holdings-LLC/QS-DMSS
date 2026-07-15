@@ -9,6 +9,10 @@ Publishing. Published release-candidate tags
 such as `v0.1.0-rc.1` and `v0.1.0-rc.2` remain immutable; do not move or
 replace them.
 
+Release target: `v0.13.2` / `0.13.2`. This source tree is release-prepared but
+must not be described as published until the tag, GitHub artifacts, Zenodo
+record, PyPI distributions, and public surfaces have been verified.
+
 ## Version Alignment
 
 - GitHub release-candidate tags use SemVer-style names such as `v0.1.0-rc.1`.
@@ -62,7 +66,7 @@ replace them.
 - The accepted
   [commercial sustainability and licensing boundary](docs/decisions/0001-commercial-sustainability-and-licensing-boundary.md)
   governed `v0.12.0` preparation; its Apache-2.0 and separation requirements
-  must remain satisfied before tagging `v0.13.1`.
+  must remain satisfied before tagging `v0.13.2`.
 - Quantum-readiness release artifacts must remain simulator-first and
   provider-neutral: no provider credentials, remote API calls, submission,
   QPU execution, or authorized spend.

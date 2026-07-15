@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use QS-DMSS, cite the installed version together with its version-specific Zenodo record when available."
 type: software
 title: "QS-DMSS: QuantumScalar Dark Matter Simulation Suite"
-version: 0.13.1
+version: 0.13.2
 license: Apache-2.0
 abstract: "Evidence-first QuantumScalar dark matter simulation software with deterministic local runs, hosted Studio workflows, validation spines, provider-neutral simulator-first quantum-readiness artifacts, public reference-data provenance, dry-run Slurm request bundles, publication exports, replay, and reproducible evidence bundles."
 authors:

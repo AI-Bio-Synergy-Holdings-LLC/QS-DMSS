@@ -25,6 +25,24 @@ After the workflow is active, configure DNS for the domain provider according
 to GitHub Pages custom-domain instructions, verify the domain in GitHub, and
 enable HTTPS enforcement.
 
+### Static portal HTTP boundary
+
+The repository can control the portal HTML, assets, and metadata, but GitHub
+Pages does not provide a repository-level mechanism for the complete HTTP
+security-header set used by the FastAPI cockpit. Before a higher-traffic release
+announcement, place `qs-dmss.studio` behind an approved edge/CDN or move the
+static deployment to a host that can set and verify:
+
+- `Content-Security-Policy`, including `frame-ancestors 'none'`;
+- `X-Frame-Options: DENY`;
+- `X-Content-Type-Options: nosniff`;
+- `Referrer-Policy: strict-origin-when-cross-origin`; and
+- `Strict-Transport-Security`.
+
+Do not treat a `<meta http-equiv>` element or a host-specific `_headers` file as
+equivalent while GitHub Pages remains the serving layer. Verify the actual
+public response headers after the edge or hosting change.
+
 ## Phase 2: Constrained Live App (Live)
 
 The live cockpit should not be deployed as an unrestricted public compute

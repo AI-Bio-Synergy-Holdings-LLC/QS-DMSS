@@ -18,6 +18,7 @@ Initial PyPI publication completed on `2026-05-05` through GitHub Actions
 Trusted Publishing.
 
 - Initial published version: `0.1.0`
+- Release-preparation target: `0.13.2` (not yet published)
 - Current GitHub and Zenodo release: `0.13.1`
 - Latest published PyPI version: `0.13.1`
 - Canonical website: `https://qs-dmss.studio`
@@ -49,8 +50,10 @@ qs-dmss quantum validate-compilation --output-root quantum-compilation-validatio
 ```
 
 Cross-platform adoption validation lives in
-`.github/workflows/fresh-install-smoke.yml`. It validates both the PyPI install
-path and the GitHub release-wheel path on Linux, macOS, and Windows.
+`.github/workflows/fresh-install-smoke.yml`. Pull requests build and install the
+candidate wheel on Linux, macOS, and Windows. Manual post-publication runs
+validate both the PyPI install path and the GitHub release-wheel path across the
+same operating systems.
 
 ## Built Wheel Project URL Check
 
