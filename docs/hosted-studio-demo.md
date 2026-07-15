@@ -159,22 +159,28 @@ unhandled request. It records the request method, path, and exception class but
 not exception text or request data. This makes Render log filtering and alert
 rules actionable without leaking user-provided values into routine error logs.
 
-Before materially increasing public traffic, make the following Render
-configuration a release gate:
+The Render workspace now sends the default TLS syslog stream to New Relic. A
+post-deployment `/api/health` request was visible in the New Relic Logs view,
+and the `message:"cockpit_request_failed"` filter returned no failures during
+the verification window. The ingest credential is stored only in Render and is
+not part of this repository or the application environment.
+
+Before materially increasing public traffic, complete the remaining release
+gate:
 
 1. Keep the service on **Only failure notifications** (or set an equivalent
    service override) with a workspace Email and/or Slack destination. Render
    uses that level for failed builds/deploys and unhealthy services.
-2. In the workspace's **Observability → Log Streams**, set a default TLS syslog
-   or HTTPS destination for the team logging provider. Configure the provider
-   endpoint and token in Render only—never in `render.yaml`, source control, or
-   the application environment.
-3. In that provider, alert on `cockpit_request_failed` and retain a saved
-   error-level view for `qs-dmss-studio-app`. Pair it with Render's service
-   health and CPU/memory metrics during incident review.
-4. Test both paths after configuration: induce a controlled non-production
-   failure in a preview, confirm the Render failure notification arrives, and
-   confirm the corresponding safe error event reaches the centralized log view.
+2. Finish and verify a New Relic notification workflow for the
+   `cockpit_request_failed` condition. The Logs ingest path is operational, but
+   notification delivery is not complete until a destination is verified and a
+   controlled alert reaches it.
+3. Retain a saved error-level view for `qs-dmss-studio-app` and pair it with
+   Render's service health and CPU/memory metrics during incident review.
+4. Test both notification paths after configuration: induce a controlled
+   non-production failure in a preview, confirm the Render failure notification
+   arrives, and confirm the corresponding safe error event reaches the
+   centralized log view.
 
 Render's built-in Logs explorer remains the immediate diagnostic fallback. A
 centralized log destination is required for durable search, retention, and

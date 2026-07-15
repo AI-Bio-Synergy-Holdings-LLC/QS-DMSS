@@ -10,6 +10,7 @@ The intended beta claim is narrow:
 
 ## Current Decision
 
+- Source release target: `v0.13.2` / `0.13.2` (release preparation)
 - Current GitHub and Zenodo release: `v0.13.1` / `0.13.1`
 - Current PyPI baseline: `v0.13.1` / `0.13.1`
 - Current PyPI classifier target: `Development Status :: 4 - Beta`

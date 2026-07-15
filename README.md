@@ -36,6 +36,12 @@ live in
 
 ## Current Public State
 
+This source tree prepares `v0.13.2`, a backward-compatible patch that refreshes
+live quantum-validation evidence after each local harness run, hardens public
+cockpit responses, reduces health-endpoint disclosure, and adds safe hosted
+error telemetry. Until the final artifacts are tagged, archived, and published,
+`v0.13.1` remains the stable public package and citation baseline.
+
 QS-DMSS `v0.13.1` is published on GitHub and archived by Zenodo. This
 metadata-only patch establishes release-stable package metadata and the current
 citation record while carrying the live local quantum-validation harness,

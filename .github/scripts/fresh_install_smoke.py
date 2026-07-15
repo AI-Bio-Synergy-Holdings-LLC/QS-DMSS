@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
+import time
 import urllib.request
 from pathlib import Path
 
@@ -16,6 +19,18 @@ REPOSITORY = "AI-Bio-Synergy-Holdings-LLC/QS-DMSS"
 def _run(command: list[str], *, cwd: Path) -> None:
     print("+ " + " ".join(command), flush=True)
     subprocess.run(command, cwd=cwd, check=True)
+
+
+def _capture(command: list[str], *, cwd: Path) -> str:
+    print("+ " + " ".join(command), flush=True)
+    completed = subprocess.run(
+        command,
+        cwd=cwd,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return completed.stdout.strip()
 
 
 def _venv_python(venv: Path) -> Path:
@@ -42,6 +57,20 @@ def _download_wheel(package_version: str, release_tag: str, workspace: Path) -> 
     return wheel_path
 
 
+def _candidate_wheel(path: Path) -> Path:
+    resolved = path.resolve()
+    if resolved.is_file() and resolved.suffix == ".whl":
+        return resolved
+    if resolved.is_dir():
+        wheels = sorted(resolved.glob("qs_dmss-*.whl"))
+        if len(wheels) == 1:
+            return wheels[0]
+        raise AssertionError(
+            f"Expected one candidate wheel under {resolved}, found {wheels!r}"
+        )
+    raise AssertionError(f"Candidate wheel path does not exist: {resolved}")
+
+
 def _latest_child(path: Path) -> Path:
     children = [child for child in path.iterdir() if child.is_dir()]
     if not children:
@@ -55,7 +84,101 @@ def _version_at_least(version: str, minimum: tuple[int, int, int]) -> bool:
     return parsed >= minimum
 
 
-def run_smoke(source: str, package_version: str, release_tag: str) -> None:
+def _available_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as listener:
+        listener.bind(("127.0.0.1", 0))
+        return int(listener.getsockname()[1])
+
+
+def _smoke_cockpit(
+    cli: Path,
+    workspace: Path,
+    output_root: Path,
+    package_version: str,
+) -> None:
+    port = _available_port()
+    health_url = f"http://127.0.0.1:{port}/api/health"
+    log_path = workspace / "cockpit-smoke.log"
+    command = [
+        str(cli),
+        "cockpit",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        str(port),
+        "--output-root",
+        str(output_root),
+    ]
+    print("+ " + " ".join(command), flush=True)
+
+    payload: dict[str, object] | None = None
+    response_headers: dict[str, str] = {}
+    with log_path.open("w", encoding="utf-8") as log_file:
+        process = subprocess.Popen(
+            command,
+            cwd=workspace,
+            stdout=log_file,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+        try:
+            deadline = time.monotonic() + 30
+            while time.monotonic() < deadline:
+                if process.poll() is not None:
+                    break
+                try:
+                    with urllib.request.urlopen(health_url, timeout=2) as response:
+                        payload = json.loads(response.read().decode("utf-8"))
+                        response_headers = {
+                            key.lower(): value for key, value in response.headers.items()
+                        }
+                    break
+                except OSError:
+                    time.sleep(0.25)
+        finally:
+            if process.poll() is None:
+                process.terminate()
+                try:
+                    process.wait(timeout=10)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait(timeout=5)
+
+    if payload is None:
+        logs = log_path.read_text(encoding="utf-8", errors="replace")
+        raise AssertionError(f"Cockpit health check failed at {health_url}:\n{logs}")
+    if payload.get("status") != "ok" or payload.get("version") != package_version:
+        raise AssertionError(f"Unexpected cockpit health payload: {payload!r}")
+
+    forbidden_health_fields = {
+        "package_root",
+        "repo_root",
+        "output_root",
+        "experiments_root",
+        "jobs_root",
+    }
+    exposed_fields = forbidden_health_fields.intersection(payload)
+    if exposed_fields:
+        raise AssertionError(f"Cockpit health exposed server paths: {sorted(exposed_fields)}")
+
+    required_headers = {
+        "content-security-policy",
+        "x-frame-options",
+        "x-content-type-options",
+        "referrer-policy",
+        "strict-transport-security",
+    }
+    missing_headers = required_headers.difference(response_headers)
+    if missing_headers:
+        raise AssertionError(f"Cockpit health missing headers: {sorted(missing_headers)}")
+
+
+def run_smoke(
+    source: str,
+    package_version: str | None,
+    release_tag: str | None,
+    wheel_path: Path | None = None,
+) -> None:
     workspace = Path(tempfile.mkdtemp(prefix=f"qs-dmss-{source}-")).resolve()
     try:
         venv = workspace / "venv"
@@ -65,6 +188,8 @@ def run_smoke(source: str, package_version: str, release_tag: str) -> None:
 
         _run([str(python), "-m", "pip", "install", "--upgrade", "pip"], cwd=workspace)
         if source == "pypi":
+            if not package_version:
+                raise ValueError("PyPI smoke requires --package-version")
             _run(
                 [
                     str(python),
@@ -77,10 +202,33 @@ def run_smoke(source: str, package_version: str, release_tag: str) -> None:
                 cwd=workspace,
             )
         elif source == "release-wheel":
+            if not package_version or not release_tag:
+                raise ValueError(
+                    "Release-wheel smoke requires --package-version and --release-tag"
+                )
             wheel_path = _download_wheel(package_version, release_tag, workspace)
             _run([str(python), "-m", "pip", "install", str(wheel_path)], cwd=workspace)
+        elif source == "candidate-wheel":
+            if wheel_path is None:
+                raise ValueError("Candidate-wheel smoke requires --wheel-path")
+            candidate = _candidate_wheel(wheel_path)
+            _run([str(python), "-m", "pip", "install", str(candidate)], cwd=workspace)
         else:  # pragma: no cover - argparse prevents this path.
             raise ValueError(f"Unsupported source: {source}")
+
+        installed_version = _capture(
+            [
+                str(python),
+                "-c",
+                "from importlib.metadata import version; print(version('qs-dmss'))",
+            ],
+            cwd=workspace,
+        )
+        if package_version and installed_version != package_version:
+            raise AssertionError(
+                f"Installed qs-dmss {installed_version}, expected {package_version}"
+            )
+        package_version = installed_version
 
         output_root = workspace / "outputs"
         run_root = output_root / "runs"
@@ -88,6 +236,7 @@ def run_smoke(source: str, package_version: str, release_tag: str) -> None:
         campaign_experiments_root = output_root / "experiments"
         replay_root = output_root / "replays"
         showcase_root = output_root / "simulation-showcase"
+        cockpit_root = output_root / "cockpit"
 
         _run([str(cli), "run-demo", "--output-root", str(run_root)], cwd=workspace)
         run_dir = _latest_child(run_root)
@@ -140,6 +289,8 @@ def run_smoke(source: str, package_version: str, release_tag: str) -> None:
                 flush=True,
             )
 
+        _smoke_cockpit(cli, workspace, cockpit_root, package_version)
+
         print(
             f"Fresh install smoke passed for {source} "
             f"qs-dmss=={package_version} in {workspace}",
@@ -152,26 +303,34 @@ def run_smoke(source: str, package_version: str, release_tag: str) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Fresh-install QS-DMSS smoke test for PyPI and release wheel paths.",
+        description=(
+            "Fresh-install QS-DMSS smoke test for candidate, PyPI, and release wheels."
+        ),
     )
     parser.add_argument(
         "--source",
-        choices=["pypi", "release-wheel"],
+        choices=["candidate-wheel", "pypi", "release-wheel"],
         required=True,
         help="Install source to validate.",
     )
     parser.add_argument(
         "--package-version",
-        required=True,
+        default=None,
         help="Published package version, for example 0.5.0.",
     )
     parser.add_argument(
         "--release-tag",
-        required=True,
+        default=None,
         help="GitHub release tag containing the wheel, for example v0.5.0.",
     )
+    parser.add_argument(
+        "--wheel-path",
+        type=Path,
+        default=None,
+        help="Candidate wheel file or directory containing exactly one wheel.",
+    )
     args = parser.parse_args()
-    run_smoke(args.source, args.package_version, args.release_tag)
+    run_smoke(args.source, args.package_version, args.release_tag, args.wheel_path)
     return 0
 
 

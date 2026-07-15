@@ -4,6 +4,7 @@ QS-DMSS uses `CITATION.cff` as its canonical citation metadata file.
 
 ## Current Status
 
+- Source release target: `v0.13.2` / `0.13.2` (not yet archived or published)
 - Current GitHub and Zenodo release: `v0.13.1` / `0.13.1`
 - Latest PyPI package: `v0.13.1` / `0.13.1`
 - Citation metadata file: `CITATION.cff`

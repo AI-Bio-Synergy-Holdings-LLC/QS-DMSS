@@ -22,7 +22,7 @@ def test_version_metadata_is_aligned() -> None:
     pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
     declared_version = pyproject["project"]["version"]
 
-    assert declared_version == "0.13.1"
+    assert declared_version == "0.13.2"
     assert qs_dmss.__version__ == declared_version
     assert metadata.version("qs-dmss") == declared_version
 
@@ -78,7 +78,7 @@ def test_public_discovery_metadata_is_present() -> None:
     assert urls["Documentation"] == "https://qs-dmss.studio"
     assert "Latest Archived Release DOI" not in urls
     assert "Latest Archived Zenodo Record" not in urls
-    assert urls["Release Notes"].endswith("/docs/release-v0.13.1.md")
+    assert urls["Release Notes"].endswith("/docs/release-v0.13.2.md")
     assert project["readme"] == "README-pypi.md"
 
     package_readme = (repo_root / project["readme"]).read_text(encoding="utf-8")
@@ -97,6 +97,27 @@ def test_codemeta_release_metadata_is_aligned() -> None:
     assert codemeta["citation"] == "https://doi.org/10.5281/zenodo.20074924"
     assert codemeta["url"] == "https://qs-dmss.studio"
     assert codemeta["releaseNotes"].endswith(f"/docs/release-v{declared_version}.md")
+    assert (repo_root / "docs" / f"release-v{declared_version}.md").is_file()
+
+
+def test_pull_requests_smoke_the_candidate_wheel() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    workflow = (repo_root / ".github" / "workflows" / "fresh-install-smoke.yml").read_text(
+        encoding="utf-8"
+    )
+    script = (
+        repo_root / ".github" / "scripts" / "fresh_install_smoke.py"
+    ).read_text(encoding="utf-8")
+
+    assert "candidate wheel on ${{ matrix.os }}" in workflow
+    assert "--source candidate-wheel" in workflow
+    assert "--wheel-path dist" in workflow
+    assert "if: github.event_name == 'workflow_dispatch'" in workflow
+    assert 'default: "0.13.1"' in workflow
+    assert "0.11.0" not in workflow
+    assert 'choices=["candidate-wheel", "pypi", "release-wheel"]' in script
+    assert 'health_url = f"http://127.0.0.1:{port}/api/health"' in script
+    assert '"strict-transport-security"' in script
 
 
 def test_quantum_validation_showcase_assets_are_packaged() -> None:
