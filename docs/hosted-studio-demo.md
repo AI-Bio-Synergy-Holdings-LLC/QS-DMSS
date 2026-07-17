@@ -161,31 +161,53 @@ rules actionable without leaking user-provided values into routine error logs.
 
 The Render workspace now sends the default TLS syslog stream to New Relic. A
 post-deployment `/api/health` request was visible in the New Relic Logs view,
-and the `message:"cockpit_request_failed"` filter returned no failures during
-the verification window. The ingest credential is stored only in Render and is
-not part of this repository or the application environment.
+and the production log stream is attributed with
+`host = 'app.qs-dmss.studio'`. The ingest credential is stored only in Render
+and is not part of this repository or the application environment.
 
-Before materially increasing public traffic, complete the remaining release
-gate:
+New Relic account `7901268` contains the alert policy
+**QS-DMSS production** and the enabled NRQL condition
+**QS-DMSS hosted cockpit error signal**. The condition uses the following
+host-scoped query so unrelated services cannot open a QS-DMSS incident:
 
-1. Keep the service on **Only failure notifications** (or set an equivalent
-   service override) with a workspace Email and/or Slack destination. Render
-   uses that level for failed builds/deploys and unhealthy services.
-2. Finish and verify a New Relic notification workflow for the
-   `cockpit_request_failed` condition. The Logs ingest path is operational, but
-   notification delivery is not complete until a destination is verified and a
-   controlled alert reaches it.
-3. Retain a saved error-level view for `qs-dmss-studio-app` and pair it with
+```sql
+FROM Log SELECT count(*)
+WHERE host = 'app.qs-dmss.studio'
+  AND (
+    message LIKE '%cockpit_request_failed%'
+    OR message LIKE '%ERROR%'
+    OR message LIKE '% 500 Internal Server Error%'
+  )
+```
+
+The critical threshold is above `0.5` for at least one minute, using a
+one-minute event-flow aggregation window with a two-minute delay. The incident
+description points responders to `/api/health`, Render logs, and this runbook.
+The workflow **QS-DMSS production incident routing** is restricted to that
+policy and is active. Its enabled reusable Email destination is named
+**QS-DMSS production email**. New Relic reported the destination-level test
+notification as sent successfully during the production configuration check,
+and the recipient confirmed delivery. Recipient addresses remain an
+account-level secret rather than a repository contract.
+
+Maintain the following production notification posture:
+
+1. Keep the Render service on **Only failure notifications** (or an equivalent
+   service override). Render uses that level for failed builds/deploys and
+   unhealthy services.
+2. Keep the New Relic workflow, destination, and host-scoped alert condition
+   enabled. Repeat the destination test after changing the recipient, channel,
+   policy filter, or NRQL condition.
+3. Retain an error-level view for `qs-dmss-studio-app` and pair it with
    Render's service health and CPU/memory metrics during incident review.
-4. Test both notification paths after configuration: induce a controlled
-   non-production failure in a preview, confirm the Render failure notification
-   arrives, and confirm the corresponding safe error event reaches the
-   centralized log view.
+4. Periodically test the complete incident path with a controlled
+   non-production failure in a preview: confirm the Render failure notification
+   arrives, the safe error event reaches New Relic, the condition opens an
+   issue, and the workflow delivers it.
 
-Render's built-in Logs explorer remains the immediate diagnostic fallback. A
-centralized log destination is required for durable search, retention, and
-runtime-error alerting; it requires a workspace administrator and an approved
-provider endpoint/token, so it cannot be provisioned from this repository.
+Render's built-in Logs explorer remains the immediate diagnostic fallback;
+New Relic provides the centralized search, retention, and runtime-error alert
+path. Credentials and notification recipients remain outside the repository.
 
 ## Optional Python Enhancement Libraries
 

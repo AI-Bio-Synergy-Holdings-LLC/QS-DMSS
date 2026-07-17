@@ -358,15 +358,17 @@
           <h2 id="cockpit-title">Run the cockpit from the published package.</h2>
           <p>
             The current safest interactive experience is local-first. Install from
-            PyPI, start the cockpit on localhost, then run Lab Mode, Campaign
-            Studio, validation, or provenance workflows without exposing a public
-            compute surface.
+            PyPI with the quantum extra, start the cockpit on localhost, then run Lab
+            Mode, Campaign Studio, live quantum validation, or provenance workflows
+            without exposing a public compute surface. The quantum extra installs
+            Qiskit and Aer so the validation harness executes locally instead of
+            remaining snapshot-only.
           </p>
         </div>
         <pre aria-label="Local cockpit commands"><code>python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install --upgrade qs-dmss
+python -m pip install --upgrade "qs-dmss[quantum]"
 qs-dmss cockpit --host 127.0.0.1 --port 8001</code></pre>
       </section>
 

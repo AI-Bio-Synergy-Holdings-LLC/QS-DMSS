@@ -2,7 +2,7 @@
 
 This document records the intended website split for QS-DMSS.
 
-## Phase 1: Static Public Front Door
+## Static Public Front Door
 
 The static site lives in [`site/`](../site/) and is intended for:
 
@@ -13,37 +13,73 @@ The static site lives in [`site/`](../site/) and is intended for:
 - claim-safe scientific boundaries;
 - the live constrained `app.qs-dmss.studio` demo path.
 
-The site is deployed by `.github/workflows/pages.yml` through GitHub Pages.
-GitHub Pages should be configured to use **GitHub Actions** as the publishing
-source. The repository includes `site/CNAME` with:
+The production edge service is the Render static site
+`qs-dmss-studio-portal`:
 
 ```text
-qs-dmss.studio
+Source:            AI-Bio-Synergy-Holdings-LLC/QS-DMSS
+Branch:            main
+Root directory:    site
+Build command:     echo "QS-DMSS portal assets ready"
+Publish directory: .
+Render origin:     https://qs-dmss-studio-portal.onrender.com
 ```
 
-After the workflow is active, configure DNS for the domain provider according
-to GitHub Pages custom-domain instructions, verify the domain in GitHub, and
-enable HTTPS enforcement.
+Render auto-deploys changes under `site/` from `main`. The existing
+`.github/workflows/pages.yml` workflow remains a rollback publisher, but GitHub
+Pages is not the production HTTP boundary after the DNS cutover. The
+`site/CNAME` file is retained so that the rollback target remains complete.
+
+The Render service owns both custom-domain entries:
+
+- `qs-dmss.studio` is the canonical domain;
+- `www.qs-dmss.studio` redirects to the canonical domain; and
+- the Render subdomain remains enabled as a direct recovery and smoke-test
+  origin.
+
+At the DNS provider, replace the four GitHub Pages apex `A` records with the
+Render apex target `216.24.57.1`, replace the `www` GitHub Pages `CNAME` with
+`qs-dmss-studio-portal.onrender.com`, and remove any conflicting `AAAA` record.
+Do not change the separate `app.qs-dmss.studio` record for the hosted cockpit.
+Keep the GitHub Pages records available in the change record until Render has
+verified both domains and issued certificates.
 
 ### Static portal HTTP boundary
 
-The repository can control the portal HTML, assets, and metadata, but GitHub
-Pages does not provide a repository-level mechanism for the complete HTTP
-security-header set used by the FastAPI cockpit. Before a higher-traffic release
-announcement, place `qs-dmss.studio` behind an approved edge/CDN or move the
-static deployment to a host that can set and verify:
+Render injects the following response headers for `/*` on the static service:
 
 - `Content-Security-Policy`, including `frame-ancestors 'none'`;
 - `X-Frame-Options: DENY`;
 - `X-Content-Type-Options: nosniff`;
-- `Referrer-Policy: strict-origin-when-cross-origin`; and
-- `Strict-Transport-Security`.
+- `Referrer-Policy: strict-origin-when-cross-origin`;
+- `Strict-Transport-Security`; and
+- `Permissions-Policy: camera=(), microphone=(), geolocation=()`.
+
+The production CSP is:
+
+```text
+default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' 'sha256-uQPjsLuxWo6Y5jZ3N/VPMV67/GD+W/MmwsScEXX88F8='; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; upgrade-insecure-requests
+```
+
+The hash allows only the inline JSON-LD block in `site/index.html`. Recompute
+and replace it in the Render header rule whenever that block changes; otherwise
+the browser will reject the updated structured data. Do not add
+`'unsafe-inline'` as a maintenance shortcut.
 
 Do not treat a `<meta http-equiv>` element or a host-specific `_headers` file as
-equivalent while GitHub Pages remains the serving layer. Verify the actual
-public response headers after the edge or hosting change.
+equivalent. Verify the actual edge response after every header, domain, or
+portal-content change. A minimal production check is:
 
-## Phase 2: Constrained Live App (Live)
+```text
+curl -sS -D - -o /dev/null https://qs-dmss.studio/
+curl -sS -D - -o /dev/null https://qs-dmss.studio/assets/social-preview-v0132.png
+```
+
+Both responses must be `200`, the image must remain `image/png`, and the six
+security headers above must be present. Also load the page in a clean browser
+and confirm that the CSP produces no application-console violations.
+
+## Constrained Live App (Live)
 
 The live cockpit should not be deployed as an unrestricted public compute
 service. The deployed application is:

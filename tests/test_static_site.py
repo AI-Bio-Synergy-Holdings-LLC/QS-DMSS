@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import base64
+import hashlib
 import json
 import re
 from html.parser import HTMLParser
@@ -10,6 +12,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SITE_ROOT = REPO_ROOT / "site"
 GITHUB_SOCIAL_PREVIEW_SIZE = (1280, 640)
 SITE_SOCIAL_PREVIEW_SIZE = (1200, 630)
+PORTAL_JSON_LD_CSP_HASH = "sha256-uQPjsLuxWo6Y5jZ3N/VPMV67/GD+W/MmwsScEXX88F8="
 
 
 def _png_dimensions(path: Path) -> tuple[int, int]:
@@ -43,7 +46,7 @@ def test_static_site_front_door_contract() -> None:
         "Install from PyPI",
         "Download v0.13.2",
         "Run local cockpit",
-        "python -m pip install --upgrade qs-dmss",
+        'python -m pip install --upgrade "qs-dmss[quantum]"',
         "Read DOI",
         "Support on Open Collective",
         "Lab Mode",
@@ -143,6 +146,25 @@ def test_static_site_metadata_hardening() -> None:
     structured_data = json.loads(json_ld_match.group(1))
     graph_types = {item["@type"] for item in structured_data["@graph"]}
     assert {"Organization", "WebSite", "WebPage", "SoftwareSourceCode", "SoftwareApplication"} <= graph_types
+
+
+def test_static_site_json_ld_matches_edge_csp_hash() -> None:
+    index = (SITE_ROOT / "index.html").read_text(encoding="utf-8")
+    deployment_notes = (REPO_ROOT / "docs" / "website-deployment.md").read_text(
+        encoding="utf-8"
+    )
+    json_ld_match = re.search(
+        r'<script type="application/ld\+json">(.*?)</script>',
+        index,
+        flags=re.DOTALL,
+    )
+
+    assert json_ld_match
+    digest = hashlib.sha256(json_ld_match.group(1).encode("utf-8")).digest()
+    actual_hash = f"sha256-{base64.b64encode(digest).decode('ascii')}"
+
+    assert actual_hash == PORTAL_JSON_LD_CSP_HASH
+    assert f"'{PORTAL_JSON_LD_CSP_HASH}'" in deployment_notes
 
 
 def test_static_site_favicon_matches_studio_mark() -> None:
