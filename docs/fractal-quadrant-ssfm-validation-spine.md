@@ -7,7 +7,8 @@ QS-DMSS now has an opt-in nonlinear wave backend for quadrant-partitioned fuzzy 
 The existing `backend: numpy` Schrodinger-Poisson reference path remains the default.
 
 This page describes the installable validation gate included in the current
-`v0.12.0` package baseline.
+`v0.13.2` package baseline. The pinned evidence and closure protocol are in
+[fractal-ssfm-independent-review-v0.13.2.md](fractal-ssfm-independent-review-v0.13.2.md).
 Reviewers should run this harness from the published package or an editable
 source checkout and leave technical feedback on
 [issue #105](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105).
@@ -106,6 +107,12 @@ The harness writes generated configs and evidence-backed runs under
 
 - `fractal-ssfm-validation/fractal-ssfm-validation.json`
 - `fractal-ssfm-validation/fractal-ssfm-validation.md`
+
+Use the exact v0.13.2 release wheel and focused review questions in
+[the independent review target](fractal-ssfm-independent-review-v0.13.2.md)
+when performing the public gate review. A maintainer-run PASS is a reproducible
+baseline, not independent scientific review and not sufficient to close the
+gate.
 
 Optional CUDA/CuPy path:
 

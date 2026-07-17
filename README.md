@@ -61,6 +61,9 @@ scientific validation.
 
 Fractal SSFM scientific feedback is routed through
 [issue #105](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105).
+The exact v0.13.2 wheel identity, maintainer baseline, focused questions, and
+independent closure criteria are pinned in the
+[Fractal SSFM review target](docs/fractal-ssfm-independent-review-v0.13.2.md).
 GPU expansion and decision-metric UI for `spectral_leakage` / `aliasing_ratio`
 remain paused until that review target receives substantive technical feedback.
 

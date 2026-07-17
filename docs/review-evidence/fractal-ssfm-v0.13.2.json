@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "review_gate": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105",
+  "review_status": "awaiting_independent_review",
+  "claim_boundary": "Experimental pseudo-spectral nonlinear wave validation on a rectangular periodic grid; not exact fractal-boundary PDE solving, peer-reviewed physical validation, or direct atomic-void modeling.",
+  "release": {
+    "version": "0.13.2",
+    "tag": "v0.13.2",
+    "source_commit": "7a063eb91af6c50e483c2d062bf6cee0daf709e4",
+    "wheel_url": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.2/qs_dmss-0.13.2-py3-none-any.whl",
+    "wheel_sha256": "6f22876fa625681aa72b96d99e14de92cfd5cfae870fc53d9d41673ebf82416f"
+  },
+  "maintainer_baseline": {
+    "observed_at": "2026-07-17T22:06:34.507199Z",
+    "command": "qs-dmss validation fractal-ssfm --output-root fractal-ssfm-validation",
+    "environment": {
+      "operating_system": "Windows 11",
+      "machine": "AMD64",
+      "python": "3.12.13",
+      "qs_dmss": "0.13.2",
+      "numpy": "2.5.1"
+    },
+    "overall_status": "pass",
+    "strang_convergence": {
+      "estimated_order": 2.005689879706288,
+      "relative_l2_errors": [
+        0.000023381067931267736,
+        0.000005822259094138076
+      ],
+      "time_steps": [
+        0.001,
+        0.0005,
+        0.00025
+      ]
+    },
+    "norm_conservation": {
+      "geometry_mode": "fuzzy_potential",
+      "conservation_mode": "phase_only_fuzzy_potential",
+      "relative_norm_error": 0.0,
+      "tolerance": 1e-09
+    },
+    "geometry_labels": {
+      "fuzzy_potential": "phase_only_fuzzy_potential",
+      "soft_mask": "nonconservative_exploratory",
+      "hard_mask": "nonconservative_exploratory"
+    },
+    "diagnostics_policy": {
+      "spectral_leakage": "diagnostics_only",
+      "aliasing_ratio": "diagnostics_only"
+    }
+  },
+  "review_questions": [
+    "Is the self-convergence design and observed second-order estimate a sufficient first numerical gate, and what analytic or external reference should be required next?",
+    "Is the fuzzy-potential norm-conservation test and 1e-9 tolerance scientifically and numerically defensible for this split-step formulation?",
+    "Do the soft-mask and hard-mask labels prevent a reasonable reader from mistaking amplitude projection for conservative evolution?",
+    "Should spectral_leakage and aliasing_ratio remain diagnostics-only, and what definitions and acceptance envelopes would be required before decision use?",
+    "Does the public claim boundary adequately separate software validation from physical-model validation?"
+  ],
+  "closure_criteria": [
+    "At least one substantive public review from a person independent of the maintainer addresses one or more review questions.",
+    "Every review finding is classified as accepted, actioned, deferred with rationale, or rejected with rationale.",
+    "Any blocking numerical or claim-boundary finding is resolved before the backend is promoted beyond experimental status.",
+    "Spectral leakage and aliasing ratio remain excluded from decision ranking until their semantics and thresholds are independently reviewed and tested."
+  ]
+}
