@@ -27,10 +27,11 @@ services, private operations, and separately licensed integrations to remain
 clearly separated.
 
 The canonical public website front door is
-[qs-dmss.studio](https://qs-dmss.studio). It is a static GitHub Pages site
-focused on install paths, evidence-first positioning, local cockpit guidance,
-and the live constrained [app.qs-dmss.studio](https://app.qs-dmss.studio)
-hosted demo. Deployment notes
+[qs-dmss.studio](https://qs-dmss.studio). It is a static portal served through
+a Render edge site with explicit browser security headers, focused on install
+paths, evidence-first positioning, local cockpit guidance, and the live
+constrained [app.qs-dmss.studio](https://app.qs-dmss.studio) hosted demo.
+Deployment and rollback notes
 live in
 [docs/website-deployment.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/website-deployment.md).
 
