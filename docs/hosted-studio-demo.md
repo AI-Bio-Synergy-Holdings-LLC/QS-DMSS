@@ -153,6 +153,12 @@ baseline browser security policy: a restrictive CSP with
 retains its stricter report-specific CSP. The public `/api/health` response is
 still noindexed and cache-free, but deliberately contains only release, status,
 and capability metadata; server filesystem paths are not a public contract.
+It also exposes a deliberately narrow `deployment` object containing only the
+provider, full Git commit, and branch. Render supplies these values through its
+documented deployment environment; service IDs, instance IDs, environment
+values, and local paths remain private. The commit is paired with the portal's
+generated `deployment.json` by the production auto-deploy verification
+workflow documented in [`website-deployment.md`](website-deployment.md).
 
 The cockpit emits a privacy-safe `cockpit_request_failed` error event for every
 unhandled request. It records the request method, path, and exception class but

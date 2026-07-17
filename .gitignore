@@ -147,6 +147,7 @@ venv.bak/
 # The QS-DMSS Studio source lives in /site and is intentionally tracked.
 /site-build/
 /_site/
+/site/deployment.json
 
 # mypy
 .mypy_cache/
