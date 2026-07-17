@@ -132,6 +132,9 @@ Expected signals:
 
 Please leave one public comment on
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`.
+The pinned release identity, maintainer baseline, focused questions, and gate
+closure criteria are recorded in
+[`fractal-ssfm-independent-review-v0.13.2.md`](fractal-ssfm-independent-review-v0.13.2.md).
 GPU expansion and decision-metric UI for `spectral_leakage` /
 `aliasing_ratio` remain paused until that target receives substantive
 technical feedback.

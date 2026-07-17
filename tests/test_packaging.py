@@ -100,6 +100,37 @@ def test_codemeta_release_metadata_is_aligned() -> None:
     assert (repo_root / "docs" / f"release-v{declared_version}.md").is_file()
 
 
+def test_current_fractal_review_gate_matches_release_and_is_path_free() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
+    declared_version = pyproject["project"]["version"]
+    snapshot_path = (
+        repo_root
+        / "docs"
+        / "review-evidence"
+        / f"fractal-ssfm-v{declared_version}.json"
+    )
+    snapshot = json.loads(snapshot_path.read_text(encoding="utf-8"))
+    serialized = json.dumps(snapshot)
+
+    assert snapshot["review_status"] == "awaiting_independent_review"
+    assert snapshot["release"]["version"] == declared_version
+    assert snapshot["release"]["tag"] == f"v{declared_version}"
+    assert len(snapshot["release"]["source_commit"]) == 40
+    assert len(snapshot["release"]["wheel_sha256"]) == 64
+    assert snapshot["maintainer_baseline"]["overall_status"] == "pass"
+    assert snapshot["maintainer_baseline"]["strang_convergence"]["estimated_order"] > 1.9
+    assert snapshot["maintainer_baseline"]["norm_conservation"]["relative_norm_error"] <= 1e-9
+    assert len(snapshot["review_questions"]) >= 4
+    assert len(snapshot["closure_criteria"]) >= 4
+    assert "C:\\" not in serialized
+    assert "/Users/" not in serialized
+    assert "/home/" not in serialized
+
+    manifest = (repo_root / "MANIFEST.in").read_text(encoding="utf-8")
+    assert "include docs/review-evidence/*.json" in manifest
+
+
 def test_pull_requests_smoke_the_candidate_wheel() -> None:
     repo_root = Path(__file__).resolve().parents[1]
     workflow = (repo_root / ".github" / "workflows" / "fresh-install-smoke.yml").read_text(

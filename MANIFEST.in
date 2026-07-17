@@ -12,6 +12,7 @@ include pyproject.toml
 recursive-include configs *.yaml
 recursive-include benchmarks *.md
 recursive-include docs *.md
+include docs/review-evidence/*.json
 recursive-include paper *.bib *.md
 recursive-include schemas *.json
 recursive-include src/qs_dmss/assets/benchmarks *.yaml *.json
