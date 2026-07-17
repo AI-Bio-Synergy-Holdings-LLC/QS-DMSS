@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field
 from qs_dmss import __version__
 from qs_dmss.app import execute_run, replay_run as replay_existing_run
 from qs_dmss.decision import evaluate_run_decision
+from qs_dmss.deployment import public_deployment_provenance
 from qs_dmss.evidence.verify import verify_run_path
 from qs_dmss.execution import (
     ExecutionArtifact,
@@ -3405,6 +3406,7 @@ def create_app(
             "status": "ok",
             "version": __version__,
             "ui_contract": "research-command-center-v2",
+            "deployment": public_deployment_provenance(),
             "release": {
                 "version": __version__,
                 "tag": f"v{__version__}",

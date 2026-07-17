@@ -25,7 +25,10 @@ def assert_baseline_security_headers(response: Response) -> None:
         assert headers[name.lower()] == value
 
 
-def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
+def test_cockpit_public_discovery_metadata(tmp_path: Path, monkeypatch) -> None:
+    monkeypatch.delenv("RENDER", raising=False)
+    monkeypatch.delenv("RENDER_GIT_COMMIT", raising=False)
+    monkeypatch.delenv("RENDER_GIT_BRANCH", raising=False)
     repo_root = Path(__file__).resolve().parents[1]
     app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
     client = TestClient(app)
@@ -99,6 +102,11 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
     health_payload = health.json()
     assert health_payload["version"] == __version__
     assert health_payload["ui_contract"] == "research-command-center-v2"
+    assert health_payload["deployment"] == {
+        "provider": "local",
+        "git_commit": None,
+        "git_branch": None,
+    }
     assert health_payload["release"] == {
         "version": __version__,
         "tag": f"v{__version__}",
@@ -132,6 +140,32 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path) -> None:
         "noindex, nofollow, noarchive, nosnippet"
     )
     assert_baseline_security_headers(openapi)
+
+
+def test_health_exposes_validated_render_deployment_provenance(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    commit = "a" * 40
+    monkeypatch.setenv("RENDER", "true")
+    monkeypatch.setenv("RENDER_GIT_COMMIT", commit.upper())
+    monkeypatch.setenv("RENDER_GIT_BRANCH", "main")
+    monkeypatch.setenv("RENDER_SERVICE_ID", "must-not-be-public")
+    app = create_app(
+        repo_root=Path(__file__).resolve().parents[1],
+        output_root=tmp_path / "runs",
+    )
+
+    response = TestClient(app).get("/api/health")
+    payload = response.json()
+
+    assert response.status_code == 200
+    assert payload["deployment"] == {
+        "provider": "render",
+        "git_commit": commit,
+        "git_branch": "main",
+    }
+    assert "must-not-be-public" not in json.dumps(payload)
 
 
 def test_cockpit_quantum_validation_showcase_is_read_only(tmp_path: Path) -> None:

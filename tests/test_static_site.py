@@ -3,7 +3,10 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import os
 import re
+import subprocess
+import sys
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -78,6 +81,40 @@ def test_render_blueprint_matches_public_starter_service() -> None:
 
     assert "plan: starter" in blueprint
     assert "plan: free" not in blueprint
+
+
+def test_portal_build_generates_render_deployment_provenance(tmp_path: Path) -> None:
+    commit = "b" * 40
+    output_path = tmp_path / "deployment.json"
+    environment = {
+        **os.environ,
+        "RENDER": "true",
+        "RENDER_GIT_COMMIT": commit,
+        "RENDER_GIT_BRANCH": "main",
+    }
+
+    subprocess.run(
+        [
+            sys.executable,
+            str(SITE_ROOT / "build_portal.py"),
+            "--output",
+            str(output_path),
+        ],
+        check=True,
+        cwd=SITE_ROOT,
+        env=environment,
+        capture_output=True,
+        text=True,
+    )
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+
+    assert payload["schema_version"] == 1
+    assert payload["service"] == "qs-dmss-studio-portal"
+    assert payload["version"] == "0.13.2"
+    assert payload["deployment"]["provider"] == "render"
+    assert payload["deployment"]["git_commit"] == commit
+    assert payload["deployment"]["git_branch"] == "main"
+    assert payload["deployment"]["generated_at"].endswith("Z")
 
 
 def test_static_site_cname_matches_public_domain() -> None:

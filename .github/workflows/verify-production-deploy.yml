@@ -1,0 +1,51 @@
+name: Verify production auto-deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "site/**"
+  workflow_dispatch:
+    inputs:
+      expected_commit:
+        description: "Full main commit SHA expected on both Render services"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-deployment-verification
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Portal and app provenance
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Resolve expected release identity
+        id: release
+        shell: bash
+        run: |
+          expected_commit="${{ inputs.expected_commit || github.sha }}"
+          version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          echo "commit=$expected_commit" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Wait for matching Render deployments
+        run: >-
+          python .github/scripts/verify_public_deployment.py
+          --expected-commit "${{ steps.release.outputs.commit }}"
+          --expected-version "${{ steps.release.outputs.version }}"
