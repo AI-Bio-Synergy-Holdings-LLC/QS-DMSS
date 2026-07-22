@@ -45,6 +45,19 @@ const state = {
   },
 };
 
+const EVIDENCE_ASSISTANT_INTENTS = new Set([
+  "summary",
+  "claim",
+  "comparison",
+  "next",
+]);
+
+function normalizedEvidenceAssistantIntent() {
+  return EVIDENCE_ASSISTANT_INTENTS.has(state.evidenceAssistantIntent)
+    ? state.evidenceAssistantIntent
+    : "next";
+}
+
 let artifactPreviewTrigger = null;
 const svgPreviewCache = new Map();
 
@@ -1058,9 +1071,7 @@ function evidenceAssistantSources(scenario, result) {
 }
 
 function evidenceAssistantAnswer(scenario, result) {
-  const intent = ["summary", "claim", "comparison", "next"].includes(state.evidenceAssistantIntent)
-    ? state.evidenceAssistantIntent
-    : "next";
+  const intent = normalizedEvidenceAssistantIntent();
   const report = result?.report || {};
   const interpretation = report.interpretation || {};
   const verificationPassed = Boolean(report.verification?.success);
@@ -1236,7 +1247,8 @@ function renderEvidenceAssistant(scenario) {
   els.evidenceAssistantPromptGroup
     .querySelectorAll("[data-evidence-assistant-intent]")
     .forEach((button) => {
-      const isSelected = button.dataset.evidenceAssistantIntent === state.evidenceAssistantIntent;
+      const isSelected =
+        button.dataset.evidenceAssistantIntent === normalizedEvidenceAssistantIntent();
       button.setAttribute("aria-pressed", String(isSelected));
     });
   renderAiProviderStatus();
@@ -1244,6 +1256,7 @@ function renderEvidenceAssistant(scenario) {
 }
 
 function aiDraftRequirement(scenario) {
+  const intent = normalizedEvidenceAssistantIntent();
   if (!state.aiStatus?.available_in_current_mode) {
     return {
       available: false,
@@ -1253,10 +1266,10 @@ function aiDraftRequirement(scenario) {
   if (!scenario) {
     return { available: false, message: "Choose a packaged scenario first." };
   }
-  if (["summary", "claim"].includes(state.evidenceAssistantIntent) && !state.labResult) {
+  if (["summary", "claim"].includes(intent) && !state.labResult) {
     return { available: false, message: "Record a verified run before requesting this draft." };
   }
-  if (state.evidenceAssistantIntent === "comparison" && !state.labComparisonResult) {
+  if (intent === "comparison" && !state.labComparisonResult) {
     return { available: false, message: "Run Guided Comparison before requesting a critique." };
   }
   return {
@@ -1390,7 +1403,7 @@ async function handleGenerateAiDraft() {
     "Building an allowlisted evidence context and validating the provider response.";
   renderAiDraft(scenario);
   try {
-    const intent = state.evidenceAssistantIntent;
+    const intent = normalizedEvidenceAssistantIntent();
     const includeRun = ["summary", "claim", "next"].includes(intent);
     const includeComparison = ["comparison", "next"].includes(intent);
     const payload = await fetchJson("/api/ai/drafts", {
