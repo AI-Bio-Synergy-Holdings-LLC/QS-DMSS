@@ -1493,11 +1493,51 @@ class CockpitService:
                     ),
                 ),
                 "baseline_run_id": comparison.get("baseline_run_id"),
-                "shared_experiment": comparison.get("shared_experiment"),
+                "shared_experiment": _selected_fields(
+                    comparison.get("shared_experiment"),
+                    (
+                        "id",
+                        "label",
+                        "kind",
+                        "strategy",
+                        "dimension_count",
+                        "dimensions",
+                        "parameter_path",
+                        "parameter_label",
+                    ),
+                ),
                 "rows": safe_rows,
-                "ranges": comparison.get("ranges") or {},
-                "highlights": comparison.get("highlights") or {},
-                "decision": comparison.get("decision") or {},
+                "ranges": _selected_fields(
+                    comparison.get("ranges"),
+                    ("energy_drift", "norm_drift", "max_density", "elapsed_seconds"),
+                ),
+                "highlights": _selected_fields(
+                    comparison.get("highlights"),
+                    (
+                        "lowest_abs_energy_drift_run_id",
+                        "lowest_abs_norm_drift_run_id",
+                        "highest_max_density_run_id",
+                    ),
+                ),
+                "decision": _selected_fields(
+                    comparison.get("decision"),
+                    (
+                        "available",
+                        "mode",
+                        "status",
+                        "reason",
+                        "recommended_run_id",
+                        "recommended_score",
+                        "recommended_status",
+                        "primary_metric",
+                        "primary_metric_label",
+                        "primary_goal",
+                        "primary_target_value",
+                        "qualified_run_count",
+                        "total_run_count",
+                        "ranked_run_ids",
+                    ),
+                ),
             }
             artifacts.append(
                 make_ai_artifact(
