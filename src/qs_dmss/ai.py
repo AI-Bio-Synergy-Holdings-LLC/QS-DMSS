@@ -234,7 +234,8 @@ class AIProvider(Protocol):
         intent: AIIntent,
         context: dict[str, Any],
         allowed_artifact_ids: set[str],
-    ) -> AIGeneration: ...
+    ) -> AIGeneration:
+        pass
 
 
 def _clean_text(value: Any, *, field_name: str, maximum: int) -> str:
