@@ -567,7 +567,7 @@ def build_ai_runtime(provider: AIProvider | None = None) -> AIRuntime:
                 "model": provider.model,
                 "endpoint_scope": provider.endpoint_scope,
                 "remote_allowed": provider.endpoint_scope == "remote",
-                "hosted_enabled": True,
+                "hosted_enabled": _env_flag("QS_DMSS_AI_HOSTED_ENABLED"),
                 "approved_intents": APPROVED_AI_INTENTS,
                 "execution_policy": {
                     "advisory_only": True,
