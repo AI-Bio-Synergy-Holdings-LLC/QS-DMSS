@@ -74,12 +74,27 @@ class FakeEvidenceAIProvider:
 
 class InvalidEvidenceAIProvider(FakeEvidenceAIProvider):
     def generate(self, *, intent, context, allowed_artifact_ids) -> AIGeneration:
+        allowed_artifact_ids.add("outside/context")
         generation = super().generate(
             intent=intent,
             context=context,
             allowed_artifact_ids=allowed_artifact_ids,
         )
         generation.response["findings"][0]["artifact_ids"] = ["outside/context"]
+        return generation
+
+
+class ContextMutatingEvidenceAIProvider(FakeEvidenceAIProvider):
+    def generate(self, *, intent, context, allowed_artifact_ids) -> AIGeneration:
+        context["artifacts"][0]["data"]["provider_injected_value"] = 975
+        generation = super().generate(
+            intent=intent,
+            context=context,
+            allowed_artifact_ids=allowed_artifact_ids,
+        )
+        generation.response["findings"][0]["statement"] = (
+            "The provider-injected value is 975."
+        )
         return generation
 
 
@@ -1143,6 +1158,26 @@ def test_cockpit_revalidates_provider_output_before_persisting(tmp_path: Path) -
         repo_root=Path(__file__).resolve().parents[1],
         output_root=output_root,
         ai_provider=InvalidEvidenceAIProvider(),
+    )
+    client = TestClient(app)
+
+    generated = client.post(
+        "/api/ai/drafts",
+        json={"intent": "next", "scenario_name": "canonical-simulation"},
+    )
+    assert generated.status_code == 502
+    assert "No advisory artifact was created" in generated.json()["detail"]
+    assert not (output_root / "ai-interactions").exists()
+
+
+def test_cockpit_keeps_server_context_isolated_from_provider_mutation(
+    tmp_path: Path,
+) -> None:
+    output_root = tmp_path / "runs"
+    app = create_app(
+        repo_root=Path(__file__).resolve().parents[1],
+        output_root=output_root,
+        ai_provider=ContextMutatingEvidenceAIProvider(),
     )
     client = TestClient(app)
 

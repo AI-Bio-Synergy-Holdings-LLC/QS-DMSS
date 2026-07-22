@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import hashlib
 import importlib.util
 import json
@@ -1612,8 +1613,8 @@ class CockpitService:
         }
         generation = runtime.provider.generate(
             intent=payload.intent,
-            context=context,
-            allowed_artifact_ids=allowed_artifact_ids,
+            context=deepcopy(context),
+            allowed_artifact_ids=set(allowed_artifact_ids),
         )
         generation = AIGeneration(
             response=validate_ai_response(
