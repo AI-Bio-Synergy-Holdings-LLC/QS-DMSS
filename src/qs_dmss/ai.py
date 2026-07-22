@@ -47,6 +47,7 @@ AI_MANIFEST_NAME = "manifest.sha256.json"
 AI_RECORD_NAME = "interaction.json"
 MAX_AI_PROVIDER_REQUEST_BYTES = 1_000_000
 MAX_AI_PROVIDER_RESPONSE_BYTES = 1_000_000
+MAX_AI_INTERACTION_ID_ATTEMPTS = 5
 
 _INTERACTION_ID_PATTERN = re.compile(r"\Aai-[0-9]{8}T[0-9]{6}Z-[0-9a-f]{8}\Z")
 _SHA256_PATTERN = re.compile(r"\A[0-9a-f]{64}\Z")
@@ -663,6 +664,23 @@ def _interaction_dir(
     return path
 
 
+def _reserve_interaction_dir(output_root: Path) -> tuple[str, Path]:
+    last_collision: FileExistsError | None = None
+    for _ in range(MAX_AI_INTERACTION_ID_ATTEMPTS):
+        interaction_id = create_ai_interaction_id()
+        try:
+            return interaction_id, _interaction_dir(
+                output_root,
+                interaction_id,
+                create=True,
+            )
+        except FileExistsError as exc:
+            last_collision = exc
+    raise FileExistsError(
+        "Unable to allocate a unique AI interaction identifier."
+    ) from last_collision
+
+
 def _write_interaction_artifacts(interaction_dir: Path, record: dict[str, Any]) -> None:
     (interaction_dir / AI_RECORD_NAME).write_text(
         json.dumps(record, indent=2, sort_keys=True) + "\n",
@@ -780,14 +798,15 @@ def persist_ai_interaction(
         generation.provenance,
         context=context,
     )
-    interaction_id = create_ai_interaction_id()
+    intent_label = APPROVED_AI_INTENTS[intent]
+    interaction_id, interaction_dir = _reserve_interaction_dir(output_root)
     record = {
         "schema_version": AI_INTERACTION_SCHEMA_VERSION,
         "interaction_id": interaction_id,
         "created_at": _utc_now(),
         "status": "draft",
         "intent": intent,
-        "intent_label": APPROVED_AI_INTENTS[intent],
+        "intent_label": intent_label,
         "subject": subject,
         "source_artifacts": source_artifacts,
         "response": generation.response,
@@ -805,7 +824,6 @@ def persist_ai_interaction(
             "scientific validation, or authorization to execute an experiment."
         ),
     }
-    interaction_dir = _interaction_dir(output_root, interaction_id, create=True)
     _write_interaction_artifacts(interaction_dir, record)
     return record
 

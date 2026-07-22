@@ -294,6 +294,44 @@ def test_ai_interaction_is_separate_manifested_artifact_with_human_review(
     assert str(tmp_path) not in json.dumps(reviewed)
 
 
+def test_ai_interaction_retries_an_identifier_collision(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    colliding_id = "ai-20260722T011945Z-aaaaaaaa"
+    replacement_id = "ai-20260722T011945Z-bbbbbbbb"
+    colliding_dir = tmp_path / "ai-interactions" / colliding_id
+    colliding_dir.mkdir(parents=True)
+    marker = colliding_dir / "existing-artifact.txt"
+    marker.write_text("preserve", encoding="utf-8")
+    generated_ids = iter((colliding_id, replacement_id))
+    monkeypatch.setattr(
+        ai_module,
+        "create_ai_interaction_id",
+        lambda: next(generated_ids),
+    )
+
+    record = persist_ai_interaction(
+        tmp_path,
+        intent="summary",
+        subject={"scenario_name": "canonical-simulation"},
+        context=_context(),
+        generation=AIGeneration(
+            response=_response(),
+            provenance={
+                "provider": "test-provider",
+                "model": "test-model",
+                "endpoint_scope": "local",
+                "tool_calls": [],
+            },
+        ),
+    )
+
+    assert record["interaction_id"] == replacement_id
+    assert marker.read_text(encoding="utf-8") == "preserve"
+    assert load_ai_interaction(tmp_path, replacement_id) == record
+
+
 def test_ai_edited_review_requires_human_wording(tmp_path: Path) -> None:
     record = persist_ai_interaction(
         tmp_path,
