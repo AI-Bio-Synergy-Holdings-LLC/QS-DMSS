@@ -89,6 +89,39 @@ def test_ai_response_requires_known_artifact_citations_and_recorded_numbers() ->
         )
 
 
+def test_ai_response_checks_proposed_actions_and_ignores_identifier_numbers() -> None:
+    context = _context()
+    context["artifacts"][0]["id"] = "run/975/metrics"
+    context["artifacts"][0]["data"].update(
+        {
+            "run_id": "run-975",
+            "created_at": "2026-07-22T01:19:45Z",
+            "bundle_sha256": "975" + ("a" * 61),
+        }
+    )
+    allowed_artifact_ids = {"run/975/metrics"}
+
+    unsupported_action = _response()
+    unsupported_action["findings"][0]["artifact_ids"] = ["run/975/metrics"]
+    unsupported_action["proposed_actions"] = ["Repeat the workflow 975 times."]
+    with pytest.raises(AIResponseValidationError, match="numerical values absent"):
+        validate_ai_response(
+            unsupported_action,
+            context=context,
+            allowed_artifact_ids=allowed_artifact_ids,
+        )
+
+    supported_action = _response()
+    supported_action["findings"][0]["artifact_ids"] = ["run/975/metrics"]
+    supported_action["proposed_actions"] = ["Review the recorded drift of 1.25."]
+    validated = validate_ai_response(
+        supported_action,
+        context=context,
+        allowed_artifact_ids=allowed_artifact_ids,
+    )
+    assert validated["proposed_actions"] == ["Review the recorded drift of 1.25."]
+
+
 def test_ai_provider_requires_https_and_explicit_remote_authorization() -> None:
     with pytest.raises(AIConfigurationError, match="must use HTTPS"):
         OpenAICompatibleProvider(
@@ -142,7 +175,12 @@ def test_openai_compatible_adapter_uses_structured_bounded_contract(monkeypatch)
         {
             "id": "provider-request-1",
             "choices": [{"message": {"content": json.dumps(_response())}}],
-            "usage": {"prompt_tokens": 20, "completion_tokens": 10, "total_tokens": 30},
+            "usage": {
+                "prompt_tokens": True,
+                "completion_tokens": -1,
+                "total_tokens": 30,
+                "cached_tokens": 12,
+            },
         }
     ).encode("utf-8")
 
@@ -192,7 +230,7 @@ def test_openai_compatible_adapter_uses_structured_bounded_contract(monkeypatch)
     assert generation.response["findings"][0]["artifact_ids"] == [
         "run/example/metrics"
     ]
-    assert generation.provenance["usage"]["total_tokens"] == 30
+    assert generation.provenance["usage"] == {"total_tokens": 30}
     assert "test-secret" not in json.dumps(generation.provenance)
 
 

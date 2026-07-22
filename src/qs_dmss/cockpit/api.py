@@ -3973,10 +3973,6 @@ def create_app(
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         finally:
             _AI_DRAFT_ACTIVE_LOCK.release()
-        except FileNotFoundError:
-            raise HTTPException(status_code=404, detail="AI advisory draft not found") from None
-        except AIResponseValidationError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
 
     @app.get("/api/ai/drafts/{interaction_id}/bundle")
     def ai_draft_bundle(

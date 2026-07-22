@@ -978,6 +978,32 @@ def test_cockpit_ai_sidecar_is_bounded_reviewable_and_separate_from_evidence(
         if artifact["id"] == f"comparison/{experiment_id}"
     )
     assert len(comparison_artifact["data"]["rows"]) == 3
+    assert set(comparison_artifact["data"]) == {
+        "experiment",
+        "baseline_run_id",
+        "shared_experiment",
+        "rows",
+        "ranges",
+        "highlights",
+        "decision",
+    }
+    assert "profile" not in comparison_artifact["data"]["decision"]
+    assert set(comparison_artifact["data"]["decision"]) <= {
+        "available",
+        "mode",
+        "status",
+        "reason",
+        "recommended_run_id",
+        "recommended_score",
+        "recommended_status",
+        "primary_metric",
+        "primary_metric_label",
+        "primary_goal",
+        "primary_target_value",
+        "qualified_run_count",
+        "total_run_count",
+        "ranked_run_ids",
+    }
     assert provider.calls[-1]["intent"] == "comparison"
 
     next_experiment = client.post(
@@ -994,6 +1020,75 @@ def test_cockpit_ai_sidecar_is_bounded_reviewable_and_separate_from_evidence(
     assert {
         artifact["kind"] for artifact in provider.calls[-1]["context"]["artifacts"]
     } >= {"run_metrics", "run_comparison"}
+
+
+def test_cockpit_ai_draft_tolerates_a_malformed_optional_showcase_report(
+    tmp_path: Path,
+) -> None:
+    provider = FakeEvidenceAIProvider()
+    app = create_app(
+        repo_root=Path(__file__).resolve().parents[1],
+        output_root=tmp_path / "runs",
+        ai_provider=provider,
+    )
+    client = TestClient(app)
+
+    launch = client.post("/api/showcases/canonical-simulation/run")
+    assert launch.status_code == 200
+    run_id = launch.json()["run"]["summary"]["run_id"]
+    showcase_report = (
+        tmp_path
+        / "showcases"
+        / "canonical-simulation"
+        / "simulation-showcase.json"
+    )
+    showcase_report.write_text("{not-json", encoding="utf-8")
+
+    generated = client.post(
+        "/api/ai/drafts",
+        json={
+            "intent": "summary",
+            "scenario_name": "canonical-simulation",
+            "run_id": run_id,
+        },
+    )
+    assert generated.status_code == 200
+    assert generated.json()["human_review"]["status"] == "pending"
+    assert all(
+        artifact["kind"] != "showcase_report"
+        for artifact in provider.calls[-1]["context"]["artifacts"]
+    )
+
+
+def test_cockpit_ai_review_rejects_overlapping_artifact_operations(
+    tmp_path: Path,
+) -> None:
+    provider = FakeEvidenceAIProvider()
+    app = create_app(
+        repo_root=Path(__file__).resolve().parents[1],
+        output_root=tmp_path / "runs",
+        ai_provider=provider,
+    )
+    client = TestClient(app)
+    generated = client.post(
+        "/api/ai/drafts",
+        json={"intent": "next", "scenario_name": "canonical-simulation"},
+    )
+    assert generated.status_code == 200
+
+    assert cockpit_api._AI_DRAFT_ACTIVE_LOCK.acquire(blocking=False)
+    try:
+        reviewed = client.post(
+            generated.json()["urls"]["review"],
+            json={"status": "accepted", "reviewer": "Research lead"},
+        )
+    finally:
+        cockpit_api._AI_DRAFT_ACTIVE_LOCK.release()
+
+    assert reviewed.status_code == 409
+    assert reviewed.json()["detail"] == (
+        "An AI advisory draft operation is already in progress."
+    )
 
 
 def test_cockpit_ai_sidecar_requires_separate_hosted_enablement(
