@@ -14,9 +14,88 @@ from fastapi.testclient import TestClient
 from httpx import Response
 
 from qs_dmss import __version__
+from qs_dmss.ai import AIGeneration
 from qs_dmss.cockpit import api as cockpit_api
 from qs_dmss.cockpit.api import create_app
 from qs_dmss.quantum_showcase import quantum_compilation_showcase_root
+
+
+class FakeEvidenceAIProvider:
+    provider_id = "test-provider"
+    model = "test-research-model"
+    endpoint_scope = "local"
+
+    def __init__(self) -> None:
+        self.calls: list[dict] = []
+
+    def generate(self, *, intent, context, allowed_artifact_ids) -> AIGeneration:
+        self.calls.append(
+            {
+                "intent": intent,
+                "context": deepcopy(context),
+                "allowed_artifact_ids": set(allowed_artifact_ids),
+            }
+        )
+        preferred = next(
+            (
+                artifact_id
+                for artifact_id in sorted(allowed_artifact_ids)
+                if artifact_id.startswith("comparison/")
+                or artifact_id.endswith("/metrics")
+            ),
+            sorted(allowed_artifact_ids)[0],
+        )
+        return AIGeneration(
+            response={
+                "schema_version": 1,
+                "title": "Bounded evidence draft",
+                "draft": "The recorded workflow evidence remains subject to human review.",
+                "findings": [
+                    {
+                        "statement": "The selected artifact records inspectable workflow evidence.",
+                        "artifact_ids": [preferred],
+                    }
+                ],
+                "limitations": ["This draft does not establish physical validity."],
+                "proposed_actions": ["Ask a researcher to review the cited artifact."],
+            },
+            provenance={
+                "provider": self.provider_id,
+                "model": self.model,
+                "endpoint_scope": self.endpoint_scope,
+                "context_sha256": hashlib.sha256(
+                    json.dumps(context, sort_keys=True).encode("utf-8")
+                ).hexdigest(),
+                "tool_calls": [],
+                "usage": {"total_tokens": 42},
+            },
+        )
+
+
+class InvalidEvidenceAIProvider(FakeEvidenceAIProvider):
+    def generate(self, *, intent, context, allowed_artifact_ids) -> AIGeneration:
+        allowed_artifact_ids.add("outside/context")
+        generation = super().generate(
+            intent=intent,
+            context=context,
+            allowed_artifact_ids=allowed_artifact_ids,
+        )
+        generation.response["findings"][0]["artifact_ids"] = ["outside/context"]
+        return generation
+
+
+class ContextMutatingEvidenceAIProvider(FakeEvidenceAIProvider):
+    def generate(self, *, intent, context, allowed_artifact_ids) -> AIGeneration:
+        context["artifacts"][0]["data"]["provider_injected_value"] = 975
+        generation = super().generate(
+            intent=intent,
+            context=context,
+            allowed_artifact_ids=allowed_artifact_ids,
+        )
+        generation.response["findings"][0]["statement"] = (
+            "The provider-injected value is 975."
+        )
+        return generation
 
 
 def assert_baseline_security_headers(response: Response) -> None:
@@ -29,6 +108,7 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.delenv("RENDER", raising=False)
     monkeypatch.delenv("RENDER_GIT_COMMIT", raising=False)
     monkeypatch.delenv("RENDER_GIT_BRANCH", raising=False)
+    monkeypatch.delenv("QS_DMSS_AI_ENABLED", raising=False)
     repo_root = Path(__file__).resolve().parents[1]
     app = create_app(repo_root=repo_root, output_root=tmp_path / "runs")
     client = TestClient(app)
@@ -129,10 +209,17 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path, monkeypatch) -> None:
     assert capabilities["quantum_validation_live"] is capabilities["quantum_stack_available"]
     assert capabilities["client_sweep_preflight"] is True
     assert capabilities["hosted_custom_compute"] is True
+    assert capabilities["ai_advisory_drafts"] is False
     assert health.headers["x-robots-tag"] == (
         "noindex, nofollow, noarchive, nosnippet"
     )
     assert_baseline_security_headers(health)
+
+    ai_status = client.get("/api/ai/status")
+    assert ai_status.status_code == 200
+    assert ai_status.json()["availability"] == "disabled"
+    assert ai_status.json()["available_in_current_mode"] is False
+    assert ai_status.json()["data_policy"]["arbitrary_user_context_allowed"] is False
 
     openapi = client.get("/openapi.json")
     assert openapi.status_code == 200
@@ -781,6 +868,326 @@ def test_cockpit_api_launches_lab_mode_showcase(tmp_path: Path) -> None:
 
     artifact_payload = client.get(lab_mode["artifact_links"][0]["url"])
     assert artifact_payload.status_code == 200
+
+
+def test_cockpit_ai_sidecar_is_bounded_reviewable_and_separate_from_evidence(
+    tmp_path: Path,
+) -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    provider = FakeEvidenceAIProvider()
+    app = create_app(
+        repo_root=repo_root,
+        output_root=tmp_path / "runs",
+        ai_provider=provider,
+    )
+    client = TestClient(app)
+
+    status = client.get("/api/ai/status")
+    assert status.status_code == 200
+    assert status.json()["available_in_current_mode"] is True
+    assert status.json()["execution_policy"] == {
+        "advisory_only": True,
+        "tools_available": False,
+        "run_launch_allowed": False,
+        "artifact_mutation_allowed": False,
+        "human_review_required": True,
+    }
+    assert status.json()["data_policy"]["browser_supplies_identifiers_only"] is True
+
+    missing_run = client.post(
+        "/api/ai/drafts",
+        json={"intent": "summary", "scenario_name": "canonical-simulation"},
+    )
+    assert missing_run.status_code == 400
+
+    arbitrary_context = client.post(
+        "/api/ai/drafts",
+        json={
+            "intent": "next",
+            "scenario_name": "canonical-simulation",
+            "context": {"secret": "must not be accepted"},
+        },
+    )
+    assert arbitrary_context.status_code == 422
+
+    launch = client.post("/api/showcases/canonical-simulation/run")
+    assert launch.status_code == 200
+    run_id = launch.json()["run"]["summary"]["run_id"]
+    run_manifest = tmp_path / "runs" / run_id / "manifest.sha256.json"
+    manifest_before = run_manifest.read_bytes()
+
+    generated = client.post(
+        "/api/ai/drafts",
+        json={
+            "intent": "summary",
+            "scenario_name": "canonical-simulation",
+            "run_id": run_id,
+        },
+    )
+    assert generated.status_code == 200
+    draft = generated.json()
+    assert draft["status"] == "draft"
+    assert draft["human_review"]["status"] == "pending"
+    assert draft["claim_boundary"].startswith("AI-generated advisory annotation")
+    assert draft["provenance"]["tool_calls"] == []
+    assert run_manifest.read_bytes() == manifest_before
+
+    serialized_context = json.dumps(provider.calls[-1]["context"])
+    assert str(tmp_path) not in serialized_context
+    assert "run_dir" not in serialized_context
+    assert "bundle_path" not in serialized_context
+    assert any(
+        artifact["id"] == f"run/{run_id}/metrics"
+        for artifact in provider.calls[-1]["context"]["artifacts"]
+    )
+
+    bundle = client.get(draft["urls"]["bundle"])
+    assert bundle.status_code == 200
+    with zipfile.ZipFile(io.BytesIO(bundle.content)) as archive:
+        names = set(archive.namelist())
+    assert f"{draft['interaction_id']}/interaction.json" in names
+    assert f"{draft['interaction_id']}/manifest.sha256.json" in names
+
+    reviewed = client.post(
+        draft["urls"]["review"],
+        json={
+            "status": "edited",
+            "reviewer": "Research lead",
+            "edited_draft": "Human-reviewed evidence wording.",
+        },
+    )
+    assert reviewed.status_code == 200
+    reviewed_record = reviewed.json()
+    assert reviewed_record["status"] == "human_reviewed"
+    assert reviewed_record["human_review"]["status"] == "edited"
+    assert reviewed_record["human_review"]["edited_draft"] == (
+        "Human-reviewed evidence wording."
+    )
+    assert reviewed_record["review_history"] == [reviewed_record["human_review"]]
+
+    missing_comparison = client.post(
+        "/api/ai/drafts",
+        json={
+            "intent": "comparison",
+            "scenario_name": "canonical-simulation",
+            "run_id": run_id,
+        },
+    )
+    assert missing_comparison.status_code == 400
+
+    comparison = client.post("/api/showcases/canonical-simulation/compare")
+    assert comparison.status_code == 200
+    experiment_id = comparison.json()["artifact"]["summary"]["experiment_id"]
+    critique = client.post(
+        "/api/ai/drafts",
+        json={
+            "intent": "comparison",
+            "scenario_name": "canonical-simulation",
+            "experiment_id": experiment_id,
+        },
+    )
+    assert critique.status_code == 200, critique.text
+    comparison_artifact = next(
+        artifact
+        for artifact in provider.calls[-1]["context"]["artifacts"]
+        if artifact["id"] == f"comparison/{experiment_id}"
+    )
+    assert len(comparison_artifact["data"]["rows"]) == 3
+    assert set(comparison_artifact["data"]) == {
+        "experiment",
+        "baseline_run_id",
+        "shared_experiment",
+        "rows",
+        "ranges",
+        "highlights",
+        "decision",
+    }
+    assert "profile" not in comparison_artifact["data"]["decision"]
+    assert set(comparison_artifact["data"]["decision"]) <= {
+        "available",
+        "mode",
+        "status",
+        "reason",
+        "recommended_run_id",
+        "recommended_score",
+        "recommended_status",
+        "primary_metric",
+        "primary_metric_label",
+        "primary_goal",
+        "primary_target_value",
+        "qualified_run_count",
+        "total_run_count",
+        "ranked_run_ids",
+    }
+    assert provider.calls[-1]["intent"] == "comparison"
+
+    mixed_lineage = client.post(
+        "/api/ai/drafts",
+        json={
+            "intent": "next",
+            "scenario_name": "canonical-simulation",
+            "run_id": run_id,
+            "experiment_id": experiment_id,
+        },
+    )
+    assert mixed_lineage.status_code == 400
+    assert mixed_lineage.json()["detail"] == (
+        "The selected run is not part of the selected comparison."
+    )
+
+    baseline_run_id = comparison.json()["comparison"]["baseline_run_id"]
+    next_experiment = client.post(
+        "/api/ai/drafts",
+        json={
+            "intent": "next",
+            "scenario_name": "canonical-simulation",
+            "run_id": baseline_run_id,
+            "experiment_id": experiment_id,
+        },
+    )
+    assert next_experiment.status_code == 200, next_experiment.text
+    assert provider.calls[-1]["intent"] == "next"
+    assert {
+        artifact["kind"] for artifact in provider.calls[-1]["context"]["artifacts"]
+    } >= {"run_metrics", "run_comparison"}
+
+
+def test_cockpit_ai_draft_tolerates_a_malformed_optional_showcase_report(
+    tmp_path: Path,
+) -> None:
+    provider = FakeEvidenceAIProvider()
+    app = create_app(
+        repo_root=Path(__file__).resolve().parents[1],
+        output_root=tmp_path / "runs",
+        ai_provider=provider,
+    )
+    client = TestClient(app)
+
+    launch = client.post("/api/showcases/canonical-simulation/run")
+    assert launch.status_code == 200
+    run_id = launch.json()["run"]["summary"]["run_id"]
+    showcase_report = (
+        tmp_path
+        / "showcases"
+        / "canonical-simulation"
+        / "simulation-showcase.json"
+    )
+    showcase_report.write_text("{not-json", encoding="utf-8")
+
+    generated = client.post(
+        "/api/ai/drafts",
+        json={
+            "intent": "summary",
+            "scenario_name": "canonical-simulation",
+            "run_id": run_id,
+        },
+    )
+    assert generated.status_code == 200
+    assert generated.json()["human_review"]["status"] == "pending"
+    assert all(
+        artifact["kind"] != "showcase_report"
+        for artifact in provider.calls[-1]["context"]["artifacts"]
+    )
+
+
+def test_cockpit_ai_review_rejects_overlapping_artifact_operations(
+    tmp_path: Path,
+) -> None:
+    provider = FakeEvidenceAIProvider()
+    app = create_app(
+        repo_root=Path(__file__).resolve().parents[1],
+        output_root=tmp_path / "runs",
+        ai_provider=provider,
+    )
+    client = TestClient(app)
+    generated = client.post(
+        "/api/ai/drafts",
+        json={"intent": "next", "scenario_name": "canonical-simulation"},
+    )
+    assert generated.status_code == 200
+
+    assert cockpit_api._AI_DRAFT_ACTIVE_LOCK.acquire(blocking=False)
+    try:
+        reviewed = client.post(
+            generated.json()["urls"]["review"],
+            json={"status": "accepted", "reviewer": "Research lead"},
+        )
+    finally:
+        cockpit_api._AI_DRAFT_ACTIVE_LOCK.release()
+
+    assert reviewed.status_code == 409
+    assert reviewed.json()["detail"] == (
+        "An AI advisory draft operation is already in progress."
+    )
+
+
+def test_cockpit_ai_sidecar_requires_separate_hosted_enablement(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    monkeypatch.setenv("QS_DMSS_AI_ENABLED", "1")
+    monkeypatch.setenv("QS_DMSS_AI_BASE_URL", "http://127.0.0.1:11434/v1")
+    monkeypatch.setenv("QS_DMSS_AI_MODEL", "local-research-model")
+    monkeypatch.delenv("QS_DMSS_AI_HOSTED_ENABLED", raising=False)
+    app = create_app(
+        repo_root=Path(__file__).resolve().parents[1],
+        output_root=tmp_path / "runs",
+        hosted_demo=True,
+    )
+    client = TestClient(app)
+
+    status = client.get("/api/ai/status")
+    assert status.status_code == 200
+    assert status.json()["availability"] == "hosted_disabled"
+    assert status.json()["available_in_current_mode"] is False
+    assert status.json()["provider"] is None
+    assert status.json()["model"] is None
+    assert status.json()["endpoint_scope"] is None
+
+    generated = client.post(
+        "/api/ai/drafts",
+        json={"intent": "next", "scenario_name": "canonical-simulation"},
+    )
+    assert generated.status_code == 403
+    assert "disabled in the public hosted demo" in generated.json()["detail"]
+
+
+def test_cockpit_revalidates_provider_output_before_persisting(tmp_path: Path) -> None:
+    output_root = tmp_path / "runs"
+    app = create_app(
+        repo_root=Path(__file__).resolve().parents[1],
+        output_root=output_root,
+        ai_provider=InvalidEvidenceAIProvider(),
+    )
+    client = TestClient(app)
+
+    generated = client.post(
+        "/api/ai/drafts",
+        json={"intent": "next", "scenario_name": "canonical-simulation"},
+    )
+    assert generated.status_code == 502
+    assert "No advisory artifact was created" in generated.json()["detail"]
+    assert not (output_root / "ai-interactions").exists()
+
+
+def test_cockpit_keeps_server_context_isolated_from_provider_mutation(
+    tmp_path: Path,
+) -> None:
+    output_root = tmp_path / "runs"
+    app = create_app(
+        repo_root=Path(__file__).resolve().parents[1],
+        output_root=output_root,
+        ai_provider=ContextMutatingEvidenceAIProvider(),
+    )
+    client = TestClient(app)
+
+    generated = client.post(
+        "/api/ai/drafts",
+        json={"intent": "next", "scenario_name": "canonical-simulation"},
+    )
+    assert generated.status_code == 502
+    assert "No advisory artifact was created" in generated.json()["detail"]
+    assert not (output_root / "ai-interactions").exists()
 
 
 def test_cockpit_api_showcases_hides_internal_exception_details(

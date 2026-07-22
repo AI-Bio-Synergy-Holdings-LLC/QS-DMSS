@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from copy import deepcopy
 import hashlib
 import importlib.util
 import json
@@ -14,14 +15,30 @@ from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Any, Callable
+from typing import Any, Callable, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, PlainTextResponse, Response
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 from qs_dmss import __version__
+from qs_dmss.ai import (
+    APPROVED_AI_INTENTS,
+    AIGeneration,
+    AIIntent,
+    AIProvider,
+    AIProviderError,
+    AIResponseValidationError,
+    AIRuntime,
+    ai_interaction_bundle_path,
+    build_ai_runtime,
+    load_ai_interaction,
+    make_ai_artifact,
+    persist_ai_interaction,
+    review_ai_interaction,
+    validate_ai_response,
+)
 from qs_dmss.app import execute_run, replay_run as replay_existing_run
 from qs_dmss.decision import evaluate_run_decision
 from qs_dmss.deployment import public_deployment_provenance
@@ -131,6 +148,7 @@ BASELINE_SECURITY_HEADERS = {
 }
 _HOSTED_DEMO_ACTIVE_JOBS: set[str] = set()
 _HOSTED_DEMO_ACTIVE_JOBS_LOCK = threading.Lock()
+_AI_DRAFT_ACTIVE_LOCK = threading.Lock()
 _QUANTUM_VALIDATION_ACTIVE_LOCK = threading.Lock()
 QUANTUM_RUN_METADATA = "cockpit-run.json"
 
@@ -342,6 +360,12 @@ def _configured_engine_steps(config: dict[str, Any]) -> int:
         return 0
 
 
+def _selected_fields(value: Any, fields: tuple[str, ...]) -> dict[str, Any]:
+    if not isinstance(value, dict):
+        return {}
+    return {field: value[field] for field in fields if field in value}
+
+
 class LaunchRunRequest(BaseModel):
     config: dict
     source_name: str = "cockpit.yaml"
@@ -383,6 +407,24 @@ class CampaignStudyTemplateRequest(BaseModel):
 
 class ResearchObjectExportRequest(BaseModel):
     research_object: dict[str, Any]
+
+
+class AIDraftRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    intent: AIIntent
+    scenario_name: str = Field(min_length=1, max_length=120)
+    run_id: str | None = Field(default=None, min_length=1, max_length=160)
+    experiment_id: str | None = Field(default=None, min_length=1, max_length=160)
+
+
+class AIReviewRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: Literal["accepted", "edited", "rejected"]
+    reviewer: str = Field(default="Local researcher", min_length=1, max_length=120)
+    note: str | None = Field(default=None, max_length=1200)
+    edited_draft: str | None = Field(default=None, max_length=2400)
 
 
 class WorkspaceExportRequest(BaseModel):
@@ -1204,6 +1246,420 @@ class CockpitService:
             "execution_job": artifact_detail["execution_job"],
             "urls": artifact_detail["urls"],
         }
+
+    def build_ai_evidence_context(
+        self,
+        payload: AIDraftRequest,
+    ) -> tuple[dict[str, Any], dict[str, Any]]:
+        if payload.intent in {"summary", "claim"} and not payload.run_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Evidence summary and claim-boundary review require a recorded run.",
+            )
+        if payload.intent == "comparison" and not payload.experiment_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Comparison critique requires a recorded comparison experiment.",
+            )
+
+        scenario = self._build_showcase_summary(payload.scenario_name)
+        scenario_data = _selected_fields(
+            scenario,
+            (
+                "name",
+                "label",
+                "run_name",
+                "grid_label",
+                "steps",
+                "purpose",
+                "description",
+                "claim_boundary",
+                "limitations",
+                "next_actions",
+                "guided_comparison",
+            ),
+        )
+        artifacts = [
+            make_ai_artifact(
+                f"scenario-contract/{scenario['name']}",
+                "scenario_contract",
+                scenario_data,
+            )
+        ]
+        subject: dict[str, Any] = {
+            "scenario_name": scenario["name"],
+            "run_id": payload.run_id,
+            "experiment_id": payload.experiment_id,
+        }
+
+        experiment: dict[str, Any] | None = None
+        recorded_run_ids: set[str] = set()
+        if payload.experiment_id:
+            experiment = self.get_experiment_detail(payload.experiment_id)
+            experiment_summary = experiment.get("summary") or {}
+            execution_job = experiment.get("execution_job") or {}
+            job_spec = execution_job.get("spec") or {}
+            job_metadata = job_spec.get("metadata") or {}
+            recorded_run_ids = {
+                str(run_id) for run_id in experiment_summary.get("run_ids") or []
+            }
+            if (
+                experiment_summary.get("kind") != "guided-comparison"
+                or job_metadata.get("scenario") != scenario.get("name")
+            ):
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        "The selected comparison does not belong to the selected "
+                        "packaged scenario."
+                    ),
+                )
+            if payload.run_id and payload.run_id not in recorded_run_ids:
+                raise HTTPException(
+                    status_code=400,
+                    detail="The selected run is not part of the selected comparison.",
+                )
+
+        run_detail: dict[str, Any] | None = None
+        if payload.run_id:
+            run_detail = self.get_run_detail(payload.run_id)
+            run_summary = run_detail["summary"]
+            if (
+                experiment is None
+                and run_summary.get("name") != scenario.get("run_name")
+            ):
+                raise HTTPException(
+                    status_code=400,
+                    detail="The selected run does not belong to the selected packaged scenario.",
+                )
+            safe_summary = _selected_fields(
+                run_summary,
+                (
+                    "run_id",
+                    "name",
+                    "config_name",
+                    "seed",
+                    "grid_label",
+                    "steps",
+                    "status",
+                    "finished_at",
+                    "elapsed_seconds",
+                    "config_digest",
+                    "energy_drift",
+                    "norm_drift",
+                    "bundle_size_bytes",
+                    "bundle_sha256",
+                ),
+            )
+            metrics = run_detail.get("metrics") or {}
+            history = metrics.get("history") or []
+            if len(history) > 16:
+                history = [*history[:8], *history[-8:]]
+            safe_metrics = _selected_fields(
+                metrics,
+                (
+                    "energy_drift",
+                    "norm_drift",
+                    "relative_norm_drift",
+                    "max_density",
+                    "elapsed_seconds",
+                ),
+            )
+            safe_metrics["history_excerpt"] = [
+                _selected_fields(
+                    snapshot,
+                    ("step", "time", "norm", "energy", "max_density"),
+                )
+                for snapshot in history
+                if isinstance(snapshot, dict)
+            ]
+            artifacts.extend(
+                [
+                    make_ai_artifact(
+                        f"run/{payload.run_id}/summary",
+                        "run_summary",
+                        safe_summary,
+                    ),
+                    make_ai_artifact(
+                        f"run/{payload.run_id}/metrics",
+                        "run_metrics",
+                        safe_metrics,
+                    ),
+                    make_ai_artifact(
+                        f"run/{payload.run_id}/verification",
+                        "manifest_verification",
+                        {
+                            **_selected_fields(
+                                run_detail.get("verification"),
+                                ("success", "checked_files"),
+                            ),
+                            "evidence": _selected_fields(
+                                run_detail.get("evidence"),
+                                ("file_count", "bundle_size_bytes", "bundle_sha256"),
+                            ),
+                        },
+                    ),
+                ]
+            )
+
+            try:
+                report = self._read_json(self.showcase_json_path(scenario["name"]))
+            except (HTTPException, json.JSONDecodeError, OSError, ValueError):
+                report = None
+            if report and (report.get("run") or {}).get("run_id") == payload.run_id:
+                safe_report = {
+                    **_selected_fields(
+                        report,
+                        (
+                            "schema_version",
+                            "generated_at",
+                            "scenario",
+                            "scenario_title",
+                            "scenario_narrative",
+                            "claim_boundary",
+                            "success",
+                            "metrics",
+                            "interpretation",
+                        ),
+                    ),
+                    "verification": _selected_fields(
+                        report.get("verification"),
+                        ("success", "checked_files"),
+                    ),
+                    "replay": _selected_fields(
+                        report.get("replay"),
+                        (
+                            "run_id",
+                            "verification_success",
+                            "final_density_allclose",
+                            "max_abs_density_delta",
+                        ),
+                    ),
+                    "artifact_keys": sorted((report.get("artifacts") or {}).keys()),
+                }
+                artifacts.append(
+                    make_ai_artifact(
+                        f"showcase-report/{scenario['name']}/{payload.run_id}",
+                        "showcase_report",
+                        safe_report,
+                    )
+                )
+
+        if experiment is not None:
+            comparison = experiment.get("comparison") or {}
+            safe_rows = []
+            for row in comparison.get("rows") or []:
+                row_run_id = str(row.get("run_id") or "")
+                if not row_run_id:
+                    continue
+                if row_run_id not in recorded_run_ids:
+                    raise HTTPException(
+                        status_code=400,
+                        detail=(
+                            "The selected comparison contains a run outside its "
+                            "recorded experiment lineage."
+                        ),
+                    )
+                safe_rows.append(
+                    _selected_fields(
+                        row,
+                        (
+                            "run_id",
+                            "name",
+                            "seed",
+                            "parameter_path",
+                            "parameter_label",
+                            "parameter_value",
+                            "parameter_value_label",
+                            "variant",
+                            "variant_label",
+                            "energy_drift",
+                            "norm_drift",
+                            "max_density",
+                            "elapsed_seconds",
+                            "verification_success",
+                            "delta_from_baseline",
+                        ),
+                    )
+                )
+            if (
+                payload.run_id
+                and payload.run_id not in {row.get("run_id") for row in safe_rows}
+            ):
+                raise HTTPException(
+                    status_code=400,
+                    detail="The selected run is not part of the selected comparison.",
+                )
+            safe_comparison = {
+                "experiment": _selected_fields(
+                    experiment.get("summary"),
+                    (
+                        "experiment_id",
+                        "label",
+                        "kind",
+                        "status",
+                        "created_at",
+                        "baseline_run_id",
+                        "run_count",
+                        "bundle_sha256",
+                    ),
+                ),
+                "baseline_run_id": comparison.get("baseline_run_id"),
+                "shared_experiment": _selected_fields(
+                    comparison.get("shared_experiment"),
+                    (
+                        "id",
+                        "label",
+                        "kind",
+                        "strategy",
+                        "dimension_count",
+                        "dimensions",
+                        "parameter_path",
+                        "parameter_label",
+                    ),
+                ),
+                "rows": safe_rows,
+                "ranges": _selected_fields(
+                    comparison.get("ranges"),
+                    ("energy_drift", "norm_drift", "max_density", "elapsed_seconds"),
+                ),
+                "highlights": _selected_fields(
+                    comparison.get("highlights"),
+                    (
+                        "lowest_abs_energy_drift_run_id",
+                        "lowest_abs_norm_drift_run_id",
+                        "highest_max_density_run_id",
+                    ),
+                ),
+                "decision": _selected_fields(
+                    comparison.get("decision"),
+                    (
+                        "available",
+                        "mode",
+                        "status",
+                        "reason",
+                        "recommended_run_id",
+                        "recommended_score",
+                        "recommended_status",
+                        "primary_metric",
+                        "primary_metric_label",
+                        "primary_goal",
+                        "primary_target_value",
+                        "qualified_run_count",
+                        "total_run_count",
+                        "ranked_run_ids",
+                    ),
+                ),
+            }
+            artifacts.append(
+                make_ai_artifact(
+                    f"comparison/{payload.experiment_id}",
+                    "run_comparison",
+                    safe_comparison,
+                )
+            )
+
+        context = {
+            "schema_version": 1,
+            "intent": payload.intent,
+            "intent_label": APPROVED_AI_INTENTS[payload.intent],
+            "artifacts": artifacts,
+            "policy": {
+                "advisory_only": True,
+                "human_review_required": True,
+                "tools_available": False,
+                "run_launch_allowed": False,
+                "artifact_mutation_allowed": False,
+                "external_sources_allowed": False,
+            },
+        }
+        return context, subject
+
+    def _public_ai_interaction(self, record: dict[str, Any]) -> dict[str, Any]:
+        interaction_id = str(record["interaction_id"])
+        return {
+            **record,
+            "urls": {
+                "record": f"/api/ai/drafts/{interaction_id}",
+                "review": f"/api/ai/drafts/{interaction_id}/review",
+                "bundle": f"/api/ai/drafts/{interaction_id}/bundle",
+            },
+        }
+
+    def generate_ai_draft(
+        self,
+        payload: AIDraftRequest,
+        runtime: AIRuntime,
+    ) -> dict[str, Any]:
+        if self.hosted_demo.enabled and not runtime.status.get("hosted_enabled"):
+            raise HTTPException(
+                status_code=403,
+                detail=(
+                    "AI drafts are disabled in the public hosted demo. "
+                    "Use the local application with an explicitly configured provider."
+                ),
+            )
+        if runtime.provider is None:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    runtime.status.get("message")
+                    or "AI drafts are disabled or not configured."
+                ),
+            )
+        context, subject = self.build_ai_evidence_context(payload)
+        allowed_artifact_ids = {
+            str(artifact["id"]) for artifact in context.get("artifacts", [])
+        }
+        generation = runtime.provider.generate(
+            intent=payload.intent,
+            context=deepcopy(context),
+            allowed_artifact_ids=set(allowed_artifact_ids),
+        )
+        generation = AIGeneration(
+            response=validate_ai_response(
+                generation.response,
+                context=context,
+                allowed_artifact_ids=allowed_artifact_ids,
+            ),
+            provenance={
+                **generation.provenance,
+                "provider": runtime.provider.provider_id,
+                "model": runtime.provider.model,
+                "endpoint_scope": runtime.provider.endpoint_scope,
+            },
+        )
+        record = persist_ai_interaction(
+            self.output_root,
+            intent=payload.intent,
+            subject=subject,
+            context=context,
+            generation=generation,
+        )
+        return self._public_ai_interaction(record)
+
+    def get_ai_interaction(self, interaction_id: str) -> dict[str, Any]:
+        return self._public_ai_interaction(
+            load_ai_interaction(self.output_root, interaction_id)
+        )
+
+    def review_ai_draft(
+        self,
+        interaction_id: str,
+        payload: AIReviewRequest,
+    ) -> dict[str, Any]:
+        record = review_ai_interaction(
+            self.output_root,
+            interaction_id,
+            status=payload.status,
+            reviewer=payload.reviewer,
+            note=payload.note,
+            edited_draft=payload.edited_draft,
+        )
+        return self._public_ai_interaction(record)
+
+    def ai_draft_bundle_path(self, interaction_id: str) -> Path:
+        return ai_interaction_bundle_path(self.output_root, interaction_id)
 
     def compare_runs(self, payload: CompareRunsRequest) -> dict:
         run_ids = [run_id for run_id in payload.run_ids if run_id]
@@ -3245,6 +3701,7 @@ def create_app(
     repo_root: str | Path | None = None,
     output_root: str | Path | None = None,
     hosted_demo: bool | None = None,
+    ai_provider: AIProvider | None = None,
 ) -> FastAPI:
     service = CockpitService.create(
         repo_root=repo_root,
@@ -3261,6 +3718,7 @@ def create_app(
     )
     app.state.hosted_demo_last_cleanup = 0.0
     app.state.hosted_demo_cleanup_lock = threading.Lock()
+    app.state.ai_runtime = build_ai_runtime(ai_provider)
 
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(
@@ -3427,9 +3885,122 @@ def create_app(
                 ),
                 "client_sweep_preflight": True,
                 "hosted_custom_compute": not active_service.hosted_demo.enabled,
+                "ai_advisory_drafts": bool(
+                    app.state.ai_runtime.provider
+                    and (
+                        not active_service.hosted_demo.enabled
+                        or app.state.ai_runtime.status.get("hosted_enabled")
+                    )
+                ),
             },
             "hosted_demo": active_service.hosted_demo_status(session_id),
         }
+
+    @app.get("/api/ai/status")
+    def ai_status(
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict[str, Any]:
+        status = dict(app.state.ai_runtime.status)
+        available_in_current_mode = bool(
+            app.state.ai_runtime.provider
+            and (
+                not active_service.hosted_demo.enabled
+                or status.get("hosted_enabled")
+            )
+        )
+        status["available_in_current_mode"] = available_in_current_mode
+        if (
+            active_service.hosted_demo.enabled
+            and app.state.ai_runtime.provider
+            and not status.get("hosted_enabled")
+        ):
+            status["availability"] = "hosted_disabled"
+            status["provider"] = None
+            status["model"] = None
+            status["endpoint_scope"] = None
+        status["data_policy"] = {
+            "browser_supplies_identifiers_only": True,
+            "server_builds_allowlisted_context": True,
+            "arbitrary_user_context_allowed": False,
+            "original_evidence_mutated": False,
+        }
+        return status
+
+    @app.post("/api/ai/drafts")
+    def create_ai_draft(
+        payload: AIDraftRequest,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict[str, Any]:
+        if not _AI_DRAFT_ACTIVE_LOCK.acquire(blocking=False):
+            raise HTTPException(
+                status_code=409,
+                detail="An AI advisory draft is already being generated.",
+            )
+        try:
+            return active_service.generate_ai_draft(payload, app.state.ai_runtime)
+        except HTTPException:
+            raise
+        except (AIProviderError, AIResponseValidationError) as exc:
+            COCKPIT_LOGGER.warning(
+                "ai_draft_rejected exception_type=%s intent=%s",
+                type(exc).__name__,
+                payload.intent,
+            )
+            raise HTTPException(
+                status_code=502,
+                detail=(
+                    "The AI provider response did not satisfy the evidence-bound "
+                    "draft contract. No advisory artifact was created."
+                ),
+            ) from None
+        finally:
+            _AI_DRAFT_ACTIVE_LOCK.release()
+
+    @app.get("/api/ai/drafts/{interaction_id}")
+    def get_ai_draft(
+        interaction_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict[str, Any]:
+        try:
+            return active_service.get_ai_interaction(interaction_id)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="AI advisory draft not found") from None
+
+    @app.post("/api/ai/drafts/{interaction_id}/review")
+    def review_ai_draft(
+        interaction_id: str,
+        payload: AIReviewRequest,
+        active_service: CockpitService = Depends(current_service),
+    ) -> dict[str, Any]:
+        if not _AI_DRAFT_ACTIVE_LOCK.acquire(blocking=False):
+            raise HTTPException(
+                status_code=409,
+                detail="An AI advisory draft operation is already in progress.",
+            )
+        try:
+            return active_service.review_ai_draft(interaction_id, payload)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="AI advisory draft not found") from None
+        except AIResponseValidationError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        finally:
+            _AI_DRAFT_ACTIVE_LOCK.release()
+
+    @app.get("/api/ai/drafts/{interaction_id}/bundle")
+    def ai_draft_bundle(
+        interaction_id: str,
+        active_service: CockpitService = Depends(current_service),
+    ) -> FileResponse:
+        try:
+            path = active_service.ai_draft_bundle_path(interaction_id)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="AI advisory draft not found") from None
+        return guarded_file_response(
+            active_service,
+            path,
+            media_type="application/zip",
+            filename=f"{interaction_id}-ai-advisory-bundle.zip",
+        )
 
     @app.get("/api/configs")
     def configs(active_service: CockpitService = Depends(current_service)) -> dict:

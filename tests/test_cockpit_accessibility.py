@@ -202,6 +202,9 @@ def test_cockpit_styles_encode_wcag_interaction_baseline() -> None:
     assert ".research-runbook-step.is-current" in css
     assert ".evidence-assistant-prompts" in css
     assert '.evidence-assistant-prompts button[aria-pressed="true"]' in css
+    assert ".ai-provider-status.is-ready" in css
+    assert ".ai-draft-panel" in css
+    assert ".ai-review-actions" in css
     assert ".research-runbook-head .selection-chip" in css
     assert "@media (max-width: 1050px)" in css
     quantum_table_wrap = re.search(
@@ -243,6 +246,13 @@ def test_cockpit_navigation_and_dynamic_controls_preserve_semantics() -> None:
     assert "function renderEvidenceAssistant(" in script
     assert "function evidenceAssistantAnswer(" in script
     assert "function evidenceAssistantSources(" in script
+    assert "function renderAiProviderStatus(" in script
+    assert "async function handleGenerateAiDraft(" in script
+    assert "async function handleAiDraftReview(" in script
+    assert 'fetchJson("/api/ai/status")' in script
+    assert 'fetchJson("/api/ai/drafts", {' in script
+    assert 'const includeRun = ["summary", "claim", "next"].includes(intent)' in script
+    assert 'const includeComparison = ["comparison", "next"].includes(intent)' in script
     assert "data-evidence-assistant-intent" in script
     assert "function renderScientificTrace(" in script
     assert "function renderInteractiveComparisonChart(" in script
@@ -298,9 +308,16 @@ def test_lab_workflow_and_live_chart_surfaces_are_semantic() -> None:
     assert 'id="evidenceAssistantEvidenceList"' in html
     assert 'data-evidence-assistant-intent="summary"' in html
     assert 'data-evidence-assistant-intent="claim"' in html
-    assert 'data-evidence-assistant-intent="review"' in html
+    assert 'data-evidence-assistant-intent="comparison"' in html
     assert 'data-evidence-assistant-intent="next"' in html
-    assert "It does not create evidence" in html
+    assert 'id="aiProviderStatus"' in html
+    assert 'id="generateAiDraftButton"' in html
+    assert 'id="aiDraftReviewer"' in html
+    assert 'id="aiDraftEditedText"' in html
+    assert 'data-ai-review-status="accepted"' in html
+    assert 'data-ai-review-status="edited"' in html
+    assert 'data-ai-review-status="rejected"' in html
+    assert "it is not measured evidence" in html
     assert 'id="labComparisonChart"' in html
     assert 'id="comparisonChart"' in html
     assert 'id="labEnergyChart"' in html

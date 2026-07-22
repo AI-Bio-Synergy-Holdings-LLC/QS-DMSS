@@ -24,6 +24,9 @@ const state = {
   labComparisonResult: null,
   comparisonDownloadUrl: null,
   evidenceAssistantIntent: "next",
+  aiStatus: null,
+  aiDraft: null,
+  aiDraftLoading: false,
   researchObject: null,
   researchObjectDownloadUrl: null,
   workspaceExport: null,
@@ -41,6 +44,19 @@ const state = {
     research: "energy_drift",
   },
 };
+
+const EVIDENCE_ASSISTANT_INTENTS = new Set([
+  "summary",
+  "claim",
+  "comparison",
+  "next",
+]);
+
+function normalizedEvidenceAssistantIntent() {
+  return EVIDENCE_ASSISTANT_INTENTS.has(state.evidenceAssistantIntent)
+    ? state.evidenceAssistantIntent
+    : "next";
+}
 
 let artifactPreviewTrigger = null;
 const svgPreviewCache = new Map();
@@ -161,6 +177,26 @@ const els = {
   evidenceAssistantResponseTitle: document.querySelector("#evidenceAssistantResponseTitle"),
   evidenceAssistantResponseBody: document.querySelector("#evidenceAssistantResponseBody"),
   evidenceAssistantEvidenceList: document.querySelector("#evidenceAssistantEvidenceList"),
+  evidenceAssistantMode: document.querySelector("#evidenceAssistantMode"),
+  aiProviderStatus: document.querySelector("#aiProviderStatus"),
+  aiProviderStatusTitle: document.querySelector("#aiProviderStatusTitle"),
+  aiProviderStatusSummary: document.querySelector("#aiProviderStatusSummary"),
+  aiDraftPanel: document.querySelector("#aiDraftPanel"),
+  aiDraftStatus: document.querySelector("#aiDraftStatus"),
+  aiDraftDisclosure: document.querySelector("#aiDraftDisclosure"),
+  generateAiDraftButton: document.querySelector("#generateAiDraftButton"),
+  aiDraftResult: document.querySelector("#aiDraftResult"),
+  aiDraftTitle: document.querySelector("#aiDraftTitle"),
+  aiDraftBody: document.querySelector("#aiDraftBody"),
+  aiDraftFindings: document.querySelector("#aiDraftFindings"),
+  aiDraftLimitations: document.querySelector("#aiDraftLimitations"),
+  aiDraftActions: document.querySelector("#aiDraftActions"),
+  aiDraftReviewer: document.querySelector("#aiDraftReviewer"),
+  aiDraftEditedText: document.querySelector("#aiDraftEditedText"),
+  aiReviewActions: document.querySelector("#aiReviewActions"),
+  aiDraftProvenance: document.querySelector("#aiDraftProvenance"),
+  aiDraftBundleLink: document.querySelector("#aiDraftBundleLink"),
+  aiDraftFeedback: document.querySelector("#aiDraftFeedback"),
   demoPathStatus: document.querySelector("#demoPathStatus"),
   demoPathFeedback: document.querySelector("#demoPathFeedback"),
   demoRunStep: document.querySelector("#demoRunStep"),
@@ -1023,7 +1059,10 @@ function evidenceAssistantSources(scenario, result) {
   }
   const comparisonCount = state.labComparisonResult?.comparison?.rows?.length || 0;
   if (comparisonCount) {
-    sources.push(`Guided comparison · ${comparisonCount} recorded variants`);
+    const comparisonId = state.labComparisonResult?.artifact?.summary?.experiment_id;
+    sources.push(
+      `Guided comparison · ${comparisonCount} recorded variants${comparisonId ? ` · ${comparisonId}` : ""}`,
+    );
   }
   if (state.researchObject) {
     sources.push(`Research object · ${state.researchObject.fileName || "export composed"}`);
@@ -1032,9 +1071,7 @@ function evidenceAssistantSources(scenario, result) {
 }
 
 function evidenceAssistantAnswer(scenario, result) {
-  const intent = ["summary", "claim", "review", "next"].includes(state.evidenceAssistantIntent)
-    ? state.evidenceAssistantIntent
-    : "next";
+  const intent = normalizedEvidenceAssistantIntent();
   const report = result?.report || {};
   const interpretation = report.interpretation || {};
   const verificationPassed = Boolean(report.verification?.success);
@@ -1082,14 +1119,12 @@ function evidenceAssistantAnswer(scenario, result) {
         sources,
       };
     }
-    if (intent === "review") {
+    if (intent === "comparison") {
       return {
-        label: "Readiness review",
-        title: "Review the contract before running",
+        label: "Comparison readiness",
+        title: "Record a run before comparing variants",
         body:
-          limitations.length
-            ? `Review the ${limitations.length} documented limitation${limitations.length === 1 ? "" : "s"}, expected outputs, and next actions before creating the run.`
-            : "Review expected outputs, inputs, and the stated scope before creating the run.",
+          "The packaged comparison becomes meaningful after the baseline run is recorded. Until then, review the declared comparison dimensions and limitations in the scenario contract.",
         sources,
       };
     }
@@ -1124,17 +1159,30 @@ function evidenceAssistantAnswer(scenario, result) {
       sources: [...sources, ...nonClaims.slice(0, 1).map((item) => `Boundary · ${item}`)],
     };
   }
-  if (intent === "review") {
+  if (intent === "comparison") {
+    const comparison = state.labComparisonResult?.comparison;
+    const guide = state.labComparisonResult?.guide;
+    if (!comparison) {
+      return {
+        label: "Comparison critique",
+        title: "No comparison evidence is recorded yet",
+        body:
+          "Run Guided Comparison to create controlled variant rows, metric deltas, a recommendation contract, and a comparison evidence bundle before critiquing tradeoffs.",
+        sources,
+      };
+    }
+    const rows = comparison.rows || [];
+    const recommendedRunId = comparison.decision?.recommended_run_id;
     return {
-      label: "Review queue",
-      title: reproduced ? "Review interpretation and non-claims" : "Resolve evidence gates before interpretation",
-      body: reproduced
-        ? interpretation.review_prompt ||
-          "Review whether the evidence, assumptions, and stated limitations support the planned communication."
-        : !verificationPassed
-          ? "Manifest verification did not pass. Inspect the evidence checklist and run artifacts before relying on this result."
-          : "Deterministic replay did not match. Inspect the replay record before relying on this result.",
-      sources: [...sources, ...nonClaims.slice(0, 2).map((item) => `Non-claim · ${item}`)],
+      label: "Comparison critique",
+      title: `${rows.length} controlled variants are ready for human review`,
+      body:
+        guide?.plain_language_summary ||
+        `Compare every row against the baseline. ${recommendedRunId ? `The objective contract highlights ${recommendedRunId}, but that recommendation is not a scientific conclusion.` : "No objective-driven recommendation is available."}`,
+      sources: [
+        ...sources,
+        ...(guide?.what_this_does_not_claim || nonClaims).slice(0, 2).map((item) => `Non-claim · ${item}`),
+      ],
     };
   }
 
@@ -1199,9 +1247,230 @@ function renderEvidenceAssistant(scenario) {
   els.evidenceAssistantPromptGroup
     .querySelectorAll("[data-evidence-assistant-intent]")
     .forEach((button) => {
-      const isSelected = button.dataset.evidenceAssistantIntent === state.evidenceAssistantIntent;
+      const isSelected =
+        button.dataset.evidenceAssistantIntent === normalizedEvidenceAssistantIntent();
       button.setAttribute("aria-pressed", String(isSelected));
     });
+  renderAiProviderStatus();
+  renderAiDraft(scenario);
+}
+
+function aiDraftRequirement(scenario) {
+  const intent = normalizedEvidenceAssistantIntent();
+  if (!state.aiStatus?.available_in_current_mode) {
+    return {
+      available: false,
+      message: "Configure an approved local or explicitly authorized remote model endpoint to generate AI drafts.",
+    };
+  }
+  if (!scenario) {
+    return { available: false, message: "Choose a packaged scenario first." };
+  }
+  if (["summary", "claim"].includes(intent) && !state.labResult) {
+    return { available: false, message: "Record a verified run before requesting this draft." };
+  }
+  if (intent === "comparison" && !state.labComparisonResult) {
+    return { available: false, message: "Run Guided Comparison before requesting a critique." };
+  }
+  return {
+    available: true,
+    message:
+      state.aiStatus.endpoint_scope === "remote"
+        ? "A remote endpoint is explicitly enabled. Only server-selected evidence fields will leave this environment."
+        : "The configured local endpoint receives only server-selected evidence fields.",
+  };
+}
+
+function clearAiDraft(message = "AI output is optional and never replaces deterministic guidance.") {
+  state.aiDraft = null;
+  state.aiDraftLoading = false;
+  if (els.aiDraftFeedback) {
+    els.aiDraftFeedback.textContent = message;
+  }
+}
+
+function renderAiProviderStatus() {
+  const status = state.aiStatus || {};
+  const ready = Boolean(status.available_in_current_mode);
+  els.aiProviderStatus.classList.toggle("is-ready", ready);
+  els.aiProviderStatus.classList.toggle(
+    "is-warning",
+    !ready && ["configuration_error", "hosted_disabled"].includes(status.availability),
+  );
+  els.evidenceAssistantMode.textContent = ready ? "AI sidecar ready" : "Deterministic guidance";
+  if (ready) {
+    els.aiProviderStatusTitle.textContent = `${status.provider || "Configured provider"} · ${status.model || "model"}`;
+    els.aiProviderStatusSummary.textContent =
+      status.endpoint_scope === "remote"
+        ? "Remote advisory endpoint · explicit operator authorization · no tools or run execution"
+        : "Local advisory endpoint · evidence-bound context · no tools or run execution";
+    return;
+  }
+  if (status.availability === "hosted_disabled") {
+    els.aiProviderStatusTitle.textContent = "AI drafts disabled in hosted demo";
+    els.aiProviderStatusSummary.textContent =
+      "Use the local application with an explicitly configured provider; deterministic guidance remains active.";
+    return;
+  }
+  if (status.availability === "configuration_error") {
+    els.aiProviderStatusTitle.textContent = "AI provider configuration needs review";
+    els.aiProviderStatusSummary.textContent = status.message || "Review the server-side AI configuration.";
+    return;
+  }
+  els.aiProviderStatusTitle.textContent = "AI drafts disabled";
+  els.aiProviderStatusSummary.textContent =
+    "Recorded-context guidance remains available without a model provider.";
+}
+
+function aiDraftListMarkup(items, emptyMessage) {
+  if (!Array.isArray(items) || !items.length) {
+    return `<li>${escapeHtml(emptyMessage)}</li>`;
+  }
+  return items.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+}
+
+function renderAiDraft(scenario) {
+  const requirement = aiDraftRequirement(scenario);
+  const draft = state.aiDraft;
+  els.generateAiDraftButton.disabled = !requirement.available || state.aiDraftLoading;
+  els.generateAiDraftButton.textContent = state.aiDraftLoading
+    ? "Generating evidence-bound draft..."
+    : "Generate AI draft";
+  els.aiDraftDisclosure.textContent = requirement.message;
+
+  if (!draft) {
+    els.aiDraftStatus.textContent = state.aiDraftLoading ? "Generating" : "Not generated";
+    els.aiDraftResult.hidden = true;
+    els.aiDraftBundleLink.hidden = true;
+    return;
+  }
+
+  const response = draft.response || {};
+  const review = draft.human_review || {};
+  const reviewPending = review.status === "pending";
+  els.aiDraftStatus.textContent = reviewPending
+    ? "Human review required"
+    : `Human ${review.status}`;
+  els.aiDraftResult.hidden = false;
+  els.aiDraftTitle.textContent = response.title || "AI advisory draft";
+  els.aiDraftBody.textContent = response.draft || "";
+  els.aiDraftFindings.innerHTML = (response.findings || [])
+    .map(
+      (finding) => `
+        <li>
+          ${escapeHtml(finding.statement)}
+          <small>Sources: ${escapeHtml((finding.artifact_ids || []).join(", "))}</small>
+        </li>
+      `,
+    )
+    .join("") || "<li>No findings returned.</li>";
+  els.aiDraftLimitations.innerHTML = aiDraftListMarkup(
+    response.limitations,
+    "No additional limitations returned.",
+  );
+  els.aiDraftActions.innerHTML = aiDraftListMarkup(
+    response.proposed_actions,
+    "No next action proposed.",
+  );
+  els.aiDraftEditedText.value = review.edited_draft || response.draft || "";
+  els.aiDraftEditedText.disabled = !reviewPending;
+  els.aiDraftReviewer.value = review.reviewer || els.aiDraftReviewer.value || "Local researcher";
+  els.aiDraftReviewer.disabled = !reviewPending;
+  els.aiReviewActions.querySelectorAll("button").forEach((button) => {
+    button.disabled = !reviewPending;
+  });
+  const provenance = draft.provenance || {};
+  const usage = provenance.usage || {};
+  const tokenSummary = usage.total_tokens ? ` · ${usage.total_tokens} tokens` : "";
+  els.aiDraftProvenance.textContent = `${provenance.provider || "Provider"} · ${provenance.model || "model"} · ${provenance.endpoint_scope || "endpoint"}${tokenSummary} · context ${String(provenance.context_sha256 || "unrecorded").slice(0, 12)}`;
+  els.aiDraftBundleLink.href = draft.urls?.bundle || "#";
+  els.aiDraftBundleLink.hidden = !draft.urls?.bundle;
+  els.aiDraftFeedback.textContent = reviewPending
+    ? "Review the artifact citations and wording, then accept, edit, or reject this draft."
+    : `Review recorded as ${review.status} by ${review.reviewer || "the researcher"}.`;
+}
+
+async function handleGenerateAiDraft() {
+  const scenario = showcaseByName(state.selectedShowcaseName);
+  const requirement = aiDraftRequirement(scenario);
+  if (!requirement.available || !scenario) {
+    toast("AI draft unavailable", requirement.message, "danger");
+    return;
+  }
+  state.aiDraftLoading = true;
+  state.aiDraft = null;
+  els.aiDraftFeedback.textContent =
+    "Building an allowlisted evidence context and validating the provider response.";
+  renderAiDraft(scenario);
+  try {
+    const intent = normalizedEvidenceAssistantIntent();
+    const includeRun = ["summary", "claim", "next"].includes(intent);
+    const includeComparison = ["comparison", "next"].includes(intent);
+    const experimentId = includeComparison
+      ? state.labComparisonResult?.artifact?.summary?.experiment_id || null
+      : null;
+    const runId =
+      intent === "next" && experimentId
+        ? state.labComparisonResult?.comparison?.baseline_run_id || null
+        : includeRun
+          ? state.labResult?.run?.summary?.run_id || null
+          : null;
+    const payload = await fetchJson("/api/ai/drafts", {
+      method: "POST",
+      body: JSON.stringify({
+        intent,
+        scenario_name: scenario.name,
+        run_id: runId,
+        experiment_id: experimentId,
+      }),
+    });
+    state.aiDraft = payload;
+    els.aiDraftFeedback.textContent =
+      "Draft generated and stored separately from measured evidence. Human review is required.";
+    toast("AI advisory draft ready", "Review its citations before accepting any wording.", "success");
+  } catch (error) {
+    state.aiDraft = null;
+    els.aiDraftFeedback.textContent = error.message;
+    toast("AI draft rejected", error.message, "danger");
+  } finally {
+    state.aiDraftLoading = false;
+    renderAiDraft(scenario);
+  }
+}
+
+async function handleAiDraftReview(status) {
+  const draft = state.aiDraft;
+  if (!draft?.interaction_id) return;
+  const editedDraft = els.aiDraftEditedText.value.trim();
+  const reviewer = els.aiDraftReviewer.value.trim();
+  if (!reviewer) {
+    toast("Reviewer identity required", "Identify the researcher recording this disposition.", "danger");
+    els.aiDraftReviewer.focus();
+    return;
+  }
+  if (status === "edited" && !editedDraft) {
+    toast("Edited draft required", "Add the human-reviewed wording before saving.", "danger");
+    return;
+  }
+  els.aiDraftFeedback.textContent = "Recording the human disposition and rebuilding the advisory bundle.";
+  els.aiReviewActions.querySelectorAll("button").forEach((button) => {
+    button.disabled = true;
+  });
+  try {
+    state.aiDraft = await fetchJson(draft.urls.review, {
+      method: "POST",
+      body: JSON.stringify({
+        status,
+        reviewer,
+        edited_draft: status === "edited" ? editedDraft : null,
+      }),
+    });
+    toast("Human review recorded", `AI draft marked ${status}.`, "success");
+  } catch (error) {
+    els.aiDraftFeedback.textContent = error.message;
+    toast("Review was not recorded", error.message, "danger");
+  }
+  renderAiDraft(showcaseByName(state.selectedShowcaseName));
 }
 
 function renderResearchRunbook(scenario) {
@@ -5801,6 +6070,7 @@ async function hydrate() {
     showcasePayload,
     experimentPayload,
     campaignStudyPayload,
+    aiStatusPayload,
   ] = await Promise.all([
     fetchJson("/api/health"),
     fetchJson("/api/quantum-validation").catch((error) => ({ error: error.message })),
@@ -5810,6 +6080,12 @@ async function hydrate() {
     fetchJson("/api/showcases"),
     fetchJson("/api/experiments"),
     fetchJson("/api/campaign-studies"),
+    fetchJson("/api/ai/status").catch(() => ({
+      enabled: false,
+      configured: false,
+      availability: "disabled",
+      available_in_current_mode: false,
+    })),
   ]);
   state.hostedDemo = healthPayload.hosted_demo || null;
   renderReleaseIdentity(healthPayload.release || { version: healthPayload.version });
@@ -5824,6 +6100,7 @@ async function hydrate() {
   state.campaignStudio = showcasePayload.campaign_studio || null;
   state.experiments = experimentPayload.items;
   state.campaignStudyTemplates = campaignStudyPayload.items || [];
+  state.aiStatus = aiStatusPayload;
   state.selectedCampaignStudyTemplateId = state.campaignStudyTemplates[0]?.template_id || null;
   state.selectedTemplateName = configPayload.default_name || state.configs[0]?.name || null;
   state.selectedShowcaseName = showcasePayload.default_name || state.showcases[0]?.name || null;
@@ -5967,6 +6244,8 @@ async function handleLaunchLabMode() {
     return;
   }
 
+  clearAiDraft("A new run is being created; generate a fresh AI draft after evidence is recorded.");
+
   setLabProgress(
     true,
     "Running the showcase now. QS-DMSS is generating the run, evidence bundle, replay, report, and artifacts.",
@@ -5984,6 +6263,9 @@ async function handleLaunchLabMode() {
     clearResearchObject();
     state.labResult = payload;
     state.selectedShowcaseName = payload.scenario.name;
+    clearAiDraft(
+      "Evidence recorded. Choose an approved task and generate a fresh draft from this run.",
+    );
     toast("Lab Mode complete", `Created ${payload.run.summary.run_id}`, "success");
     await refreshRuns();
     renderLabMode();
@@ -6009,6 +6291,8 @@ async function handleLaunchLabComparison() {
     return;
   }
 
+  clearAiDraft("A new comparison is being created; generate a fresh critique from its evidence rows.");
+
   setLabComparisonProgress(
     true,
     "Running three deterministic variants and building the comparison evidence bundle.",
@@ -6024,6 +6308,9 @@ async function handleLaunchLabComparison() {
     clearResearchObject();
     state.labComparisonResult = payload;
     state.selectedShowcaseName = payload.scenario.name;
+    clearAiDraft(
+      "Comparison evidence recorded. Select Comparison critique to review every variant row.",
+    );
     await refreshRuns();
     await refreshExperiments();
     renderLabMode();
@@ -6430,12 +6717,20 @@ function bindEvents() {
     const button = event.target.closest("[data-evidence-assistant-intent]");
     if (!button) return;
     state.evidenceAssistantIntent = button.dataset.evidenceAssistantIntent;
+    clearAiDraft("Intent changed. Generate a new draft from the selected evidence context.");
     renderResearchRunbook(showcaseByName(state.selectedShowcaseName));
+  });
+  els.generateAiDraftButton.addEventListener("click", handleGenerateAiDraft);
+  els.aiReviewActions.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-ai-review-status]");
+    if (!button) return;
+    handleAiDraftReview(button.dataset.aiReviewStatus);
   });
   els.labScenarioSelect.addEventListener("change", (event) => {
     state.selectedShowcaseName = event.target.value;
     state.labResult = null;
     state.labComparisonResult = null;
+    clearAiDraft("Scenario changed. Select an approved task after recording the relevant evidence.");
     clearResearchObject();
     renderLabMode();
   });
