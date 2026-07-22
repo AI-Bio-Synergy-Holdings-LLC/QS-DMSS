@@ -380,6 +380,14 @@ qs-dmss cockpit --host 127.0.0.1 --port 8001
 
 Then open [http://127.0.0.1:8001](http://127.0.0.1:8001) in a browser.
 
+The contextual Evidence Assistant also supports an optional provider-agnostic
+model sidecar for evidence summary, claim-boundary review, comparison critique,
+and next-experiment proposals. It is disabled by default, receives only
+server-selected evidence fields, cannot call tools or launch runs, and writes a
+separate human-reviewable advisory bundle rather than changing measured
+evidence. Configuration and disclosure controls are documented in
+[docs/ai-evidence-assistant.md](docs/ai-evidence-assistant.md).
+
 When validating an unreleased checkout, stop any older cockpit process before
 reinstalling and starting it from the same virtual environment:
 
@@ -399,6 +407,9 @@ Inside the cockpit you can:
   the persisted evidence package; the hosted Studio intentionally remains a
   read-only scientific archive
 - Use Lab Mode to launch the packaged canonical simulation showcase, read guided interpretation, run a guided variant comparison, inspect the Evidence Explorer, preview generated reports/artifacts, compose a research object export, and open the full evidence outputs
+- Use deterministic Evidence Assistant guidance without a provider, or opt into
+  one of four evidence-bound model tasks and record an accepted, edited, or
+  rejected human disposition in a separate advisory artifact
 - Inspect Scenario Library metadata for packaged scenarios, including purpose, expected runtime, artifacts, readiness, limitations, and suggested next actions
 - Select the packaged Self-Interaction Sweep study template to inspect purpose, expected runtime, metrics, limitations, non-claims, and guided interpretation for an `engine.g_int` campaign
 - Edit the Campaign Studio parameter grid and decision profile for the bundled decision campaign, preview the scoring contract, and launch the edited campaign through the existing evidence/recommendation workflow

@@ -6371,6 +6371,231 @@ details[id] {
   content: "";
 }
 
+.ai-provider-status {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(21, 57, 61, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 253, 248, 0.66);
+}
+
+.ai-provider-indicator {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: #87948f;
+  box-shadow: 0 0 0 5px rgba(135, 148, 143, 0.12);
+}
+
+.ai-provider-status.is-ready .ai-provider-indicator {
+  background: #2f8c65;
+  box-shadow: 0 0 0 5px rgba(47, 140, 101, 0.13);
+}
+
+.ai-provider-status.is-warning .ai-provider-indicator {
+  background: var(--copper);
+  box-shadow: 0 0 0 5px rgba(196, 95, 40, 0.13);
+}
+
+.ai-provider-status strong,
+.ai-provider-status small {
+  display: block;
+}
+
+.ai-provider-status strong {
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
+.ai-provider-status small {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.4;
+}
+
+.ai-draft-panel {
+  display: grid;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid rgba(15, 81, 87, 0.18);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(15, 81, 87, 0.055), transparent 52%),
+    rgba(255, 253, 248, 0.82);
+}
+
+.ai-draft-head,
+.ai-draft-provenance,
+.ai-review-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.ai-draft-head h4,
+.ai-draft-result h5 {
+  margin: 3px 0 0;
+  color: var(--text);
+  font-family: "Fraunces", Georgia, serif;
+  font-weight: 500;
+}
+
+.ai-draft-head h4 {
+  font-size: 1.05rem;
+}
+
+.ai-draft-panel > p,
+.ai-draft-result > p,
+.ai-draft-feedback {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.ai-generate-button,
+.ai-review-actions button {
+  min-height: 38px;
+  border: 1px solid rgba(15, 81, 87, 0.28);
+  border-radius: 10px;
+  background: var(--teal);
+  color: #fff;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.ai-generate-button {
+  width: 100%;
+}
+
+.ai-generate-button:hover:not(:disabled),
+.ai-generate-button:focus-visible,
+.ai-review-actions button:hover:not(:disabled),
+.ai-review-actions button:focus-visible {
+  border-color: var(--copper);
+  box-shadow: 0 8px 18px rgba(15, 81, 87, 0.14);
+}
+
+.ai-generate-button:disabled,
+.ai-review-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.ai-draft-result {
+  display: grid;
+  gap: 12px;
+  padding-top: 13px;
+  border-top: 1px solid rgba(21, 57, 61, 0.1);
+}
+
+.ai-draft-result[hidden] {
+  display: none;
+}
+
+.ai-draft-result h5 {
+  font-size: 1rem;
+}
+
+.ai-draft-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ai-draft-result section {
+  min-width: 0;
+}
+
+.ai-draft-result section > strong,
+.ai-draft-edit-label {
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ai-draft-result ul {
+  display: grid;
+  gap: 6px;
+  padding-left: 17px;
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.42;
+}
+
+.ai-draft-result li small {
+  display: block;
+  margin-top: 3px;
+  color: var(--teal);
+  font-size: 0.64rem;
+  overflow-wrap: anywhere;
+}
+
+.ai-draft-result input,
+.ai-draft-result textarea {
+  width: 100%;
+  padding: 10px 11px;
+  border: 1px solid rgba(21, 57, 61, 0.18);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.ai-draft-result textarea {
+  min-height: 108px;
+  resize: vertical;
+}
+
+.ai-draft-result input:focus,
+.ai-draft-result textarea:focus {
+  border-color: var(--teal);
+  outline: 3px solid rgba(15, 81, 87, 0.1);
+}
+
+.ai-review-actions {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+
+.ai-review-actions button {
+  min-height: 34px;
+  padding: 0 11px;
+  background: rgba(15, 81, 87, 0.06);
+  color: var(--teal);
+}
+
+.ai-review-actions button[data-ai-review-status="rejected"] {
+  border-color: rgba(151, 55, 44, 0.28);
+  color: #873d33;
+}
+
+.ai-draft-provenance {
+  align-items: flex-start;
+  padding-top: 10px;
+  border-top: 1px solid rgba(21, 57, 61, 0.1);
+  color: var(--muted);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+.ai-draft-provenance a {
+  flex: 0 0 auto;
+  color: var(--teal);
+  font-weight: 800;
+}
+
 .evidence-assistant-boundary {
   padding-top: 12px;
   border-top: 1px solid rgba(21, 57, 61, 0.1);
@@ -6423,5 +6648,15 @@ details[id] {
   .evidence-assistant-prompts button {
     width: 100%;
     padding-inline: 7px;
+  }
+
+  .ai-draft-head,
+  .ai-draft-provenance {
+    align-items: flex-start;
+    display: grid;
+  }
+
+  .ai-draft-columns {
+    grid-template-columns: 1fr;
   }
 }

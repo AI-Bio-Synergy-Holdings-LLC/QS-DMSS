@@ -387,19 +387,26 @@
                       <p class="panel-kicker">Evidence Assistant</p>
                       <h3 id="evidenceAssistantTitle">Contextual, source-bound guidance</h3>
                     </div>
-                    <span class="evidence-assistant-mode">Recorded context only</span>
+                    <span class="evidence-assistant-mode" id="evidenceAssistantMode">Deterministic guidance</span>
+                  </div>
+                  <div class="ai-provider-status" id="aiProviderStatus" role="status">
+                    <span class="ai-provider-indicator" aria-hidden="true"></span>
+                    <span>
+                      <strong id="aiProviderStatusTitle">AI drafts disabled</strong>
+                      <small id="aiProviderStatusSummary">Recorded-context guidance remains available without a model provider.</small>
+                    </span>
                   </div>
                   <p class="evidence-assistant-context" id="evidenceAssistantContext">
                     No scenario is selected yet. The assistant will use the study contract and recorded evidence when they are available.
                   </p>
                   <div class="evidence-assistant-prompts" id="evidenceAssistantPromptGroup" role="group" aria-label="Evidence Assistant prompts">
-                    <button type="button" data-evidence-assistant-intent="summary" aria-pressed="false">Summarize evidence</button>
-                    <button type="button" data-evidence-assistant-intent="claim" aria-pressed="false">What can I claim?</button>
-                    <button type="button" data-evidence-assistant-intent="review" aria-pressed="false">What needs review?</button>
-                    <button type="button" data-evidence-assistant-intent="next" aria-pressed="true">Next best action</button>
+                    <button type="button" data-evidence-assistant-intent="summary" aria-pressed="false">Evidence summary</button>
+                    <button type="button" data-evidence-assistant-intent="claim" aria-pressed="false">Claim boundary</button>
+                    <button type="button" data-evidence-assistant-intent="comparison" aria-pressed="false">Comparison critique</button>
+                    <button type="button" data-evidence-assistant-intent="next" aria-pressed="true">Next experiment</button>
                   </div>
                   <section class="evidence-assistant-response" aria-live="polite" aria-labelledby="evidenceAssistantResponseTitle">
-                    <p class="artifact-list-title" id="evidenceAssistantResponseLabel">Runbook guidance</p>
+                    <p class="artifact-list-title" id="evidenceAssistantResponseLabel">Deterministic runbook guidance</p>
                     <h4 id="evidenceAssistantResponseTitle">Choose a scenario to begin</h4>
                     <p id="evidenceAssistantResponseBody">
                       The next defensible action is to select a packaged scenario, review its purpose and limitations, and establish the scientific boundary before execution.
@@ -408,8 +415,61 @@
                       <li>Evidence basis will appear after a scenario is selected.</li>
                     </ul>
                   </section>
+                  <section class="ai-draft-panel" id="aiDraftPanel" aria-labelledby="aiDraftPanelTitle">
+                    <div class="ai-draft-head">
+                      <div>
+                        <p class="artifact-list-title">Optional model assistance</p>
+                        <h4 id="aiDraftPanelTitle">Evidence-bound AI draft</h4>
+                      </div>
+                      <span class="selection-chip" id="aiDraftStatus">Not generated</span>
+                    </div>
+                    <p id="aiDraftDisclosure">
+                      When enabled by the local operator, the model receives only server-selected evidence fields and cannot call tools or launch experiments.
+                    </p>
+                    <button class="ai-generate-button" id="generateAiDraftButton" type="button" disabled>
+                      Generate AI draft
+                    </button>
+                    <div class="ai-draft-result" id="aiDraftResult" aria-live="polite" hidden>
+                      <h5 id="aiDraftTitle">AI draft</h5>
+                      <p id="aiDraftBody"></p>
+                      <div class="ai-draft-columns">
+                        <section>
+                          <strong>Artifact-bound findings</strong>
+                          <ul id="aiDraftFindings"></ul>
+                        </section>
+                        <section>
+                          <strong>Limitations</strong>
+                          <ul id="aiDraftLimitations"></ul>
+                        </section>
+                      </div>
+                      <section>
+                        <strong>Proposed actions</strong>
+                        <ul id="aiDraftActions"></ul>
+                      </section>
+                      <label class="ai-draft-edit-label" for="aiDraftReviewer">
+                        Reviewer identity
+                      </label>
+                      <input id="aiDraftReviewer" type="text" maxlength="120" value="Local researcher" autocomplete="name" />
+                      <label class="ai-draft-edit-label" for="aiDraftEditedText">
+                        Human-reviewed draft text
+                      </label>
+                      <textarea id="aiDraftEditedText" rows="5" maxlength="2400"></textarea>
+                      <div class="ai-review-actions" id="aiReviewActions" role="group" aria-label="Review AI draft">
+                        <button type="button" data-ai-review-status="accepted">Accept draft</button>
+                        <button type="button" data-ai-review-status="edited">Save edited</button>
+                        <button type="button" data-ai-review-status="rejected">Reject draft</button>
+                      </div>
+                      <div class="ai-draft-provenance">
+                        <span id="aiDraftProvenance">Provider provenance appears here.</span>
+                        <a id="aiDraftBundleLink" href="#" hidden>Download advisory bundle</a>
+                      </div>
+                    </div>
+                    <p class="ai-draft-feedback" id="aiDraftFeedback" role="status">
+                      AI output is optional and never replaces deterministic guidance.
+                    </p>
+                  </section>
                   <p class="evidence-assistant-boundary">
-                    This assistant summarizes recorded QS-DMSS context. It does not create evidence, infer physical validity beyond the documented boundary, or make unstated scientific claims.
+                    Deterministic guidance summarizes recorded QS-DMSS context. Optional model output is stored separately as an AI advisory draft; it is not measured evidence, scientific validation, or authorization to execute an experiment.
                   </p>
                 </aside>
               </div>

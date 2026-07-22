@@ -42,6 +42,13 @@ wheel also retains the public reference-data provenance calibration sandbox,
 Conceptual Reference Map links, and job-registry path hardening. PyPI remains
 on `v0.13.2` while the research and provenance gates are reviewed.
 
+The next local-first slice adds an opt-in model sidecar to the contextual
+Evidence Assistant. Its first boundary is intentionally narrow: evidence
+summary, claim-boundary review, comparison critique, and next-experiment
+proposals. Server-selected context, provider provenance, separate manifested
+advisory bundles, and explicit human dispositions keep this work downstream of
+measured evidence rather than inside the execution or recommendation path.
+
 The target user flow is:
 
 ```text
