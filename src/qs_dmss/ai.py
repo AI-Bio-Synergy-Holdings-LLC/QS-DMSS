@@ -340,7 +340,25 @@ def validate_ai_response(
             )
         findings.append({"statement": statement, "artifact_ids": normalized_ids})
 
-    supported_numbers = _decimal_tokens(context)
+    def _strip_identifier_fields(node: Any) -> Any:
+        if isinstance(node, dict):
+            cleaned: dict[str, Any] = {}
+            for key, value in node.items():
+                if (
+                    key in {"id", "sha256"}
+                    or key.endswith("_sha256")
+                    or key.endswith("_id")
+                    or key.endswith("_at")
+                ):
+                    cleaned[key] = "" if isinstance(value, str) else None
+                    continue
+                cleaned[key] = _strip_identifier_fields(value)
+            return cleaned
+        if isinstance(node, list):
+            return [_strip_identifier_fields(item) for item in node]
+        return node
+
+    supported_numbers = _decimal_tokens(_strip_identifier_fields(context))
     asserted_text = {
         "title": title,
         "draft": draft,
