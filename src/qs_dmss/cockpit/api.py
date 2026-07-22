@@ -1372,7 +1372,7 @@ class CockpitService:
 
             try:
                 report = self._read_json(self.showcase_json_path(scenario["name"]))
-            except HTTPException:
+            except (HTTPException, json.JSONDecodeError, OSError, ValueError):
                 report = None
             if report and (report.get("run") or {}).get("run_id") == payload.run_id:
                 safe_report = {
