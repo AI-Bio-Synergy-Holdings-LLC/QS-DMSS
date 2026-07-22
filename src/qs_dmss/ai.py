@@ -346,8 +346,8 @@ def validate_ai_response(
         "draft": draft,
         "findings": [item["statement"] for item in findings],
         "limitations": limitations,
+        "proposed_actions": proposed_actions,
     }
-    unsupported_numbers = sorted(
         _decimal_tokens(asserted_text) - supported_numbers,
         key=str,
     )
