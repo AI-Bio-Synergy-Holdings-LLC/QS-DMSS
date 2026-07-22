@@ -495,12 +495,12 @@ class OpenAICompatibleProvider:
             allowed_artifact_ids=allowed_artifact_ids,
         )
         raw_content = content if isinstance(content, str) else _canonical_json(content)
-        usage = provider_payload.get("usage") or {}
         safe_usage = {
             key: int(value)
             for key, value in usage.items()
             if key in {"prompt_tokens", "completion_tokens", "total_tokens"}
             and isinstance(value, int)
+            and not isinstance(value, bool)
             and value >= 0
         }
         return AIGeneration(
