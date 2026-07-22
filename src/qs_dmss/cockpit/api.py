@@ -3960,8 +3960,19 @@ def create_app(
         payload: AIReviewRequest,
         active_service: CockpitService = Depends(current_service),
     ) -> dict[str, Any]:
+        if not _AI_DRAFT_ACTIVE_LOCK.acquire(blocking=False):
+            raise HTTPException(
+                status_code=409,
+                detail="An AI advisory draft operation is already in progress.",
+            )
         try:
             return active_service.review_ai_draft(interaction_id, payload)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="AI advisory draft not found") from None
+        except AIResponseValidationError as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+        finally:
+            _AI_DRAFT_ACTIVE_LOCK.release()
         except FileNotFoundError:
             raise HTTPException(status_code=404, detail="AI advisory draft not found") from None
         except AIResponseValidationError as exc:
