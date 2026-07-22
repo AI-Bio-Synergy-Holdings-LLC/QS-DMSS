@@ -496,6 +496,7 @@ class OpenAICompatibleProvider:
             allowed_artifact_ids=allowed_artifact_ids,
         )
         raw_content = content if isinstance(content, str) else _canonical_json(content)
+        usage = provider_payload.get("usage") or {}
         safe_usage = {
             key: int(value)
             for key, value in usage.items()
