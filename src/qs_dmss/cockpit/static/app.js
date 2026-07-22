@@ -1406,15 +1406,22 @@ async function handleGenerateAiDraft() {
     const intent = normalizedEvidenceAssistantIntent();
     const includeRun = ["summary", "claim", "next"].includes(intent);
     const includeComparison = ["comparison", "next"].includes(intent);
+    const experimentId = includeComparison
+      ? state.labComparisonResult?.artifact?.summary?.experiment_id || null
+      : null;
+    const runId =
+      intent === "next" && experimentId
+        ? state.labComparisonResult?.comparison?.baseline_run_id || null
+        : includeRun
+          ? state.labResult?.run?.summary?.run_id || null
+          : null;
     const payload = await fetchJson("/api/ai/drafts", {
       method: "POST",
       body: JSON.stringify({
         intent,
         scenario_name: scenario.name,
-        run_id: includeRun ? state.labResult?.run?.summary?.run_id || null : null,
-        experiment_id: includeComparison
-          ? state.labComparisonResult?.artifact?.summary?.experiment_id || null
-          : null,
+        run_id: runId,
+        experiment_id: experimentId,
       }),
     });
     state.aiDraft = payload;

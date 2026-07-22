@@ -1291,11 +1291,42 @@ class CockpitService:
             "experiment_id": payload.experiment_id,
         }
 
+        experiment: dict[str, Any] | None = None
+        recorded_run_ids: set[str] = set()
+        if payload.experiment_id:
+            experiment = self.get_experiment_detail(payload.experiment_id)
+            experiment_summary = experiment.get("summary") or {}
+            execution_job = experiment.get("execution_job") or {}
+            job_spec = execution_job.get("spec") or {}
+            job_metadata = job_spec.get("metadata") or {}
+            recorded_run_ids = {
+                str(run_id) for run_id in experiment_summary.get("run_ids") or []
+            }
+            if (
+                experiment_summary.get("kind") != "guided-comparison"
+                or job_metadata.get("scenario") != scenario.get("name")
+            ):
+                raise HTTPException(
+                    status_code=400,
+                    detail=(
+                        "The selected comparison does not belong to the selected "
+                        "packaged scenario."
+                    ),
+                )
+            if payload.run_id and payload.run_id not in recorded_run_ids:
+                raise HTTPException(
+                    status_code=400,
+                    detail="The selected run is not part of the selected comparison.",
+                )
+
         run_detail: dict[str, Any] | None = None
         if payload.run_id:
             run_detail = self.get_run_detail(payload.run_id)
             run_summary = run_detail["summary"]
-            if run_summary.get("name") != scenario.get("run_name"):
+            if (
+                experiment is None
+                and run_summary.get("name") != scenario.get("run_name")
+            ):
                 raise HTTPException(
                     status_code=400,
                     detail="The selected run does not belong to the selected packaged scenario.",
@@ -1413,26 +1444,7 @@ class CockpitService:
                     )
                 )
 
-        if payload.experiment_id:
-            experiment = self.get_experiment_detail(payload.experiment_id)
-            experiment_summary = experiment.get("summary") or {}
-            execution_job = experiment.get("execution_job") or {}
-            job_spec = execution_job.get("spec") or {}
-            job_metadata = job_spec.get("metadata") or {}
-            recorded_run_ids = {
-                str(run_id) for run_id in experiment_summary.get("run_ids") or []
-            }
-            if (
-                experiment_summary.get("kind") != "guided-comparison"
-                or job_metadata.get("scenario") != scenario.get("name")
-            ):
-                raise HTTPException(
-                    status_code=400,
-                    detail=(
-                        "The selected comparison does not belong to the selected "
-                        "packaged scenario."
-                    ),
-                )
+        if experiment is not None:
             comparison = experiment.get("comparison") or {}
             safe_rows = []
             for row in comparison.get("rows") or []:
@@ -1470,8 +1482,7 @@ class CockpitService:
                     )
                 )
             if (
-                payload.intent == "comparison"
-                and payload.run_id
+                payload.run_id
                 and payload.run_id not in {row.get("run_id") for row in safe_rows}
             ):
                 raise HTTPException(

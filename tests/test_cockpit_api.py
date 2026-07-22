@@ -1006,7 +1006,7 @@ def test_cockpit_ai_sidecar_is_bounded_reviewable_and_separate_from_evidence(
     }
     assert provider.calls[-1]["intent"] == "comparison"
 
-    next_experiment = client.post(
+    mixed_lineage = client.post(
         "/api/ai/drafts",
         json={
             "intent": "next",
@@ -1015,7 +1015,22 @@ def test_cockpit_ai_sidecar_is_bounded_reviewable_and_separate_from_evidence(
             "experiment_id": experiment_id,
         },
     )
-    assert next_experiment.status_code == 200
+    assert mixed_lineage.status_code == 400
+    assert mixed_lineage.json()["detail"] == (
+        "The selected run is not part of the selected comparison."
+    )
+
+    baseline_run_id = comparison.json()["comparison"]["baseline_run_id"]
+    next_experiment = client.post(
+        "/api/ai/drafts",
+        json={
+            "intent": "next",
+            "scenario_name": "canonical-simulation",
+            "run_id": baseline_run_id,
+            "experiment_id": experiment_id,
+        },
+    )
+    assert next_experiment.status_code == 200, next_experiment.text
     assert provider.calls[-1]["intent"] == "next"
     assert {
         artifact["kind"] for artifact in provider.calls[-1]["context"]["artifacts"]

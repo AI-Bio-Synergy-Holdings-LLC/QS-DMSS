@@ -557,6 +557,33 @@ class AIRuntime:
 
 def build_ai_runtime(provider: AIProvider | None = None) -> AIRuntime:
     if provider is not None:
+        remote_allowed = _env_flag("QS_DMSS_AI_ALLOW_REMOTE")
+        if provider.endpoint_scope == "remote" and not remote_allowed:
+            return AIRuntime(
+                provider=None,
+                status={
+                    "enabled": True,
+                    "configured": False,
+                    "availability": "configuration_error",
+                    "provider": provider.provider_id,
+                    "model": provider.model,
+                    "endpoint_scope": "remote",
+                    "remote_allowed": False,
+                    "hosted_enabled": _env_flag("QS_DMSS_AI_HOSTED_ENABLED"),
+                    "message": (
+                        "Remote AI endpoints require "
+                        "QS_DMSS_AI_ALLOW_REMOTE=1."
+                    ),
+                    "approved_intents": APPROVED_AI_INTENTS,
+                    "execution_policy": {
+                        "advisory_only": True,
+                        "tools_available": False,
+                        "run_launch_allowed": False,
+                        "artifact_mutation_allowed": False,
+                        "human_review_required": True,
+                    },
+                },
+            )
         return AIRuntime(
             provider=provider,
             status={
@@ -566,7 +593,7 @@ def build_ai_runtime(provider: AIProvider | None = None) -> AIRuntime:
                 "provider": provider.provider_id,
                 "model": provider.model,
                 "endpoint_scope": provider.endpoint_scope,
-                "remote_allowed": provider.endpoint_scope == "remote",
+                "remote_allowed": remote_allowed,
                 "hosted_enabled": _env_flag("QS_DMSS_AI_HOSTED_ENABLED"),
                 "approved_intents": APPROVED_AI_INTENTS,
                 "execution_policy": {

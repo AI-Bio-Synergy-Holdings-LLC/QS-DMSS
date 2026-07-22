@@ -170,6 +170,31 @@ def test_disabled_ai_ignores_inactive_provider_settings(monkeypatch) -> None:
     assert runtime.status["availability"] == "disabled"
 
 
+def test_injected_remote_ai_provider_requires_explicit_authorization(
+    monkeypatch,
+) -> None:
+    class RemoteProvider:
+        provider_id = "remote-test-provider"
+        model = "remote-test-model"
+        endpoint_scope = "remote"
+
+    provider = RemoteProvider()
+    monkeypatch.delenv("QS_DMSS_AI_ALLOW_REMOTE", raising=False)
+    monkeypatch.delenv("QS_DMSS_AI_HOSTED_ENABLED", raising=False)
+    blocked = build_ai_runtime(provider)
+    assert blocked.provider is None
+    assert blocked.status["availability"] == "configuration_error"
+    assert blocked.status["remote_allowed"] is False
+    assert blocked.status["hosted_enabled"] is False
+    assert "QS_DMSS_AI_ALLOW_REMOTE=1" in blocked.status["message"]
+
+    monkeypatch.setenv("QS_DMSS_AI_ALLOW_REMOTE", "1")
+    authorized = build_ai_runtime(provider)
+    assert authorized.provider is provider
+    assert authorized.status["availability"] == "ready"
+    assert authorized.status["remote_allowed"] is True
+
+
 def test_openai_compatible_adapter_uses_structured_bounded_contract(monkeypatch) -> None:
     response_body = json.dumps(
         {
