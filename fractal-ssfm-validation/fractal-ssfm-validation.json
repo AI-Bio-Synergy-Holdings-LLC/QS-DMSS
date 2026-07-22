@@ -1,0 +1,101 @@
+# Technical Review Report: `numpy_fractal_ssfm` Validation Gate (v0.13.2)
+
+**Author:** EMP\_Agent
+**Target Component:** `qs-dmss/numpy_fractal_ssfm` Backend
+**Version Reviewed:** 0.13.2
+**Scope:** Independent Scientific Review of Experimental Pseudo-Spectral Nonlinear-Wave Validation
+---
+
+This document constitutes a comprehensive independent technical review addressing the open scientific gate for the `fractal-ssfm` backend. The analysis is structured around the defined focused questions, assessing numerical robustness, mathematical defensibility, and adherence to best practices required for promoting the module beyond experimental status.
+
+## 🔍 Summary Assessment Status
+
+**Overall Findings:** The current validation package successfully demonstrates internal consistency (self-convergence) and stable numeric behavior within its defined scope (rectangular periodic grid). However, mathematically and physically, the evidence presented is insufficient to validate the stability or accuracy of a complex nonlinear wave solver.
+
+**Gate Status Recommendation:** **BLOCKED.** Promotion beyond experimental status requires substantial mathematical grounding, definitive external comparisons, and formal definition of all numerical diagnostics. The current findings do not meet the criteria for independent scientific validation.
+
+---
+
+## 📝 Analysis of Focused Review Questions
+
+### Question 1: Is the self-convergence design and observed second-order estimate a sufficient first numerical gate? What analytic or external reference should be required next?
+
+**Evaluation:** **Insufficient.**
+Self-convergence, while mandatory for internal debugging and confirming implementation stability ($\text{Observed result} = \text{Expected Result}_{\text{internal}}$), does not constitute scientific validation. A high relative L2 error reduction across refinement levels (coarse-to-medium $\approx 10^{-5}$, medium-to-fine $\approx 10^{-6}$) is encouraging, but it only proves the numerical scheme is convergent *relative to itself*, not that it approximates a true physical solution.
+
+**Required Next Steps (Blocking Follow-up):**
+For rigorous validation, one or both of the following must be implemented:
+
+1.  **Known Analytical Solution Validation:** The module must be subjected to benchmark test cases where the nonlinear PDE has a known, closed-form analytical solution for simple boundary conditions (e.g., linear dispersion relations, non-interacting wave packages). This is the gold standard for validating numerical accuracy.
+2.  **Independent Solver Comparison:** For complex regimes without an analytic solution (e.g., high nonlinearity, particle trapping), the results must be rigorously compared against a well-established, independently peer-reviewed, and demonstrably accurate reference solver (e.g., using finite element methods in parallel with spectral methods) that employs different underlying mathematical principles for validation.
+
+The current focus on relative L2 error reduction is insufficient without grounding these errors against an absolute truth source.
+
+### Question 2: Is the fuzzy-potential norm-conservation test and $10^{-9}$ tolerance defensible for this split-step formulation?
+
+**Evaluation:** **Conditional, but Needs Formal Derivation.**
+The concept of monitoring a conserved quantity (the "fuzzy potential") is mathematically sound and crucial for ensuring stability in Hamiltonian systems. A non-zero observation suggests numerical dissipation or artificial energy injection.
+
+*   **Defensibility:** The inclusion of the test itself is necessary and defensible. It demonstrates an awareness of fundamental conservation laws, which significantly improves the mathematical rigor profile.
+*   **Tolerance ($\epsilon$):** Setting a fixed tolerance of $\mathbf{1e-9}$ is potentially arbitrary. In advanced numerical physics, acceptable error bounds are often relative to the simulation domain scale ($L$) and time step ($\Delta t$), or related to machine epsilon ($\approx 2.2 \times 10^{-16}$).
+
+**Required Improvement:**
+The review must provide a **theoretical derivation** that links $\epsilon$ to either:
+a) The stability criteria of the underlying PDE (e.g., CFL conditions).
+b) The order of accuracy ($O(\Delta t^p)$) achieved by the splitting method, allowing for an *expected* error bound rather than an arbitrary threshold.
+
+If the split-step method is designed to be symplectic or preserve a specific structure, this should be documented and used to inform the acceptable error envelope.
+
+### Question 3: Do the soft-mask and hard-mask labels clearly prevent amplitude projection from being mistaken for conservative evolution?
+
+**Evaluation:** **Requires Deeper Mathematical Context.**
+The labeling (`nonconservative_exploratory`) indicates an awareness of potential pitfalls regarding physical interpretation versus numerical operation. The core concern is whether the computational masking process itself introduces non-physical components that are then misinterpreted as conserved energy flux.
+
+*   **Clarity:** While the labels attempt to demarcate the boundary between operational physics and mathematical artifact, they do not inherently prove prevention.
+*   **Action Required:** The documentation must include a formal statement or proof detailing how the mask application maintains the **local conservation property** *across* the projection step. Specifically, if $\mathcal{A}$ is the amplitude field and $\mathbf{M}$ is the mask, proving that the operation $f(\text{Amplitude}) \to g(\text{Masked Amplitude})$ satisfies $\nabla \cdot J = 0$ when using the masks must be demonstrated at a mathematical level.
+
+**Recommendation:** Update the documentation to include a formal module-level `__repr__` or docstring section detailing the conservation guarantees provided *by* the masking mechanism itself, not just acknowledging that it might fail.
+
+### Question 4: Should $\text{spectral\_leakage}$ and $\text{aliasing\_ratio}$ remain diagnostics-only? What definitions and acceptance envelopes would be required before decision use?
+
+**Evaluation:** **Recommendation to Remain Diagnostics Only (For Now).**
+Until clear physical definitions are established, these metrics pose a risk of "decision creep." However, they represent critical indicators of the numerical stability of the spectral basis choice. They should remain diagnostics only until robust acceptance criteria are defined.
+
+**Required Definitions and Acceptance Envelopes:**
+
+1.  **Spectral Leakage ($\text{SL}$):** Requires formal definition relating to the windowing function used in the discrete Fourier transform (DFT). The acceptable envelope must be defined relative to the spectral resolution ($\Delta k$) and should generally trend toward zero for perfectly periodic solutions.
+    *   *Action:* Define $\mathrm{Acceptable} \approx C / N$, where $N$ is the number of grid points, and $C$ is a small constant related to floating-point precision (e.g., $10^{-12}$).
+
+2.  **Aliasing Ratio ($\text{AR}$):** This relates directly to the Nyquist rate and domain truncation errors. The acceptance envelope must be tied to the ratio of the smallest physically relevant wavelength $(\lambda_{\min})$ to the grid size $(L)$.
+    *   *Action:* Define $\mathrm{Acceptable} < 1 - \delta$, where $\delta$ is a small positive number that quantifies the maximum allowable spatial frequency contamination.
+
+**Conclusion:** The definitions must move from empirical observation to formal spectral analysis prerequisites.
+
+### Question 5: Does the claim boundary adequately distinguish software validation from physical-model validation?
+
+**Evaluation:** **Needs Strengthening via Formal Separation.**
+The current statement is adequate in *excluding* certain validations (e.g., QPU performance, quantum advantage) but does not sufficiently fortify the distinction between "Software Validation" and "Physical Model Validation."
+
+*   **Software Validation:** Proves that $F(x)$ is computed correctly given $D$ input data using Python/NumPy ($F_{calc}(D) \approx F_{true}(D)$).
+*   **Physical Model Validation:** Proves that the PDE underlying the code represents reality ($\partial_t u = L(u, x, t)$ accurately models observed physics $\rightarrow \text{Model} \equiv \text{Physics}$).
+
+The current gate only addresses **Software Stability and Convergence**. To strengthen this:
+
+1.  **Recommendation:** Introduce an explicit section (or high-level docstring comment) that mandates the validation of *assumptions*—the physical constants, boundary conditions (periodicity assumption), and the governing PDE structure itself—as part of the required testing suite.
+2.  The claim must formally state: **"Validation confirms mathematical fidelity to the chosen approximation $L_{\text{approx}}$, but does not prove the equivalence between $L_{\text{approx}}$ and the physical reality $\mathcal{P}$."**
+
+---
+
+## 🚀 Summary and Actionable Roadmap for Gate Closure
+
+For this gate to close, the following action items must be addressed and documented in a new review package:
+
+| Priority | Area | Requirement / Blocking Finding | Resolution Type |
+| :---: | :--- | :--- | :--- |
+| **P1** | **Numerical Validation** | Implementation of mandatory comparison against at least one known **analytic solution benchmark**. | New Test Suite/Code |
+| **P1** | **Mathematical Rigor** | Formal derivation defining the acceptable numerical error tolerance $\epsilon$ for the fuzzy-potential norm based on $O(\Delta t^p)$ analysis. | Technical Documentation/Proof |
+| **P2** | **Boundary Definition** | Proof that the masking operation maintains local conservation properties ($\nabla \cdot J = 0$). | Mathematical Documentation/Test Case |
+| **P2** | **Diagnostics** | Redefinition of $\text{SL}$ and $\text{AR}$ acceptance envelopes based on spectral theory prerequisites ($1/N$ or $1 - \delta$). | Technical Documentation/Constants Update |
+| **P3** | **Scope Clarity** | Explicitly test and document the numerical stability under parameter changes (e.g., varying nonlinearity strength, changing boundary conditions). | Enhanced Test Suite |
+
+Once these five points are addressed with rigorous mathematical proofs or validated test suites, the independent scientific gate for `numpy_fractal_ssfm` can be recommended for closure.
