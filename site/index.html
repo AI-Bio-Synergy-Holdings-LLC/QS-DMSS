@@ -165,15 +165,19 @@
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
 
-    <header class="site-header" aria-label="Primary navigation">
-      <a class="brand" href="#top" aria-label="QS-DMSS Studio home">
+    <header class="site-header" aria-label="Primary navigation" data-navigation-root data-navigation-open="false">
+      <a class="brand" href="#top">
         <span class="brand-mark" aria-hidden="true">QS</span>
         <span>
           <strong>QS-DMSS Studio</strong>
           <small>Evidence-first simulation lab</small>
         </span>
       </a>
-      <nav class="nav-links" aria-label="Site sections">
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-navigation" hidden>
+        <span>Menu</span>
+        <span class="nav-toggle-icon" aria-hidden="true"><span></span><span></span><span></span></span>
+      </button>
+      <nav class="nav-links" id="site-navigation" aria-label="Site sections">
         <a href="#studio-loop">Studio loop</a>
         <a href="#capabilities">Capabilities</a>
         <a href="#validation">Validation</a>
@@ -447,5 +451,6 @@ qs-dmss cockpit --host 127.0.0.1 --port 8001</code></pre>
       <p>QS-DMSS is created, managed, and maintained by AI-Bio Synergy Holdings LLC.</p>
       <p>Apache-2.0 open-source software. Funding does not imply scientific endorsement or peer-reviewed validation.</p>
     </footer>
+    <script src="navigation.js" defer></script>
   </body>
 </html>
