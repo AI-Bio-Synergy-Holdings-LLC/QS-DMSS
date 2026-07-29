@@ -7,7 +7,6 @@ from typing import Any
 
 from qs_dmss.paths import bundled_assets_root, contained_path
 
-
 QUANTUM_SHOWCASE_SCHEMA_VERSION = 1
 QUANTUM_SHOWCASE_ID = "fractal-ssfm-compilation-v0.12.0"
 QUANTUM_SHOWCASE_FILES = {

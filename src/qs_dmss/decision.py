@@ -4,10 +4,10 @@ import json
 from typing import Any
 
 from qs_dmss.io.config import (
+    SUPPORTED_DECISION_METRICS,
     ConstraintConfig,
     RankingConfig,
     SimulationConfig,
-    SUPPORTED_DECISION_METRICS,
 )
 
 METRIC_LABELS = {

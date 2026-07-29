@@ -2,12 +2,12 @@
 
 ## Supported Versions
 
-The currently supported public release line is `v0.12.x`, beginning with
-`v0.12.0`.
+The currently supported public release line is `v0.13.x`, beginning with
+`v0.13.2`.
 
 Current `main` may include security or governance fixes that have not yet been
 packaged into a release. Security fixes should target `main` first and be
-backported to `v0.12.x` only when the maintainer determines that a public patch
+backported to `v0.13.x` only when the maintainer determines that a public patch
 release is required.
 
 Earlier public release lines remain archived and citable, but security fixes

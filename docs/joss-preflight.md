@@ -17,7 +17,7 @@ Primary sources:
 
 Do not submit to JOSS yet.
 
-Prepare the packet, collect reviewer feedback, and use `v0.12.0` as the stable
+Prepare the packet, collect reviewer feedback, and use `v0.13.2` as the stable
 public baseline for Lab Mode, Campaign Studio, Publication Export Composer,
 Fractal/Quadrant SSFM validation, reference-data provenance, and reproducibility
 review.

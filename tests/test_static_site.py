@@ -10,7 +10,6 @@ import sys
 from html.parser import HTMLParser
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SITE_ROOT = REPO_ROOT / "site"
 GITHUB_SOCIAL_PREVIEW_SIZE = (1280, 640)

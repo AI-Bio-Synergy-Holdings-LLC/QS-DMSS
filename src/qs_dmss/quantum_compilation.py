@@ -13,16 +13,15 @@ from qs_dmss.evidence.bundle import (
     write_manifest_for_directory,
 )
 from qs_dmss.paths import contained_path
-from qs_dmss.quantum_request import prepare_fractal_qpu_request
 from qs_dmss.quantum_compilation_report import (
     write_quantum_compilation_html_report,
 )
+from qs_dmss.quantum_request import prepare_fractal_qpu_request
 from qs_dmss.quantum_sidecar import (
     DEFAULT_EXACT_TOLERANCE,
     DEFAULT_SHOTS,
     verify_quantum_sidecar_directory,
 )
-
 
 COMPILATION_SCHEMA_VERSION = 1
 COMPILATION_JSON_REPORT = "quantum-compilation-validation.json"

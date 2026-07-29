@@ -24,7 +24,6 @@ from qs_dmss.quantum_sidecar import (
     verify_quantum_sidecar_directory,
 )
 
-
 QPU_REQUEST_SCHEMA_VERSION = 1
 QPU_REQUEST_PROFILE_ID = "generic-linear-5q"
 QPU_REQUEST_JSON = "qpu-request.json"

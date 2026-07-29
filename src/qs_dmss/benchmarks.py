@@ -12,7 +12,6 @@ from qs_dmss.app import execute_run_from_path, replay_run
 from qs_dmss.evidence.verify import verify_run_path
 from qs_dmss.paths import bundled_assets_root, contained_path, safe_filename
 
-
 BENCHMARK_REPORT_SCHEMA_VERSION = 1
 BENCHMARK_JSON_REPORT = "benchmark-validation.json"
 BENCHMARK_MARKDOWN_REPORT = "benchmark-validation.md"

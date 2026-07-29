@@ -108,7 +108,7 @@ Documentation, PyPI, DOI, Review, and Reviewer Quickstart before publication.
 - Organization: `AI-Bio Synergy Holdings LLC`
 - License: `Apache-2.0`
 - Supported Python range: `>=3.10`
-- CI validation range for `v0.12.x`: Python 3.10 through 3.13 plus Docker smoke
+- CI validation range for `v0.13.x`: Python 3.10 through 3.13 plus Docker smoke
 - Citation metadata: `CITATION.cff`
 
 ## Citation and Archival Metadata

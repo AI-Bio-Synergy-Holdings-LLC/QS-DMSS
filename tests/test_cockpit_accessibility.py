@@ -3,7 +3,6 @@ from __future__ import annotations
 import re
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 STATIC_ROOT = REPO_ROOT / "src" / "qs_dmss" / "cockpit" / "static"
 

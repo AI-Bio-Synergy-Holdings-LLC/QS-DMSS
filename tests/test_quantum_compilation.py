@@ -22,7 +22,6 @@ from qs_dmss.quantum_compilation_report import (
 )
 from qs_dmss.quantum_showcase import quantum_compilation_showcase_root
 
-
 QUANTUM_STACK_AVAILABLE = (
     importlib.util.find_spec("qiskit") is not None
     and importlib.util.find_spec("qiskit_aer") is not None

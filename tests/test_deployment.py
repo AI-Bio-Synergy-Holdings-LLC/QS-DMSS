@@ -8,7 +8,6 @@ import pytest
 
 from qs_dmss.deployment import public_deployment_provenance
 
-
 REPO_ROOT = Path(__file__).resolve().parents[1]
 VERIFIER_PATH = REPO_ROOT / ".github" / "scripts" / "verify_public_deployment.py"
 
@@ -40,6 +39,18 @@ def test_public_deployment_provenance_rejects_untrusted_values() -> None:
         "git_commit": None,
         "git_branch": None,
     }
+
+
+def test_production_verification_runs_for_every_main_push() -> None:
+    workflow = (
+        REPO_ROOT / ".github" / "workflows" / "verify-production-deploy.yml"
+    ).read_text(encoding="utf-8")
+    push_block = workflow.split("workflow_dispatch:", 1)[0]
+
+    assert "branches:" in push_block
+    assert "- main" in push_block
+    assert "paths:" not in push_block
+    assert "paths-ignore:" not in push_block
 
 
 def test_public_verifier_requires_matching_render_provenance(monkeypatch) -> None:

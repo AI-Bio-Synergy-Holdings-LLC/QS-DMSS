@@ -39,16 +39,27 @@
       "properties": {
         "backend": {
           "type": "string",
-          "enum": ["numpy"]
+          "enum": ["numpy", "numpy_fractal_ssfm", "cupy_fractal_ssfm"]
         },
         "grid_shape": {
           "type": "array",
           "minItems": 3,
           "maxItems": 3,
-          "items": {
-            "type": "integer",
-            "minimum": 2
-          }
+          "prefixItems": [
+            {
+              "type": "integer",
+              "minimum": 2
+            },
+            {
+              "type": "integer",
+              "minimum": 2
+            },
+            {
+              "type": "integer",
+              "minimum": 1
+            }
+          ],
+          "items": false
         },
         "box_size": {
           "type": "number",
@@ -98,6 +109,71 @@
         "random_phase": {
           "type": "boolean",
           "default": true
+        }
+      }
+    },
+    "geometry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": ["fuzzy_potential", "soft_mask", "hard_mask"],
+          "default": "fuzzy_potential"
+        },
+        "fractal": {
+          "type": "string",
+          "enum": ["mandelbrot", "radial_shells"],
+          "default": "mandelbrot"
+        },
+        "potential_strength": {
+          "type": "number",
+          "minimum": 0,
+          "default": 0
+        },
+        "boundary_epsilon": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "default": 0.04
+        },
+        "quadrant_gamma": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "type": "number"
+          },
+          "default": [1.0, 1.0, 1.0, 1.0]
+        },
+        "mandelbrot_iterations": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 64
+        }
+      }
+    },
+    "spectral": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "dealias_fraction": {
+          "oneOf": [
+            {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "maximum": 1
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "leakage_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "default": 0.8
         }
       }
     },
@@ -241,6 +317,89 @@
     "campaign": ["objective"]
   },
   "allOf": [
+    {
+      "if": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "backend": {
+                "const": "numpy"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "not": {
+          "anyOf": [
+            {
+              "required": ["geometry"]
+            },
+            {
+              "required": ["spectral"]
+            }
+          ]
+        },
+        "properties": {
+          "engine": {
+            "properties": {
+              "grid_shape": {
+                "prefixItems": [
+                  {
+                    "type": "integer",
+                    "minimum": 2
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 2
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 2
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "backend": {
+                "enum": ["numpy_fractal_ssfm", "cupy_fractal_ssfm"]
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "grid_shape": {
+                "prefixItems": [
+                  {
+                    "type": "integer",
+                    "minimum": 2
+                  },
+                  {
+                    "type": "integer",
+                    "minimum": 2
+                  },
+                  {
+                    "const": 1
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
     {
       "if": {
         "required": ["objective"],

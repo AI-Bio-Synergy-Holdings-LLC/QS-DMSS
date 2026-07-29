@@ -19,7 +19,6 @@ from qs_dmss.evidence.bundle import (
 from qs_dmss.io.config import SimulationConfig, config_digest, load_config, write_config
 from qs_dmss.paths import contained_path, quantum_sidecar_config_path
 
-
 QUANTUM_SIDECAR_SCHEMA_VERSION = 1
 QUANTUM_SIDECAR_PROFILE_ID = "fractal-fuzzy-4x4-linear"
 QUANTUM_SIDECAR_JSON_REPORT = "quantum-sidecar-validation.json"
