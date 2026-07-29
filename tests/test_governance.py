@@ -132,11 +132,17 @@ def test_dependency_review_blocks_moderate_or_higher_findings() -> None:
     review_step = next(
         step
         for step in review_steps
-        if step.get("uses") == "actions/dependency-review-action@v4"
+        if str(step.get("uses", "")).startswith(
+            "actions/dependency-review-action@"
+        )
     )
 
     assert "pull_request" in workflow["on"]
     assert workflow["permissions"] == {"contents": "read"}
+    assert re.fullmatch(
+        r"actions/dependency-review-action@v[1-9]\d*",
+        review_step["uses"],
+    )
     assert review_step["with"]["fail-on-severity"] == "moderate"
 
 
