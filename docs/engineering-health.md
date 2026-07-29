@@ -27,13 +27,13 @@ release-readiness approval and does not expand the project's scientific claim.
   provenance probe and one is a false positive on a Boolean policy field.
 - GitHub security posture: zero open CodeQL, Dependabot, or secret-scanning
   alerts at the time of the sweep.
-- Upstream automation: CI, CodeQL, dependency review, Pages, and production
+- Upstream automation: CI, CodeQL, dependency graph, Pages, and production
   provenance checks were green for the baseline commit.
 - Public deployment: portal and app both reported version `0.13.2`, Render
   provenance for the baseline commit, and the required response headers.
 - Documentation integrity: all 65 tracked Markdown files had resolvable local
   file links.
-- Post-mitigation gate: 138 tests passed and the enforced coverage floor passed
+- Post-mitigation gate: 139 tests passed and the enforced coverage floor passed
   at 89.73%.
 
 ## Mitigations in this sweep
@@ -48,6 +48,8 @@ release-readiness approval and does not expand the project's scientific claim.
   audit, and a medium-or-higher source-security gate.
 - Added weekly dependency update monitoring for Python, GitHub Actions, and the
   Docker base image.
+- Added a pull-request dependency review that blocks moderate-or-higher
+  vulnerabilities introduced by dependency changes.
 - Expanded production provenance verification from `site/**` changes to every
   push on `main`.
 - Added regression checks for supported-version drift, CodeMeta dependency and

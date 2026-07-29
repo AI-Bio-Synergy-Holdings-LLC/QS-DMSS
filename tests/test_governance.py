@@ -105,6 +105,17 @@ def test_relative_markdown_links_resolve() -> None:
     assert not missing, "Broken relative Markdown links:\n" + "\n".join(missing)
 
 
+def test_dependency_review_blocks_moderate_or_higher_findings() -> None:
+    workflow = (
+        REPO_ROOT / ".github" / "workflows" / "dependency-review.yml"
+    ).read_text(encoding="utf-8")
+
+    assert "pull_request:" in workflow
+    assert "permissions:\n  contents: read" in workflow
+    assert "actions/dependency-review-action@v4" in workflow
+    assert "fail-on-severity: moderate" in workflow
+
+
 def test_v012_release_notes_preserve_quantum_and_license_boundaries() -> None:
     release_notes = (REPO_ROOT / "docs" / "release-v0.12.0.md").read_text(
         encoding="utf-8"
