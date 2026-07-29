@@ -4,6 +4,8 @@ import re
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
+import yaml
+
 try:
     import tomllib
 except ModuleNotFoundError:  # pragma: no cover - exercised on Python 3.10
@@ -119,14 +121,23 @@ def test_relative_markdown_links_resolve() -> None:
 
 
 def test_dependency_review_blocks_moderate_or_higher_findings() -> None:
-    workflow = (
+    workflow_path = (
         REPO_ROOT / ".github" / "workflows" / "dependency-review.yml"
-    ).read_text(encoding="utf-8")
+    )
+    workflow = yaml.load(
+        workflow_path.read_text(encoding="utf-8"),
+        Loader=yaml.BaseLoader,
+    )
+    review_steps = workflow["jobs"]["dependency-review"]["steps"]
+    review_step = next(
+        step
+        for step in review_steps
+        if step.get("uses") == "actions/dependency-review-action@v4"
+    )
 
-    assert "pull_request:" in workflow
-    assert "permissions:\n  contents: read" in workflow
-    assert "actions/dependency-review-action@v4" in workflow
-    assert "fail-on-severity: moderate" in workflow
+    assert "pull_request" in workflow["on"]
+    assert workflow["permissions"] == {"contents": "read"}
+    assert review_step["with"]["fail-on-severity"] == "moderate"
 
 
 def test_v012_release_notes_preserve_quantum_and_license_boundaries() -> None:
