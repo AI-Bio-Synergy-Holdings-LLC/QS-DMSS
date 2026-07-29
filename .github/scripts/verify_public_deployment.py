@@ -10,7 +10,6 @@ import urllib.request
 from collections.abc import Mapping
 from typing import Any
 
-
 COMMON_SECURITY_HEADERS = (
     "content-security-policy",
     "x-frame-options",

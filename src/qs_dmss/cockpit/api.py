@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from copy import deepcopy
 import hashlib
 import importlib.util
 import json
@@ -11,6 +10,7 @@ import shutil
 import threading
 import time
 import zipfile
+from copy import deepcopy
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
 from pathlib import Path
@@ -18,7 +18,13 @@ from tempfile import TemporaryDirectory
 from typing import Any, Callable, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, FileResponse, JSONResponse, PlainTextResponse, Response
+from fastapi.responses import (
+    FileResponse,
+    HTMLResponse,
+    JSONResponse,
+    PlainTextResponse,
+    Response,
+)
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -39,7 +45,8 @@ from qs_dmss.ai import (
     review_ai_interaction,
     validate_ai_response,
 )
-from qs_dmss.app import execute_run, replay_run as replay_existing_run
+from qs_dmss.app import execute_run
+from qs_dmss.app import replay_run as replay_existing_run
 from qs_dmss.decision import evaluate_run_decision
 from qs_dmss.deployment import public_deployment_provenance
 from qs_dmss.evidence.verify import verify_run_path
@@ -63,8 +70,8 @@ from qs_dmss.experiment import (
     format_parameter_value,
     get_sweep_parameter,
     list_sweep_parameters,
-    persist_failed_campaign_artifact,
     persist_experiment_artifact,
+    persist_failed_campaign_artifact,
 )
 from qs_dmss.io.config import (
     SUPPORTED_DECISION_METRICS,
@@ -74,8 +81,8 @@ from qs_dmss.io.config import (
 )
 from qs_dmss.paths import (
     bundled_assets_root,
-    contained_path,
     configs_root,
+    contained_path,
     discover_repo_root,
     experiments_root,
     runs_root,
@@ -103,7 +110,6 @@ from qs_dmss.showcase import (
     run_simulation_showcase,
     showcase_scenario_metadata,
 )
-
 
 GENERIC_COCKPIT_ERROR_DETAIL = "Cockpit request failed; check server logs for details."
 COCKPIT_LOGGER = logging.getLogger("qs_dmss.cockpit")

@@ -16,7 +16,6 @@ from qs_dmss.quantum_request import (
     prepare_fractal_qpu_request,
 )
 
-
 QUANTUM_STACK_AVAILABLE = (
     importlib.util.find_spec("qiskit") is not None
     and importlib.util.find_spec("qiskit_aer") is not None

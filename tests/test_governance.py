@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import re
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
+
+import yaml
 
 try:
     import tomllib
@@ -71,10 +75,69 @@ def test_contribution_and_release_policies_enforce_boundary() -> None:
 
 def test_security_policy_names_current_supported_release() -> None:
     security = (REPO_ROOT / "SECURITY.md").read_text(encoding="utf-8")
+    pyproject = tomllib.loads(
+        (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
+    )
+    version = pyproject["project"]["version"].split(".")
+    supported_line = f"v{version[0]}.{version[1]}.x"
 
-    assert "supported public release line is `v0.12.x`" in security
-    assert "supported public release line is `v0.11.x`" not in security
-    assert "supported public release line is `v0.9.x`" not in security
+    assert f"supported public release line is `{supported_line}`" in security
+    assert f"backported to `{supported_line}`" in security
+
+
+def test_relative_markdown_links_resolve() -> None:
+    link_pattern = re.compile(r"\[[^\]]*\]\(([^)\s]+)")
+    missing: list[str] = []
+    repo_root = REPO_ROOT.resolve()
+
+    for markdown_path in REPO_ROOT.rglob("*.md"):
+        relative_path = markdown_path.relative_to(REPO_ROOT)
+        if any(part.startswith(".") for part in relative_path.parts):
+            continue
+        text = markdown_path.read_text(encoding="utf-8")
+        for match in link_pattern.finditer(text):
+            href = match.group(1).strip("<>")
+            parsed = urlsplit(href)
+            if parsed.scheme or href.startswith(("#", "mailto:")) or not parsed.path:
+                continue
+            decoded_path = unquote(parsed.path)
+            if decoded_path.startswith("/"):
+                target = (repo_root / decoded_path.lstrip("/")).resolve()
+            else:
+                target = (markdown_path.parent / decoded_path).resolve()
+            try:
+                target.relative_to(repo_root)
+            except ValueError:
+                line = text.count("\n", 0, match.start()) + 1
+                missing.append(
+                    f"{relative_path}:{line} -> {href} (escapes repository)"
+                )
+                continue
+            if not target.exists():
+                line = text.count("\n", 0, match.start()) + 1
+                missing.append(f"{relative_path}:{line} -> {href}")
+
+    assert not missing, "Broken relative Markdown links:\n" + "\n".join(missing)
+
+
+def test_dependency_review_blocks_moderate_or_higher_findings() -> None:
+    workflow_path = (
+        REPO_ROOT / ".github" / "workflows" / "dependency-review.yml"
+    )
+    workflow = yaml.load(
+        workflow_path.read_text(encoding="utf-8"),
+        Loader=yaml.BaseLoader,
+    )
+    review_steps = workflow["jobs"]["dependency-review"]["steps"]
+    review_step = next(
+        step
+        for step in review_steps
+        if step.get("uses") == "actions/dependency-review-action@v4"
+    )
+
+    assert "pull_request" in workflow["on"]
+    assert workflow["permissions"] == {"contents": "read"}
+    assert review_step["with"]["fail-on-severity"] == "moderate"
 
 
 def test_v012_release_notes_preserve_quantum_and_license_boundaries() -> None:

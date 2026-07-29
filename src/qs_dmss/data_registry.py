@@ -11,7 +11,6 @@ from typing import Any
 
 from qs_dmss.paths import bundled_assets_root, contained_path, safe_filename
 
-
 DATA_REGISTRY_SCHEMA_VERSION = 1
 DATA_CALIBRATION_REPORT_SCHEMA_VERSION = 1
 DATA_CALIBRATION_JSON_REPORT = "reference-data-calibration.json"

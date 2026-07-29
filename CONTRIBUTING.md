@@ -27,17 +27,23 @@ reproducible evidence, public review, and appropriate scholarly validation.
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -e .[dev] build
+.\.venv\Scripts\python.exe -m pip install -e .[dev,audit] build
 .\.venv\Scripts\python.exe -m pytest -q
 ```
 
 Before opening a pull request, run:
 
 ```powershell
-.\.venv\Scripts\python.exe -m pytest -q
+.\.venv\Scripts\python.exe -m ruff check src tests .github/scripts site/build_portal.py
+.\.venv\Scripts\python.exe -m pytest -q --cov=qs_dmss --cov-fail-under=88
+.\.venv\Scripts\python.exe -m bandit -r src --severity-level medium --confidence-level medium -q
+.\.venv\Scripts\python.exe -m pip_audit --local
 node --check src\qs_dmss\cockpit\static\app.js
 .\.venv\Scripts\python.exe -m compileall src tests
 ```
+
+The current measured baseline and prioritized maintenance register live in
+[docs/engineering-health.md](docs/engineering-health.md).
 
 ## Pull Requests
 

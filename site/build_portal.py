@@ -8,7 +8,6 @@ import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
-
 SITE_ROOT = Path(__file__).resolve().parent
 COMMIT_PATTERN = re.compile(r"[0-9a-f]{40}")
 BRANCH_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._/-]{0,254}")

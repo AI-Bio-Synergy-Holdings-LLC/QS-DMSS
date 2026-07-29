@@ -17,7 +17,6 @@ from qs_dmss.quantum_sidecar import (
     verify_quantum_sidecar_directory,
 )
 
-
 QUANTUM_STACK_AVAILABLE = (
     importlib.util.find_spec("qiskit") is not None
     and importlib.util.find_spec("qiskit_aer") is not None

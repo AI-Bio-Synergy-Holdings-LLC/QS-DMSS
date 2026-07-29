@@ -35,10 +35,30 @@ jobs:
       - name: Install package and test dependencies
         run: |
           python -m pip install --upgrade pip
-          python -m pip install -e .[dev] build
+          python -m pip install -e .[dev,audit] build
 
-      - name: Run tests
+      - name: Install quantum coverage dependencies
+        if: matrix.python-version == '3.13'
+        run: python -m pip install -e .[quantum]
+
+      - name: Run deterministic lint checks
+        run: python -m ruff check src tests .github/scripts site/build_portal.py
+
+      - name: Audit installed dependencies
+        if: matrix.python-version == '3.13'
+        run: python -m pip_audit --local
+
+      - name: Scan source for medium-or-higher findings
+        if: matrix.python-version == '3.13'
+        run: python -m bandit -r src --severity-level medium --confidence-level medium -q
+
+      - name: Run base-package tests
+        if: matrix.python-version != '3.13'
         run: pytest -q
+
+      - name: Run quantum-enabled tests with coverage
+        if: matrix.python-version == '3.13'
+        run: pytest -q --cov=qs_dmss --cov-fail-under=88 --cov-report=term-missing
 
       - name: Run benchmark validation smoke
         run: qs-dmss benchmarks validate --scenario demo-baseline --output-root benchmark-validation

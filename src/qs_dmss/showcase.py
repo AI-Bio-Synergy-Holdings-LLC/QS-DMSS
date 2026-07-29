@@ -15,7 +15,6 @@ from qs_dmss.evidence.verify import verify_run_path
 from qs_dmss.io.config import SimulationConfig, load_config
 from qs_dmss.paths import bundled_assets_root, contained_path, safe_filename
 
-
 SHOWCASE_REPORT_SCHEMA_VERSION = 1
 SHOWCASE_JSON_REPORT = "simulation-showcase.json"
 SHOWCASE_MARKDOWN_REPORT = "simulation-showcase.md"

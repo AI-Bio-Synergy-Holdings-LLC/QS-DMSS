@@ -9,6 +9,8 @@ try:
 except ModuleNotFoundError:  # pragma: no cover - exercised on Python 3.10
     import tomli as tomllib
 
+import yaml
+
 import qs_dmss
 from qs_dmss.quantum_showcase import (
     QUANTUM_SHOWCASE_FILES,
@@ -98,6 +100,27 @@ def test_codemeta_release_metadata_is_aligned() -> None:
     assert codemeta["url"] == "https://qs-dmss.studio"
     assert codemeta["releaseNotes"].endswith(f"/docs/release-v{declared_version}.md")
     assert (repo_root / "docs" / f"release-v{declared_version}.md").is_file()
+    assert codemeta["softwareRequirements"] == pyproject["project"]["dependencies"]
+
+
+def test_source_and_packaged_config_assets_are_semantically_aligned() -> None:
+    repo_root = Path(__file__).resolve().parents[1]
+    package_assets = repo_root / "src" / "qs_dmss" / "assets"
+
+    for source_config in (repo_root / "configs").glob("*.yaml"):
+        packaged_config = package_assets / "configs" / source_config.name
+        assert packaged_config.is_file()
+        assert yaml.safe_load(source_config.read_text(encoding="utf-8")) == yaml.safe_load(
+            packaged_config.read_text(encoding="utf-8")
+        )
+
+    source_schema = json.loads(
+        (repo_root / "schemas" / "run_config.schema.json").read_text(encoding="utf-8")
+    )
+    packaged_schema = json.loads(
+        (package_assets / "schemas" / "run_config.schema.json").read_text(encoding="utf-8")
+    )
+    assert source_schema == packaged_schema
 
 
 def test_current_fractal_review_gate_matches_release_and_is_path_free() -> None:

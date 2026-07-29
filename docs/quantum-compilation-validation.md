@@ -28,7 +28,7 @@ pricing API, remote request, or QPU job is used.
 ## Hosted Read-only Showcase
 
 The public [QS-DMSS Studio](https://app.qs-dmss.studio/#quantum-validation)
-ships a fixed v0.12.0 snapshot of this validation object. It exposes the
+ships the fixed v0.13.2 release snapshot of this validation object. It exposes the
 matrix, topology/resource charts, validation status, limitations, a polished
 HTML report, Markdown and CSV summaries, JSON report, manifest, and evidence
 ZIP through allowlisted GET routes. It does not expose a compilation POST route and does not require the

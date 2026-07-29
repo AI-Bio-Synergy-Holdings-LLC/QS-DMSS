@@ -542,10 +542,14 @@ experiments/             Saved comparison artifacts (generated)
 
 ## Development
 
-Run the smoke tests:
+Run the repository-owned quality gates:
 
 ```powershell
-pytest
+python -m pip install -e .[dev,audit] build
+python -m ruff check src tests .github/scripts site/build_portal.py
+python -m pytest -q --cov=qs_dmss --cov-fail-under=88
+python -m bandit -r src --severity-level medium --confidence-level medium -q
+python -m pip_audit --local
 ```
 
 CI lives in
@@ -553,6 +557,9 @@ CI lives in
 and validates:
 
 - the editable install and test suite across Python 3.10 through 3.13
+- deterministic lint and an 88% quantum-enabled statement-coverage floor
+- resolved dependency and medium-or-higher source-security audits
+- pull-request dependency review that blocks moderate-or-higher vulnerabilities
 - static cockpit JavaScript syntax
 - source distribution and wheel build metadata
 - installed-wheel `run-demo` smoke test
@@ -571,6 +578,9 @@ PyPI distribution details and Trusted Publishing provenance live in
 
 The beta promotion gate lives in
 [docs/beta-readiness.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/beta-readiness.md).
+
+The measured engineering baseline and prioritized debt register live in
+[docs/engineering-health.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/engineering-health.md).
 
 Benchmark validation guidance lives in
 [docs/benchmark-validation.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/benchmark-validation.md).
