@@ -9,7 +9,6 @@ import secrets
 import shutil
 import threading
 import time
-import zipfile
 from copy import deepcopy
 from dataclasses import dataclass, field, replace
 from datetime import datetime, timezone
@@ -47,6 +46,7 @@ from qs_dmss.ai import (
 )
 from qs_dmss.app import execute_run
 from qs_dmss.app import replay_run as replay_existing_run
+from qs_dmss.cockpit.artifacts import CockpitArtifactService
 from qs_dmss.decision import evaluate_run_decision
 from qs_dmss.deployment import public_deployment_provenance
 from qs_dmss.evidence.verify import verify_run_path
@@ -190,41 +190,6 @@ CONFIG_CATALOG_METADATA: dict[str, dict[str, str]] = {
         "evidence_focus": "Uniform-state stability, deterministic replay, and cross-profile comparison readiness.",
     },
 }
-
-RUN_BUNDLE_PROFILES: dict[str, dict[str, Any]] = {
-    "review": {
-        "title": "Scientific review bundle",
-        "claim_boundary": (
-            "Human-readable configuration, diagnostics, report, environment, and integrity records. "
-            "This package supports review of numerical evidence; it is not physical validation."
-        ),
-        "files": (
-            "config.yaml",
-            "energy.csv",
-            "environment.lock.json",
-            "metrics.json",
-            "run.json",
-            "report.html",
-            "manifest.sha256.json",
-        ),
-    },
-    "state": {
-        "title": "Reproducibility state bundle",
-        "claim_boundary": (
-            "Configuration, final numerical state, run metadata, metrics, and integrity manifest "
-            "for controlled replay and downstream inspection."
-        ),
-        "files": (
-            "config.yaml",
-            "metrics.json",
-            "run.json",
-            "manifest.sha256.json",
-            "artifacts/final_density.npy",
-            "artifacts/final_state.npz",
-        ),
-    },
-}
-
 
 def _file_sha256(path: Path) -> str:
     digest = hashlib.sha256()
@@ -2105,83 +2070,29 @@ class CockpitService:
             "execution_job": job_detail,
         }
 
+    def _artifact_service(self) -> CockpitArtifactService:
+        return CockpitArtifactService(
+            output_root=self.output_root,
+            experiments_root=self.experiments_root,
+        )
+
     def bundle_path(self, run_id: str) -> Path:
-        run_dir = self._get_run_dir(run_id)
-        bundle_path = run_dir / "evidence_bundle.zip"
-        if not bundle_path.exists():
-            raise HTTPException(status_code=404, detail="Evidence bundle not found")
-        return bundle_path
+        return self._artifact_service().bundle_path(run_id)
 
     def run_bundle_profile_path(self, run_id: str, profile_name: str) -> Path:
-        profile = RUN_BUNDLE_PROFILES.get(profile_name)
-        if profile is None:
-            raise HTTPException(status_code=404, detail="Evidence bundle profile not found")
-        run_dir = self._get_run_dir(run_id)
-        safe_run_id = safe_filename(run_id, default="run")
-        bundle_root = contained_path(self.output_root, "_derived_bundles")
-        bundle_root.mkdir(parents=True, exist_ok=True)
-        bundle_path = contained_path(
-            bundle_root,
-            f"{safe_run_id}-{safe_filename(profile_name, default='profile')}-bundle.zip",
-        )
-        if bundle_path.exists():
-            return bundle_path
-
-        included_files: list[str] = []
-        missing_files: list[str] = []
-        for relative_name in profile["files"]:
-            candidate = contained_path(run_dir, relative_name)
-            if candidate.exists() and candidate.is_file():
-                included_files.append(relative_name)
-            else:
-                missing_files.append(relative_name)
-
-        profile_record = {
-            "schema_version": "1.0",
-            "profile": profile_name,
-            "title": profile["title"],
-            "run_id": run_id,
-            "generated_at": datetime.now(timezone.utc).isoformat(),
-            "claim_boundary": profile["claim_boundary"],
-            "included_files": included_files,
-            "missing_optional_files": missing_files,
-        }
-        with zipfile.ZipFile(bundle_path, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-            archive.writestr(
-                "bundle-profile.json",
-                json.dumps(profile_record, indent=2, sort_keys=True) + "\n",
-            )
-            for relative_name in included_files:
-                archive.write(contained_path(run_dir, relative_name), arcname=relative_name)
-        return bundle_path
+        return self._artifact_service().run_bundle_profile_path(run_id, profile_name)
 
     def report_path(self, run_id: str) -> Path:
-        run_dir = self._get_run_dir(run_id)
-        report_path = run_dir / "report.html"
-        if not report_path.exists():
-            raise HTTPException(status_code=404, detail="Run report not found")
-        return report_path
+        return self._artifact_service().report_path(run_id)
 
     def experiment_bundle_path(self, experiment_id: str) -> Path:
-        experiment_dir = self._get_experiment_dir(experiment_id)
-        bundle_path = experiment_dir / "evidence_bundle.zip"
-        if not bundle_path.exists():
-            raise HTTPException(status_code=404, detail="Experiment bundle not found")
-        return bundle_path
+        return self._artifact_service().experiment_bundle_path(experiment_id)
 
     def experiment_report_path(self, experiment_id: str) -> Path:
-        experiment_dir = self._get_experiment_dir(experiment_id)
-        report_path = experiment_dir / "report.html"
-        if not report_path.exists():
-            raise HTTPException(status_code=404, detail="Experiment report not found")
-        return report_path
+        return self._artifact_service().experiment_report_path(experiment_id)
 
     def experiment_workbook_path(self, experiment_id: str) -> Path:
-        experiment_dir = self._get_experiment_dir(experiment_id)
-        workbook_path = experiment_dir / "workbook.html"
-        if not workbook_path.exists():
-            raise HTTPException(status_code=404, detail="Experiment workbook not found")
-        return workbook_path
+        return self._artifact_service().experiment_workbook_path(experiment_id)
 
     def research_object_markdown_path(self, export_id: str) -> tuple[Path, str]:
         export_dir = self._research_object_export_dir(export_id)
@@ -2238,24 +2149,10 @@ class CockpitService:
         return digest.hexdigest()[:12]
 
     def _list_run_dirs(self) -> list[Path]:
-        if not self.output_root.exists():
-            return []
-        run_dirs = [
-            path
-            for path in self.output_root.iterdir()
-            if path.is_dir() and (path / "run.json").exists()
-        ]
-        return sorted(run_dirs, key=lambda path: path.stat().st_mtime, reverse=True)
+        return self._artifact_service().list_run_dirs()
 
     def _list_experiment_dirs(self) -> list[Path]:
-        if not self.experiments_root.exists():
-            return []
-        experiment_dirs = [
-            path
-            for path in self.experiments_root.iterdir()
-            if path.is_dir() and (path / "experiment.json").exists()
-        ]
-        return sorted(experiment_dirs, key=lambda path: path.stat().st_mtime, reverse=True)
+        return self._artifact_service().list_experiment_dirs()
 
     def _safe_source_name(self, source_name: str) -> str:
         return safe_filename(
@@ -2268,20 +2165,10 @@ class CockpitService:
         return contained_path(temp_dir, self._safe_source_name(source_name))
 
     def _get_run_dir(self, run_id: str) -> Path:
-        run_dir = (self.output_root / run_id).resolve()
-        if run_dir.parent != self.output_root.resolve():
-            raise HTTPException(status_code=404, detail="Run not found")
-        if not run_dir.exists() or not (run_dir / "run.json").exists():
-            raise HTTPException(status_code=404, detail="Run not found")
-        return run_dir
+        return self._artifact_service().get_run_dir(run_id)
 
     def _get_experiment_dir(self, experiment_id: str) -> Path:
-        experiment_dir = (self.experiments_root / experiment_id).resolve()
-        if experiment_dir.parent != self.experiments_root.resolve():
-            raise HTTPException(status_code=404, detail="Experiment not found")
-        if not experiment_dir.exists() or not (experiment_dir / "experiment.json").exists():
-            raise HTTPException(status_code=404, detail="Experiment not found")
-        return experiment_dir
+        return self._artifact_service().get_experiment_dir(experiment_id)
 
     def _job_registry(self) -> LocalJobRegistry:
         return LocalJobRegistry(self.jobs_root)
