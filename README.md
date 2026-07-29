@@ -557,7 +557,7 @@ CI lives in
 and validates:
 
 - the editable install and test suite across Python 3.10 through 3.13
-- deterministic lint and an 88% statement-coverage floor
+- deterministic lint and an 88% quantum-enabled statement-coverage floor
 - resolved dependency and medium-or-higher source-security audits
 - pull-request dependency review that blocks moderate-or-higher vulnerabilities
 - static cockpit JavaScript syntax

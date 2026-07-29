@@ -44,8 +44,8 @@ release-readiness approval and does not expand the project's scientific claim.
 - Synchronized the top-level public run schema with the wheel's runtime schema;
   the former had omitted the Fractal SSFM backends, geometry, and spectral
   fields.
-- Added repository-owned Ruff rules, an 88% coverage floor, a dependency
-  audit, and a medium-or-higher source-security gate.
+- Added repository-owned Ruff rules, an 88% quantum-enabled coverage floor on
+  Python 3.13, a dependency audit, and a medium-or-higher source-security gate.
 - Added weekly dependency update monitoring for Python, GitHub Actions, and the
   Docker base image.
 - Added a pull-request dependency review that blocks moderate-or-higher
