@@ -58,31 +58,47 @@ release-readiness approval and does not expand the project's scientific claim.
 
 ## EH-001 incremental extraction progress
 
-The first compatibility-preserving EH-001 increment starts from merged commit
-`b2e7f164123c339ccc148ca881ebe69659ceb2e2` and isolates run and experiment
-artifact access in `CockpitArtifactService`.
+Two compatibility-preserving EH-001 increments now isolate artifact and
+workspace behavior behind injected services while retaining the public
+`CockpitService` and HTTP surfaces.
 
-- Added characterization coverage for traversal rejection, exact HTTP error
-  contracts, profile-bundle contents, and marker-bounded directory ordering
-  before moving the implementation.
-- Preserved every existing `CockpitService` method and API route as a delegating
-  compatibility surface.
-- Reduced `cockpit/api.py` from 4,548 to 4,435 lines and the
-  `CockpitService` class span from 3,252 to 3,174 lines.
-- The extracted service has maintainability index 32.57 (A), average
-  cyclomatic complexity 3.55 (A), and maximum method complexity 7 (B).
-- Verified the extracted module at 98% statement coverage; the complete local
-  gate passed with 143 tests and 89.93% aggregate coverage.
+- The artifact increment started from merged commit
+  `b2e7f164123c339ccc148ca881ebe69659ceb2e2`. It added characterization
+  coverage for traversal rejection, exact HTTP error contracts,
+  profile-bundle contents, and marker-bounded directory ordering before moving
+  run and experiment artifact access into `CockpitArtifactService`.
+- The workspace increment starts from merged commit
+  `3d0405512300ba5f1a8f115ca06253fdecd0499e`. It characterizes all five
+  workspace routes, exact list/detail/download payloads, newest-first ordering,
+  traversal-safe not-found behavior, normalization and first-seen resource
+  ordering, job de-duplication order, warning order, hosted restrictions, and
+  exact validation errors before moving persistence and assembly into
+  `CockpitWorkspaceService`.
+- Every existing `CockpitService` method and API route remains a delegating
+  compatibility surface. Cross-domain run, experiment, campaign-study, and
+  research-object assembly is injected into the workspace service rather than
+  duplicated.
+- Across both increments, `cockpit/api.py` is reduced from 4,548 to 4,034
+  lines and the `CockpitService` class span from 3,252 to 2,771 lines. The
+  workspace service is 509 lines and has 95% statement coverage.
+- The workspace module has average cyclomatic complexity 5.24 (B). Its
+  annotation-normalization method remains complexity 22 (D); that behavior is
+  intentionally frozen by characterization tests and should be simplified in
+  a separate follow-on after its schema and error contracts are explicit.
+- The complete local gate passes with 152 tests and 90.24% aggregate coverage.
+  Ruff, Bandit, the clean project-environment dependency audit, benchmark
+  validation, package build/Twine checks, JavaScript syntax, and a live Docker
+  health/config probe also pass.
 
-EH-001 remains open. Workspace and campaign orchestration, AI evidence-context
-assembly, transport registration, and response serialization still require
-separate characterization-first increments.
+EH-001 remains open. Campaign orchestration, AI evidence-context assembly,
+transport registration, and response serialization still require separate
+characterization-first increments.
 
 ## Prioritized debt register
 
 | ID | Priority | Area | Evidence and risk | Decision / completion gate |
 | --- | --- | --- | --- | --- |
-| EH-001 | P0 | Cockpit architecture | The first artifact/path service is extracted, but `src/qs_dmss/cockpit/api.py` remains 4,435 lines, `CockpitService` spans 3,174 lines, and `build_ai_evidence_context` retains cyclomatic complexity 39. Changes still have a broad regression radius. | Continue one characterization-first boundary per PR: workspace services, campaign services, AI evidence context, transport registration, and serialization. Preserve API and evidence contracts before each move. |
+| EH-001 | P0 | Cockpit architecture | Artifact and workspace services are extracted, but `src/qs_dmss/cockpit/api.py` remains 4,034 lines, `CockpitService` spans 2,771 lines, `build_ai_evidence_context` retains cyclomatic complexity 39, and workspace annotation normalization is complexity 22. Changes still have a broad regression radius. | Continue one characterization-first boundary per PR: campaign services, AI evidence context, transport registration, and serialization. Preserve API and evidence contracts before each move; simplify extracted normalization only after its schema and error contracts are explicit. |
 | EH-002 | P0 | CLI architecture | `cli.main` has cyclomatic complexity 83 and owns routing for unrelated command families. | Replace the monolithic dispatcher with command-family handlers or registered subcommands without changing the public CLI. |
 | EH-003 | P1 | Frontend architecture | The cockpit uses single assets of 6,909 JavaScript lines, 6,663 CSS lines, and 2,187 HTML lines with no module-level test boundary. Browser behavior is covered mostly through static assertions and API tests. | Choose a no-build ES-module split or a maintained frontend toolchain; add focused browser acceptance tests before restructuring. |
 | EH-004 | P1 | Evidence/report architecture | `evidence/bundle.py`, `showcase.py`, and `experiment.py` combine calculation, rendering, persistence, and archive assembly. Their maintainability indices are low, and report changes can affect signed evidence contents. | Define stable evidence schemas and golden artifact tests before separating renderers from persistence and calculations. |
