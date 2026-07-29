@@ -5,6 +5,7 @@ from pathlib import Path
 from types import ModuleType
 
 import pytest
+import yaml
 
 from qs_dmss.deployment import public_deployment_provenance
 
@@ -42,15 +43,18 @@ def test_public_deployment_provenance_rejects_untrusted_values() -> None:
 
 
 def test_production_verification_runs_for_every_main_push() -> None:
-    workflow = (
+    workflow_path = (
         REPO_ROOT / ".github" / "workflows" / "verify-production-deploy.yml"
-    ).read_text(encoding="utf-8")
-    push_block = workflow.split("workflow_dispatch:", 1)[0]
+    )
+    workflow = yaml.load(
+        workflow_path.read_text(encoding="utf-8"),
+        Loader=yaml.BaseLoader,
+    )
+    push_trigger = workflow["on"]["push"]
 
-    assert "branches:" in push_block
-    assert "- main" in push_block
-    assert "paths:" not in push_block
-    assert "paths-ignore:" not in push_block
+    assert push_trigger["branches"] == ["main"]
+    assert "paths" not in push_trigger
+    assert "paths-ignore" not in push_trigger
 
 
 def test_public_verifier_requires_matching_render_provenance(monkeypatch) -> None:

@@ -86,6 +86,7 @@ def test_security_policy_names_current_supported_release() -> None:
 def test_relative_markdown_links_resolve() -> None:
     link_pattern = re.compile(r"\[[^\]]*\]\(([^)\s]+)")
     missing: list[str] = []
+    repo_root = REPO_ROOT.resolve()
 
     for markdown_path in REPO_ROOT.rglob("*.md"):
         relative_path = markdown_path.relative_to(REPO_ROOT)
@@ -97,7 +98,19 @@ def test_relative_markdown_links_resolve() -> None:
             parsed = urlsplit(href)
             if parsed.scheme or href.startswith(("#", "mailto:")) or not parsed.path:
                 continue
-            target = (markdown_path.parent / unquote(parsed.path)).resolve()
+            decoded_path = unquote(parsed.path)
+            if decoded_path.startswith("/"):
+                target = (repo_root / decoded_path.lstrip("/")).resolve()
+            else:
+                target = (markdown_path.parent / decoded_path).resolve()
+            try:
+                target.relative_to(repo_root)
+            except ValueError:
+                line = text.count("\n", 0, match.start()) + 1
+                missing.append(
+                    f"{relative_path}:{line} -> {href} (escapes repository)"
+                )
+                continue
             if not target.exists():
                 line = text.count("\n", 0, match.start()) + 1
                 missing.append(f"{relative_path}:{line} -> {href}")
