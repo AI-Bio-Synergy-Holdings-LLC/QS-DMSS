@@ -109,7 +109,10 @@ def verify_once(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Wait for both public QS-DMSS surfaces to deploy one Git commit."
+        description=(
+            "Wait for the QS-DMSS portal and app to serve their independently "
+            "expected Git commits."
+        )
     )
     parser.add_argument("--expected-portal-commit", required=True)
     parser.add_argument("--expected-app-commit", required=True)
