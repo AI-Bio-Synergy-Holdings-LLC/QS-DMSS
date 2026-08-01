@@ -69,11 +69,12 @@ def verify_once(
     *,
     portal_url: str,
     app_health_url: str,
-    expected_commit: str,
+    expected_portal_commit: str,
+    expected_app_commit: str,
     expected_version: str,
 ) -> None:
-    portal, portal_headers = _fetch_json(portal_url, expected_commit)
-    app, app_headers = _fetch_json(app_health_url, expected_commit)
+    portal, portal_headers = _fetch_json(portal_url, expected_portal_commit)
+    app, app_headers = _fetch_json(app_health_url, expected_app_commit)
 
     _require_security_headers(portal_headers, require_permissions_policy=True)
     _require_security_headers(app_headers, require_permissions_policy=False)
@@ -98,19 +99,23 @@ def verify_once(
 
     portal_commit = _deployment_field(portal, "git_commit")
     app_commit = _deployment_field(app, "git_commit")
-    if portal_commit != expected_commit:
+    if portal_commit != expected_portal_commit:
         raise ValueError(
-            f"portal commit {portal_commit!r} != expected {expected_commit!r}"
+            f"portal commit {portal_commit!r} != expected {expected_portal_commit!r}"
         )
-    if app_commit != expected_commit:
-        raise ValueError(f"app commit {app_commit!r} != expected {expected_commit!r}")
+    if app_commit != expected_app_commit:
+        raise ValueError(f"app commit {app_commit!r} != expected {expected_app_commit!r}")
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Wait for both public QS-DMSS surfaces to deploy one Git commit."
+        description=(
+            "Wait for the QS-DMSS portal and app to serve their independently "
+            "expected Git commits."
+        )
     )
-    parser.add_argument("--expected-commit", required=True)
+    parser.add_argument("--expected-portal-commit", required=True)
+    parser.add_argument("--expected-app-commit", required=True)
     parser.add_argument("--expected-version", required=True)
     parser.add_argument(
         "--portal-url",
@@ -124,9 +129,12 @@ def main() -> None:
     parser.add_argument("--interval-seconds", type=int, default=20)
     args = parser.parse_args()
 
-    expected_commit = args.expected_commit.strip().lower()
-    if not COMMIT_PATTERN.fullmatch(expected_commit):
-        parser.error("--expected-commit must be a full 40-character hexadecimal SHA")
+    expected_portal_commit = args.expected_portal_commit.strip().lower()
+    expected_app_commit = args.expected_app_commit.strip().lower()
+    if not COMMIT_PATTERN.fullmatch(expected_portal_commit):
+        parser.error("--expected-portal-commit must be a full 40-character hexadecimal SHA")
+    if not COMMIT_PATTERN.fullmatch(expected_app_commit):
+        parser.error("--expected-app-commit must be a full 40-character hexadecimal SHA")
     if args.timeout_seconds < 1 or args.interval_seconds < 1:
         parser.error("timeout and interval must be positive")
 
@@ -139,7 +147,8 @@ def main() -> None:
             verify_once(
                 portal_url=args.portal_url,
                 app_health_url=args.app_health_url,
-                expected_commit=expected_commit,
+                expected_portal_commit=expected_portal_commit,
+                expected_app_commit=expected_app_commit,
                 expected_version=args.expected_version,
             )
         except (ValueError, OSError, urllib.error.HTTPError) as exc:
@@ -151,7 +160,8 @@ def main() -> None:
             continue
         print(
             "Verified portal and app deployment: "
-            f"version={args.expected_version} commit={expected_commit}"
+            f"version={args.expected_version} "
+            f"portal_commit={expected_portal_commit} app_commit={expected_app_commit}"
         )
         return
     raise SystemExit(

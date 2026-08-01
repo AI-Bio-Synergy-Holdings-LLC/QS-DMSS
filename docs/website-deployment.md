@@ -94,13 +94,14 @@ and confirm that the CSP produces no application-console violations.
 ## Automatic Deployment Verification
 
 The `Verify production auto-deploy` GitHub Actions workflow runs after every
-push to `main` that changes `site/**`. This path is intentional: the portal
-uses a `site/` root-directory filter, while the Docker app deploys every new
-`main` commit. The workflow waits up to 20 minutes for both public surfaces to
-report the triggering commit:
+push to `main`. The portal uses a `site/` root-directory filter, while the
+Docker app deploys every new `main` commit. The workflow therefore waits up to
+20 minutes for each public surface to report its independently expected commit:
 
-- `https://qs-dmss.studio/deployment.json` for the portal; and
-- `https://app.qs-dmss.studio/api/health` for the app.
+- `https://qs-dmss.studio/deployment.json` must report the latest first-parent
+  `main` commit that changed `site/**`; and
+- `https://app.qs-dmss.studio/api/health` must report the triggering `main`
+  commit.
 
 It also verifies the package version, app health status, and baseline security
 headers. A passing run therefore demonstrates that GitHub delivered the push,
@@ -118,7 +119,8 @@ or run:
 
 ```text
 python .github/scripts/verify_public_deployment.py \
-  --expected-commit <40-character-main-sha> \
+  --expected-portal-commit <latest-40-character-site-sha> \
+  --expected-app-commit <40-character-main-sha> \
   --expected-version 0.13.2
 ```
 

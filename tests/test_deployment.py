@@ -59,7 +59,8 @@ def test_production_verification_runs_for_every_main_push() -> None:
 
 def test_public_verifier_requires_matching_render_provenance(monkeypatch) -> None:
     verifier = _load_verifier()
-    commit = "c" * 40
+    portal_commit = "c" * 40
+    app_commit = "d" * 40
     headers = {
         "content-security-policy": "default-src 'self'",
         "x-frame-options": "DENY",
@@ -72,7 +73,7 @@ def test_public_verifier_requires_matching_render_provenance(monkeypatch) -> Non
         "version": "0.13.2",
         "deployment": {
             "provider": "render",
-            "git_commit": commit,
+            "git_commit": portal_commit,
             "git_branch": "main",
         },
     }
@@ -81,13 +82,16 @@ def test_public_verifier_requires_matching_render_provenance(monkeypatch) -> Non
         "version": "0.13.2",
         "deployment": {
             "provider": "render",
-            "git_commit": commit,
+            "git_commit": app_commit,
             "git_branch": "main",
         },
     }
 
     def fetch(url: str, expected_commit: str):
-        assert expected_commit == commit
+        if "deployment.json" in url:
+            assert expected_commit == portal_commit
+        else:
+            assert expected_commit == app_commit
         return (portal if "deployment.json" in url else app), headers
 
     monkeypatch.setattr(verifier, "_fetch_json", fetch)
@@ -95,15 +99,17 @@ def test_public_verifier_requires_matching_render_provenance(monkeypatch) -> Non
     verifier.verify_once(
         portal_url="https://portal.example/deployment.json",
         app_health_url="https://app.example/api/health",
-        expected_commit=commit,
+        expected_portal_commit=portal_commit,
+        expected_app_commit=app_commit,
         expected_version="0.13.2",
     )
 
-    app["deployment"]["git_commit"] = "d" * 40
+    app["deployment"]["git_commit"] = "e" * 40
     with pytest.raises(ValueError, match="app commit"):
         verifier.verify_once(
             portal_url="https://portal.example/deployment.json",
             app_health_url="https://app.example/api/health",
-            expected_commit=commit,
+            expected_portal_commit=portal_commit,
+            expected_app_commit=app_commit,
             expected_version="0.13.2",
         )
