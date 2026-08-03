@@ -216,6 +216,7 @@ def test_workspace_export_preserves_normalization_deduplication_and_warning_orde
     workspace = detail["workspace"]
     summary = detail["summary"]
 
+    assert workspace["workspace_id"].startswith("workspace-")
     assert workspace["title"] == "Portable review workspace"
     assert workspace["description"] == "Bounded handoff context."
     assert workspace["collaborators"] == [
@@ -302,6 +303,30 @@ def test_workspace_export_preserves_normalization_deduplication_and_warning_orde
     download = client.get(detail["urls"]["download"])
     assert download.status_code == 200
     assert download.json() == workspace
+
+
+@pytest.mark.parametrize("invalid_tags", ["review", {"review": True}, 1])
+def test_workspace_export_rejects_non_list_annotation_tags(
+    tmp_path: Path,
+    invalid_tags: object,
+) -> None:
+    client = TestClient(create_app(repo_root=REPO_ROOT, output_root=tmp_path / "runs"))
+
+    response = client.post(
+        "/api/workspaces/export",
+        json={
+            "title": "Invalid annotation tags",
+            "annotations": [
+                {
+                    "text": "Review the workspace.",
+                    "tags": invalid_tags,
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"detail": "Workspace annotation tags must be a list"}
 
 
 def test_workspace_import_preserves_resource_and_job_order(

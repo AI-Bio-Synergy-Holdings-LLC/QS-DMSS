@@ -12,7 +12,6 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 import qs_dmss.cockpit.api as cockpit_api
-from qs_dmss.cockpit.api import CockpitService, create_app
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
@@ -120,7 +119,7 @@ def test_campaign_routes_preserve_precedence_order_payloads_and_errors(
     tmp_path: Path,
 ) -> None:
     output_root = tmp_path / "runs"
-    client = TestClient(create_app(repo_root=REPO_ROOT, output_root=output_root))
+    client = TestClient(cockpit_api.create_app(repo_root=REPO_ROOT, output_root=output_root))
     campaign_root = tmp_path / "experiments" / "campaign-studies"
 
     packaged_override = _campaign_record(
@@ -197,7 +196,7 @@ def test_campaign_routes_preserve_precedence_order_payloads_and_errors(
             "detail": "Campaign study template not found"
         }
 
-    service = CockpitService.create(
+    service = cockpit_api.CockpitService.create(
         repo_root=REPO_ROOT,
         output_root=tmp_path / "service-runs",
     )
@@ -213,7 +212,7 @@ def test_campaign_save_import_preserve_ids_normalization_and_metadata(
     monkeypatch,
 ) -> None:
     monkeypatch.setattr(cockpit_api, "datetime", FixedDateTime)
-    client = TestClient(create_app(repo_root=REPO_ROOT, output_root=tmp_path / "runs"))
+    client = TestClient(cockpit_api.create_app(repo_root=REPO_ROOT, output_root=tmp_path / "runs"))
     config = _two_variant_config(client, [0.08, 0.02])
     config["objective"] = {
         "name": "Density-first boundary",
@@ -352,7 +351,7 @@ def test_campaign_save_preserves_exact_validation_errors(
     template: dict,
     detail: str,
 ) -> None:
-    client = TestClient(create_app(repo_root=REPO_ROOT, output_root=tmp_path / "runs"))
+    client = TestClient(cockpit_api.create_app(repo_root=REPO_ROOT, output_root=tmp_path / "runs"))
 
     response = client.post(
         "/api/campaign-studies",
@@ -364,7 +363,7 @@ def test_campaign_save_preserves_exact_validation_errors(
 
 
 def test_campaign_preview_preserves_empty_catalog_contract(tmp_path: Path) -> None:
-    service = CockpitService.create(
+    service = cockpit_api.CockpitService.create(
         repo_root=REPO_ROOT,
         output_root=tmp_path / "runs",
     )
@@ -391,7 +390,7 @@ def test_campaign_preview_preserves_empty_catalog_contract(tmp_path: Path) -> No
 def test_campaign_launch_preserves_variant_and_response_order(
     tmp_path: Path,
 ) -> None:
-    client = TestClient(create_app(repo_root=REPO_ROOT, output_root=tmp_path / "runs"))
+    client = TestClient(cockpit_api.create_app(repo_root=REPO_ROOT, output_root=tmp_path / "runs"))
     config = _two_variant_config(client, [0.08, 0.02])
 
     response = client.post(
@@ -433,7 +432,7 @@ def test_campaign_launch_preserves_failed_artifact_error_contract(
     tmp_path: Path,
     monkeypatch,
 ) -> None:
-    client = TestClient(create_app(repo_root=REPO_ROOT, output_root=tmp_path / "runs"))
+    client = TestClient(cockpit_api.create_app(repo_root=REPO_ROOT, output_root=tmp_path / "runs"))
     config = _two_variant_config(client, [0.08, 0.02])
     real_execute = cockpit_api.execute_run
     call_count = 0
@@ -474,7 +473,7 @@ def test_hosted_campaign_mutations_preserve_exact_forbidden_errors(
     tmp_path: Path,
 ) -> None:
     client = TestClient(
-        create_app(
+        cockpit_api.create_app(
             repo_root=REPO_ROOT,
             output_root=tmp_path / "runs",
             hosted_demo=True,

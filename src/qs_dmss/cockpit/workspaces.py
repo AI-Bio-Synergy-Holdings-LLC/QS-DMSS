@@ -13,7 +13,12 @@ from qs_dmss.paths import contained_path, safe_filename
 
 WorkspaceResourceBuilder = Callable[[str], dict]
 CampaignStudyInstaller = Callable[[dict[str, Any]], dict]
-WorkspaceIdFactory = Callable[[str], str]
+WorkspaceIdFactory = Callable[[], str]
+
+
+def create_workspace_id() -> str:
+    """Create a workspace-prefixed identifier behind a no-argument factory."""
+    return create_experiment_id("workspace")
 
 
 @dataclass(frozen=True)
@@ -39,7 +44,7 @@ class CockpitWorkspaceService:
     build_campaign_study_detail: WorkspaceResourceBuilder
     build_research_object_detail: WorkspaceResourceBuilder
     install_campaign_study: CampaignStudyInstaller
-    workspace_id_factory: WorkspaceIdFactory = create_experiment_id
+    workspace_id_factory: WorkspaceIdFactory = create_workspace_id
 
     def list_workspaces(self) -> list[dict]:
         return [
@@ -148,7 +153,7 @@ class CockpitWorkspaceService:
         )
 
     def _build_workspace_record(self, payload: WorkspaceExportSpec) -> dict:
-        workspace_id = self.workspace_id_factory("workspace")
+        workspace_id = self.workspace_id_factory()
         now = datetime.now(timezone.utc).isoformat()
         collaborators = self._normalize_workspace_collaborators(payload.collaborators)
         annotations = self._normalize_workspace_annotations(
@@ -231,7 +236,7 @@ class CockpitWorkspaceService:
             collaborators,
         )
         job_summaries = self._workspace_job_summaries(resources)
-        record["workspace_id"] = self.workspace_id_factory("workspace")
+        record["workspace_id"] = self.workspace_id_factory()
         record["imported_from_workspace_id"] = source_workspace_id
         record["imported_at"] = now
         record["updated_at"] = now
@@ -476,6 +481,9 @@ class CockpitWorkspaceService:
                 str(raw.get("annotation_id") or raw.get("id") or f"annotation-{index}"),
                 default=f"annotation-{index}",
             )
+            raw_tags = raw.get("tags") or []
+            if not isinstance(raw_tags, list):
+                raise ValueError("Workspace annotation tags must be a list")
             annotation = {
                 "annotation_id": annotation_id,
                 "target_type": target_type,
@@ -485,7 +493,7 @@ class CockpitWorkspaceService:
                 "created_at": str(raw.get("created_at") or now),
                 "tags": [
                     str(tag).strip()
-                    for tag in (raw.get("tags") or [])
+                    for tag in raw_tags
                     if str(tag).strip()
                 ],
             }
