@@ -29,7 +29,6 @@ from pydantic import BaseModel, ConfigDict, Field
 
 from qs_dmss import __version__
 from qs_dmss.ai import (
-    APPROVED_AI_INTENTS,
     AIGeneration,
     AIIntent,
     AIProvider,
@@ -39,14 +38,25 @@ from qs_dmss.ai import (
     ai_interaction_bundle_path,
     build_ai_runtime,
     load_ai_interaction,
-    make_ai_artifact,
     persist_ai_interaction,
     review_ai_interaction,
     validate_ai_response,
 )
 from qs_dmss.app import execute_run
 from qs_dmss.app import replay_run as replay_existing_run
+from qs_dmss.cockpit.ai_context import (
+    AIEvidenceContextRequest,
+    CockpitAIEvidenceContextService,
+)
 from qs_dmss.cockpit.artifacts import CockpitArtifactService
+from qs_dmss.cockpit.campaigns import (
+    CampaignLaunchSpec,
+    CockpitCampaignService,
+)
+from qs_dmss.cockpit.workspaces import (
+    CockpitWorkspaceService,
+    WorkspaceExportSpec,
+)
 from qs_dmss.decision import evaluate_run_decision
 from qs_dmss.deployment import public_deployment_provenance
 from qs_dmss.evidence.verify import verify_run_path
@@ -73,12 +83,7 @@ from qs_dmss.experiment import (
     persist_experiment_artifact,
     persist_failed_campaign_artifact,
 )
-from qs_dmss.io.config import (
-    SUPPORTED_DECISION_METRICS,
-    SUPPORTED_OBJECTIVE_GOALS,
-    load_config,
-    parse_config,
-)
+from qs_dmss.io.config import load_config, parse_config
 from qs_dmss.paths import (
     bundled_assets_root,
     configs_root,
@@ -331,12 +336,6 @@ def _configured_engine_steps(config: dict[str, Any]) -> int:
         return 0
 
 
-def _selected_fields(value: Any, fields: tuple[str, ...]) -> dict[str, Any]:
-    if not isinstance(value, dict):
-        return {}
-    return {field: value[field] for field in fields if field in value}
-
-
 class LaunchRunRequest(BaseModel):
     config: dict
     source_name: str = "cockpit.yaml"
@@ -548,39 +547,6 @@ class CockpitService:
                 status_code=403,
                 detail="Hosted demo run configs exceed the grid-size cap.",
             )
-
-    def _assert_hosted_packaged_campaign(
-        self,
-        payload: LaunchCampaignRequest,
-        base_config: dict[str, Any],
-        campaign_plan: dict[str, Any],
-    ) -> None:
-        if not self.hosted_demo.enabled:
-            return
-        if payload.study_template_id != HOSTED_DEMO_SELF_INTERACTION_TEMPLATE_ID:
-            raise HTTPException(
-                status_code=403,
-                detail=(
-                    "Hosted demo only runs the packaged Self-Interaction Sweep template. "
-                    "Install QS-DMSS locally to edit or launch custom campaigns."
-                ),
-            )
-        packaged_template = self._read_json(
-            self._get_campaign_study_template_path(HOSTED_DEMO_SELF_INTERACTION_TEMPLATE_ID),
-        )
-        packaged_config = parse_config(packaged_template.get("config")).to_dict()
-        if base_config != packaged_config:
-            raise HTTPException(
-                status_code=403,
-                detail=(
-                    "Hosted demo does not run edited Campaign Studio payloads. "
-                    "Use the packaged Self-Interaction Sweep or install QS-DMSS locally."
-                ),
-            )
-        self._assert_hosted_config_envelope(
-            base_config,
-            planned_run_count=campaign_plan["planned_run_count"],
-        )
 
     def list_configs(self) -> list[dict]:
         items: list[dict] = []
@@ -811,173 +777,22 @@ class CockpitService:
             raise HTTPException(status_code=404, detail="Quantum artifact not found") from exc
 
     def campaign_studio_preview(self) -> dict:
-        configs = self.list_configs()
-        default_config = configs[0] if configs else None
-        if default_config is None:
-            return {
-                "available": False,
-                "title": "Campaign Studio",
-                "summary": "No packaged config is available for a campaign preview.",
-                "current_boundary": "Add a config with objective and campaign sections to enable Campaign Studio.",
-                "next_capabilities": [
-                    "Scenario-linked campaign templates",
-                    "Editable parameter-grid studies",
-                    "Decision-profile editing",
-                ],
-            }
-
-        config = default_config["config"]
-        try:
-            campaign_plan = build_campaign_plan(config)
-        except ValueError:
-            return {
-                "available": False,
-                "title": "Campaign Studio",
-                "source_config_name": default_config["name"],
-                "summary": "The default config is not a launchable campaign study yet.",
-                "current_boundary": "This config can launch a run, but it does not define an automated campaign.",
-                "next_capabilities": [
-                    "Add a campaign section",
-                    "Attach objective constraints",
-                    "Save a comparison research object",
-                ],
-            }
-
-        objective = config.get("objective") or {}
-        constraints = {"require_verification": True, **(config.get("constraints") or {})}
-        ranking = config.get("ranking") or {}
-        return {
-            "available": True,
-            "title": "Campaign Studio",
-            "source_config_name": default_config["name"],
-            "label": campaign_plan["label"],
-            "strategy": campaign_plan["strategy"],
-            "max_runs": config.get("campaign", {}).get("max_runs", campaign_plan["planned_run_count"]),
-            "planned_run_count": campaign_plan["planned_run_count"],
-            "dimension_count": campaign_plan["dimension_count"],
-            "dimensions": campaign_plan["dimensions"],
-            "objective": {
-                "name": objective.get("name", "No objective"),
-                "summary": objective.get("summary", "No objective summary provided."),
-                "primary_metric": objective.get("primary_metric"),
-                "goal": objective.get("goal"),
-                "target_value": objective.get("target_value"),
-                "supported_metrics": list(SUPPORTED_DECISION_METRICS),
-                "supported_goals": list(SUPPORTED_OBJECTIVE_GOALS),
-            },
-            "constraint_values": constraints,
-            "constraints": [
-                {"name": key, "value": value}
-                for key, value in constraints.items()
-            ],
-            "ranking": {
-                "primary_metric_weight": ranking.get("primary_metric_weight"),
-                "weights": ranking.get("weights", {}),
-            },
-            "readiness_badges": [
-                {"label": "Grid plan", "status": "ready"},
-                {"label": "Objective scoring", "status": "ready"},
-                {"label": "Evidence bundle", "status": "ready"},
-                {"label": "Grid editor", "status": "ready"},
-                {"label": "Objective editor", "status": "ready"},
-                {"label": "Study templates", "status": "ready"},
-            ],
-            "summary": (
-                "A packaged decision campaign can already expand a template into a "
-                "multi-run search matrix, score every run, save reusable study templates, "
-                "and export a comparison bundle."
-            ),
-            "current_boundary": (
-                "Campaign Studio now edits, saves, reopens, imports, and exports reusable "
-                "campaign study templates with the scoring contract attached."
-            ),
-            "next_capabilities": [
-                "Richer template library metadata",
-                "Template-to-publication export provenance",
-                "Team-shared study template registries",
-            ],
-            "launch_endpoint": "/api/campaigns",
-        }
+        return self._campaign_service().campaign_studio_preview()
 
     def list_campaign_study_templates(self) -> list[dict]:
-        local_records: list[dict] = [
-            self._read_json(path)
-            for path in self._list_campaign_study_template_paths()
-        ]
-        local_records_by_id = {
-            record["template_id"]: record
-            for record in local_records
-            if record.get("template_id")
-        }
-        packaged_ids: set[str] = set()
-        summaries: list[dict] = []
-
-        for packaged_path in self._list_packaged_campaign_study_template_paths():
-            packaged_record = self._read_json(packaged_path)
-            template_id = packaged_record.get("template_id")
-            if not template_id:
-                continue
-            packaged_ids.add(template_id)
-            summaries.append(
-                self._build_campaign_study_summary(
-                    local_records_by_id.get(template_id, packaged_record),
-                )
-            )
-
-        for record in local_records:
-            template_id = record.get("template_id")
-            if template_id and template_id not in packaged_ids:
-                summaries.append(self._build_campaign_study_summary(record))
-
-        return summaries
+        return self._campaign_service().list_campaign_study_templates()
 
     def get_campaign_study_template(self, template_id: str) -> dict:
-        path = self._get_campaign_study_template_path(template_id)
-        return self._build_campaign_study_detail(path)
+        return self._campaign_service().get_campaign_study_template(template_id)
 
     def campaign_study_template_path(self, template_id: str) -> Path:
-        return self._get_campaign_study_template_path(template_id)
+        return self._campaign_service().campaign_study_template_path(template_id)
 
     def save_campaign_study_template(self, payload: CampaignStudyTemplateRequest) -> dict:
-        if self.hosted_demo.enabled:
-            raise HTTPException(
-                status_code=403,
-                detail=(
-                    "Hosted demo keeps study templates packaged and temporary. "
-                    "Install QS-DMSS locally to save custom study templates."
-                ),
-            )
-        try:
-            record = self._normalize_campaign_study_template(payload.template)
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-        path = contained_path(
-            self._campaign_studies_root(create=True),
-            f"{record['template_id']}.json",
-        )
-        path.write_text(
-            json.dumps(record, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-        return self._build_campaign_study_detail(path)
+        return self._campaign_service().save_campaign_study_template(payload.template)
 
     def import_campaign_study_template(self, payload: CampaignStudyTemplateRequest) -> dict:
-        if self.hosted_demo.enabled:
-            raise HTTPException(
-                status_code=403,
-                detail=(
-                    "Hosted demo does not accept uploaded study templates. "
-                    "Install QS-DMSS locally to import portable campaign designs."
-                ),
-            )
-        template = dict(payload.template)
-        imported_from = template.get("template_id")
-        if imported_from:
-            template["imported_from_template_id"] = str(imported_from)
-        return self.save_campaign_study_template(
-            CampaignStudyTemplateRequest(template=template),
-        )
+        return self._campaign_service().import_campaign_study_template(payload.template)
 
     def get_run_detail(self, run_id: str) -> dict:
         run_dir = self._get_run_dir(run_id)
@@ -1000,67 +815,30 @@ class CockpitService:
         return self._build_experiment_detail(experiment_dir)
 
     def list_workspaces(self) -> list[dict]:
-        return [
-            self._build_workspace_summary(path)
-            for path in self._list_workspace_paths()
-        ]
+        return self._workspace_service().list_workspaces()
 
     def get_workspace(self, workspace_id: str) -> dict:
-        return self._build_workspace_detail(self._get_workspace_path(workspace_id))
+        return self._workspace_service().get_workspace(workspace_id)
 
     def export_workspace(self, payload: WorkspaceExportRequest) -> dict:
-        if self.hosted_demo.enabled:
-            raise HTTPException(
-                status_code=403,
-                detail=(
-                    "Hosted demo disables workspace snapshots because public outputs are temporary. "
-                    "Use research-object export here, or install QS-DMSS locally for workspace export."
-                ),
+        return self._workspace_service().export_workspace(
+            WorkspaceExportSpec(
+                title=payload.title,
+                description=payload.description,
+                collaborators=payload.collaborators,
+                annotations=payload.annotations,
+                run_ids=payload.run_ids,
+                experiment_ids=payload.experiment_ids,
+                campaign_study_template_ids=payload.campaign_study_template_ids,
+                research_object_ids=payload.research_object_ids,
             )
-        try:
-            record = self._build_workspace_record(payload)
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-        workspace_path = self._workspace_dir(
-            record["workspace_id"],
-            create=True,
-        ) / "workspace.json"
-        workspace_path.write_text(
-            json.dumps(record, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
         )
-        return self._build_workspace_detail(workspace_path)
 
     def import_workspace(self, payload: WorkspaceImportRequest) -> dict:
-        if self.hosted_demo.enabled:
-            raise HTTPException(
-                status_code=403,
-                detail=(
-                    "Hosted demo does not accept uploaded workspace JSON. "
-                    "Install QS-DMSS locally to import collaborator workspaces."
-                ),
-            )
-        try:
-            record = self._normalize_imported_workspace(payload.workspace)
-            installed_templates = self._install_workspace_campaign_studies(record)
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-        workspace_path = self._workspace_dir(
-            record["workspace_id"],
-            create=True,
-        ) / "workspace.json"
-        workspace_path.write_text(
-            json.dumps(record, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-        detail = self._build_workspace_detail(workspace_path)
-        detail["imported_campaign_studies"] = installed_templates
-        return detail
+        return self._workspace_service().import_workspace(payload.workspace)
 
     def workspace_path(self, workspace_id: str) -> Path:
-        return self._get_workspace_path(workspace_id)
+        return self._workspace_service().workspace_path(workspace_id)
 
     def launch_run(self, payload: LaunchRunRequest) -> dict:
         if self.hosted_demo.enabled:
@@ -1222,329 +1000,14 @@ class CockpitService:
         self,
         payload: AIDraftRequest,
     ) -> tuple[dict[str, Any], dict[str, Any]]:
-        if payload.intent in {"summary", "claim"} and not payload.run_id:
-            raise HTTPException(
-                status_code=400,
-                detail="Evidence summary and claim-boundary review require a recorded run.",
+        return self._ai_evidence_context_service().build(
+            AIEvidenceContextRequest(
+                intent=payload.intent,
+                scenario_name=payload.scenario_name,
+                run_id=payload.run_id,
+                experiment_id=payload.experiment_id,
             )
-        if payload.intent == "comparison" and not payload.experiment_id:
-            raise HTTPException(
-                status_code=400,
-                detail="Comparison critique requires a recorded comparison experiment.",
-            )
-
-        scenario = self._build_showcase_summary(payload.scenario_name)
-        scenario_data = _selected_fields(
-            scenario,
-            (
-                "name",
-                "label",
-                "run_name",
-                "grid_label",
-                "steps",
-                "purpose",
-                "description",
-                "claim_boundary",
-                "limitations",
-                "next_actions",
-                "guided_comparison",
-            ),
         )
-        artifacts = [
-            make_ai_artifact(
-                f"scenario-contract/{scenario['name']}",
-                "scenario_contract",
-                scenario_data,
-            )
-        ]
-        subject: dict[str, Any] = {
-            "scenario_name": scenario["name"],
-            "run_id": payload.run_id,
-            "experiment_id": payload.experiment_id,
-        }
-
-        experiment: dict[str, Any] | None = None
-        recorded_run_ids: set[str] = set()
-        if payload.experiment_id:
-            experiment = self.get_experiment_detail(payload.experiment_id)
-            experiment_summary = experiment.get("summary") or {}
-            execution_job = experiment.get("execution_job") or {}
-            job_spec = execution_job.get("spec") or {}
-            job_metadata = job_spec.get("metadata") or {}
-            recorded_run_ids = {
-                str(run_id) for run_id in experiment_summary.get("run_ids") or []
-            }
-            if (
-                experiment_summary.get("kind") != "guided-comparison"
-                or job_metadata.get("scenario") != scenario.get("name")
-            ):
-                raise HTTPException(
-                    status_code=400,
-                    detail=(
-                        "The selected comparison does not belong to the selected "
-                        "packaged scenario."
-                    ),
-                )
-            if payload.run_id and payload.run_id not in recorded_run_ids:
-                raise HTTPException(
-                    status_code=400,
-                    detail="The selected run is not part of the selected comparison.",
-                )
-
-        run_detail: dict[str, Any] | None = None
-        if payload.run_id:
-            run_detail = self.get_run_detail(payload.run_id)
-            run_summary = run_detail["summary"]
-            if (
-                experiment is None
-                and run_summary.get("name") != scenario.get("run_name")
-            ):
-                raise HTTPException(
-                    status_code=400,
-                    detail="The selected run does not belong to the selected packaged scenario.",
-                )
-            safe_summary = _selected_fields(
-                run_summary,
-                (
-                    "run_id",
-                    "name",
-                    "config_name",
-                    "seed",
-                    "grid_label",
-                    "steps",
-                    "status",
-                    "finished_at",
-                    "elapsed_seconds",
-                    "config_digest",
-                    "energy_drift",
-                    "norm_drift",
-                    "bundle_size_bytes",
-                    "bundle_sha256",
-                ),
-            )
-            metrics = run_detail.get("metrics") or {}
-            history = metrics.get("history") or []
-            if len(history) > 16:
-                history = [*history[:8], *history[-8:]]
-            safe_metrics = _selected_fields(
-                metrics,
-                (
-                    "energy_drift",
-                    "norm_drift",
-                    "relative_norm_drift",
-                    "max_density",
-                    "elapsed_seconds",
-                ),
-            )
-            safe_metrics["history_excerpt"] = [
-                _selected_fields(
-                    snapshot,
-                    ("step", "time", "norm", "energy", "max_density"),
-                )
-                for snapshot in history
-                if isinstance(snapshot, dict)
-            ]
-            artifacts.extend(
-                [
-                    make_ai_artifact(
-                        f"run/{payload.run_id}/summary",
-                        "run_summary",
-                        safe_summary,
-                    ),
-                    make_ai_artifact(
-                        f"run/{payload.run_id}/metrics",
-                        "run_metrics",
-                        safe_metrics,
-                    ),
-                    make_ai_artifact(
-                        f"run/{payload.run_id}/verification",
-                        "manifest_verification",
-                        {
-                            **_selected_fields(
-                                run_detail.get("verification"),
-                                ("success", "checked_files"),
-                            ),
-                            "evidence": _selected_fields(
-                                run_detail.get("evidence"),
-                                ("file_count", "bundle_size_bytes", "bundle_sha256"),
-                            ),
-                        },
-                    ),
-                ]
-            )
-
-            try:
-                report = self._read_json(self.showcase_json_path(scenario["name"]))
-            except (HTTPException, json.JSONDecodeError, OSError, ValueError):
-                report = None
-            if report and (report.get("run") or {}).get("run_id") == payload.run_id:
-                safe_report = {
-                    **_selected_fields(
-                        report,
-                        (
-                            "schema_version",
-                            "generated_at",
-                            "scenario",
-                            "scenario_title",
-                            "scenario_narrative",
-                            "claim_boundary",
-                            "success",
-                            "metrics",
-                            "interpretation",
-                        ),
-                    ),
-                    "verification": _selected_fields(
-                        report.get("verification"),
-                        ("success", "checked_files"),
-                    ),
-                    "replay": _selected_fields(
-                        report.get("replay"),
-                        (
-                            "run_id",
-                            "verification_success",
-                            "final_density_allclose",
-                            "max_abs_density_delta",
-                        ),
-                    ),
-                    "artifact_keys": sorted((report.get("artifacts") or {}).keys()),
-                }
-                artifacts.append(
-                    make_ai_artifact(
-                        f"showcase-report/{scenario['name']}/{payload.run_id}",
-                        "showcase_report",
-                        safe_report,
-                    )
-                )
-
-        if experiment is not None:
-            comparison = experiment.get("comparison") or {}
-            safe_rows = []
-            for row in comparison.get("rows") or []:
-                row_run_id = str(row.get("run_id") or "")
-                if not row_run_id:
-                    continue
-                if row_run_id not in recorded_run_ids:
-                    raise HTTPException(
-                        status_code=400,
-                        detail=(
-                            "The selected comparison contains a run outside its "
-                            "recorded experiment lineage."
-                        ),
-                    )
-                safe_rows.append(
-                    _selected_fields(
-                        row,
-                        (
-                            "run_id",
-                            "name",
-                            "seed",
-                            "parameter_path",
-                            "parameter_label",
-                            "parameter_value",
-                            "parameter_value_label",
-                            "variant",
-                            "variant_label",
-                            "energy_drift",
-                            "norm_drift",
-                            "max_density",
-                            "elapsed_seconds",
-                            "verification_success",
-                            "delta_from_baseline",
-                        ),
-                    )
-                )
-            if (
-                payload.run_id
-                and payload.run_id not in {row.get("run_id") for row in safe_rows}
-            ):
-                raise HTTPException(
-                    status_code=400,
-                    detail="The selected run is not part of the selected comparison.",
-                )
-            safe_comparison = {
-                "experiment": _selected_fields(
-                    experiment.get("summary"),
-                    (
-                        "experiment_id",
-                        "label",
-                        "kind",
-                        "status",
-                        "created_at",
-                        "baseline_run_id",
-                        "run_count",
-                        "bundle_sha256",
-                    ),
-                ),
-                "baseline_run_id": comparison.get("baseline_run_id"),
-                "shared_experiment": _selected_fields(
-                    comparison.get("shared_experiment"),
-                    (
-                        "id",
-                        "label",
-                        "kind",
-                        "strategy",
-                        "dimension_count",
-                        "dimensions",
-                        "parameter_path",
-                        "parameter_label",
-                    ),
-                ),
-                "rows": safe_rows,
-                "ranges": _selected_fields(
-                    comparison.get("ranges"),
-                    ("energy_drift", "norm_drift", "max_density", "elapsed_seconds"),
-                ),
-                "highlights": _selected_fields(
-                    comparison.get("highlights"),
-                    (
-                        "lowest_abs_energy_drift_run_id",
-                        "lowest_abs_norm_drift_run_id",
-                        "highest_max_density_run_id",
-                    ),
-                ),
-                "decision": _selected_fields(
-                    comparison.get("decision"),
-                    (
-                        "available",
-                        "mode",
-                        "status",
-                        "reason",
-                        "recommended_run_id",
-                        "recommended_score",
-                        "recommended_status",
-                        "primary_metric",
-                        "primary_metric_label",
-                        "primary_goal",
-                        "primary_target_value",
-                        "qualified_run_count",
-                        "total_run_count",
-                        "ranked_run_ids",
-                    ),
-                ),
-            }
-            artifacts.append(
-                make_ai_artifact(
-                    f"comparison/{payload.experiment_id}",
-                    "run_comparison",
-                    safe_comparison,
-                )
-            )
-
-        context = {
-            "schema_version": 1,
-            "intent": payload.intent,
-            "intent_label": APPROVED_AI_INTENTS[payload.intent],
-            "artifacts": artifacts,
-            "policy": {
-                "advisory_only": True,
-                "human_review_required": True,
-                "tools_available": False,
-                "run_launch_allowed": False,
-                "artifact_mutation_allowed": False,
-                "external_sources_allowed": False,
-            },
-        }
-        return context, subject
 
     def _public_ai_interaction(self, record: dict[str, Any]) -> dict[str, Any]:
         interaction_id = str(record["interaction_id"])
@@ -1796,163 +1259,13 @@ class CockpitService:
         }
 
     def launch_campaign(self, payload: LaunchCampaignRequest) -> dict:
-        try:
-            base_config = parse_config(payload.config).to_dict()
-            campaign_plan = build_campaign_plan(base_config)
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-        self._assert_hosted_packaged_campaign(payload, base_config, campaign_plan)
-
-        study_template_path = None
-        study_template_record = None
-        if payload.study_template_id:
-            study_template_path = self._ensure_local_campaign_study_template_path(
-                payload.study_template_id,
+        return self._campaign_service().launch_campaign(
+            CampaignLaunchSpec(
+                config=payload.config,
+                source_name=payload.source_name,
+                study_template_id=payload.study_template_id,
             )
-            study_template_record = self._read_json(study_template_path)
-
-        run_dirs: list[Path] = []
-        summaries: list[dict] = []
-        details: list[dict] = []
-        parent_handle = self._start_parent_job(
-            config=base_config,
-            source_name=payload.source_name,
-            experiment={
-                "id": campaign_plan["id"],
-                "kind": "campaign",
-                "label": campaign_plan["label"],
-                "strategy": campaign_plan["strategy"],
-                "planned_run_count": campaign_plan["planned_run_count"],
-            },
-            labels=("experiment", "campaign", "multi-run"),
-            metadata={
-                "dimension_count": campaign_plan["dimension_count"],
-                "planned_run_count": campaign_plan["planned_run_count"],
-                "study_template_id": payload.study_template_id,
-            },
-            message="Local campaign job started.",
         )
-        try:
-            with TemporaryDirectory() as temp_dir:
-                temp_root = Path(temp_dir)
-                for variant in campaign_plan["variants"]:
-                    temp_config_dir = temp_root / f"run-{variant['ordinal']:02d}"
-                    temp_config_dir.mkdir(parents=True, exist_ok=True)
-                    temp_path = self._temp_source_path(temp_config_dir, payload.source_name)
-                    outputs = execute_run(
-                        config=parse_config(variant["config"]),
-                        source_config_path=temp_path,
-                        output_root=self.output_root,
-                        experiment=build_campaign_context(
-                            experiment_id=campaign_plan["id"],
-                            label=campaign_plan["label"],
-                            strategy=campaign_plan["strategy"],
-                            dimensions=campaign_plan["dimensions"],
-                            variant=variant["variant"],
-                            ordinal=variant["ordinal"],
-                            total_runs=campaign_plan["planned_run_count"],
-                        ),
-                    )
-                    run_dirs.append(outputs.run_dir)
-                    detail = self._build_run_detail(outputs.run_dir)
-                    details.append(detail)
-                    summaries.append(detail["summary"])
-        except Exception as exc:
-            try:
-                failure_outputs = persist_failed_campaign_artifact(
-                    campaign_plan=campaign_plan,
-                    run_dirs=run_dirs,
-                    run_details=details,
-                    experiments_root=self.experiments_root,
-                    error=exc,
-                    execution_job=self._job_reference(parent_handle),
-                )
-                self._complete_experiment_job(
-                    parent_handle,
-                    experiment_id=failure_outputs.experiment_id,
-                    experiment_dir=failure_outputs.experiment_dir,
-                    bundle_path=failure_outputs.bundle_path,
-                    run_details=details,
-                    state="failed",
-                    message="Campaign job failed; partial artifact was saved.",
-                    error=exc,
-                )
-                failure_detail = self._build_experiment_detail(failure_outputs.experiment_dir)
-            except Exception as persist_exc:
-                self._job_registry().fail(parent_handle, persist_exc)
-                raise HTTPException(
-                    status_code=500,
-                    detail={
-                        "message": "Campaign failed, and the failed campaign artifact could not be saved.",
-                        "error": str(exc),
-                        "artifact_error": str(persist_exc),
-                        "completed_run_ids": [summary["run_id"] for summary in summaries],
-                    },
-                ) from persist_exc
-            raise HTTPException(
-                status_code=500,
-                detail={
-                    "message": "Campaign failed; a failed campaign artifact was saved.",
-                    "error": str(exc),
-                    "experiment_id": failure_detail["summary"]["experiment_id"],
-                    "run_ids": failure_detail["summary"]["run_ids"],
-                    "bundle": failure_detail["urls"]["bundle"],
-                    "report": failure_detail["urls"]["report"],
-                },
-            ) from exc
-
-        try:
-            comparison = build_run_comparison(details)
-            artifact_outputs = persist_experiment_artifact(
-                run_dirs=run_dirs,
-                run_details=details,
-                experiments_root=self.experiments_root,
-                label=campaign_plan["label"],
-                experiment_id=campaign_plan["id"],
-                kind="campaign",
-                execution_job=self._job_reference(parent_handle),
-            )
-            self._complete_experiment_job(
-                parent_handle,
-                experiment_id=artifact_outputs.experiment_id,
-                experiment_dir=artifact_outputs.experiment_dir,
-                bundle_path=artifact_outputs.bundle_path,
-                run_details=details,
-                message="Campaign job completed.",
-            )
-        except Exception as exc:
-            self._job_registry().fail(parent_handle, exc)
-            raise
-        artifact = self._build_experiment_detail(artifact_outputs.experiment_dir)
-        campaign_summary = {
-            "id": campaign_plan["id"],
-            "label": campaign_plan["label"],
-            "strategy": campaign_plan["strategy"],
-            "dimension_count": campaign_plan["dimension_count"],
-            "planned_run_count": campaign_plan["planned_run_count"],
-            "dimensions": campaign_plan["dimensions"],
-            "run_ids": [summary["run_id"] for summary in summaries],
-            "recommended_run_id": (comparison.get("decision") or {}).get("recommended_run_id"),
-        }
-        study_template = None
-        if study_template_path is not None:
-            study_template = self._record_campaign_study_last_run(
-                study_template_path,
-                campaign_summary=campaign_summary,
-                comparison=comparison,
-                artifact=artifact,
-                run_count=len(summaries),
-            )
-
-        return {
-            "campaign": campaign_summary,
-            "runs": summaries,
-            "comparison": comparison,
-            "guide": self._build_campaign_study_guide(study_template_record, comparison),
-            "artifact": artifact,
-            "execution_job": artifact["execution_job"],
-            "study_template": study_template,
-        }
 
     def export_research_object(self, payload: ResearchObjectExportRequest) -> dict:
         research_object = dict(payload.research_object)
@@ -2070,10 +1383,71 @@ class CockpitService:
             "execution_job": job_detail,
         }
 
+    def _ai_evidence_context_service(self) -> CockpitAIEvidenceContextService:
+        return CockpitAIEvidenceContextService(
+            build_showcase_summary=self._build_showcase_summary,
+            get_run_detail=self.get_run_detail,
+            get_experiment_detail=self.get_experiment_detail,
+            showcase_json_path=self.showcase_json_path,
+            read_json=self._read_json,
+        )
+
     def _artifact_service(self) -> CockpitArtifactService:
         return CockpitArtifactService(
             output_root=self.output_root,
             experiments_root=self.experiments_root,
+        )
+
+    def _campaign_service(self) -> CockpitCampaignService:
+        return CockpitCampaignService(
+            output_root=self.output_root,
+            experiments_root=self.experiments_root,
+            packaged_studies_root=bundled_assets_root() / "campaign-studies",
+            hosted_demo_enabled=self.hosted_demo.enabled,
+            hosted_template_id=HOSTED_DEMO_SELF_INTERACTION_TEMPLATE_ID,
+            list_configs=self.list_configs,
+            safe_source_name=self._safe_source_name,
+            temp_source_path=self._temp_source_path,
+            start_parent_job=self._start_parent_job,
+            job_reference=self._job_reference,
+            complete_experiment_job=self._complete_experiment_job,
+            fail_parent_job=lambda handle, exc: self._job_registry().fail(
+                handle,
+                exc,
+            ),
+            build_run_detail=self._build_run_detail,
+            build_experiment_detail=self._build_experiment_detail,
+            execute_variant=execute_run,
+            plan_campaign=build_campaign_plan,
+            build_campaign_context=build_campaign_context,
+            compare_runs=build_run_comparison,
+            persist_experiment=persist_experiment_artifact,
+            persist_failed_campaign=persist_failed_campaign_artifact,
+            assert_hosted_config_envelope=self._assert_hosted_config_envelope,
+            now=lambda: datetime.now(timezone.utc),
+        )
+
+    def _workspace_service(self) -> CockpitWorkspaceService:
+        return CockpitWorkspaceService(
+            experiments_root=self.experiments_root,
+            hosted_demo_enabled=self.hosted_demo.enabled,
+            build_run_summary=lambda run_id: self._build_run_summary(
+                self._get_run_dir(run_id)
+            ),
+            build_experiment_detail=lambda experiment_id: self._build_experiment_detail(
+                self._get_experiment_dir(experiment_id)
+            ),
+            build_campaign_study_detail=lambda template_id: (
+                self._campaign_service().get_campaign_study_template(template_id)
+            ),
+            build_research_object_detail=lambda export_id: (
+                self._build_research_object_export_detail(
+                    self._research_object_export_path(export_id)
+                )
+            ),
+            install_campaign_study=lambda template: (
+                self._campaign_service().save_campaign_study_template(template)
+            ),
         )
 
     def bundle_path(self, run_id: str) -> Path:
@@ -2464,730 +1838,6 @@ class CockpitService:
                 "download": f"/api/research-objects/{export_id}/download",
             },
         }
-
-    def _workspaces_root(self, *, create: bool = False) -> Path:
-        workspace_root = self.experiments_root / "workspaces"
-        if create:
-            workspace_root.mkdir(parents=True, exist_ok=True)
-        return workspace_root
-
-    def _workspace_dir(self, workspace_id: str, *, create: bool = False) -> Path:
-        workspace_root = self._workspaces_root(create=create)
-        workspace_dir = contained_path(
-            workspace_root,
-            safe_filename(workspace_id, default="workspace"),
-        )
-        if create:
-            workspace_dir.mkdir(parents=True, exist_ok=False)
-        if not workspace_dir.exists() or not workspace_dir.is_dir():
-            raise HTTPException(status_code=404, detail="Workspace export not found")
-        return workspace_dir
-
-    def _get_workspace_path(self, workspace_id: str) -> Path:
-        workspace_path = self._workspace_dir(workspace_id) / "workspace.json"
-        if not workspace_path.exists() or not workspace_path.is_file():
-            raise HTTPException(status_code=404, detail="Workspace export not found")
-        return workspace_path
-
-    def _list_workspace_paths(self) -> list[Path]:
-        workspace_root = self._workspaces_root()
-        if not workspace_root.exists():
-            return []
-        return sorted(
-            [
-                path / "workspace.json"
-                for path in workspace_root.iterdir()
-                if path.is_dir() and (path / "workspace.json").is_file()
-            ],
-            key=lambda path: path.stat().st_mtime,
-            reverse=True,
-        )
-
-    def _campaign_studies_root(self, *, create: bool = False) -> Path:
-        studies_root = self.experiments_root / "campaign-studies"
-        if create:
-            studies_root.mkdir(parents=True, exist_ok=True)
-        return studies_root
-
-    def _packaged_campaign_studies_root(self) -> Path:
-        return bundled_assets_root() / "campaign-studies"
-
-    def _list_campaign_study_template_paths(self) -> list[Path]:
-        studies_root = self._campaign_studies_root()
-        if not studies_root.exists():
-            return []
-        return sorted(
-            [
-                path
-                for path in studies_root.glob("*.json")
-                if path.is_file()
-            ],
-            key=lambda path: path.stat().st_mtime,
-            reverse=True,
-        )
-
-    def _list_packaged_campaign_study_template_paths(self) -> list[Path]:
-        studies_root = self._packaged_campaign_studies_root()
-        if not studies_root.exists():
-            return []
-        return sorted(
-            [
-                path
-                for path in studies_root.glob("*.json")
-                if path.is_file()
-            ],
-            key=lambda path: path.name,
-        )
-
-    def _get_campaign_study_template_path(self, template_id: str) -> Path:
-        template_name = safe_filename(
-            template_id,
-            default="campaign-study",
-            suffixes=(".json",),
-        )
-        local_path = contained_path(self._campaign_studies_root(), template_name)
-        if local_path.exists() and local_path.is_file():
-            return local_path
-
-        packaged_root = self._packaged_campaign_studies_root()
-        packaged_path = contained_path(packaged_root, template_name)
-        if packaged_path.exists() and packaged_path.is_file():
-            return packaged_path
-
-        raise HTTPException(status_code=404, detail="Campaign study template not found")
-
-    def _ensure_local_campaign_study_template_path(self, template_id: str) -> Path:
-        template_name = safe_filename(
-            template_id,
-            default="campaign-study",
-            suffixes=(".json",),
-        )
-        studies_root = self._campaign_studies_root(create=True)
-        local_path = contained_path(studies_root, template_name)
-        if local_path.exists() and local_path.is_file():
-            return local_path
-
-        source_path = self._get_campaign_study_template_path(template_id)
-        record = self._read_json(source_path)
-        now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-        record.setdefault("created_at", now)
-        record["updated_at"] = now
-        if record.get("packaged"):
-            record["installed_from_packaged_template"] = True
-        local_path.write_text(
-            json.dumps(record, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-        return local_path
-
-    def _campaign_study_template_id(self, label: str) -> str:
-        timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
-        stem = safe_filename(
-            label.lower().replace(" ", "-"),
-            default="campaign-study",
-        )
-        base_id = f"{stem}-{timestamp}"
-        template_id = base_id
-        index = 2
-        studies_root = self._campaign_studies_root(create=True)
-        while contained_path(studies_root, f"{template_id}.json").exists():
-            template_id = f"{base_id}-{index}"
-            index += 1
-        return template_id
-
-    def _normalize_campaign_study_template(self, template: dict[str, Any]) -> dict:
-        if not isinstance(template, dict):
-            raise ValueError("Campaign study template must be an object")
-        raw_config = template.get("config")
-        if not isinstance(raw_config, dict):
-            raise ValueError("Campaign study template requires a config object")
-
-        config = parse_config(raw_config).to_dict()
-        campaign_plan = build_campaign_plan(config)
-        objective = config.get("objective") or {}
-        constraints = {"require_verification": True, **(config.get("constraints") or {})}
-        ranking = config.get("ranking") or {}
-        label = str(
-            template.get("label")
-            or campaign_plan["label"]
-            or "Campaign Studio study template"
-        ).strip()
-        if not label:
-            label = "Campaign Studio study template"
-        description = str(
-            template.get("description")
-            or objective.get("summary")
-            or "Reusable Campaign Studio study template."
-        ).strip()
-        source_config_name = self._safe_source_name(
-            str(template.get("source_config_name") or "campaign-study.yaml")
-        )
-        now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-        campaign = {
-            "label": campaign_plan["label"],
-            "strategy": campaign_plan["strategy"],
-            "max_runs": config.get("campaign", {}).get(
-                "max_runs",
-                campaign_plan["planned_run_count"],
-            ),
-            "planned_run_count": campaign_plan["planned_run_count"],
-            "dimension_count": campaign_plan["dimension_count"],
-            "dimensions": campaign_plan["dimensions"],
-        }
-        scoring_contract = {
-            "objective": objective,
-            "constraints": constraints,
-            "ranking": {
-                "primary_metric_weight": ranking.get("primary_metric_weight"),
-                "weights": ranking.get("weights", {}),
-            },
-            "planned_run_count": campaign_plan["planned_run_count"],
-            "max_runs": campaign["max_runs"],
-        }
-
-        record: dict[str, Any] = {
-            "schema_version": 1,
-            "template_id": self._campaign_study_template_id(label),
-            "label": label,
-            "description": description,
-            "created_at": now,
-            "updated_at": now,
-            "source_config_name": source_config_name,
-            "campaign": campaign,
-            "objective": objective,
-            "constraints": constraints,
-            "ranking": scoring_contract["ranking"],
-            "scoring_contract": scoring_contract,
-            "config": config,
-        }
-        for key in (
-            "purpose",
-            "expected_runtime",
-            "metrics",
-            "limitations",
-            "non_claims",
-            "interpretation",
-        ):
-            if key in template:
-                record[key] = template[key]
-        if template.get("packaged"):
-            record["packaged"] = True
-        if template.get("imported_from_template_id"):
-            record["imported_from_template_id"] = str(template["imported_from_template_id"])
-        if template.get("imported_from_workspace_id"):
-            record["imported_from_workspace_id"] = str(template["imported_from_workspace_id"])
-        return record
-
-    def _record_campaign_study_last_run(
-        self,
-        path: Path,
-        *,
-        campaign_summary: dict,
-        comparison: dict,
-        artifact: dict,
-        run_count: int,
-    ) -> dict:
-        record = self._read_json(path)
-        decision = comparison.get("decision") or {}
-        now = datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-        last_run = {
-            "ran_at": now,
-            "status": "completed",
-            "campaign_id": campaign_summary["id"],
-            "campaign_label": campaign_summary["label"],
-            "strategy": campaign_summary["strategy"],
-            "planned_run_count": campaign_summary["planned_run_count"],
-            "run_count": run_count,
-            "run_ids": campaign_summary["run_ids"],
-            "recommended_run_id": campaign_summary.get("recommended_run_id"),
-            "decision_status": decision.get("status"),
-            "recommended_score": decision.get("recommended_score"),
-            "reason": decision.get("reason"),
-            "experiment_id": artifact["summary"]["experiment_id"],
-            "experiment_report_url": artifact["urls"]["report"],
-            "experiment_bundle_url": artifact["urls"]["bundle"],
-        }
-        record["last_run"] = last_run
-        record["updated_at"] = now
-        path.write_text(
-            json.dumps(record, indent=2, sort_keys=True) + "\n",
-            encoding="utf-8",
-        )
-        return self._build_campaign_study_detail(path)
-
-    def _campaign_study_urls(self, template_id: str) -> dict:
-        return {
-            "detail": f"/api/campaign-studies/{template_id}",
-            "download": f"/api/campaign-studies/{template_id}/download",
-        }
-
-    def _build_campaign_study_summary(self, record: dict) -> dict:
-        template_id = record["template_id"]
-        campaign = record.get("campaign") or {}
-        objective = record.get("objective") or {}
-        packaged = bool(record.get("packaged"))
-        return {
-            "template_id": template_id,
-            "label": record.get("label", template_id),
-            "description": record.get("description", ""),
-            "purpose": record.get("purpose"),
-            "expected_runtime": record.get("expected_runtime"),
-            "metrics": record.get("metrics") or [],
-            "limitations": record.get("limitations") or [],
-            "non_claims": record.get("non_claims") or [],
-            "interpretation": record.get("interpretation") or {},
-            "created_at": record.get("created_at"),
-            "updated_at": record.get("updated_at"),
-            "source_config_name": record.get("source_config_name"),
-            "campaign_label": campaign.get("label"),
-            "strategy": campaign.get("strategy"),
-            "planned_run_count": campaign.get("planned_run_count"),
-            "dimension_count": campaign.get("dimension_count"),
-            "objective_name": objective.get("name"),
-            "primary_metric": objective.get("primary_metric"),
-            "goal": objective.get("goal"),
-            "packaged": packaged,
-            "origin": "packaged" if packaged else "local",
-            "imported": bool(record.get("imported_from_template_id")),
-            "imported_from_template_id": record.get("imported_from_template_id"),
-            "exportable": True,
-            "last_run": record.get("last_run"),
-            "urls": self._campaign_study_urls(template_id),
-        }
-
-    def _build_campaign_study_detail(self, path: Path) -> dict:
-        record = self._read_json(path)
-        return {
-            "summary": self._build_campaign_study_summary(record),
-            "template": record,
-            "urls": self._campaign_study_urls(record["template_id"]),
-        }
-
-    def _build_campaign_study_guide(
-        self,
-        record: dict | None,
-        comparison: dict[str, Any],
-    ) -> dict[str, Any]:
-        interpretation = (record or {}).get("interpretation") or {}
-        label = (record or {}).get("label") or "Campaign Studio study"
-        rows = comparison.get("rows") or []
-        ranges = comparison.get("ranges") or {}
-        decision = comparison.get("decision") or {}
-        shared = comparison.get("shared_experiment") or {}
-        dimensions = shared.get("dimensions") or []
-        changed_paths = ", ".join(
-            str(dimension.get("path") or dimension.get("label"))
-            for dimension in dimensions
-        )
-        if not changed_paths:
-            changed_paths = "the configured campaign parameters"
-
-        what_changed = list(interpretation.get("what_changed") or [])
-        if rows:
-            energy_span = ranges.get("energy_drift", {}).get("span")
-            norm_span = ranges.get("norm_drift", {}).get("span")
-            density_span = ranges.get("max_density", {}).get("span")
-            if energy_span is not None:
-                what_changed.append(f"Energy drift span across completed variants: {energy_span:.3e}.")
-            if norm_span is not None:
-                what_changed.append(f"Norm drift span across completed variants: {norm_span:.3e}.")
-            if density_span is not None:
-                what_changed.append(f"Max-density span across completed variants: {density_span:.3e}.")
-        if decision.get("recommended_run_id"):
-            what_changed.append(
-                "The scoring contract recommends "
-                f"{decision['recommended_run_id']} because: {decision.get('reason', 'no rationale recorded')}"
-            )
-        if not what_changed:
-            what_changed.append(f"The campaign varies {changed_paths} and compares the resulting evidence rows.")
-
-        return {
-            "title": f"{label} guided interpretation",
-            "plain_language_summary": interpretation.get(
-                "summary",
-                (
-                    f"QS-DMSS ran a Campaign Studio study varying {changed_paths}. "
-                    "Read the result as a reproducible parameter-study workflow, not a scientific verdict."
-                ),
-            ),
-            "what_changed": what_changed,
-            "metric_meanings": list(
-                interpretation.get("metric_meanings")
-                or [
-                    "Energy and norm drift are stability-oriented diagnostics.",
-                    "Max density is an output response to compare across variants.",
-                    "Elapsed seconds keeps reviewer-facing runtime visible.",
-                    "The recommendation is a scoring-contract result, not peer-reviewed validation.",
-                ]
-            ),
-            "what_this_does_not_claim": list(
-                interpretation.get("what_this_does_not_claim")
-                or (record or {}).get("non_claims")
-                or [
-                    "It does not prove that one parameter value is scientifically correct.",
-                    "It does not replace external validation or peer review.",
-                ]
-            ),
-            "review_prompt": interpretation.get(
-                "review_prompt",
-                "A useful review comment can focus on whether the campaign evidence makes parameter behavior understandable.",
-            ),
-        }
-
-    def _build_workspace_record(self, payload: WorkspaceExportRequest) -> dict:
-        workspace_id = create_experiment_id("workspace")
-        now = datetime.now(timezone.utc).isoformat()
-        collaborators = self._normalize_workspace_collaborators(payload.collaborators)
-        annotations = self._normalize_workspace_annotations(
-            payload.annotations,
-            collaborators,
-        )
-        warnings: list[dict] = []
-        resources = {
-            "runs": self._collect_workspace_resources(
-                "run",
-                self._dedupe_text_values(payload.run_ids),
-                self._build_workspace_run_resource,
-                warnings,
-            ),
-            "experiments": self._collect_workspace_resources(
-                "experiment",
-                self._dedupe_text_values(payload.experiment_ids),
-                lambda experiment_id: self._build_experiment_detail(
-                    self._get_experiment_dir(experiment_id)
-                ),
-                warnings,
-            ),
-            "campaign_study_templates": self._collect_workspace_resources(
-                "campaign-study",
-                self._dedupe_text_values(payload.campaign_study_template_ids),
-                lambda template_id: self._build_campaign_study_detail(
-                    self._get_campaign_study_template_path(template_id)
-                ),
-                warnings,
-            ),
-            "research_objects": self._collect_workspace_resources(
-                "research-object",
-                self._dedupe_text_values(payload.research_object_ids),
-                lambda export_id: self._build_research_object_export_detail(
-                    self._research_object_export_path(export_id)
-                ),
-                warnings,
-            ),
-        }
-        job_summaries = self._workspace_job_summaries(resources)
-        record = {
-            "schema_version": 1,
-            "workspace_id": workspace_id,
-            "title": str(payload.title or "QS-DMSS workspace").strip()
-            or "QS-DMSS workspace",
-            "description": (
-                str(payload.description).strip()
-                if payload.description is not None
-                else None
-            ),
-            "created_at": now,
-            "updated_at": now,
-            "collaborators": collaborators,
-            "annotations": annotations,
-            "resources": resources,
-            "job_summaries": job_summaries,
-            "warnings": warnings,
-        }
-        record["summary"] = self._workspace_resource_counts(
-            resources,
-            collaborators,
-            annotations,
-            job_summaries,
-            warnings,
-        )
-        return record
-
-    def _normalize_imported_workspace(self, workspace: dict[str, Any]) -> dict:
-        if not isinstance(workspace, dict):
-            raise ValueError("Workspace import requires a workspace object")
-        record = json.loads(json.dumps(workspace))
-        resources = record.get("resources") or {}
-        if not isinstance(resources, dict):
-            raise ValueError("Workspace resources must be an object")
-
-        source_workspace_id = str(record.get("workspace_id") or "workspace")
-        now = datetime.now(timezone.utc).isoformat()
-        collaborators = self._normalize_workspace_collaborators(
-            record.get("collaborators") or []
-        )
-        annotations = self._normalize_workspace_annotations(
-            record.get("annotations") or [],
-            collaborators,
-        )
-        job_summaries = self._workspace_job_summaries(resources)
-        record["workspace_id"] = create_experiment_id("workspace")
-        record["imported_from_workspace_id"] = source_workspace_id
-        record["imported_at"] = now
-        record["updated_at"] = now
-        record["title"] = str(record.get("title") or "Imported QS-DMSS workspace").strip()
-        record["description"] = record.get("description")
-        record["collaborators"] = collaborators
-        record["annotations"] = annotations
-        record["resources"] = resources
-        record["job_summaries"] = job_summaries
-        record["warnings"] = record.get("warnings") or []
-        record["summary"] = self._workspace_resource_counts(
-            resources,
-            collaborators,
-            annotations,
-            job_summaries,
-            record["warnings"],
-        )
-        return record
-
-    def _install_workspace_campaign_studies(self, record: dict) -> list[dict]:
-        installed: list[dict] = []
-        resources = record.get("resources") or {}
-        templates = resources.get("campaign_study_templates") or []
-        if not isinstance(templates, list):
-            raise ValueError("Workspace campaign study templates must be a list")
-
-        for item in templates:
-            if not isinstance(item, dict):
-                continue
-            template = item.get("template")
-            if not isinstance(template, dict):
-                continue
-            imported_template = dict(template)
-            imported_from_template_id = imported_template.get("template_id")
-            if imported_from_template_id:
-                imported_template["imported_from_template_id"] = str(
-                    imported_from_template_id
-                )
-            imported_template["imported_from_workspace_id"] = record["workspace_id"]
-            imported_template.pop("packaged", None)
-            detail = self.save_campaign_study_template(
-                CampaignStudyTemplateRequest(template=imported_template),
-            )
-            installed.append(detail["summary"])
-        return installed
-
-    def _build_workspace_run_resource(self, run_id: str) -> dict:
-        summary = self._build_run_summary(self._get_run_dir(run_id))
-        return {
-            "summary": summary,
-            "urls": {
-                "detail": f"/api/runs/{summary['run_id']}",
-                "bundle": f"/api/runs/{summary['run_id']}/bundle",
-                "report": f"/api/runs/{summary['run_id']}/report",
-            },
-        }
-
-    def _collect_workspace_resources(
-        self,
-        resource_type: str,
-        resource_ids: list[str],
-        build_resource: Callable[[str], dict],
-        warnings: list[dict],
-    ) -> list[dict]:
-        resources: list[dict] = []
-        for resource_id in resource_ids:
-            try:
-                resources.append(build_resource(resource_id))
-            except HTTPException as exc:
-                if exc.status_code != 404:
-                    raise
-                warnings.append(
-                    {
-                        "resource_type": resource_type,
-                        "resource_id": resource_id,
-                        "message": str(exc.detail),
-                    }
-                )
-        return resources
-
-    def _workspace_urls(self, workspace_id: str) -> dict:
-        return {
-            "detail": f"/api/workspaces/{workspace_id}",
-            "download": f"/api/workspaces/{workspace_id}/download",
-        }
-
-    def _build_workspace_summary(self, path: Path) -> dict:
-        record = self._read_json(path)
-        workspace_id = str(record.get("workspace_id") or path.parent.name)
-        resources = record.get("resources") or {}
-        collaborators = record.get("collaborators") or []
-        annotations = record.get("annotations") or []
-        job_summaries = record.get("job_summaries") or []
-        warnings = record.get("warnings") or []
-        return {
-            "workspace_id": workspace_id,
-            "title": record.get("title") or workspace_id,
-            "description": record.get("description"),
-            "created_at": record.get("created_at"),
-            "updated_at": record.get("updated_at"),
-            "imported_from_workspace_id": record.get("imported_from_workspace_id"),
-            **self._workspace_resource_counts(
-                resources,
-                collaborators,
-                annotations,
-                job_summaries,
-                warnings,
-            ),
-            "urls": self._workspace_urls(workspace_id),
-        }
-
-    def _build_workspace_detail(self, path: Path) -> dict:
-        record = self._read_json(path)
-        workspace_id = str(record.get("workspace_id") or path.parent.name)
-        return {
-            "summary": self._build_workspace_summary(path),
-            "workspace": record,
-            "urls": self._workspace_urls(workspace_id),
-        }
-
-    def _workspace_resource_counts(
-        self,
-        resources: dict,
-        collaborators: list[dict],
-        annotations: list[dict],
-        job_summaries: list[dict],
-        warnings: list[dict],
-    ) -> dict:
-        return {
-            "run_count": len(resources.get("runs") or []),
-            "experiment_count": len(resources.get("experiments") or []),
-            "campaign_study_template_count": len(
-                resources.get("campaign_study_templates") or []
-            ),
-            "research_object_count": len(resources.get("research_objects") or []),
-            "collaborator_count": len(collaborators),
-            "annotation_count": len(annotations),
-            "job_count": len(job_summaries),
-            "warning_count": len(warnings),
-        }
-
-    def _workspace_job_summaries(self, resources: dict) -> list[dict]:
-        job_summaries: dict[str, dict] = {}
-
-        def add(summary: dict | None) -> None:
-            if not isinstance(summary, dict) or not summary.get("job_id"):
-                return
-            job_summaries[str(summary["job_id"])] = summary
-
-        for item in resources.get("runs") or []:
-            add(((item.get("summary") or {}).get("execution_job")) if isinstance(item, dict) else None)
-        for item in resources.get("experiments") or []:
-            if not isinstance(item, dict):
-                continue
-            add((item.get("summary") or {}).get("execution_job"))
-            add((item.get("execution_job") or {}).get("summary"))
-        for item in resources.get("research_objects") or []:
-            if not isinstance(item, dict):
-                continue
-            research_object = item.get("research_object") or {}
-            if isinstance(research_object, dict):
-                add((research_object.get("executionJob") or {}).get("summary"))
-                add((research_object.get("execution_job") or {}).get("summary"))
-        return list(job_summaries.values())
-
-    def _normalize_workspace_collaborators(
-        self,
-        collaborators: list[dict[str, Any]],
-    ) -> list[dict]:
-        if not isinstance(collaborators, list):
-            raise ValueError("Workspace collaborators must be a list")
-        if not collaborators:
-            return [
-                {
-                    "collaborator_id": "local-user",
-                    "display_name": "Local QS-DMSS user",
-                    "role": "owner",
-                }
-            ]
-
-        normalized: list[dict] = []
-        for index, raw in enumerate(collaborators, start=1):
-            if not isinstance(raw, dict):
-                raise ValueError("Workspace collaborator entries must be objects")
-            display_name = str(raw.get("display_name") or raw.get("name") or "").strip()
-            if not display_name:
-                raise ValueError("Workspace collaborator display_name is required")
-            collaborator_id = safe_filename(
-                str(raw.get("collaborator_id") or raw.get("id") or display_name),
-                default=f"collaborator-{index}",
-            )
-            collaborator = {
-                "collaborator_id": collaborator_id,
-                "display_name": display_name,
-                "role": str(raw.get("role") or "reviewer").strip() or "reviewer",
-            }
-            for key in ("affiliation", "location_label", "contact", "orcid"):
-                value = raw.get(key)
-                if value is not None and str(value).strip():
-                    collaborator[key] = str(value).strip()
-            normalized.append(collaborator)
-        return normalized
-
-    def _normalize_workspace_annotations(
-        self,
-        annotations: list[dict[str, Any]],
-        collaborators: list[dict],
-    ) -> list[dict]:
-        if not isinstance(annotations, list):
-            raise ValueError("Workspace annotations must be a list")
-        allowed_targets = {
-            "workspace",
-            "run",
-            "experiment",
-            "campaign-study",
-            "research-object",
-            "job",
-        }
-        collaborator_ids = {
-            str(collaborator["collaborator_id"])
-            for collaborator in collaborators
-            if collaborator.get("collaborator_id")
-        }
-        now = datetime.now(timezone.utc).isoformat()
-        normalized: list[dict] = []
-        for index, raw in enumerate(annotations, start=1):
-            if not isinstance(raw, dict):
-                raise ValueError("Workspace annotation entries must be objects")
-            text = str(raw.get("text") or raw.get("body") or "").strip()
-            if not text:
-                raise ValueError("Workspace annotation text is required")
-            target_type = str(raw.get("target_type") or "workspace").strip()
-            if target_type not in allowed_targets:
-                raise ValueError(f"Unsupported workspace annotation target_type: {target_type}")
-            annotation_id = safe_filename(
-                str(raw.get("annotation_id") or raw.get("id") or f"annotation-{index}"),
-                default=f"annotation-{index}",
-            )
-            annotation = {
-                "annotation_id": annotation_id,
-                "target_type": target_type,
-                "target_id": str(raw.get("target_id") or "workspace").strip()
-                or "workspace",
-                "text": text,
-                "created_at": str(raw.get("created_at") or now),
-                "tags": [
-                    str(tag).strip()
-                    for tag in (raw.get("tags") or [])
-                    if str(tag).strip()
-                ],
-            }
-            author_id = raw.get("author_collaborator_id") or raw.get("author")
-            if author_id is not None and str(author_id).strip():
-                author = safe_filename(str(author_id), default="collaborator")
-                annotation["author_collaborator_id"] = author
-                annotation["author_registered"] = author in collaborator_ids
-            normalized.append(annotation)
-        return normalized
-
-    def _dedupe_text_values(self, values: list[str]) -> list[str]:
-        deduped: dict[str, None] = {}
-        for value in values:
-            text = str(value).strip()
-            if text:
-                deduped[text] = None
-        return list(deduped)
 
     def _read_json(self, path: Path) -> dict:
         return json.loads(path.read_text(encoding="utf-8"))
