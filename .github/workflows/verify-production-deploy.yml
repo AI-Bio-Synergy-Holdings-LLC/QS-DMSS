@@ -27,6 +27,8 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -37,13 +39,20 @@ jobs:
         id: release
         shell: bash
         run: |
-          expected_commit="${{ inputs.expected_commit || github.sha }}"
+          expected_app_commit="${{ inputs.expected_commit || github.sha }}"
+          expected_portal_commit=$(git log --first-parent -1 --format=%H "$expected_app_commit" -- site)
+          if [[ -z "$expected_portal_commit" ]]; then
+            echo "No portal deployment commit exists at or before $expected_app_commit." >&2
+            exit 1
+          fi
           version=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
-          echo "commit=$expected_commit" >> "$GITHUB_OUTPUT"
+          echo "app_commit=$expected_app_commit" >> "$GITHUB_OUTPUT"
+          echo "portal_commit=$expected_portal_commit" >> "$GITHUB_OUTPUT"
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Wait for matching Render deployments
         run: >-
           python .github/scripts/verify_public_deployment.py
-          --expected-commit "${{ steps.release.outputs.commit }}"
+          --expected-app-commit "${{ steps.release.outputs.app_commit }}"
+          --expected-portal-commit "${{ steps.release.outputs.portal_commit }}"
           --expected-version "${{ steps.release.outputs.version }}"
