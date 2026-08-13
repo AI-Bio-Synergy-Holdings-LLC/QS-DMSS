@@ -1,0 +1,99 @@
+{
+  "schemaVersion": "1.0",
+  "recordType": "CONTROLLED_RESTART_REPOSITORY_CHARTER",
+  "recordedOn": "2026-08-13",
+  "capturedAt": "2026-08-13T20:04:29.020Z",
+  "organization": "AI-Bio-Synergy-Holdings-LLC",
+  "authorizationBasis": "explicit owner instruction to proceed with the recommended controlled sequence",
+  "repository": {
+    "slug": "AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
+    "visibility": "public",
+    "defaultBranch": "main",
+    "baselineHeadSha": "55141f783ae575abb7a63938f8762301e089012b",
+    "baselineStatusRollup": "SUCCESS"
+  },
+  "operationalProjectId": "qs-dmss",
+  "assetRegistryId": null,
+  "assetMappingStatus": "UNASSIGNED",
+  "repositoryNameIsAssetIdentity": false,
+  "admission": {
+    "sequence": 3,
+    "preMergeStatus": "PENDING_KICKOFF",
+    "postProtectedMergeStatus": "ACTIVE_CONTROLLED",
+    "newRepositoriesAdmitted": 1,
+    "engineeringActiveRepositoryCountAfterMerge": 3,
+    "engineeringActiveRepositoriesAfterMerge": [
+      "AI-Bio-Synergy-Holdings-LLC/portfolio-control-plane",
+      "AI-Bio-Synergy-Holdings-LLC/lumical-studio",
+      "AI-Bio-Synergy-Holdings-LLC/QS-DMSS"
+    ],
+    "allOtherOrganizationRepositoriesStatus": "PENDING_KICKOFF",
+    "maximumActiveFeaturePullRequestsInRepository": 1
+  },
+  "firstBoundedDelivery": {
+    "title": "deterministic independent-review evidence packet validation",
+    "relatedIssues": [105, 183],
+    "authorizedScope": [
+      "closed reviewer-evidence manifest or schema",
+      "deterministic inventory, hash, version, command-receipt, and provenance validation",
+      "rejection of missing, duplicate, unsafe, unlisted, and tampered evidence",
+      "tests, CI, and supporting validation documentation",
+      "non-executing local reviewer guidance"
+    ],
+    "scientificValidationClaimAuthorized": false,
+    "issueClosureWithoutExternalReviewAuthorized": false
+  },
+  "retainedProhibitions": [
+    "independent scientific-validation claim based only on owner-authored evidence",
+    "closure of issues 105 or 183 without required external review",
+    "scientific conclusion, Fractal SSFM semantic, calibration-claim, or benchmark-claim change in the first delivery",
+    "HPC, Slurm, QPU, cloud-provider, data-provider, or execution connector",
+    "release or package publication or production deployment-authority change",
+    "Holdings connector, credential, mount, token, network path, or private asset-data access",
+    "Control Plane repository execution, actuation, automated merge, deployment, transaction, diligence, or Gate 6 authority",
+    "internal development identifier represented as registered asset identity",
+    "admin bypass, force push, history rewrite, unprotected merge, or weakened required checks",
+    "activation of another repository without a protected charter and explicit owner approval"
+  ],
+  "entryEvidence": {
+    "openPullRequests": 0,
+    "requiredChecksStrict": true,
+    "requiredChecks": [
+      { "context": "Python 3.10", "appId": 15368 },
+      { "context": "Python 3.11", "appId": 15368 },
+      { "context": "Python 3.12", "appId": 15368 },
+      { "context": "Python 3.13", "appId": 15368 },
+      { "context": "Docker smoke", "appId": 15368 },
+      { "context": "policy / Organization baseline", "appId": 15368 },
+      { "context": "metadata / PR metadata", "appId": 15368 }
+    ],
+    "openDependabotHighCritical": 0,
+    "openCodeqlAlerts": 0,
+    "openSecretScanningAlerts": 0,
+    "dependabotSecurityUpdates": "enabled",
+    "secretScanning": "enabled",
+    "pushProtection": "enabled",
+    "productionDeployVerificationRunId": 31228889437,
+    "mainCiRunId": 31228889443,
+    "latestScheduledCodeqlRunIds": [31457375536, 31457695496]
+  },
+  "firstDeliveryExitCriteria": [
+    "exact-head protected pull request with all required checks successful",
+    "Ruff, tests and coverage floor, Bandit, pip-audit, build, Docker smoke, and applicable frontend validation successful",
+    "zero high or critical dependency, CodeQL, and secret-scanning findings unless separately accepted",
+    "deterministic documented evidence contract with negative-path tests",
+    "no independent scientific-validation claim or issue closure without external review",
+    "no provider, Holdings, execution, actuation, deployment-authority, or Gate 6 path",
+    "signed observe-only Control Plane review",
+    "protected central-ledger record"
+  ],
+  "charterChangesRuntime": false,
+  "charterChangesDependencies": false,
+  "charterChangesDeployment": false,
+  "ownerApprovalRequiredForNextRepository": true,
+  "publicWebsiteMonorepo": {
+    "repository": "SIONSOULSION/AI-Bio-Synergy-Holdings-LLC",
+    "insideOrganizationCensus": false,
+    "engineeringAdmission": false
+  }
+}
