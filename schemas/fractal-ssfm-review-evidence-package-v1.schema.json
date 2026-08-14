@@ -1,0 +1,94 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://qs-dmss.studio/schemas/fractal-ssfm-review-evidence-package-v1.schema.json",
+  "title": "QS-DMSS Fractal SSFM independent-review evidence package manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "subject", "gate", "reviewer", "commands", "files"],
+  "properties": {
+    "schema_version": {"const": "qs-dmss-fractal-ssfm-review-evidence/v1"},
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component", "release_version", "release_tag", "source_commit", "wheel"],
+      "properties": {
+        "component": {"const": "numpy_fractal_ssfm"},
+        "release_version": {"const": "0.13.2"},
+        "release_tag": {"const": "v0.13.2"},
+        "source_commit": {"const": "7a063eb91af6c50e483c2d062bf6cee0daf709e4"},
+        "wheel": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["filename", "sha256"],
+          "properties": {
+            "filename": {"const": "qs_dmss-0.13.2-py3-none-any.whl"},
+            "sha256": {"const": "6f22876fa625681aa72b96d99e14de92cfd5cfae870fc53d9d41673ebf82416f"}
+          }
+        }
+      }
+    },
+    "gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["issues", "scientific_validation_status", "claim_boundary"],
+      "properties": {
+        "issues": {"const": [105, 183]},
+        "scientific_validation_status": {"const": "NOT_ESTABLISHED"},
+        "claim_boundary": {"type": "string", "minLength": 40}
+      }
+    },
+    "reviewer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "affiliation", "contact_or_profile", "independent_from_maintainer", "independence_statement", "accountability_statement", "ai_assistance_disclosure"],
+      "properties": {
+        "name": {"type": "string", "minLength": 2},
+        "affiliation": {"type": "string", "minLength": 2},
+        "contact_or_profile": {"type": "string", "minLength": 2},
+        "independent_from_maintainer": {"const": true},
+        "independence_statement": {"type": "string", "minLength": 20},
+        "accountability_statement": {"type": "string", "minLength": 20},
+        "ai_assistance_disclosure": {"type": "string", "minLength": 20}
+      }
+    },
+    "commands": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 32,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "command", "receipt_path"],
+        "properties": {
+          "id": {"type": "string", "minLength": 1},
+          "command": {"type": "string", "minLength": 3},
+          "receipt_path": {"$ref": "#/$defs/path"}
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 256,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "role", "sha256", "size_bytes", "media_type"],
+        "properties": {
+          "path": {"$ref": "#/$defs/path"},
+          "role": {"enum": ["technical_review", "validation_json", "validation_markdown", "environment", "command_receipt", "supplemental"]},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "size_bytes": {"type": "integer", "minimum": 0, "maximum": 16777216},
+          "media_type": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$))(?!.*\\\\).+$"
+    }
+  }
+}

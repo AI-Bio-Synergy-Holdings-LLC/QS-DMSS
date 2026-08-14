@@ -50,6 +50,21 @@ Reviewers should inspect both generated reports:
 - `fractal-ssfm-validation/fractal-ssfm-validation.json`
 - `fractal-ssfm-validation/fractal-ssfm-validation.md`
 
+## Deterministic Evidence Package
+
+An external reviewer may package the reports, execution receipts, environment
+identity, provenance, and human-accountable technical assessment under the
+[closed review-evidence contract](fractal-ssfm-review-evidence-package.md).
+The package can be checked without executing its contents:
+
+```console
+qs-dmss validation review-evidence PATH_TO_PACKAGE --json
+```
+
+A passing result establishes package integrity and declared provenance only.
+It does not verify the reviewer's independence, establish scientific
+validation, or close issues #105 or #183.
+
 ## Maintainer Baseline
 
 The exact release wheel was run on 2026-07-17 using Python 3.12.13, NumPy

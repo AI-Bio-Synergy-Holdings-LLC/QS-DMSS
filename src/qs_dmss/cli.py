@@ -145,6 +145,20 @@ def _build_parser() -> argparse.ArgumentParser:
         help="Maximum allowed fuzzy_potential relative norm error.",
     )
 
+    review_evidence_parser = validation_subparsers.add_parser(
+        "review-evidence",
+        help="Verify a closed Fractal SSFM independent-review evidence package.",
+    )
+    review_evidence_parser.add_argument(
+        "package",
+        help="Path to an evidence-package directory or ZIP archive.",
+    )
+    review_evidence_parser.add_argument(
+        "--json",
+        action="store_true",
+        help="Print the deterministic machine-readable verification result.",
+    )
+
     quantum_parser = subparsers.add_parser(
         "quantum",
         help="Run local simulator-only quantum-readiness sidecars.",
@@ -596,6 +610,21 @@ def main(argv: list[str] | None = None) -> int:
             return 0 if report["success"] else 1
 
     if args.command == "validation":
+        if args.validation_command == "review-evidence":
+            from qs_dmss.evidence.review_package import verify_review_evidence_package
+
+            result = verify_review_evidence_package(args.package)
+            if args.json:
+                print(json.dumps(result.as_dict(), indent=2, sort_keys=True))
+            else:
+                status = "passed" if result.success else "failed"
+                print(f"Review evidence package verification {status}.")
+                print(f"Checked files: {result.checked_files}")
+                print("Scientific validation status: NOT_ESTABLISHED")
+                for finding in result.findings:
+                    print(f"- {finding.code} [{finding.path}]: {finding.message}")
+            return 0 if result.success else 1
+
         if args.validation_command == "fractal-ssfm":
             from qs_dmss.fractal_validation import validate_fractal_ssfm
 
