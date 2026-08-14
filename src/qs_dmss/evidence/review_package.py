@@ -83,6 +83,19 @@ def _sha256(payload: bytes) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
+def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise ValueError(f"Duplicate JSON object member {key!r}.")
+        value[key] = item
+    return value
+
+
+def _reject_non_finite_json_number(value: str) -> None:
+    raise ValueError(f"Non-finite JSON number {value!r} is not allowed.")
+
+
 def _safe_package_path(value: object) -> str | None:
     if not isinstance(value, str) or not value or value != value.strip():
         return None
@@ -226,8 +239,12 @@ def _expect(value: object, expected: object, path: str, findings: list[ReviewEvi
 
 def _json_object(payload: bytes, path: str, findings: list[ReviewEvidenceFinding]) -> dict[str, Any] | None:
     try:
-        value = json.loads(payload.decode("utf-8"))
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        value = json.loads(
+            payload.decode("utf-8"),
+            object_pairs_hook=_unique_json_object,
+            parse_constant=_reject_non_finite_json_number,
+        )
+    except (UnicodeDecodeError, ValueError, RecursionError) as exc:
         findings.append(_finding("INVALID_JSON", path, str(exc)))
         return None
     return _object(value, path, findings)
