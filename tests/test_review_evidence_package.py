@@ -37,6 +37,19 @@ def _entry(root: Path, path: str, role: str, media_type: str) -> dict[str, objec
     }
 
 
+def _refresh_entry(root: Path, manifest: dict[str, object], path: str) -> None:
+    entries = manifest["files"]
+    assert isinstance(entries, list)
+    for entry in entries:
+        assert isinstance(entry, dict)
+        if entry["path"] == path:
+            payload = (root / path).read_bytes()
+            entry["sha256"] = hashlib.sha256(payload).hexdigest()
+            entry["size_bytes"] = len(payload)
+            return
+    raise AssertionError(f"Missing manifest entry for {path}")
+
+
 def _package(root: Path) -> dict[str, object]:
     root.mkdir(parents=True)
     (root / "review.md").write_text("# Technical review\n\nIndependent review feedback.\n", encoding="utf-8")
@@ -179,6 +192,56 @@ def test_review_evidence_rejects_provenance_receipt_and_claim_drift(tmp_path: Pa
     assert "PROVENANCE_MISMATCH" in codes
     assert "HASH_MISMATCH" in codes
     assert "MEDIA_TYPE_MISMATCH" in codes
+
+
+def test_review_evidence_rejects_ambiguous_and_nonstandard_json(tmp_path: Path) -> None:
+    duplicate_manifest = tmp_path / "duplicate-manifest"
+    _package(duplicate_manifest)
+    manifest_path = duplicate_manifest / MANIFEST_NAME
+    manifest_text = manifest_path.read_text(encoding="utf-8")
+    manifest_path.write_text(
+        '{"schema_version":"ambiguous",' + manifest_text.lstrip()[1:],
+        encoding="utf-8",
+    )
+    assert "INVALID_JSON" in _codes(verify_review_evidence_package(duplicate_manifest))
+
+    cases = {
+        "duplicate-environment": (
+            "environment.json",
+            '{"platform":"ambiguous","schema_version":"qs-dmss-review-environment/v1",'
+            '"release_version":"0.13.2",'
+            f'"wheel_sha256":"{WHEEL_SHA256}",'
+            '"python_version":"3.12.13","numpy_version":"2.5.1",'
+            '"platform":"review-platform"}',
+        ),
+        "duplicate-receipt": (
+            "receipts/validation.json",
+            '{"exit_code":1,"schema_version":"qs-dmss-command-receipt/v1",'
+            '"command_id":"fractal-validation",'
+            '"command":"qs-dmss validation fractal-ssfm --output-root fractal-ssfm-validation",'
+            '"exit_code":0,"executed_at":"2026-08-13T12:00:00Z",'
+            '"environment_path":"environment.json"}',
+        ),
+        "non-finite-validation": (
+            "validation.json",
+            '{"schema_version":1,"success":true,"estimated_order":NaN}',
+        ),
+        "positive-infinity-validation": (
+            "validation.json",
+            '{"schema_version":1,"success":true,"estimated_order":Infinity}',
+        ),
+        "negative-infinity-validation": (
+            "validation.json",
+            '{"schema_version":1,"success":true,"estimated_order":-Infinity}',
+        ),
+    }
+    for name, (relative_path, payload) in cases.items():
+        package = tmp_path / name
+        manifest = _package(package)
+        (package / relative_path).write_text(payload, encoding="utf-8")
+        _refresh_entry(package, manifest, relative_path)
+        _write_json(package / MANIFEST_NAME, manifest)
+        assert "INVALID_JSON" in _codes(verify_review_evidence_package(package))
 
 
 def test_review_evidence_cli_returns_machine_readable_result(tmp_path: Path, capsys: object) -> None:

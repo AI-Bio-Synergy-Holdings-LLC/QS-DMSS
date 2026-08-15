@@ -16,6 +16,11 @@ qs-dmss validation review-evidence PATH_TO_PACKAGE --json
 network request, runs no packaged command, imports no packaged code, and writes
 nothing into the package. The result is deterministic for identical bytes.
 
+Every JSON file must be UTF-8 JSON with unique object member names and finite
+numbers. Duplicate member names, `NaN`, `Infinity`, and `-Infinity` are rejected
+as ambiguous or non-standard input rather than interpreted using parser-specific
+behavior.
+
 The package root must contain `review-evidence-manifest.json` and only the files
 listed by that manifest. Paths must be portable, relative POSIX paths. Absolute
 paths, `..`, backslashes, symbolic links, duplicate paths, case-colliding paths,
