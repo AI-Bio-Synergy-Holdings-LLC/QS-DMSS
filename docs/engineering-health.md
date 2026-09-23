@@ -2,6 +2,11 @@
 
 Last full sweep: 2026-07-28
 
+Latest repository reconciliation: 2026-09-23. See
+[the current verification record](repository-health-2026-09-23.md) for the
+updated baseline, dependency remediation, evidence-validator fixes, and
+remaining review gates. The July measurements below are historical.
+
 This register separates measured engineering health from work that needs a
 larger architectural, operational, scientific, or legal decision. It is not a
 release-readiness approval and does not expand the project's scientific claim.
@@ -133,10 +138,10 @@ require separate characterization-first increments.
 | EH-005 | P1 | Reproducible dependencies | Runtime dependencies use minimum ranges and the container builds from mutable image tags. This is appropriate for a library compatibility surface but insufficient for byte-for-byte service rebuilds. | Decide whether to maintain separate tested constraints for hosted deployments and whether Docker bases/actions must be digest/SHA pinned. Keep library metadata permissive unless compatibility policy changes. |
 | EH-006 | P1 | Coverage depth | Aggregate coverage is healthy, but the server entry point is 0% and important failure branches in experiments, AI provider integration, path handling, and evidence verification remain uncovered. | Add process-level cockpit startup/shutdown coverage and targeted negative-path tests; do not inflate coverage with low-value line-only tests. |
 | EH-007 | P1 | Operational observability | Production provenance and headers are tested, but New Relic alert configuration and Render settings are external dashboard state rather than repository-controlled configuration. | Decide which alert policies, destinations, SLOs, and deployment settings can be represented as reviewed infrastructure-as-code without storing secrets. |
-| EH-010 | P1 | Merge governance | Main protection requires the Python matrix, Docker smoke, and CodeQL, but not the quantum-sidecar or candidate-wheel workflows. It does not require signed commits or a human approval, and administrators are not subject to the rule. | Decide the release and ordinary-merge approval policy, then require the appropriate quantum/fresh-install checks, human review, signatures, and administrator enforcement without making external contribution impractical. |
+| EH-010 | P1 | Merge governance | As checked on 2026-09-23, main protection requires the Python 3.10-3.13 matrix, Docker smoke, organization policy, and PR metadata checks, pinned to the GitHub Actions app with strict updates. CodeQL, quantum-sidecar, and candidate-wheel checks run but are not in this required-status list. Administrators are not subject to the rule and the required approving-review count is zero. | Decide the release and ordinary-merge approval policy, then require the appropriate quantum/fresh-install checks, human review, signatures, and administrator enforcement without making external contribution impractical. |
 | EH-008 | P2 | Supply-chain automation | Dependabot now monitors declared ecosystems, but third-party Actions still use mutable major-version tags. | Pin Actions to reviewed commit SHAs and define a routine for Dependabot SHA refreshes. |
 | EH-009 | P2 | Python support | Package metadata permits Python 3.14 and the local sweep passed there, while CI/classifiers stop at 3.13. | Add 3.14 to CI and classifiers after the release team decides it is a supported rather than incidental interpreter. |
-| EH-011 | Decision gate | Scientific review | The Fractal SSFM independent-review gate remains open; engineering tests cannot establish physical validity or independent human scientific review. | Keep issue #105 open until corrected external methodology, exact release reproduction evidence, and defensible scientific interpretations are accepted. |
+| EH-011 | Decision gate | Scientific review | Independent scientific review remains outstanding in issue #183. Issue #105 closed on 2026-08-14 after the evidence-package validator merged; that closure does not establish physical validity or independent human scientific review. | Keep #183 open until corrected external methodology, exact release reproduction evidence, reviewer independence, and defensible scientific interpretations are accepted. Preserve #105 as historical context. |
 | EH-012 | Decision gate | Paper/legal metadata | `paper/paper.md` intentionally contains unresolved authorship, affiliation, AI-disclosure, impact, funding, and acknowledgement placeholders. | Require accountable human authorship and qualified legal/scholarly review before submission; do not infer or auto-fill these fields. |
 
 ## Maintenance cadence

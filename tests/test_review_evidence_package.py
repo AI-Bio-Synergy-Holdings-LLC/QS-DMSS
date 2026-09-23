@@ -6,6 +6,8 @@ import warnings
 import zipfile
 from pathlib import Path
 
+import pytest
+
 from qs_dmss.cli import main
 from qs_dmss.evidence.review_package import (
     ENVIRONMENT_SCHEMA,
@@ -251,3 +253,56 @@ def test_review_evidence_cli_returns_machine_readable_result(tmp_path: Path, cap
     payload = json.loads(capsys.readouterr().out)
     assert payload["success"] is True
     assert payload["gate_issues"] == [105, 183]
+
+
+@pytest.mark.parametrize("archive", [False, True])
+def test_review_evidence_rejects_empty_packages(tmp_path: Path, archive: bool) -> None:
+    target = tmp_path / ("empty.zip" if archive else "empty")
+    if archive:
+        with zipfile.ZipFile(target, "w"):
+            pass
+    else:
+        target.mkdir()
+    result = verify_review_evidence_package(target)
+    assert not result.success
+    assert "MANIFEST_MISSING" in _codes(result)
+
+
+@pytest.mark.parametrize("role", [[], {}, None, 7])
+def test_review_evidence_reports_invalid_role_types(tmp_path: Path, role: object) -> None:
+    package = tmp_path / "package"
+    manifest = _package(package)
+    manifest["files"][0]["role"] = role
+    _write_json(package / MANIFEST_NAME, manifest)
+    result = verify_review_evidence_package(package)
+    assert not result.success
+    assert "INVALID_ROLE" in _codes(result)
+
+
+@pytest.mark.parametrize("exit_code", [False, 0.0, "0", None])
+def test_review_evidence_requires_integer_receipt_exit_code(tmp_path: Path, exit_code: object) -> None:
+    package = tmp_path / "package"
+    manifest = _package(package)
+    receipt_path = package / "receipts" / "validation.json"
+    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+    receipt["exit_code"] = exit_code
+    _write_json(receipt_path, receipt)
+    _refresh_entry(package, manifest, "receipts/validation.json")
+    _write_json(package / MANIFEST_NAME, manifest)
+    result = verify_review_evidence_package(package)
+    assert not result.success
+    assert "COMMAND_NOT_SUCCESSFUL" in _codes(result)
+
+
+@pytest.mark.parametrize("number", ["1e999", "-1e999"])
+def test_review_evidence_rejects_numeric_overflow(tmp_path: Path, number: str) -> None:
+    package = tmp_path / "package"
+    manifest = _package(package)
+    (package / "validation.json").write_text(
+        '{"nested":{"value":' + number + '}}', encoding="utf-8"
+    )
+    _refresh_entry(package, manifest, "validation.json")
+    _write_json(package / MANIFEST_NAME, manifest)
+    result = verify_review_evidence_package(package)
+    assert not result.success
+    assert "INVALID_JSON" in _codes(result)

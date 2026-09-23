@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import re
 import stat
 import zipfile
@@ -94,6 +95,13 @@ def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 
 def _reject_non_finite_json_number(value: str) -> None:
     raise ValueError(f"Non-finite JSON number {value!r} is not allowed.")
+
+
+def _finite_json_float(value: str) -> float:
+    number = float(value)
+    if not math.isfinite(number):
+        _reject_non_finite_json_number(value)
+    return number
 
 
 def _safe_package_path(value: object) -> str | None:
@@ -243,6 +251,7 @@ def _json_object(payload: bytes, path: str, findings: list[ReviewEvidenceFinding
             payload.decode("utf-8"),
             object_pairs_hook=_unique_json_object,
             parse_constant=_reject_non_finite_json_number,
+            parse_float=_finite_json_float,
         )
     except (UnicodeDecodeError, ValueError, RecursionError) as exc:
         findings.append(_finding("INVALID_JSON", path, str(exc)))
@@ -384,7 +393,8 @@ def _validate_commands(
             _expect(receipt.get("command_id"), command_id, f"file:{receipt_path}.command_id", findings)
         if command_text is not None:
             _expect(receipt.get("command"), command_text, f"file:{receipt_path}.command", findings)
-        if receipt.get("exit_code") != 0:
+        exit_code = receipt.get("exit_code")
+        if type(exit_code) is not int or exit_code != 0:
             findings.append(_finding("COMMAND_NOT_SUCCESSFUL", f"file:{receipt_path}.exit_code", "Command receipt must record exit code 0."))
         if not _valid_utc_timestamp(receipt.get("executed_at")):
             findings.append(_finding("INVALID_TIMESTAMP", f"file:{receipt_path}.executed_at", "Expected an ISO-8601 UTC timestamp ending in Z."))
@@ -439,10 +449,10 @@ def _validate_manifest(files: dict[str, bytes], findings: list[ReviewEvidenceFin
             continue
         casefolded.add(path.casefold())
         role = entry.get("role")
-        if role not in _ROLES:
+        if not isinstance(role, str) or role not in _ROLES:
             findings.append(_finding("INVALID_ROLE", f"{entry_path}.role", "Role is not allowed by the closed manifest contract."))
-        else:
-            entries_by_role.setdefault(role, []).append(entry)
+            continue
+        entries_by_role.setdefault(role, []).append(entry)
         digest = entry.get("sha256")
         if not isinstance(digest, str) or _SHA256.fullmatch(digest) is None:
             findings.append(_finding("INVALID_HASH", f"{entry_path}.sha256", "Expected a lowercase SHA-256 digest."))
@@ -504,6 +514,6 @@ def verify_review_evidence_package(path: str | Path) -> ReviewEvidenceResult:
         files = {}
         read_findings = [_finding("UNSUPPORTED_TARGET", "$", "Expected an evidence-package directory or .zip file.")]
     findings.extend(read_findings)
-    checked_files = _validate_manifest(files, findings) if files else 0
+    checked_files = _validate_manifest(files, findings)
     ordered = tuple(sorted(set(findings)))
     return ReviewEvidenceResult(success=not ordered, checked_files=checked_files, findings=ordered)
