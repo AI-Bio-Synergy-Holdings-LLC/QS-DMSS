@@ -72,7 +72,7 @@ DOI = "https://doi.org/10.5281/zenodo.20074924"
 [project.optional-dependencies]
 dev = [
   "httpx>=0.28",
-  "httpx2>=2.3",
+  "httpx2>=2.12",
   "pytest>=8.0",
   "pytest-cov>=7.0",
   "ruff>=0.16",
