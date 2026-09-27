@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
 import numpy as np
@@ -7,6 +8,7 @@ import numpy as np
 from qs_dmss.core.fractal_graph import FractalGraph, build_sierpinski_gasket
 from qs_dmss.core.fractal_validation import build_multilevel_spectral_report
 from qs_dmss.core.graph_policy import (
+    finite_number,
     graph_resource_estimate,
     positive_finite,
     validate_graph_execution,
@@ -54,16 +56,15 @@ class FractalGraphSpectralSolver:
         validate_graph_scale(engine.box_size)
         if type(engine.log_every) is not int or engine.log_every < 1:
             raise ValueError("log_every must be a positive integer")
-        if not np.isfinite(engine.g_int):
-            raise ValueError("g_int must be finite")
+        finite_number(engine.g_int, "g_int")
         positive_finite(initial.amplitude, "initial.amplitude")
         positive_finite(initial.width, "initial.width")
-        self.graph = self._build_graph()
         if (any(type(v) is not int for v in engine.grid_shape)
-                or engine.grid_shape != (self.graph.vertex_count, 1, 1)):
+                or engine.grid_shape != fractal_graph.grid_shape):
             raise ValueError(
                 "Derived engine.grid_shape does not match the active fractal vertex count."
             )
+        self.graph = self._build_graph()
 
         self.xp = self._load_array_module(fractal_graph.device)
         self.rng = self.xp.random.default_rng(seed)
@@ -72,6 +73,8 @@ class FractalGraphSpectralSolver:
         self.stiffness = self.xp.asarray(self.graph.stiffness, dtype=self.xp.float64)
         self.coordinates = self.xp.asarray(self.graph.coordinates, dtype=self.xp.float64)
         self.potential, self.gamma = self._build_node_fields()
+        if not np.all(np.isfinite(self.gamma)):
+            raise ValueError("Graph node coupling must remain finite; reduce g_int/quadrant_gamma")
         self.eigenvalues, self.eigenvectors = self._build_spectral_basis()
         self.tail_start, self.cluster_tolerance = tail_cluster_start(
             self.eigenvalues, self.config.tail_fraction
@@ -147,10 +150,13 @@ class FractalGraphSpectralSolver:
                 [self.engine.box_size / 2.0, self.engine.box_size * np.sqrt(3.0) / 6.0],
                 dtype=self.xp.float64,
             )
-            radius_squared = self.xp.sum((self.coordinates - center) ** 2, axis=1)
-            density = self.initial.amplitude * self.xp.exp(
-                -radius_squared / (2.0 * self.initial.width**2)
-            )
+            # Dimensionless distances avoid width**2 under/overflow. Infinite
+            # distances correctly decay to zero; an entirely zero state is rejected.
+            with np.errstate(over="ignore", divide="ignore"):
+                radius_squared = self.xp.sum(
+                    ((self.coordinates - center) / self.initial.width) ** 2, axis=1
+                )
+                density = self.initial.amplitude * self.xp.exp(-0.5 * radius_squared)
         else:
             raise ValueError(f"Unsupported initial condition kind: {self.initial.kind}")
 
@@ -251,6 +257,7 @@ class FractalGraphSpectralSolver:
             "fractal_lattice_coordinates": self.graph.lattice_coordinates,
             "fractal_edges": self.graph.edges,
             "fractal_full_coordinates": self.graph.full_coordinates,
+            "fractal_full_lattice_coordinates": self.graph.full_lattice_coordinates,
             "fractal_full_edges": self.graph.full_edges,
             "fractal_active_vertex_ids": self.graph.active_vertex_ids,
             "fractal_boundary_vertex_ids": self.graph.boundary_vertex_ids,
@@ -262,9 +269,28 @@ class FractalGraphSpectralSolver:
         }
 
     def run(self) -> SimulationResult:
+        # Finite inputs alone do not guarantee representable phases, energies or
+        # ratios. Fail before evidence persistence rather than emit NaN/Infinity.
+        try:
+            with np.errstate(over="raise", divide="raise", invalid="raise"):
+                result = self._run()
+                json.dumps(result.diagnostics, allow_nan=False)
+                json.dumps(result.history, allow_nan=False)
+                if not np.all(np.isfinite(result.psi)) or not np.all(np.isfinite(result.density)):
+                    raise ValueError("Graph final state must be finite")
+                return result
+        except (FloatingPointError, OverflowError) as exc:
+            raise ValueError(
+                "Graph run is not representable with finite float64 diagnostics; "
+                "reduce amplitude, coupling or timestep, or rescale the model."
+            ) from exc
+
+    def _run(self) -> SimulationResult:
         psi = self.initialize_wavefunction()
         initial_copy = psi.copy()
         initial_norm = self.compute_norm(psi)
+        if not np.isfinite(initial_norm) or initial_norm <= 0:
+            raise ValueError("Graph initial state has zero or non-finite mass-weighted norm")
         initial_energy = self.compute_energy(psi)
         history: list[dict] = [self.record_snapshot(step=0, psi=psi)]
 
@@ -296,6 +322,8 @@ class FractalGraphSpectralSolver:
             "graph_level": self.graph.level,
             "boundary_condition": self.graph.boundary_condition,
             "device": self.config.device,
+            "exported_eigenmode_count": min(self.config.artifact_eigenmodes, self.graph.vertex_count),
+            "eigenmode_export_policy": "leading_columns_may_split_clusters_not_canonical_observables",
             "vertex_count": self.graph.vertex_count,
             "full_vertex_count": self.graph.full_vertex_count,
             "edge_count": int(self.graph.full_edges.shape[0]),

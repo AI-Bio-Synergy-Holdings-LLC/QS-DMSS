@@ -180,6 +180,12 @@ def test_graph_evidence_roundtrip_and_domain_guards(tmp_path):
         assert arrays["fractal_stiffness"].shape == (12, 12)
         assert arrays["fractal_mass_weights"].shape == (12,)
         assert arrays["fractal_eigenvalues"].shape == (12,)
+        active = arrays["fractal_active_vertex_ids"]
+        np.testing.assert_array_equal(arrays["fractal_lattice_coordinates"],
+                                      arrays["fractal_full_lattice_coordinates"][active])
+        np.testing.assert_array_equal(arrays["fractal_coordinates"],
+                                      arrays["fractal_full_coordinates"][active])
+        assert arrays["fractal_eigenmodes"].shape[1] <= config.fractal_graph.artifact_eigenmodes
     density = np.load(run.run_dir / "artifacts" / "final_density.npy")
     assert density.shape == (12,)
     np.testing.assert_allclose(density, np.load(replay.run_dir / "artifacts" / "final_density.npy"))

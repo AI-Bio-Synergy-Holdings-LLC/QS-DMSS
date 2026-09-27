@@ -290,6 +290,15 @@ def run_smoke(
 
         _smoke_cockpit(cli, workspace, cockpit_root, package_version)
 
+        if source == "candidate-wheel":
+            # Keep this admission check off published v0.13.2 smoke runs: the
+            # experimental backend is not in that release and is not promoted here.
+            _run(
+                [str(python), str(Path(__file__).with_name("graph_backend_smoke.py")),
+                 "--output-root", str(output_root / "experimental-graph")],
+                cwd=workspace,
+            )
+
         print(
             f"Fresh install smoke passed for {source} "
             f"qs-dmss=={package_version} in {workspace}",

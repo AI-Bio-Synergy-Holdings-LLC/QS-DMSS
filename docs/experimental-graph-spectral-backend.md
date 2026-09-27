@@ -7,6 +7,10 @@ are required. The public demo cannot execute this backend and does not list its 
 
 ## Run and inspect
 
+Use this development checkout or its candidate wheel; the published v0.13.2 wheel
+does not contain this backend. This is an engineering admission candidate, not a
+new release or an independently validated scientific model.
+
 ```powershell
 qs-dmss run configs/sierpinski_graph_spectral.yaml --output-root graph-runs
 qs-dmss verify graph-runs/<run-id>
@@ -44,6 +48,10 @@ within `64 * eps * N * spectral_radius`. A fraction of 1 selects no modes. The
 effective start, cutoff eigenvalue, and tolerance are saved, making the selected
 subspace explicit. Power is invariant to rotations/permutations within that cluster;
 individual exported eigenvectors are not canonical research observables.
+The operator archive stores full and active integer lattice coordinates. A requested
+number of exported mode columns may split a cluster; `exported_eigenmode_count`
+and `eigenmode_export_policy` record that limitation. Reconstruct complete spectral
+projectors from the saved stiffness and mass for basis-invariant comparisons.
 
 Roundoff-scale eigenvalues are classified as zero; materially negative eigenvalues
 raise errors. Multilevel reports separate nullity/absolute nullspace residual from
@@ -60,6 +68,9 @@ mode correspondence across levels. Stabilization is not a continuum proof.
 - At most six distinct validation levels, none above the run level; at most 366
   exported/validation modes. Domain scale is bounded to `[1e-6, 1e6]`.
 - GPU requests are rejected. No optional CuPy import occurs for graph runs.
+- Non-representable evolution/diagnostics and a zero initial mass-weighted norm
+  fail explicitly before state, report, manifest or evidence-bundle persistence.
+  A failed execution may retain its job record/config for troubleshooting.
 
 These are per-run limits, not a concurrency scheduler. Larger models require a
 separate sparse/operator design and measured memory/runtime review.
@@ -77,3 +88,22 @@ not be overwritten. See [diagnostic migration](fft-energy-diagnostic-correction.
 Independent human scientific review, length-scaling interpretation, continuum
 convergence and application/studio promotion remain separate gates. No release or
 hosted enablement is implied by this engineering integration.
+
+### Admission checklist (not scientific approval)
+
+- JSON Schema and parser must agree at every level, boundary, shape and step-work
+  limit, including omitted default fields. Both shipped schemas are synchronized.
+- Keep the supported Python matrix, security/dependency review, packaging, Docker,
+  legacy solver/quantum tests and human engineering review green before merge.
+- The cross-platform candidate-wheel smoke executes, verifies and replays the
+  packaged graph config outside the checkout, checks its operator archive, and
+  confirms hosted catalog/replay rejection. It does not change published-release
+  smoke behavior or enable the hosted backend.
+- Independent human scientific review must assess the finite-cell measure,
+  boundary restriction, length scaling, quadrant fields, temporal refinement,
+  multilevel interpretation and domain applicability before scientific promotion.
+- Source-bundle provenance is recorded above; the owner must confirm the supplied
+  code's provenance/licensing before admission. No independent legal assessment
+  is implied by the engineering tests.
+- Concurrent-run scheduling, sparse solvers, larger graphs, spatial UI adapters
+  and any quantum mapping require separate designs. None is admitted by this PR.

@@ -14,8 +14,9 @@ class FractalGraph:
 
     ``stiffness`` is the renormalized graph-energy matrix K_m and
     ``mass_weights`` is the diagonal of the finite-cell measure M_m.  The
-    generalized eigenproblem K_m phi = lambda M_m phi therefore approximates
-    the intrinsic fractal Laplacian rather than a Euclidean FFT Laplacian.
+    generalized eigenproblem K_m phi = lambda M_m phi defines the declared
+    finite-graph operator, not a Euclidean FFT Laplacian. Continuum convergence
+    and the physical interpretation of its scaling remain separate review gates.
     """
 
     family: str
@@ -74,7 +75,8 @@ def build_sierpinski_gasket(
     mass ``3^-level`` is shared equally among each cell's three vertices.  For
     interior vertices this yields the familiar pointwise scaling
     ``(3/2) * 5^level`` for ``-Delta``.  Scaling the embedded gasket by
-    ``physical_scale`` divides the operator by ``physical_scale**2``.
+    ``physical_scale`` divides the operator by ``physical_scale**2`` by declared
+    modeling convention, not as a claim about validated fractal length scaling.
     """
 
     graph_resource_estimate(level, boundary_condition)

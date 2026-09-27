@@ -34,8 +34,14 @@ def validate_graph_execution(level: int, boundary_condition: str, num_steps: int
         raise ValueError("Graph run exceeds the dense step-work budget; reduce level or steps")
 
 
+def finite_number(value: float, name: str) -> None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+        raise ValueError(f"{name} must be a finite number")
+
+
 def positive_finite(value: float, name: str) -> None:
-    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+    finite_number(value, name)
+    if value <= 0:
         raise ValueError(f"{name} must be finite and positive")
 
 
