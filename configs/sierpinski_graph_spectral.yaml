@@ -1,0 +1,28 @@
+run:
+  name: experimental-sierpinski-graph
+  seed: 42
+  output_root: runs
+engine:
+  backend: fractal_graph_spectral
+  box_size: 1.0
+  mass: 1.0
+  g_int: 0.25
+  time_step: 0.001
+  num_steps: 100
+  log_every: 10
+fractal_graph:
+  family: sierpinski_gasket
+  level: 4
+  boundary_condition: dirichlet
+  device: cpu
+  quadrant_gamma: [1.0, 0.85, 1.2, 0.65]
+  quadrant_potential: [0.0, 0.05, 0.10, 0.15]
+  tail_fraction: 0.8
+  artifact_eigenmodes: 16
+  validation_levels: [1, 2, 3, 4]
+  validation_eigenvalues: 8
+initial:
+  kind: gaussian
+  amplitude: 1.0
+  width: 0.2
+  random_phase: false

@@ -59,7 +59,10 @@ def _build_metrics(
     metrics: dict[str, Any] = {
         "schema_version": 1,
         "backend": config.engine.backend,
-        "energy_diagnostic_convention": "fft_cell_measure_v2",
+        "energy_diagnostic_convention": (
+            "graph_mass_stiffness_v1" if config.engine.backend == "fractal_graph_spectral"
+            else "fft_cell_measure_v2"
+        ),
         "elapsed_seconds": round(elapsed_seconds, 6),
         "history": history,
         "initial_norm": initial["norm"],
@@ -282,6 +285,8 @@ def _execute_run_direct(
     finished_at = datetime.now(timezone.utc)
 
     np.save(workspace.artifacts_dir / "final_density.npy", result.density)
+    if result.array_artifacts:
+        np.savez(workspace.artifacts_dir / "graph_operator.npz", **result.array_artifacts)
     np.savez(
         workspace.artifacts_dir / "final_state.npz",
         real=result.psi.real,

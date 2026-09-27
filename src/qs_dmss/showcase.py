@@ -515,6 +515,8 @@ def _write_showcase_artifacts(
     run_dir: Path,
     config: SimulationConfig,
 ) -> dict[str, str]:
+    if config.engine.backend == "fractal_graph_spectral":
+        raise ValueError("Rectangular showcase plots do not support finite-graph states; use the graph run report")
     artifacts_root = output_root / "artifacts"
     artifacts_root.mkdir(parents=True, exist_ok=True)
 
