@@ -1,0 +1,2 @@
+# Research runner only: no application/runtime dependency change.
+scipy>=1.10,<2
