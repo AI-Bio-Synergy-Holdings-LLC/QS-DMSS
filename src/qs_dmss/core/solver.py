@@ -14,6 +14,7 @@ class SimulationResult:
     density: np.ndarray
     history: list[dict]
     diagnostics: dict[str, Any] | None = None
+    array_artifacts: dict[str, np.ndarray] | None = None
 
 
 class QuantumScalarDarkMatterSolver:

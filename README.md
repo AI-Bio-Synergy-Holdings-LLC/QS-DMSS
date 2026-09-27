@@ -205,6 +205,12 @@ Run the benchmark validation spine:
 qs-dmss benchmarks validate --scenario demo-baseline
 ```
 
+For the separate, opt-in finite-graph research backend in the development checkout,
+see [Experimental CPU graph-spectral backend](docs/experimental-graph-spectral-backend.md).
+It is local-only and does not replace the rectangular SSFM or its review gate.
+Energy comparisons across older and current runs also require the
+[FFT diagnostic migration notes](docs/fft-energy-diagnostic-correction.md).
+
 Run the experimental CPU reference Fractal/Quadrant SSFM validation spine:
 
 ```powershell

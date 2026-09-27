@@ -123,7 +123,12 @@ class CockpitArtifactService:
 
         included_files: list[str] = []
         missing_files: list[str] = []
-        for relative_name in profile["files"]:
+        profile_files = list(profile["files"])
+        # Preserve legacy profile contents; graph state additionally needs its
+        # operator, measure and vertex ordering for meaningful interpretation.
+        if contained_path(run_dir, "artifacts/graph_operator.npz").is_file():
+            profile_files.append("artifacts/graph_operator.npz")
+        for relative_name in profile_files:
             candidate = contained_path(run_dir, relative_name)
             if candidate.exists() and candidate.is_file():
                 included_files.append(relative_name)

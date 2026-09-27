@@ -8,7 +8,10 @@ from typing import Any
 
 import yaml
 
-SUPPORTED_BACKENDS = ("numpy", "numpy_fractal_ssfm", "cupy_fractal_ssfm")
+from qs_dmss.core.graph_policy import validate_graph_execution, validate_graph_scale
+from qs_dmss.io.graph_config import FractalGraphConfig, parse_fractal_graph
+
+SUPPORTED_BACKENDS = ("numpy", "numpy_fractal_ssfm", "cupy_fractal_ssfm", "fractal_graph_spectral")
 SUPPORTED_FRACTAL_BACKENDS = ("numpy_fractal_ssfm", "cupy_fractal_ssfm")
 SUPPORTED_GEOMETRY_MODES = ("fuzzy_potential", "soft_mask", "hard_mask")
 SUPPORTED_FRACTALS = ("mandelbrot", "radial_shells")
@@ -194,6 +197,7 @@ class SimulationConfig:
     constraints: ConstraintConfig | None = None
     ranking: RankingConfig | None = None
     campaign: CampaignConfig | None = None
+    fractal_graph: FractalGraphConfig | None = None
 
     def to_dict(self) -> dict[str, Any]:
         payload = {
@@ -223,6 +227,8 @@ class SimulationConfig:
             payload["geometry"] = self.geometry.to_dict()
         if self.spectral is not None:
             payload["spectral"] = self.spectral.to_dict()
+        if self.fractal_graph is not None:
+            payload["fractal_graph"] = self.fractal_graph.to_dict()
         if self.objective is not None:
             payload["objective"] = self.objective.to_dict()
             payload["constraints"] = (self.constraints or ConstraintConfig()).to_dict()
@@ -509,14 +515,27 @@ def parse_config(data: dict[str, Any]) -> SimulationConfig:
         supported = ", ".join(SUPPORTED_BACKENDS)
         raise ValueError(f"'engine.backend' must be one of: {supported}")
 
-    grid_shape = engine_data.get("grid_shape")
+    graph = None
+    if backend == "fractal_graph_spectral":
+        graph = parse_fractal_graph(root.get("fractal_graph"))
+        if root.get("geometry") is not None or root.get("spectral") is not None:
+            raise ValueError("Graph backend does not accept rectangular geometry/spectral sections")
+        validate_graph_execution(graph.level, graph.boundary_condition, engine_data.get("num_steps"))
+        scale = _require_number(engine_data.get("box_size"), "engine.box_size", positive=True)
+        validate_graph_scale(scale)
+    elif root.get("fractal_graph") is not None:
+        raise ValueError("fractal_graph requires the fractal_graph_spectral backend")
+    grid_shape = engine_data.get("grid_shape", list(graph.grid_shape) if graph else None)
     if (
         not isinstance(grid_shape, list)
         or len(grid_shape) != 3
         or any(not isinstance(value, int) or isinstance(value, bool) for value in grid_shape)
     ):
         raise ValueError("'engine.grid_shape' must be a list of three integers")
-    if backend in SUPPORTED_FRACTAL_BACKENDS:
+    if graph is not None:
+        if tuple(grid_shape) != graph.grid_shape:
+            raise ValueError("engine.grid_shape must match the derived graph shape")
+    elif backend in SUPPORTED_FRACTAL_BACKENDS:
         if grid_shape[0] < 2 or grid_shape[1] < 2 or grid_shape[2] != 1:
             raise ValueError(
                 "'engine.grid_shape' must be [nx, ny, 1] with nx and ny >= 2 "
@@ -591,6 +610,7 @@ def parse_config(data: dict[str, Any]) -> SimulationConfig:
             ),
         ),
         geometry=geometry,
+        fractal_graph=graph,
         spectral=spectral,
         objective=objective,
         constraints=constraints,

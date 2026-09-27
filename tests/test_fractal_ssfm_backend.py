@@ -77,6 +77,7 @@ def test_fractal_config_schema_lists_sections_and_backends() -> None:
         "numpy",
         "numpy_fractal_ssfm",
         "cupy_fractal_ssfm",
+        "fractal_graph_spectral",
     ]
 
 

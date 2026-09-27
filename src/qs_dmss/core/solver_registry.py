@@ -8,6 +8,13 @@ def build_solver(config: SimulationConfig):
     """Build the configured solver backend while preserving the NumPy default path."""
 
     backend = config.engine.backend
+    if backend == "fractal_graph_spectral":
+        from qs_dmss.core.fractal_spectral import FractalGraphSpectralSolver
+
+        if config.fractal_graph is None:
+            raise ValueError("fractal_graph configuration is required")
+        return FractalGraphSpectralSolver(config.engine, config.initial, config.run.seed,
+                                          config.fractal_graph)
     if backend == "numpy":
         return QuantumScalarDarkMatterSolver(
             engine=config.engine,

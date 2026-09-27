@@ -2,12 +2,19 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "QS-DMSS Run Config",
   "type": "object",
-  "required": ["run", "engine", "initial"],
+  "required": [
+    "run",
+    "engine",
+    "initial"
+  ],
   "additionalProperties": false,
   "properties": {
     "run": {
       "type": "object",
-      "required": ["name", "seed"],
+      "required": [
+        "name",
+        "seed"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -28,7 +35,6 @@
       "type": "object",
       "required": [
         "backend",
-        "grid_shape",
         "box_size",
         "mass",
         "g_int",
@@ -39,7 +45,12 @@
       "properties": {
         "backend": {
           "type": "string",
-          "enum": ["numpy", "numpy_fractal_ssfm", "cupy_fractal_ssfm"]
+          "enum": [
+            "numpy",
+            "numpy_fractal_ssfm",
+            "cupy_fractal_ssfm",
+            "fractal_graph_spectral"
+          ]
         },
         "grid_shape": {
           "type": "array",
@@ -52,7 +63,7 @@
             },
             {
               "type": "integer",
-              "minimum": 2
+              "minimum": 1
             },
             {
               "type": "integer",
@@ -89,17 +100,22 @@
     },
     "initial": {
       "type": "object",
-      "required": ["kind"],
+      "required": [
+        "kind"
+      ],
       "additionalProperties": false,
       "properties": {
         "kind": {
           "type": "string",
-          "enum": ["gaussian", "uniform"]
+          "enum": [
+            "gaussian",
+            "uniform"
+          ]
         },
         "amplitude": {
           "type": "number",
           "exclusiveMinimum": 0,
-          "default": 1.0
+          "default": 1
         },
         "width": {
           "type": "number",
@@ -118,12 +134,19 @@
       "properties": {
         "mode": {
           "type": "string",
-          "enum": ["fuzzy_potential", "soft_mask", "hard_mask"],
+          "enum": [
+            "fuzzy_potential",
+            "soft_mask",
+            "hard_mask"
+          ],
           "default": "fuzzy_potential"
         },
         "fractal": {
           "type": "string",
-          "enum": ["mandelbrot", "radial_shells"],
+          "enum": [
+            "mandelbrot",
+            "radial_shells"
+          ],
           "default": "mandelbrot"
         },
         "potential_strength": {
@@ -143,7 +166,12 @@
           "items": {
             "type": "number"
           },
-          "default": [1.0, 1.0, 1.0, 1.0]
+          "default": [
+            1,
+            1,
+            1,
+            1
+          ]
         },
         "mandelbrot_iterations": {
           "type": "integer",
@@ -179,7 +207,11 @@
     },
     "objective": {
       "type": "object",
-      "required": ["name", "primary_metric", "goal"],
+      "required": [
+        "name",
+        "primary_metric",
+        "goal"
+      ],
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -191,11 +223,21 @@
         },
         "primary_metric": {
           "type": "string",
-          "enum": ["energy_drift", "norm_drift", "max_density", "elapsed_seconds"]
+          "enum": [
+            "energy_drift",
+            "norm_drift",
+            "max_density",
+            "elapsed_seconds"
+          ]
         },
         "goal": {
           "type": "string",
-          "enum": ["minimize", "minimize_abs", "maximize", "target"]
+          "enum": [
+            "minimize",
+            "minimize_abs",
+            "maximize",
+            "target"
+          ]
         },
         "target_value": {
           "type": "number"
@@ -234,7 +276,7 @@
         "primary_metric_weight": {
           "type": "number",
           "minimum": 0,
-          "default": 2.0
+          "default": 2
         },
         "weights": {
           "type": "object",
@@ -262,7 +304,10 @@
     },
     "campaign": {
       "type": "object",
-      "required": ["label", "dimensions"],
+      "required": [
+        "label",
+        "dimensions"
+      ],
       "additionalProperties": false,
       "properties": {
         "label": {
@@ -271,7 +316,9 @@
         },
         "strategy": {
           "type": "string",
-          "enum": ["grid"],
+          "enum": [
+            "grid"
+          ],
           "default": "grid"
         },
         "max_runs": {
@@ -284,7 +331,10 @@
           "minItems": 1,
           "items": {
             "type": "object",
-            "required": ["path", "values"],
+            "required": [
+              "path",
+              "values"
+            ],
             "additionalProperties": false,
             "properties": {
               "path": {
@@ -309,12 +359,84 @@
           }
         }
       }
+    },
+    "fractal_graph": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "family": {
+          "const": "sierpinski_gasket"
+        },
+        "level": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "default": 4
+        },
+        "boundary_condition": {
+          "enum": [
+            "dirichlet",
+            "neumann"
+          ],
+          "default": "dirichlet"
+        },
+        "device": {
+          "const": "cpu"
+        },
+        "quadrant_gamma": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "type": "number"
+          }
+        },
+        "quadrant_potential": {
+          "type": "array",
+          "minItems": 4,
+          "maxItems": 4,
+          "items": {
+            "type": "number"
+          }
+        },
+        "tail_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "maximum": 1
+        },
+        "artifact_eigenmodes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 366
+        },
+        "validation_levels": {
+          "type": "array",
+          "maxItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 5
+          }
+        },
+        "validation_eigenvalues": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 366
+        }
+      }
     }
   },
   "dependentRequired": {
-    "constraints": ["objective"],
-    "ranking": ["objective"],
-    "campaign": ["objective"]
+    "constraints": [
+      "objective"
+    ],
+    "ranking": [
+      "objective"
+    ],
+    "campaign": [
+      "objective"
+    ]
   },
   "allOf": [
     {
@@ -333,10 +455,14 @@
         "not": {
           "anyOf": [
             {
-              "required": ["geometry"]
+              "required": [
+                "geometry"
+              ]
             },
             {
-              "required": ["spectral"]
+              "required": [
+                "spectral"
+              ]
             }
           ]
         },
@@ -370,7 +496,10 @@
           "engine": {
             "properties": {
               "backend": {
-                "enum": ["numpy_fractal_ssfm", "cupy_fractal_ssfm"]
+                "enum": [
+                  "numpy_fractal_ssfm",
+                  "cupy_fractal_ssfm"
+                ]
               }
             }
           }
@@ -402,10 +531,14 @@
     },
     {
       "if": {
-        "required": ["objective"],
+        "required": [
+          "objective"
+        ],
         "properties": {
           "objective": {
-            "required": ["goal"],
+            "required": [
+              "goal"
+            ],
             "properties": {
               "goal": {
                 "const": "target"
@@ -417,7 +550,787 @@
       "then": {
         "properties": {
           "objective": {
-            "required": ["target_value"]
+            "required": [
+              "target_value"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "backend": {
+                "const": "fractal_graph_spectral"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "fractal_graph"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "geometry"
+              ]
+            },
+            {
+              "required": [
+                "spectral"
+              ]
+            }
+          ]
+        },
+        "properties": {
+          "engine": {
+            "properties": {
+              "num_steps": {
+                "maximum": 10000
+              },
+              "box_size": {
+                "minimum": 0.000001,
+                "maximum": 1000000
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "not": {
+          "required": [
+            "fractal_graph"
+          ]
+        },
+        "properties": {
+          "engine": {
+            "required": [
+              "grid_shape"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          {
+            "properties": {
+              "engine": {
+                "properties": {
+                  "backend": {
+                    "const": "fractal_graph_spectral"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "fractal_graph": {
+                "properties": {
+                  "level": {
+                    "const": 0
+                  },
+                  "boundary_condition": {
+                    "const": "dirichlet"
+                  }
+                },
+                "required": [
+                  "level"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "then": false
+    },
+    {
+      "if": {
+        "allOf": [
+          {
+            "properties": {
+              "engine": {
+                "properties": {
+                  "backend": {
+                    "const": "fractal_graph_spectral"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "fractal_graph": {
+                "properties": {
+                  "level": {
+                    "const": 0
+                  },
+                  "boundary_condition": {
+                    "const": "neumann"
+                  }
+                },
+                "required": [
+                  "level",
+                  "boundary_condition"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "grid_shape": {
+                "const": [
+                  3,
+                  1,
+                  1
+                ]
+              },
+              "num_steps": {
+                "maximum": 10000
+              }
+            }
+          },
+          "fractal_graph": {
+            "properties": {
+              "validation_levels": {
+                "items": {
+                  "minimum": 0,
+                  "maximum": 0
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          {
+            "properties": {
+              "engine": {
+                "properties": {
+                  "backend": {
+                    "const": "fractal_graph_spectral"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "fractal_graph": {
+                "properties": {
+                  "level": {
+                    "const": 1
+                  },
+                  "boundary_condition": {
+                    "const": "dirichlet"
+                  }
+                },
+                "required": [
+                  "level"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "grid_shape": {
+                "const": [
+                  3,
+                  1,
+                  1
+                ]
+              },
+              "num_steps": {
+                "maximum": 10000
+              }
+            }
+          },
+          "fractal_graph": {
+            "properties": {
+              "validation_levels": {
+                "items": {
+                  "minimum": 1,
+                  "maximum": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          {
+            "properties": {
+              "engine": {
+                "properties": {
+                  "backend": {
+                    "const": "fractal_graph_spectral"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "fractal_graph": {
+                "properties": {
+                  "level": {
+                    "const": 1
+                  },
+                  "boundary_condition": {
+                    "const": "neumann"
+                  }
+                },
+                "required": [
+                  "level",
+                  "boundary_condition"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "grid_shape": {
+                "const": [
+                  6,
+                  1,
+                  1
+                ]
+              },
+              "num_steps": {
+                "maximum": 10000
+              }
+            }
+          },
+          "fractal_graph": {
+            "properties": {
+              "validation_levels": {
+                "items": {
+                  "minimum": 0,
+                  "maximum": 1
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          {
+            "properties": {
+              "engine": {
+                "properties": {
+                  "backend": {
+                    "const": "fractal_graph_spectral"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "fractal_graph": {
+                "properties": {
+                  "level": {
+                    "const": 2
+                  },
+                  "boundary_condition": {
+                    "const": "dirichlet"
+                  }
+                },
+                "required": [
+                  "level"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "grid_shape": {
+                "const": [
+                  12,
+                  1,
+                  1
+                ]
+              },
+              "num_steps": {
+                "maximum": 10000
+              }
+            }
+          },
+          "fractal_graph": {
+            "properties": {
+              "validation_levels": {
+                "items": {
+                  "minimum": 1,
+                  "maximum": 2
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          {
+            "properties": {
+              "engine": {
+                "properties": {
+                  "backend": {
+                    "const": "fractal_graph_spectral"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "fractal_graph": {
+                "properties": {
+                  "level": {
+                    "const": 2
+                  },
+                  "boundary_condition": {
+                    "const": "neumann"
+                  }
+                },
+                "required": [
+                  "level",
+                  "boundary_condition"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "grid_shape": {
+                "const": [
+                  15,
+                  1,
+                  1
+                ]
+              },
+              "num_steps": {
+                "maximum": 10000
+              }
+            }
+          },
+          "fractal_graph": {
+            "properties": {
+              "validation_levels": {
+                "items": {
+                  "minimum": 0,
+                  "maximum": 2
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          {
+            "properties": {
+              "engine": {
+                "properties": {
+                  "backend": {
+                    "const": "fractal_graph_spectral"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "fractal_graph": {
+                "properties": {
+                  "level": {
+                    "const": 3
+                  },
+                  "boundary_condition": {
+                    "const": "dirichlet"
+                  }
+                },
+                "required": [
+                  "level"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "grid_shape": {
+                "const": [
+                  39,
+                  1,
+                  1
+                ]
+              },
+              "num_steps": {
+                "maximum": 10000
+              }
+            }
+          },
+          "fractal_graph": {
+            "properties": {
+              "validation_levels": {
+                "items": {
+                  "minimum": 1,
+                  "maximum": 3
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          {
+            "properties": {
+              "engine": {
+                "properties": {
+                  "backend": {
+                    "const": "fractal_graph_spectral"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "fractal_graph": {
+                "properties": {
+                  "level": {
+                    "const": 3
+                  },
+                  "boundary_condition": {
+                    "const": "neumann"
+                  }
+                },
+                "required": [
+                  "level",
+                  "boundary_condition"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "grid_shape": {
+                "const": [
+                  42,
+                  1,
+                  1
+                ]
+              },
+              "num_steps": {
+                "maximum": 10000
+              }
+            }
+          },
+          "fractal_graph": {
+            "properties": {
+              "validation_levels": {
+                "items": {
+                  "minimum": 0,
+                  "maximum": 3
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          {
+            "properties": {
+              "engine": {
+                "properties": {
+                  "backend": {
+                    "const": "fractal_graph_spectral"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "fractal_graph": {
+                "properties": {
+                  "level": {
+                    "const": 4
+                  },
+                  "boundary_condition": {
+                    "const": "dirichlet"
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "grid_shape": {
+                "const": [
+                  120,
+                  1,
+                  1
+                ]
+              },
+              "num_steps": {
+                "maximum": 3472
+              }
+            }
+          },
+          "fractal_graph": {
+            "properties": {
+              "validation_levels": {
+                "items": {
+                  "minimum": 1,
+                  "maximum": 4
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          {
+            "properties": {
+              "engine": {
+                "properties": {
+                  "backend": {
+                    "const": "fractal_graph_spectral"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "fractal_graph": {
+                "properties": {
+                  "level": {
+                    "const": 4
+                  },
+                  "boundary_condition": {
+                    "const": "neumann"
+                  }
+                },
+                "required": [
+                  "boundary_condition"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "grid_shape": {
+                "const": [
+                  123,
+                  1,
+                  1
+                ]
+              },
+              "num_steps": {
+                "maximum": 3304
+              }
+            }
+          },
+          "fractal_graph": {
+            "properties": {
+              "validation_levels": {
+                "items": {
+                  "minimum": 0,
+                  "maximum": 4
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          {
+            "properties": {
+              "engine": {
+                "properties": {
+                  "backend": {
+                    "const": "fractal_graph_spectral"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "fractal_graph": {
+                "properties": {
+                  "level": {
+                    "const": 5
+                  },
+                  "boundary_condition": {
+                    "const": "dirichlet"
+                  }
+                },
+                "required": [
+                  "level"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "grid_shape": {
+                "const": [
+                  363,
+                  1,
+                  1
+                ]
+              },
+              "num_steps": {
+                "maximum": 379
+              }
+            }
+          },
+          "fractal_graph": {
+            "properties": {
+              "validation_levels": {
+                "items": {
+                  "minimum": 1,
+                  "maximum": 5
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "allOf": [
+          {
+            "properties": {
+              "engine": {
+                "properties": {
+                  "backend": {
+                    "const": "fractal_graph_spectral"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "fractal_graph": {
+                "properties": {
+                  "level": {
+                    "const": 5
+                  },
+                  "boundary_condition": {
+                    "const": "neumann"
+                  }
+                },
+                "required": [
+                  "level",
+                  "boundary_condition"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "engine": {
+            "properties": {
+              "grid_shape": {
+                "const": [
+                  366,
+                  1,
+                  1
+                ]
+              },
+              "num_steps": {
+                "maximum": 373
+              }
+            }
+          },
+          "fractal_graph": {
+            "properties": {
+              "validation_levels": {
+                "items": {
+                  "minimum": 0,
+                  "maximum": 5
+                }
+              }
+            }
           }
         }
       }

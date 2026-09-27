@@ -164,6 +164,12 @@ _QUANTUM_VALIDATION_ACTIVE_LOCK = threading.Lock()
 QUANTUM_RUN_METADATA = "cockpit-run.json"
 
 CONFIG_CATALOG_METADATA: dict[str, dict[str, str]] = {
+    "sierpinski_graph_spectral.yaml": {
+        "label": "Experimental Sierpinski Graph (CPU)",
+        "study_type": "Finite-graph research prototype",
+        "summary": "Local-only, bounded CPU evolution on a declared finite graph; not a continuum or physically validated model.",
+        "evidence_focus": "Mass-weighted norm, stiffness energy, whole-eigenspace tail, operator archive and replay.",
+    },
     "demo.yaml": {
         "label": "Stability Frontier Demo",
         "study_type": "Decision campaign",
@@ -525,6 +531,8 @@ class CockpitService:
         if not self.hosted_demo.enabled:
             return
         engine_steps = _configured_engine_steps(config)
+        if config.get("engine", {}).get("backend") == "fractal_graph_spectral":
+            raise HTTPException(status_code=403, detail="Graph-spectral execution is local-only.")
         grid_cells = _grid_cell_count(config)
         total_steps = planned_run_count * engine_steps
         if planned_run_count > self.hosted_demo.max_campaign_runs:
@@ -556,6 +564,8 @@ class CockpitService:
         )
         for path in config_paths:
             config = load_config(path)
+            if self.hosted_demo.enabled and config.engine.backend == "fractal_graph_spectral":
+                continue
             metadata = CONFIG_CATALOG_METADATA.get(path.name, {})
             try:
                 relative_path = path.relative_to(self.repo_root).as_posix()
@@ -871,6 +881,7 @@ class CockpitService:
 
     def replay_run(self, run_id: str) -> dict:
         run_dir = self._get_run_dir(run_id)
+        self._assert_hosted_config_envelope(load_config(run_dir / "config.yaml").to_dict())
         outputs = replay_existing_run(run_dir, output_root=self.output_root)
         return self._build_run_detail(outputs.run_dir)
 

@@ -227,6 +227,29 @@ def write_report(
     report_path = run_dir / "report.html"
     diagnostic_svg = _run_diagnostic_svg(metrics)
     interpretation_markup = _run_interpretation_markup(metrics)
+    graph_markup = ""
+    diagnostics = metrics.get("diagnostics") or {}
+    if diagnostics.get("domain", {}).get("kind") == "finite_graph":
+        fields = ("vertex_count", "graph_level", "boundary_condition", "mass_weight_sum",
+                  "time_integrator", "time_integrator_order", "time_step",
+                  "spectral_tail_convention", "spectral_tail_start",
+                  "spectral_tail_cutoff_eigenvalue", "eigenvalue_cluster_tolerance",
+                  "eigenpair_relative_residual", "relative_norm_error", "relative_energy_error")
+        graph_rows = "".join(
+            f"<tr><th>{html.escape(key)}</th><td>{html.escape(str(diagnostics.get(key)))}</td></tr>"
+            for key in fields
+        )
+        graph_markup = (
+            "<h2>Experimental finite-graph evidence</h2>"
+            "<p>The state is a vertex vector, not a rectangular density volume. "
+            "Coordinate quadrants describe embedded node fields, not FFT grid cells.</p>"
+            f"<p>{html.escape(str(diagnostics.get('claim_boundary', '')))}</p>"
+            f"<table>{graph_rows}</table>"
+            '<p><a href="artifacts/graph_operator.npz">Graph operator and measure archive</a>: '
+            "stiffness, mass weights, topology, coordinates, eigenvalues and selected modes. "
+            "Individual eigenvectors in degenerate eigenspaces are not unique; "
+            "compare projectors or whole-cluster power, not mode columns.</p>"
+        )
     rows = "\n".join(
         "<tr>"
         f"<td>{snapshot['step']}</td>"
@@ -391,6 +414,7 @@ def write_report(
       <article class="metric"><span>Elapsed time</span><strong>{float(metrics['elapsed_seconds']):.3f} s</strong></article>
     </div>
     {interpretation_markup}
+    {graph_markup}
     <figure>{diagnostic_svg}<figcaption>Energy and norm use independent labeled scales and the first recorded sample as reference. Peak and final values are directly annotated; the table below remains the complete numerical record.</figcaption></figure>
     {experiment_markup}
     {decision_markup}
