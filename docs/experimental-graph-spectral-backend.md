@@ -3,7 +3,8 @@
 This is an additive, local-only research backend. `numpy`, `numpy_fractal_ssfm`,
 `cupy_fractal_ssfm`, their geometry/spectral configuration, and quantum-sidecar
 profiles remain supported without changes. No runtime dependency or release-version changes
-are required. The public demo cannot execute this backend and does not list its config.
+are required. Execution is available through the CLI or explicit local API config,
+not the rectangular Run Setup selector. The public demo cannot execute this backend.
 
 ## Run and inspect
 
@@ -27,6 +28,9 @@ mass weights, vertex/edge ordering, boundary IDs, node fields, and spectrum. The
 full vertex index space and active index space are distinguished by their names.
 The existing run, verify, replay, campaign and report mechanisms are reused.
 Rectangular showcase spatial plots and quantum encoding are not graph adapters.
+The current Run Setup form forces a NumPy configuration and drops non-rectangular
+sections; graph configs are therefore withheld from its catalog on both local and
+hosted instances. A future graph-aware form is separate work, not part of admission.
 
 ## Numerical conventions and claim boundary
 
@@ -97,7 +101,7 @@ hosted enablement is implied by this engineering integration.
   legacy solver/quantum tests and human engineering review green before merge.
 - The cross-platform candidate-wheel smoke executes, verifies and replays the
   packaged graph config outside the checkout, checks its operator archive, and
-  confirms hosted catalog/replay rejection. It does not change published-release
+  confirms selector omission and hosted replay rejection. It does not change published-release
   smoke behavior or enable the hosted backend.
 - Independent human scientific review must assess the finite-cell measure,
   boundary restriction, length scaling, quadrant fields, temporal refinement,

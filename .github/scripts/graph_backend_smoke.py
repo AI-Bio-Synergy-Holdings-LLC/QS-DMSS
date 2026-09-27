@@ -44,6 +44,8 @@ def main() -> None:
     for profile in ("review", "state"):
         with zipfile.ZipFile(artifacts.run_bundle_profile_path(run.run_id, profile)) as archive:
             assert "artifacts/graph_operator.npz" in archive.namelist()
+    local = CockpitService.create(output_root=root / "runs", hosted_demo=False)
+    assert "sierpinski_graph_spectral.yaml" not in {c["name"] for c in local.list_configs()}
     hosted = CockpitService.create(output_root=root / "runs", hosted_demo=True)
     assert "sierpinski_graph_spectral.yaml" not in {c["name"] for c in hosted.list_configs()}
     try:
@@ -54,7 +56,8 @@ def main() -> None:
         raise AssertionError("Hosted graph replay must be rejected")
     print(json.dumps({"run_dir": str(run.run_dir), "replay_dir": str(replay.run_dir),
                       "bundle_verified": True, "replay_verified": True,
-                      "hosted_graph_disabled": True}, indent=2))
+                      "hosted_graph_disabled": True,
+                      "rectangular_setup_graph_hidden": True}, indent=2))
 
 
 if __name__ == "__main__":

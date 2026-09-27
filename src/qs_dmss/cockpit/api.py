@@ -164,12 +164,6 @@ _QUANTUM_VALIDATION_ACTIVE_LOCK = threading.Lock()
 QUANTUM_RUN_METADATA = "cockpit-run.json"
 
 CONFIG_CATALOG_METADATA: dict[str, dict[str, str]] = {
-    "sierpinski_graph_spectral.yaml": {
-        "label": "Experimental Sierpinski Graph (CPU)",
-        "study_type": "Finite-graph research prototype",
-        "summary": "Local-only, bounded CPU evolution on a declared finite graph; not a continuum or physically validated model.",
-        "evidence_focus": "Mass-weighted norm, stiffness energy, whole-eigenspace tail, operator archive and replay.",
-    },
     "demo.yaml": {
         "label": "Stability Frontier Demo",
         "study_type": "Decision campaign",
@@ -564,7 +558,9 @@ class CockpitService:
         )
         for path in config_paths:
             config = load_config(path)
-            if self.hosted_demo.enabled and config.engine.backend == "fractal_graph_spectral":
+            # Run Setup currently constructs rectangular NumPy configurations.
+            # Keep graph execution CLI/local-API only until a graph form exists.
+            if config.engine.backend == "fractal_graph_spectral":
                 continue
             metadata = CONFIG_CATALOG_METADATA.get(path.name, {})
             try:

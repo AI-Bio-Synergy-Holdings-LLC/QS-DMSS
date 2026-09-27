@@ -245,7 +245,9 @@ def test_cpu_only_local_cockpit_acceptance(tmp_path, monkeypatch):
     detail = service.launch_run(LaunchRunRequest(config=config.to_dict(), source_name="graph.yaml"))
     assert detail["metrics"]["diagnostics"]["device"] == "cpu"
     assert detail["metrics"]["diagnostics"]["domain"]["state_shape"] == [12]
-    assert "sierpinski_graph_spectral.yaml" in {item["name"] for item in service.list_configs()}
+    # Local API accepts graph runs, but the rectangular Run Setup selector must
+    # not advertise a configuration that its form would rewrite to NumPy.
+    assert "sierpinski_graph_spectral.yaml" not in {item["name"] for item in service.list_configs()}
     run_id = detail["run_record"]["run_id"]
     replay = service.replay_run(run_id)
     assert replay["metrics"]["diagnostics"]["device"] == "cpu"
