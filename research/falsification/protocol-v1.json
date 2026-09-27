@@ -1,0 +1,51 @@
+{
+  "protocol_id": "qs-dmss-falsification-pilot-v1",
+  "source_commit": "48d7ab5d10da189caddbcad1dd6622e58d204940",
+  "scientific_validation_status": "NOT_ESTABLISHED",
+  "active_review_issue": 183,
+  "historical_review_issue": 105,
+  "conventions": ["fft_cell_measure_v2", "graph_mass_stiffness_v1", "whole_eigenvalue_cluster_v1"],
+  "fft": {
+    "shapes_3d": [[8, 8, 8], [16, 16, 16], [8, 12, 10]],
+    "shapes_2d": [[8, 8], [16, 16], [8, 12]],
+    "lengths": [0.75, 1.0, 2.5],
+    "masses": [0.7, 1.7],
+    "modes_3d": [[1, 0, 0], [1, -2, 1]],
+    "modes_2d": [[1, 0], [1, -2]],
+    "scaled_energy_error_max": 5e-12,
+    "norm_error_max": 5e-13
+  },
+  "graph": {
+    "levels": [0, 1, 2],
+    "boundaries": ["neumann", "dirichlet"],
+    "lengths": [0.75, 1.0, 2.5],
+    "scaled_matrix_error_max": 5e-13,
+    "scaled_spectrum_error_max": 1e-11,
+    "projector_error_max": 1e-10,
+    "reference_cluster_relative_gap": 1e-9,
+    "tail_fraction": 0.8,
+    "tail_error_max": 1e-11
+  },
+  "evolution": {
+    "level": 2,
+    "boundaries": ["dirichlet", "neumann"],
+    "length": 1.0,
+    "mass": 1.3,
+    "coupling": 0.7,
+    "quadrant_potential": [0.3, -0.2, 0.1, 0.4],
+    "quadrant_gamma": [1.0, 0.7, 1.2, 0.8],
+    "total_time": 0.01,
+    "step_counts": [4, 8, 16, 32],
+    "reference_rtol": [2e-12, 1e-13],
+    "reference_atol": [2e-14, 1e-15],
+    "reference_agreement_max": 1e-11,
+    "linear_error_max": 1e-11,
+    "fine_trajectory_error_max": 1e-5,
+    "norm_error_max": 1e-11,
+    "order_interval": [1.7, 2.3],
+    "resolution_floor": 1e-12,
+    "reference_separation_factor": 100.0
+  },
+  "human_disposition": {"status": "PENDING", "reviewer": null},
+  "ai_assistance": "Codex-assisted protocol and reference implementation; not an independent human assessment."
+}
