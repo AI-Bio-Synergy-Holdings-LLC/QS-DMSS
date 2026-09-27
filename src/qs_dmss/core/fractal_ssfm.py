@@ -224,7 +224,7 @@ class FractalQuadrantSSFMSolver:
         xp = self.xp
         density = xp.abs(psi) ** 2
         psi_k = xp.fft.fft2(psi)
-        kinetic = xp.sum(self.k2 * xp.abs(psi_k) ** 2).real / (
+        kinetic = self.cell_area * xp.sum(self.k2 * xp.abs(psi_k) ** 2).real / (
             2.0 * self.engine.mass * self.nx * self.ny
         )
         potential = xp.sum(density * self.fields.potential).real * self.cell_area

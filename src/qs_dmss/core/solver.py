@@ -105,6 +105,7 @@ class QuantumScalarDarkMatterSolver:
         psi_k = np.fft.fftn(psi)
         kinetic = (
             np.sum(self.k2 * np.abs(psi_k) ** 2).real
+            * self.cell_volume
             / (2.0 * self.mass * np.prod(self.grid_shape))
         )
         gravitational = 0.5 * np.sum(density * phi).real * self.cell_volume

@@ -196,6 +196,7 @@ def _run_diagnostic_svg(metrics: dict) -> str:
 
 
 def _run_interpretation_markup(metrics: dict) -> str:
+    convention = html.escape(str(metrics.get("energy_diagnostic_convention", "legacy/unspecified")))
     energy = _run_trace_series(metrics, "energy")
     norm = _run_trace_series(metrics, "norm")
     history = metrics.get("history") or []
@@ -212,6 +213,7 @@ def _run_interpretation_markup(metrics: dict) -> str:
       <article><span>Norm behavior</span><strong>{_format_scientific(norm[-1]['relative'])} final relative change</strong><p>Peak absolute relative change: {_format_scientific(norm_peak)}.</p></article>
       <article><span>Density envelope</span><strong>{_format_scientific(density_peak)} peak</strong><p>Largest sampled maximum-density value in the recorded history.</p></article>
     </div>
+    <p>Energy diagnostic convention: <code>{convention}</code>. Compare energy metrics only under the same convention; replay uses the current implementation.</p>
     <p class="interpretation-note"><strong>Interpretation:</strong> These traces document numerical conservation behavior for this configuration and execution. They support reproducibility review; they do not establish physical calibration, peer-reviewed validation, or quantum advantage.</p>
     """
 

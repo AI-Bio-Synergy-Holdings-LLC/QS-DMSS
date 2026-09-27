@@ -1,6 +1,8 @@
 {
   "schema_version": 1,
   "scenario": "demo-baseline",
+  "energy_diagnostic_convention": "fft_cell_measure_v2",
+  "legacy_energy_drift_envelope": {"min": 0.32, "max": 0.34},
   "description": "Demo-scale deterministic benchmark for the packaged run, evidence, verify, and replay path.",
   "metric_envelopes": {
     "final_norm": {
@@ -11,8 +13,8 @@
       "abs_max": 1e-9
     },
     "energy_drift": {
-      "min": 0.32,
-      "max": 0.34
+      "min": 0.0004,
+      "max": 0.0008
     },
     "max_density": {
       "min": 0.93,
