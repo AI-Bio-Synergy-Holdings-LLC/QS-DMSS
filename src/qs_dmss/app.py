@@ -59,6 +59,7 @@ def _build_metrics(
     metrics: dict[str, Any] = {
         "schema_version": 1,
         "backend": config.engine.backend,
+        "energy_diagnostic_convention": "fft_cell_measure_v2",
         "elapsed_seconds": round(elapsed_seconds, 6),
         "history": history,
         "initial_norm": initial["norm"],

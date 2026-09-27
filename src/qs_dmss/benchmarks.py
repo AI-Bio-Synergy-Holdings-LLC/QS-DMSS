@@ -190,6 +190,15 @@ def _validate_metric_envelopes(
     expected: dict[str, Any],
 ) -> list[dict[str, Any]]:
     checks: list[dict[str, Any]] = []
+    convention = expected.get("energy_diagnostic_convention")
+    if convention is not None:
+        checks.append(_check(
+            name="energy_diagnostic_convention",
+            passed=metrics.get("energy_diagnostic_convention") == convention,
+            detail="Energy envelopes require the declared diagnostic convention.",
+            observed=metrics.get("energy_diagnostic_convention", "legacy/unspecified"),
+            expected=convention,
+        ))
     for metric_name, envelope in expected["metric_envelopes"].items():
         observed = metrics.get(metric_name)
         if not isinstance(observed, (int, float)) or isinstance(observed, bool):

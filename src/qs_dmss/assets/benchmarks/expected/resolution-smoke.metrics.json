@@ -1,6 +1,8 @@
 {
   "schema_version": 1,
   "scenario": "resolution-smoke",
+  "energy_diagnostic_convention": "fft_cell_measure_v2",
+  "legacy_energy_drift_envelope": {"min": 0.07, "max": 0.09},
   "description": "Smaller-grid benchmark proving validation is not tied to the demo resolution.",
   "metric_envelopes": {
     "final_norm": {
@@ -11,8 +13,8 @@
       "abs_max": 1e-9
     },
     "energy_drift": {
-      "min": 0.07,
-      "max": 0.09
+      "min": 0.0002,
+      "max": 0.0007
     },
     "max_density": {
       "min": 0.73,
