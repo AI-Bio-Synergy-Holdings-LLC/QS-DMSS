@@ -1,0 +1,20 @@
+{
+  "assessment_id": "qs-dmss-wolfram-cross-tool-v1",
+  "parent_protocol_id": "qs-dmss-falsification-pilot-v1",
+  "candidate_source_commit": "48d7ab5d10da189caddbcad1dd6622e58d204940",
+  "candidate_packet_sha256": "17e568bf7944972c57eda3f275ec7a1126f1cd3d92a4fa04308063425ef02ba4",
+  "case_counts": {"fft": 72, "graph": 15, "evolution": 2},
+  "graph_assembly": "three translated copies of the previous cell complex, exact rational cell masses, adjacency degree matrix",
+  "spectral_reference": "arbitrary-precision generalized Eigensystem, mass-weighted orthonormalization within complete eigenvalue clusters",
+  "linear_reference": "MatrixExp of the independently assembled finite generator",
+  "nonlinear_reference": "NDSolveValue on real and imaginary scalar components; independent node fields and initial state",
+  "working_precisions": [40, 60],
+  "accuracy_precision_goals": [20, 30],
+  "max_step_divisor": 64,
+  "wall_time_limit_seconds": 120,
+  "memory_limit_bytes": 536870912,
+  "acceptance": "Reuse all corresponding parent-protocol thresholds; use evolution.reference_agreement_max for both Wolfram precision refinement and SciPy/Wolfram agreement. Missing cases, runtime failure or malformed evidence are INCONCLUSIVE, never passed. No post-result threshold tuning.",
+  "scientific_validation_status": "NOT_ESTABLISHED",
+  "human_disposition": {"status": "PENDING", "reviewer": null},
+  "ai_assistance": "Codex-assisted Wolfram reference and cross-tool comparison; same authoring context, not independent human review."
+}
