@@ -14,6 +14,7 @@ recursive-include benchmarks *.md
 recursive-include docs *.md
 include docs/review-evidence/*.json
 include docs/review-evidence/falsification-pilot-v1.zip
+include docs/review-evidence/wolfram-falsification-v1.zip
 recursive-include paper *.bib *.md
 recursive-include schemas *.json
 recursive-include src/qs_dmss/assets/benchmarks *.yaml *.json
@@ -21,4 +22,4 @@ recursive-include src/qs_dmss/assets/quantum *.yaml *.csv *.json *.md *.zip
 recursive-include src/qs_dmss/assets/showcases *.yaml
 recursive-include src/qs_dmss/cockpit/static *.png *.svg
 recursive-include tests *.py
-recursive-include research/falsification *.py *.json *.txt *.md
+recursive-include research/falsification *.py *.json *.txt *.md *.wl

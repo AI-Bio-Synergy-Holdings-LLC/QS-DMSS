@@ -93,3 +93,8 @@ This PR does not change the UI, hosted compute, AI settings, or release version.
 
 The first installed-candidate [result and retained packet](review-evidence/falsification-pilot-v1.md)
 are available for human review. Their bounded outcome does not close issue #183.
+
+A separately preregistered [Wolfram cross-tool supplement](wolfram-falsification-supplement.md)
+now provides independently assembled Wolfram references for the same cases.
+It preserves the original packet and its historical execution status. Its bounded
+agreement adds numerical evidence, not independent human scientific approval.

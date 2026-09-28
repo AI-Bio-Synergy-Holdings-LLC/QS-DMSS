@@ -69,3 +69,42 @@ tests, while the reference-import boundary check still runs.
 
 Human finding dispositions remain PENDING. Do not infer owner scientific approval
 from the request to implement or open this PR.
+
+## Optional Wolfram cross-tool supplement
+
+After local activation, Wolfram 15.0.1 executed the separately preregistered
+[cross-tool supplement](../../docs/wolfram-falsification-supplement.md). The earlier
+activation failure above remains part of the attempt history, not the current
+availability status. No Wolfram dependency is added to the application or CI.
+
+From the repository root, with an activated `wolframscript` on PATH:
+
+```console
+wolframscript -file research/falsification/wolfram_reference.wl /new/path/reference.json
+python research/falsification/compare_wolfram.py --candidate-packet docs/review-evidence/falsification-pilot-v1.zip --reference /new/path/reference.json --execution-log /new/path/execution.log --output /new/path/supplement
+```
+
+Create the parent directory first and capture the first command's stdout/stderr
+in `execution.log` (for example, PowerShell `2>&1 | Tee-Object execution.log`).
+On Windows the executable may be at
+`C:/Program Files/Wolfram Research/WolframScript/wolframscript.exe`.
+Check the process exit code **and** the presence/status of the JSON receipt:
+a WolframScript syntax error can return process code zero without producing data.
+Never count that as executed or passed. Existing reference/output paths are refused.
+Failed attempts may be retained with repeated `--prior-attempt-log PATH` arguments.
+
+The Wolfram script imports only the adjacent protocol and plan JSON files. It
+constructs its own operators and states; only the subsequent Python comparison
+reads the candidate archive. The comparison requires NumPy, not SciPy or QS-DMSS,
+and executes no submitted code. It verifies the pinned candidate archive, the
+unchanged protocol/plan and hashes of the Wolfram execution inputs/source. Keep
+the exact executed script bytes until comparison completes; line-ending changes
+also change hashes. Rerunning on another machine creates a new receipt/packet,
+not a replacement for the retained packet. Cross-tool agreement is not human review.
+
+```console
+python -m pytest -q tests/test_falsification_pilot.py tests/test_wolfram_falsification.py
+```
+
+The second test file needs no Wolfram license: it verifies the committed data
+and the fail-closed comparison behavior, not a fresh Wolfram computation.
