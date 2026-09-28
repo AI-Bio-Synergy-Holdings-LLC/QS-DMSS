@@ -1,0 +1,3 @@
+# Discovery catalogs are hash-checked by the browser; preserve exact LF bytes.
+site/scientific-challenges.* text eol=lf
+src/qs_dmss/cockpit/static/scientific-challenges.* text eol=lf

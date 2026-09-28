@@ -60,6 +60,7 @@ def test_cockpit_shell_has_accessible_navigation_and_landmarks() -> None:
         "Run Ledger",
         "Studies",
         "Evidence",
+        "Scientific Challenges",
     ]
     positions = [html.index(f"<span>{label}</span>") for label in navigation_labels]
     assert positions == sorted(positions)
@@ -98,7 +99,7 @@ def test_cockpit_shell_has_accessible_navigation_and_landmarks() -> None:
     assert 'id="stateBundleLink"' in html
     assert 'aria-labelledby="quantumValidationTitle"' in html
     assert 'aria-label="Quantum validation gate summary"' in html
-    assert html.count('class="rail-icon') == 7
+    assert html.count('class="rail-icon') == 8
     assert html.count('class="signal-icon"') == 3
     assert html.count('class="method-icon"') == 3
     for semantic_icon in (

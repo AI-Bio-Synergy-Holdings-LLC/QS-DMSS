@@ -1,0 +1,86 @@
+/* Shared, scoped styles. Generated copies are checked in CI. */
+.scientific-challenges {
+  --sc-ink: #203335;
+  --sc-muted: #536763;
+  --sc-accent: #155b54;
+  --sc-surface: #fffefa;
+  --sc-tint: #eef4f1;
+  --sc-line: #c7d3cd;
+  color: var(--sc-ink);
+  background: var(--sc-surface);
+  border: 1px solid var(--sc-line);
+  border-radius: 18px;
+  padding: clamp(18px, 3vw, 36px);
+  margin-block: 28px;
+  scroll-margin-top: 110px;
+  min-width: 0;
+  line-height: 1.6;
+}
+.scientific-challenges[data-challenge-theme="dark"] {
+  --sc-ink: #f6f1df;
+  --sc-muted: #bdcec4;
+  --sc-accent: #a1e4cc;
+  --sc-surface: #14241f;
+  --sc-tint: #213a31;
+  --sc-line: #597466;
+  margin-inline: clamp(16px, 4vw, 64px);
+}
+.scientific-challenges *, .challenge-assistant-context * { box-sizing: border-box; }
+.scientific-challenges h2 { margin: 0 0 8px; font-size: clamp(26px, 3vw, 38px); line-height: 1.15; }
+.scientific-challenges h3 { margin: 0 0 16px; font-size: 23px; line-height: 1.35; }
+.scientific-challenges h4 { margin: 16px 0 8px; font-size: 16px; }
+.scientific-challenges p { max-width: 90ch; margin: 10px 0; }
+.scientific-challenges a, .challenge-assistant-context a { color: var(--sc-accent, #155b54); text-decoration: underline; text-underline-offset: 3px; }
+.scientific-challenges a:hover { text-decoration-thickness: 2px; }
+.scientific-challenges :is(a, button, summary):focus-visible {
+  outline: 3px solid var(--sc-accent); outline-offset: 4px;
+}
+.sc-note, .scientific-challenges [data-challenge-status] { color: var(--sc-muted); font-size: 14px; }
+.scientific-challenges [data-challenge-status] { min-height: 24px; }
+.sc-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 22px 0; }
+.scientific-challenges .sc-choice {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 7px;
+  padding: 16px; border: 1px solid var(--sc-line); border-radius: 10px;
+  color: var(--sc-ink); background: var(--sc-surface); text-align: left;
+  font: inherit; white-space: normal; min-height: 110px; cursor: pointer; box-shadow: none;
+}
+.scientific-challenges .sc-choice[aria-pressed="true"] { background: var(--sc-tint); border: 2px solid var(--sc-accent); padding: 15px; }
+.sc-choice strong { font-size: 17px; line-height: 1.35; }
+.sc-choice :is(small, span) { font-size: 13px; color: var(--sc-muted); }
+.sc-states { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; border-block: 1px solid var(--sc-line); padding: 16px 0; }
+.sc-states div { min-width: 0; }
+.sc-states dt { color: var(--sc-muted); font-size: 13px; }
+.sc-states dd { margin: 5px 0 0; font-size: 15px; font-weight: 650; }
+.sc-handoff { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; list-style: none; padding: 16px 0; margin: 14px 0; }
+.sc-handoff li { position: relative; display: flex; flex-direction: column; gap: 8px; min-width: 0; padding-right: 12px; }
+.sc-handoff li:not(:last-child)::after { content: "→"; position: absolute; right: -7px; top: 0; color: var(--sc-muted); }
+.sc-handoff strong { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; }
+.sc-handoff :is(a, span) { font-size: 15px; }
+.scientific-challenges details { border-top: 1px solid var(--sc-line); margin-top: 12px; padding-top: 4px; }
+.scientific-challenges summary { cursor: pointer; font-weight: 650; min-height: 44px; padding: 10px 0; }
+.scientific-challenges details > div { padding-bottom: 12px; }
+.scientific-challenges li { overflow-wrap: anywhere; }
+.scientific-challenges code { display: block; overflow-wrap: anywhere; white-space: normal; font-size: 12px; color: var(--sc-ink); background: var(--sc-tint); padding: 7px 10px; margin-block: 6px; }
+.sc-packet { border-left: 3px solid var(--sc-line); padding-left: 14px; margin: 16px 0; }
+.sc-bounds div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; padding: 5px 0; border-bottom: 1px solid var(--sc-line); font-size: 13px; }
+.sc-bounds dt { overflow-wrap: anywhere; }
+.sc-bounds dd { margin: 0; }
+.scientific-challenges [data-challenge-retry] { min-height: 44px; padding: 8px 16px; border: 1px solid var(--sc-line); border-radius: 8px; color: var(--sc-ink); background: var(--sc-tint); cursor: pointer; font: inherit; }
+.scientific-challenges [hidden] { display: none !important; }
+.challenge-assistant-context { margin-top: 16px; padding: 16px; border: 1px solid #c7d3cd; border-radius: 10px; color: #203335; background: #eef4f1; line-height: 1.6; }
+.challenge-assistant-context :is(h4, p) { margin: 0 0 10px; }
+.challenge-assistant-context h4 { font-size: 16px; }
+.challenge-assistant-context p { font-size: 14px; }
+.sc-entry-link { display: inline-block; padding-block: 8px; text-decoration: underline; }
+.rail-nav .rail-item[href="#scientific-challenges"] { white-space: normal; }
+.rail-nav .rail-item[href="#scientific-challenges"] span { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .sc-choices, .sc-states { grid-template-columns: 1fr; gap: 10px; }
+  .scientific-challenges .sc-choice { min-height: 44px; }
+  .sc-handoff { grid-template-columns: 1fr 1fr; gap: 20px; }
+  .sc-handoff li:nth-child(2)::after { content: none; }
+  .scientific-challenges h3 { font-size: 20px; }
+}
+@media (forced-colors: active) {
+  .scientific-challenges .sc-choice[aria-pressed="true"] { outline: 2px solid Highlight; }
+}

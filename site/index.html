@@ -161,6 +161,7 @@
       }
     </script>
     <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="scientific-challenges.css" />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
@@ -181,6 +182,7 @@
         <a href="#studio-loop">Studio loop</a>
         <a href="#capabilities">Capabilities</a>
         <a href="#validation">Validation</a>
+        <a href="#scientific-challenges">Challenges</a>
         <a href="#boundaries">Boundaries</a>
         <a href="#live-demo">Live demo</a>
       </nav>
@@ -357,6 +359,19 @@
         </div>
       </section>
 
+      <section class="scientific-challenges" id="scientific-challenges" aria-labelledby="scientific-challenges-title" data-scientific-challenges="scientific-challenges.json" data-challenge-theme="dark">
+          <p class="sc-note">Open scientific review · read-only evidence catalog</p>
+          <h2 id="scientific-challenges-title">Scientific Challenges</h2>
+          <p>Help test a bounded claim. Inspect the evidence, reproduce locally, and submit a human-accountable assessment.</p>
+          <p class="sc-note">These are development-candidate results, not the published v0.13.2 wheel and not evidence from your current run. Numerical agreement is not physical validation.</p>
+          <p data-challenge-status role="status">Challenge data unavailable until its identity is checked. Use the reviewer guide below if the catalog cannot load.</p>
+          <button type="button" data-challenge-retry hidden>Retry catalog check</button>
+          <div data-challenge-view></div>
+          <p class="sc-note">Frozen snapshot: later findings are recorded separately. Engineering approval applies to pilot #194, not scientific correctness.</p>
+          <p><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/08f75235cc1fe6e6a8ba4bfdbddcdd049359a7f9/docs/scientific-challenges.md">Source reviewer guide</a> · <a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183">Current scientific-review gate and findings (#183)</a></p>
+          <noscript><p>JavaScript is disabled. The source reviewer guide contains all three challenges, evidence links and intake instructions.</p></noscript>
+        </section>
+
       <section class="cockpit-strip" id="local-cockpit" aria-labelledby="cockpit-title">
         <div>
           <p class="eyebrow">Try it locally</p>
@@ -452,5 +467,6 @@ qs-dmss cockpit --host 127.0.0.1 --port 8001</code></pre>
       <p>Apache-2.0 open-source software. Funding does not imply scientific endorsement or peer-reviewed validation.</p>
     </footer>
     <script src="navigation.js" defer></script>
+    <script src="scientific-challenges.js" defer></script>
   </body>
 </html>

@@ -1523,7 +1523,10 @@ class CockpitService:
     def static_asset_revision(self) -> str:
         """Return a stable revision for the browser assets referenced by the cockpit shell."""
         digest = hashlib.sha256()
-        for asset_name in ("styles.css", "app.js"):
+        for asset_name in (
+            "styles.css", "app.js", "scientific-challenges.js",
+            "scientific-challenges.css", "scientific-challenges.json",
+        ):
             asset_path = self.static_root / asset_name
             digest.update(asset_name.encode("utf-8"))
             digest.update(asset_path.read_bytes())

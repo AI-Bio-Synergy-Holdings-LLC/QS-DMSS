@@ -70,6 +70,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/static/styles.css?v=__QS_DMSS_STATIC_REVISION__" />
+    <link rel="stylesheet" href="/static/scientific-challenges.css?v=__QS_DMSS_STATIC_REVISION__" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -155,6 +156,10 @@
           <a class="rail-item" href="#evidence">
             <svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.1 19 6v5.2c0 4.65-2.9 8.15-7 9.7-4.1-1.55-7-5.05-7-9.7V6zM8.7 12l2.1 2.1 4.6-4.6"/></svg>
             <span>Evidence</span>
+          </a>
+          <a class="rail-item" href="#scientific-challenges">
+            <svg class="rail-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3.5h11l4 4V12M15 3.5V8h4M4 3.5v17h7M7.5 8h4M7.5 12h4"/><circle cx="16" cy="16" r="4"/><path d="m19 19 3 3"/></svg>
+            <span>Scientific Challenges</span>
           </a>
         </nav>
         <div class="rail-footer">
@@ -414,6 +419,12 @@
                     <ul id="evidenceAssistantEvidenceList">
                       <li>Evidence basis will appear after a scenario is selected.</li>
                     </ul>
+                  </section>
+                  <section class="challenge-assistant-context" aria-label="Registered scientific challenge guidance">
+                    <div data-challenge-assistant>
+                      <p>Registered challenge guidance is unavailable until the catalog is checked. This does not assess the current run.</p>
+                    </div>
+                    <a class="sc-entry-link" href="#scientific-challenges">Choose a registered scientific challenge</a>
                   </section>
                   <section class="ai-draft-panel" id="aiDraftPanel" aria-labelledby="aiDraftPanelTitle">
                     <div class="ai-draft-head">
@@ -2122,6 +2133,19 @@
             </div>
           </section>
         </section>
+        <section class="scientific-challenges" id="scientific-challenges" aria-labelledby="scientific-challenges-title" data-scientific-challenges="/static/scientific-challenges.json">
+          <p class="sc-note">Open scientific review · read-only evidence catalog</p>
+          <h2 id="scientific-challenges-title">Scientific Challenges</h2>
+          <p>Help test a bounded claim. Inspect the evidence, reproduce locally, and submit a human-accountable assessment.</p>
+          <p class="sc-note">These are development-candidate results, not the published v0.13.2 wheel and not evidence from your current run. Numerical agreement is not physical validation.</p>
+          <p data-challenge-status role="status">Challenge data unavailable until its identity is checked. Use the reviewer guide below if the catalog cannot load.</p>
+          <button type="button" data-challenge-retry hidden>Retry catalog check</button>
+          <div data-challenge-view></div>
+          <p class="sc-note">Frozen snapshot: later findings are recorded separately. Engineering approval applies to pilot #194, not scientific correctness.</p>
+          <p><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/08f75235cc1fe6e6a8ba4bfdbddcdd049359a7f9/docs/scientific-challenges.md">Source reviewer guide</a> · <a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183">Current scientific-review gate and findings (#183)</a></p>
+          <noscript><p>JavaScript is disabled. The source reviewer guide contains all three challenges, evidence links and intake instructions.</p></noscript>
+        </section>
+
       </main>
     </div>
 
@@ -2182,5 +2206,6 @@
     </dialog>
 
     <script type="module" src="/static/app.js?v=__QS_DMSS_STATIC_REVISION__"></script>
+    <script src="/static/scientific-challenges.js?v=__QS_DMSS_STATIC_REVISION__" defer></script>
   </body>
 </html>

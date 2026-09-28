@@ -1,0 +1,205 @@
+{
+  "candidate": {
+    "protocol_canonical_sha256": "fcecbf9ae403ad26ee8e28383ef90a5d15b7732a85af2d756ddeef03a748402b",
+    "protocol_path": "research/falsification/protocol-v1.json",
+    "published_release": false,
+    "reported_package_version": "0.13.2",
+    "source_commit": "48d7ab5d10da189caddbcad1dd6622e58d204940",
+    "wheel_availability": "Original wheel retained locally; public packets contain its hash and build receipt. Rebuild the pinned source and record a new wheel hash; bit-identical wheels are not promised.",
+    "wheel_sha256": "1c269bb96cec6e262fe19292ee4b290450df14d3b80e4f2924c278caeee5cb2f"
+  },
+  "challenges": [
+    {
+      "acceptance_limits": {
+        "norm_error_max": 5e-13,
+        "scaled_energy_error_max": 5e-12
+      },
+      "case_count": 72,
+      "claim": "The two CPU FFT energy diagnostics agree with analytic unit-norm plane-wave kinetic energy within the registered bounds for the 72 specified grid, length, mass and mode cases.",
+      "diagnostic_conventions": [
+        "fft_cell_measure_v2"
+      ],
+      "evidence_outcome": "NOT_FALSIFIED_WITHIN_SCOPE",
+      "exercise": "fft",
+      "falsification_target": "A reproducible in-scope energy or norm error above its registered bound; distinguish it from the already rejected missing-cell-measure control.",
+      "id": "SC-FFT-001",
+      "limitations": [
+        "Only analytic plane waves in the fixed parameter grid were checked.",
+        "No interacting-energy, mask-conservation, physical calibration or universal correctness claim follows."
+      ],
+      "model_scope": "Periodic rectangular 2-D and 3-D grids; zero potential and coupling; modes below Nyquist. Not arbitrary states or empirical dark-matter validation.",
+      "reproduction_guide": "docs/scientific-challenges.md#reproduce-the-development-candidate",
+      "results": [
+        {
+          "case_count": 72,
+          "outcome": "NOT_FALSIFIED_WITHIN_SCOPE",
+          "packet_id": "pilot-v1",
+          "pointer": "results.json#/exercises/fft"
+        },
+        {
+          "case_count": 72,
+          "outcome": "NOT_FALSIFIED_WITHIN_SCOPE",
+          "packet_id": "wolfram-v1",
+          "pointer": "results.json#/exercises/fft"
+        }
+      ],
+      "scientific_assessment": {
+        "human_disposition": "PENDING",
+        "independent_review": "PENDING",
+        "status": "NOT_ESTABLISHED"
+      },
+      "source_commit": "48d7ab5d10da189caddbcad1dd6622e58d204940",
+      "title": "FFT kinetic-energy normalization",
+      "unresolved_questions": [
+        "Are cell measure, normalization and units interpreted correctly?",
+        "Which additional states and potential/coupling regimes need a separately preregistered test?"
+      ]
+    },
+    {
+      "acceptance_limits": {
+        "projector_error_max": 1e-10,
+        "reference_cluster_relative_gap": 1e-09,
+        "scaled_matrix_error_max": 5e-13,
+        "scaled_spectrum_error_max": 1e-11,
+        "tail_error_max": 1e-11,
+        "tail_fraction": 0.8
+      },
+      "case_count": 15,
+      "claim": "For the 15 specified small finite graphs, candidate topology, mass/stiffness matrices, spectra, complete weighted eigenspace projectors and tail diagnostics agree with the independently assembled references within registered bounds.",
+      "diagnostic_conventions": [
+        "graph_mass_stiffness_v1",
+        "whole_eigenvalue_cluster_v1"
+      ],
+      "evidence_outcome": "NOT_FALSIFIED_WITHIN_SCOPE",
+      "exercise": "graph",
+      "falsification_target": "An in-scope topology/boundary mismatch or numerical bound violation, using complete degenerate eigenspaces rather than individual eigenvectors.",
+      "id": "SC-GRAPH-001",
+      "limitations": [
+        "Agreement implements the same declared modeling convention; it does not establish that convention as physically correct.",
+        "Wolfram tail power is reconstructed from retained candidate projectors, not a new invocation of the candidate tail method.",
+        "No continuum convergence, cross-level equivalence, quantum advantage, or hosted graph execution is established."
+      ],
+      "model_scope": "Experimental CPU finite-graph model, levels 0\u20132, Neumann or principal-restriction Dirichlet boundary, three lengths; level-zero Dirichlet excluded. Distinct from rectangular Fractal SSFM.",
+      "reproduction_guide": "docs/scientific-challenges.md#reproduce-the-development-candidate",
+      "results": [
+        {
+          "case_count": 15,
+          "outcome": "NOT_FALSIFIED_WITHIN_SCOPE",
+          "packet_id": "pilot-v1",
+          "pointer": "results.json#/exercises/graph"
+        },
+        {
+          "case_count": 15,
+          "outcome": "NOT_FALSIFIED_WITHIN_SCOPE",
+          "packet_id": "wolfram-v1",
+          "pointer": "results.json#/exercises/graph"
+        }
+      ],
+      "scientific_assessment": {
+        "human_disposition": "PENDING",
+        "independent_review": "PENDING",
+        "status": "NOT_ESTABLISHED"
+      },
+      "source_commit": "48d7ab5d10da189caddbcad1dd6622e58d204940",
+      "title": "Finite graph mass, stiffness and spectral subspaces",
+      "unresolved_questions": [
+        "Is the cell-incidence mass measure appropriate for the intended finite model?",
+        "Is Dirichlet principal restriction the intended boundary treatment?",
+        "How should the L^-2 factor and (5/3)^level stiffness convention be interpreted?",
+        "What multilevel comparison and continuum target, if any, are defensible?"
+      ]
+    },
+    {
+      "acceptance_limits": {
+        "fine_trajectory_error_max": 1e-05,
+        "linear_error_max": 1e-11,
+        "norm_error_max": 1e-11,
+        "order_interval": [
+          1.7,
+          2.3
+        ],
+        "reference_agreement_max": 1e-11,
+        "reference_separation_factor": 100.0,
+        "resolution_floor": 1e-12
+      },
+      "case_count": 2,
+      "claim": "For the two specified level-2 finite-graph initial-value problems, linear propagation, nonlinear trajectories, norm drift and resolved temporal-refinement orders meet the registered bounds against the independent references.",
+      "diagnostic_conventions": [
+        "graph_mass_stiffness_v1"
+      ],
+      "evidence_outcome": "NOT_FALSIFIED_WITHIN_SCOPE",
+      "exercise": "evolution",
+      "falsification_target": "An in-scope trajectory/linear/norm failure or resolved refinement order outside the registered interval. Reference disagreement or unresolved refinement must be reported as inconclusive.",
+      "id": "SC-EVOLUTION-001",
+      "limitations": [
+        "Norm conservation alone is not trajectory accuracy; the phase-perturbed negative control demonstrates this.",
+        "Short-time finite-model agreement does not establish long-time stability, continuum convergence, or physical applicability.",
+        "SciPy and Wolfram references are AI-assisted maintainer evidence, not independent human assessment."
+      ],
+      "model_scope": "One Dirichlet and one Neumann case, L=1, mass=1.3, coupling=0.7, fixed quadrant fields, T=0.01 and 4/8/16/32 steps; complex phase retained in trajectory error.",
+      "reproduction_guide": "docs/scientific-challenges.md#reproduce-the-development-candidate",
+      "results": [
+        {
+          "case_count": 2,
+          "outcome": "NOT_FALSIFIED_WITHIN_SCOPE",
+          "packet_id": "pilot-v1",
+          "pointer": "results.json#/exercises/evolution"
+        },
+        {
+          "case_count": 2,
+          "outcome": "NOT_FALSIFIED_WITHIN_SCOPE",
+          "packet_id": "wolfram-v1",
+          "pointer": "results.json#/exercises/evolution"
+        }
+      ],
+      "scientific_assessment": {
+        "human_disposition": "PENDING",
+        "independent_review": "PENDING",
+        "status": "NOT_ESTABLISHED"
+      },
+      "source_commit": "48d7ab5d10da189caddbcad1dd6622e58d204940",
+      "title": "Graph evolution accuracy and temporal refinement",
+      "unresolved_questions": [
+        "Are the initial state, quadrant fields and nonlinear equation the intended model?",
+        "Is the reference separation sufficient to interpret the measured order?",
+        "Which longer-time or stronger-coupling regimes should be tested prospectively?"
+      ]
+    }
+  ],
+  "engineering_review": {
+    "merged_commit": "a5f72e614dc7d38e72ffe3f4b752aace0bb408b4",
+    "record_url": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/pull/194#issuecomment-5861432043",
+    "reviewed_head": "3027a7fa462fe13b4592fc8a12cda56f6c8ca450",
+    "scope": "PR #194 implementation and evidence packaging only; not scientific approval or independent review.",
+    "status": "OWNER_APPROVED"
+  },
+  "evidence_packets": [
+    {
+      "environment_pointer": "results.json#/environment",
+      "id": "pilot-v1",
+      "method": "Installed-candidate analytic/SciPy reference comparisons; independent graph assembly, seeded negative controls, raw candidate/reference arrays.",
+      "path": "docs/review-evidence/falsification-pilot-v1.zip",
+      "sha256": "17e568bf7944972c57eda3f275ec7a1126f1cd3d92a4fa04308063425ef02ba4",
+      "url": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/a5f72e614dc7d38e72ffe3f4b752aace0bb408b4/docs/review-evidence/falsification-pilot-v1.zip"
+    },
+    {
+      "environment_pointer": "reference.json#/kernel_version",
+      "id": "wolfram-v1",
+      "method": "Wolfram 15.0.1 independently assembled references compared against the preserved candidate data, not a fresh candidate execution; same AI-assisted authoring context.",
+      "path": "docs/review-evidence/wolfram-falsification-v1.zip",
+      "sha256": "fbdaa5c21a680f1d0a04be477c852ca1fedaddb2dae0f58be12b9256900e75b7",
+      "url": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/a5f72e614dc7d38e72ffe3f4b752aace0bb408b4/docs/review-evidence/wolfram-falsification-v1.zip"
+    }
+  ],
+  "historical_gate": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105",
+  "published_baseline": {
+    "evidence_path": "docs/review-evidence/fractal-ssfm-v0.13.2.json",
+    "scope": "Historical published baseline; predates the FFT energy correction and graph backend. It is not the challenge candidate.",
+    "source_commit": "7a063eb91af6c50e483c2d062bf6cee0daf709e4",
+    "version": "0.13.2",
+    "wheel_sha256": "6f22876fa625681aa72b96d99e14de92cfd5cfae870fc53d9d41673ebf82416f"
+  },
+  "registry_id": "qs-dmss-scientific-challenges-v1",
+  "review_gate": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183",
+  "schema_version": 1
+}
