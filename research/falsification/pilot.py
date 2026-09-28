@@ -56,6 +56,17 @@ def load_protocol(path):
     return protocol
 
 
+def json_record(value):
+    """Retain non-finite counterexamples without emitting non-standard JSON."""
+    if isinstance(value, float) and not np.isfinite(value):
+        return {"nonfinite": str(value)}
+    if isinstance(value, dict):
+        return {key: json_record(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [json_record(item) for item in value]
+    return value
+
+
 def graph_solver(level, boundary, length, *, mass=1.3, coupling=0, potential=(0, 0, 0, 0),
                  gamma=(1, 1, 1, 1), time_step=0.001):
     count = (3**(level + 1) + 3)//2 - (3 if boundary == "dirichlet" else 0)
@@ -313,7 +324,7 @@ def main():
         (args.output / path.name).write_bytes(path.read_bytes())
     (args.output / "build-receipt.json").write_bytes(args.build_receipt.read_bytes())
     np.savez_compressed(args.output / "measurements.npz", **arrays)
-    (args.output / "results.json").write_text(json.dumps(results, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    (args.output / "results.json").write_text(json.dumps(json_record(results), indent=2, allow_nan=False) + "\n", encoding="utf-8")
     (args.output / "SUMMARY.md").write_text(packet_summary(results), encoding="utf-8")
     hashes = {p.name: digest(p) for p in sorted(args.output.iterdir()) if p.is_file()}
     (args.output / "manifest.sha256.json").write_text(json.dumps(hashes, indent=2) + "\n", encoding="utf-8")

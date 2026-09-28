@@ -171,3 +171,13 @@ def test_cli_retains_complete_packet_without_overwriting(pilot, tmp_path, monkey
         assert set(archive.namelist()) == set(hashes) | {"manifest.sha256.json"}
     with pytest.raises(FileExistsError):
         pilot.main()
+
+
+def test_nonfinite_counterexample_is_retained_as_failure(pilot, protocol, monkeypatch):
+    monkeypatch.setattr(pilot.QuantumScalarDarkMatterSolver, "compute_energy", lambda *args: float("nan"))
+    result, _ = pilot.run_exercises(protocol)
+    assert result["status"] == "FAIL"
+    serialized = json.dumps(pilot.json_record(result), allow_nan=False)
+    retained = json.loads(serialized)
+    assert retained["exercises"]["fft"][0]["actual_energy"] == {"nonfinite": "nan"}
+    assert retained["exercises"]["fft"][0]["status"] == "FAIL"
