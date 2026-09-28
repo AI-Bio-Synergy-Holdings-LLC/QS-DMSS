@@ -17,7 +17,7 @@ body:
       label: Review Lane
       description: Pick the lane where you are most willing to help.
       options:
-        - Fractal SSFM validation review (#105)
+        - Scientific challenges / Fractal SSFM independent review (#183)
         - HPC dry-run Slurm site-policy review (#99)
         - Builder roadmap / contribution lane (#57)
         - Install, reproducibility, or documentation feedback
@@ -29,7 +29,7 @@ body:
     attributes:
       label: What can you review?
       description: Keep this short. Examples are OS/Python install path, evidence bundle clarity, JOSS framing, docs onboarding, or contributor experience.
-      placeholder: "I can test the PyPI install on Ubuntu with Python 3.12 or leave one note on #105."
+      placeholder: "I can reproduce SC-GRAPH-001 from its pinned source, or review the published PyPI baseline separately. Feedback goes to #183."
     validations:
       required: true
   - type: input

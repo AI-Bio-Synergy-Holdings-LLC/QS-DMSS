@@ -128,4 +128,4 @@ explicit opt-in decision requiring separate security, cost, and scientific
 review.
 
 Scientific feedback should remain linked to the classical Fractal SSFM review
-gate in issue #105 so circuit agreement is not mistaken for model validation.
+gate in issue #183 so circuit agreement is not mistaken for model validation.

@@ -1,5 +1,5 @@
 name: Scientific Review
-description: Review the scientific framing, assumptions, or model boundaries.
+description: Submit a bounded challenge reproduction, counterexample, or scientific-method review.
 title: "[Scientific Review]: "
 labels:
   - review-wanted
@@ -8,7 +8,23 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thank you for reviewing QS-DMSS. Please focus this issue on scientific framing, assumptions, limitations, or validation gaps. This project is beta for reproducible package/evidence workflows; it is not peer-reviewed scientific validation.
+        Start with https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/scientific-challenges.md
+        Active independent review gate: #183. Closed #105 is historical, not scientific approval.
+        The published PyPI v0.13.2 baseline and the later development candidate report the same version but have different source/wheel identities. Do not conflate them.
+        This form is public. Do not post secrets, private contact information, sensitive data or internal filesystem paths. Report security concerns through SECURITY.md instead.
+        New reports remain PENDING human triage; numerical agreement and owner engineering approval are not independent scientific validation.
+  - type: dropdown
+    id: challenge-id
+    attributes:
+      label: Challenge or review track
+      options:
+        - SC-FFT-001 — FFT kinetic-energy normalization
+        - SC-GRAPH-001 — finite graph operators and subspaces
+        - SC-EVOLUTION-001 — evolution accuracy and refinement
+        - Published v0.13.2 historical baseline (not the development candidate)
+        - General scientific framing (identify the claim below)
+    validations:
+      required: true
   - type: textarea
     id: focus
     attributes:
@@ -18,17 +34,79 @@ body:
     validations:
       required: true
   - type: textarea
+    id: candidate-identity
+    attributes:
+      label: Source and artifact identity
+      description: Give the full source commit, package version, wheel SHA-256 and evidence-packet SHA-256. For rebuilt wheels use your actual hash. For unexecuted conceptual review, say NOT_RUN and identify the cited source/packet.
+      placeholder: "Challenge candidate source: 48d7ab5d10da189caddbcad1dd6622e58d204940 (not the PyPI wheel). Include your measured hashes, not copied placeholders."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction-commands
+    attributes:
+      label: Exact reproduction commands
+      description: Include export/build/install/run commands, working-directory relationship to the checkout, output and exit status. Redact private paths. If not run, state NOT_RUN and why.
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Execution environment
+      description: OS/architecture, Python, dependencies, installed-wheel versus editable source, and Wolfram version when used. Say NOT_RUN for a conceptual review.
+    validations:
+      required: true
+  - type: dropdown
+    id: numerical-outcome
+    attributes:
+      label: Reported outcome (subject to human assessment)
+      options:
+        - NOT_RUN — conceptual review or setup failure
+        - NOT_FALSIFIED_WITHIN_SCOPE — registered checks met
+        - FAIL — reproducible in-scope counterexample
+        - INCONCLUSIVE — evidence/reference insufficient
+    validations:
+      required: true
+  - type: textarea
+    id: counterexample
+    attributes:
+      label: Counterexample or bounded result
+      description: State expected/observed values, case parameters, diagnostic convention, applicable tolerance and limitations. If no counterexample was found, say so within the tested scope. Do not tune thresholds after observing results.
+    validations:
+      required: true
+  - type: textarea
     id: evidence
     attributes:
       label: Evidence Or Reference
-      description: Link papers, examples, calculations, or comparable tools that support your feedback.
+      description: Link reproducible calculations, raw outputs, reports and hashes, including failed/inconclusive attempts. No automatic execution or trust is implied by a link. For conceptual feedback link the relevant methods/reference instead.
     validations:
-      required: false
+      required: true
+  - type: textarea
+    id: reviewer-independence
+    attributes:
+      label: Accountable human reviewer and independence
+      description: Give your public name or GitHub handle, relevant expertise, authorship involvement, relationship to the maintainer, and conflicts (or explicitly none). Self-declaration is assessed by maintainers; no private contact details are needed.
+    validations:
+      required: true
+  - type: textarea
+    id: ai-assistance
+    attributes:
+      label: AI and computational assistance
+      description: Identify tools/models and their roles, or explicitly none. Explain what the named human checked and takes responsibility for. Tool agreement is not independent human review.
+    validations:
+      required: true
   - type: textarea
     id: suggested-change
     attributes:
       label: Suggested Change
       description: What is the smallest wording, test, benchmark, or documentation change that would address this?
+    validations:
+      required: true
+  - type: textarea
+    id: human-disposition
+    attributes:
+      label: Human disposition record
+      description: New reports start PENDING. For a follow-up, link the named maintainer's disposition, date, rationale and corrective issue/commit. A suggested action is not an accepted finding or scientific approval.
+      value: "PENDING — awaiting named human triage under issue #183."
     validations:
       required: true
   - type: checkboxes
@@ -39,4 +117,6 @@ body:
         - label: I understand QS-DMSS is beta for reproducible package/evidence workflows, not peer-reviewed scientific validation.
           required: true
         - label: This issue does not report a private security concern.
+          required: true
+        - label: "I understand this report, owner engineering approval, and numerical agreement do not automatically close scientific-review gate #183."
           required: true

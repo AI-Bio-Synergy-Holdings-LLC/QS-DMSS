@@ -54,7 +54,7 @@ Candidate references to assess for a future paper:
 | Strang, "On the construction and comparison of difference schemes," SIAM Journal on Numerical Analysis, 1968 | Operator splitting / Strang splitting lineage. | Relevant to convergence-language discipline. |
 | Taha and Ablowitz, "Analytical and numerical aspects of certain nonlinear evolution equations. II. Numerical, nonlinear Schrodinger equation," Journal of Computational Physics, 1984 | Split-step / spectral method precedent for nonlinear Schrodinger-type systems. | Good support for validation-harness expectations. |
 | Bao, Jaksch, and Markowich, "Numerical solution of the Gross-Pitaevskii equation for Bose-Einstein condensation," Journal of Computational Physics, 2003 | Time-splitting spectral methods for nonlinear wave equations. | Adjacent method precedent; use only if applicable to the solver discussion. |
-| Fractal/Quadrant SSFM validation issue, QS-DMSS issue #105 | Active technical review gate. | Public QS-DMSS feedback should focus on convergence, norm conservation, and diagnostic boundaries before GPU expansion. |
+| QS-DMSS scientific review issue #183 and bounded challenge registry | Active independent review gate; closed #105 is historical. | Identify the published-baseline or development-candidate track; assess convergence, graph measure/boundaries/scaling, and diagnostic limitations without inferring scientific approval from numerical agreement. |
 
 ## Quantum-Readiness Context
 

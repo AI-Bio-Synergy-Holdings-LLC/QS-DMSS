@@ -138,7 +138,9 @@ workflows easier to scrutinize, reproduce, extend, and integrate safely.
 The current GitHub and Zenodo release is `v0.13.2` (DOI
 `10.5281/zenodo.21366910`), and the immediate trust-building gate is scientific
 review of the installable Fractal/Quadrant SSFM validation harness on
-`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`. Funding
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183`. The
+[development challenges](scientific-challenges.md) have separate source/wheel
+identities from that published baseline. Funding
 support should help convert that review and the shipped simulator-first quantum
 readiness evidence into clearer validation artifacts, stronger documentation,
 and carefully staged future build slices, not premature GPU/provider expansion

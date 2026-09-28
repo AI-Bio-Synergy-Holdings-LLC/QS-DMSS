@@ -31,6 +31,13 @@ v0.13.2 evidence below is unchanged. The separate, unreleased
 later FFT correction and experimental graph backend; it does not replace this
 release baseline or establish physical validation.
 
+For a focused development-candidate assessment, start with the
+[Scientific Challenge Registry and structured intake](scientific-challenges.md).
+It separates FFT energy, graph operators and evolution accuracy, and distinguishes
+numerical evidence, owner engineering approval and pending independent review.
+The published-package commands below are not a substitute for the candidate's
+commit-pinned reproduction instructions.
+
 Active HPC/RSE site-policy review target:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/99`
 
