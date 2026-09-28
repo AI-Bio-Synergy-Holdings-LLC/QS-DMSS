@@ -46,7 +46,9 @@ jobs:
         run: python -m ruff check src tests .github/scripts research site/build_portal.py
 
       - name: Check scientific challenge registry against retained evidence
-        run: python research/challenges/validate_registry.py
+        run: |
+          python research/challenges/validate_registry.py
+          python research/challenges/build_discovery.py --check
 
       - name: Audit installed dependencies
         if: matrix.python-version == '3.13'
@@ -71,7 +73,9 @@ jobs:
         run: python -m compileall src
 
       - name: Validate cockpit JavaScript syntax
-        run: node --check src/qs_dmss/cockpit/static/app.js
+        run: |
+          node --check src/qs_dmss/cockpit/static/app.js
+          node --check src/qs_dmss/cockpit/static/scientific-challenges.js
 
       - name: Build release artifacts
         run: python -m build --sdist --wheel
@@ -113,6 +117,8 @@ jobs:
           assert "qs_dmss/assets/quantum/fractal-fuzzy-4x4.yaml" in wheel_names
           assert "qs_dmss/cockpit/static/favicon.svg" in wheel_names
           assert "qs_dmss/cockpit/static/hosted-demo-social-preview.png" in wheel_names
+          for extension in ("css", "js", "json"):
+              assert f"qs_dmss/cockpit/static/scientific-challenges.{extension}" in wheel_names
 
           sdist_root = f"qs_dmss-{version}/"
           with tarfile.open(sdist) as archive:
@@ -122,6 +128,10 @@ jobs:
           assert sdist_root + "research/falsification/compare_wolfram.py" in sdist_names
           assert sdist_root + "research/challenges/registry-v1.json" in sdist_names
           assert sdist_root + "research/challenges/validate_registry.py" in sdist_names
+          for name in ("build_discovery.py", "discovery.js", "discovery.css"):
+              assert sdist_root + "research/challenges/" + name in sdist_names
+          for extension in ("css", "js", "json"):
+              assert sdist_root + f"src/qs_dmss/cockpit/static/scientific-challenges.{extension}" in sdist_names
           assert sdist_root + "schemas/scientific-challenge-registry-v1.schema.json" in sdist_names
           assert sdist_root + "docs/review-evidence/falsification-pilot-v1.zip" in sdist_names
           assert sdist_root + "docs/review-evidence/wolfram-falsification-v1.zip" in sdist_names

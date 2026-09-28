@@ -131,6 +131,11 @@ for any reproduction. No email outreach or unsolicited messages are automated.
 
 ## Next milestone and future consumers
 
+The read-only discovery consumer and independent-review invitation are described
+in [Scientific Challenges: discovery and reviewer handoff](scientific-challenge-handoff.md).
+That document distinguishes candidate UI availability from the published package
+and describes catalog integrity and unavailable-data behavior.
+
 The next milestone is one substantive, human-accountable independent reproduction
 and methodological assessment under #183, prioritizing SC-GRAPH-001's measure,
 boundaries, length scaling and multilevel interpretation. One report may address
@@ -139,8 +144,8 @@ Invitation for an approved opt-in channel: “Choose one challenge, reproduce it
 pinned candidate or explain a specific methodological objection, disclose your
 methods/AI assistance, and submit the evidence for human disposition under #183.”
 
-This PR adds **no studio/app UI**, release, hosted graph compute or AI enablement.
-A later read-only Scientific Challenges view can consume the reviewed registry.
+Registry PR #195 added **no studio/app UI**, release, hosted graph compute or AI
+enablement. The read-only Scientific Challenges consumer uses this reviewed registry.
 It must render prose as text, validate the complete registry/evidence relationship,
 keep the three status dimensions visible, link limitations and #183, and show an
 unavailable/inconclusive state when data fail validation. Do not derive an overall
