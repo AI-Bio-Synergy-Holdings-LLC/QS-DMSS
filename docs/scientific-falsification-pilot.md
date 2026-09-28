@@ -90,3 +90,6 @@ are not substitutes for the commit-pinned installed-candidate receipt.
 After this pilot is reviewed, a separate proposal may expose challenge packets,
 counterexamples and human finding dispositions in the studio and Evidence Assistant.
 This PR does not change the UI, hosted compute, AI settings, or release version.
+
+The first installed-candidate [result and retained packet](review-evidence/falsification-pilot-v1.md)
+are available for human review. Their bounded outcome does not close issue #183.

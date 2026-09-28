@@ -1,5 +1,6 @@
 """Reference independence, falsification controls and evidence identity contracts."""
 
+import hashlib
 import importlib.util
 import json
 import sys
@@ -40,6 +41,20 @@ def test_reference_has_no_production_imports():
             assert not (node.module or "").startswith("qs_dmss")
         if isinstance(node, ast.Import):
             assert all(not alias.name.startswith("qs_dmss") for alias in node.names)
+
+
+def test_retained_evidence_packet_integrity_and_claim_boundary():
+    path = ROOT / "docs/review-evidence/falsification-pilot-v1.zip"
+    assert hashlib.sha256(path.read_bytes()).hexdigest() == "17e568bf7944972c57eda3f275ec7a1126f1cd3d92a4fa04308063425ef02ba4"
+    with zipfile.ZipFile(path) as archive:
+        hashes = json.loads(archive.read("manifest.sha256.json"))
+        assert set(archive.namelist()) == set(hashes) | {"manifest.sha256.json"}
+        assert all(hashlib.sha256(archive.read(name)).hexdigest() == sha for name, sha in hashes.items())
+        results = json.loads(archive.read("results.json"))
+        assert results["source_commit"] == "48d7ab5d10da189caddbcad1dd6622e58d204940"
+        assert results["scientific_validation_status"] == "NOT_ESTABLISHED"
+        assert results["human_disposition"]["status"] == "PENDING"
+        assert results["wolfram"]["status"] == "NOT_EXECUTED"
 
 
 def test_known_small_graph_reference(pilot):
@@ -133,3 +148,26 @@ def test_candidate_identity_and_installed_bytes(pilot, tmp_path, monkeypatch):
     init.write_text("# tampered", encoding="utf-8")
     with pytest.raises(ValueError, match="differs"):
         pilot.verify_candidate(wheel, receipt)
+
+
+def test_cli_retains_complete_packet_without_overwriting(pilot, tmp_path, monkeypatch):
+    wheel = tmp_path / "candidate.whl"
+    wheel.write_bytes(b"identity separately tested")
+    receipt = tmp_path / "receipt.json"
+    receipt.write_text("{}", encoding="utf-8")
+    output = tmp_path / "packet"
+    monkeypatch.setattr(pilot, "verify_candidate", lambda *args: 1)
+    monkeypatch.setattr(sys, "argv", ["pilot.py", "--wheel", str(wheel), "--build-receipt",
+                                      str(receipt), "--output", str(output)])
+    assert pilot.main() == 0
+    results = json.loads((output / "results.json").read_text(encoding="utf-8"))
+    assert results["human_disposition"] == {"status": "PENDING", "reviewer": None}
+    assert results["scientific_validation_status"] == "NOT_ESTABLISHED"
+    assert results["wolfram"]["status"] == "NOT_EXECUTED"
+    hashes = json.loads((output / "manifest.sha256.json").read_text(encoding="utf-8"))
+    assert all(pilot.digest(output / name) == sha for name, sha in hashes.items())
+    assert {p.name for p in output.iterdir()} == set(hashes) | {"manifest.sha256.json"}
+    with zipfile.ZipFile(tmp_path / "packet.zip") as archive:
+        assert set(archive.namelist()) == set(hashes) | {"manifest.sha256.json"}
+    with pytest.raises(FileExistsError):
+        pilot.main()
