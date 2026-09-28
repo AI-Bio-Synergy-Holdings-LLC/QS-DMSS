@@ -60,7 +60,10 @@ attribution; it is not QPU execution, quantum advantage, or peer-reviewed
 scientific validation.
 
 Fractal SSFM scientific feedback is routed through
-[issue #105](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105).
+[issue #183](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183).
+Closed issue #105 remains historical context, not scientific approval. The
+unreleased, commit-pinned [falsification pilot](docs/scientific-falsification-pilot.md)
+is separate from the published baseline and does not establish physical validation.
 The exact v0.13.2 wheel identity, maintainer baseline, focused questions, and
 independent closure criteria are pinned in the
 [Fractal SSFM review target](docs/fractal-ssfm-independent-review-v0.13.2.md).
@@ -220,7 +223,7 @@ qs-dmss validation fractal-ssfm
 
 See
 [docs/fractal-quadrant-ssfm-validation-spine.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/fractal-quadrant-ssfm-validation-spine.md)
-for the scientific claim boundary, validation expectations, and #105 review
+for the scientific claim boundary and validation expectations; #183 is the active review
 gate.
 
 This writes `fractal-ssfm-validation/fractal-ssfm-validation.json` plus a

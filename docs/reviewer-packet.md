@@ -23,7 +23,13 @@ Conceptual and citation role map:
 [`conceptual-reference-map.md`](conceptual-reference-map.md)
 
 Active scientific review target:
-`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183`
+
+Issue #105 is a closed historical record, not scientific approval. The published
+v0.13.2 evidence below is unchanged. The separate, unreleased
+[commit-pinned falsification pilot](scientific-falsification-pilot.md) concerns the
+later FFT correction and experimental graph backend; it does not replace this
+release baseline or establish physical validation.
 
 Active HPC/RSE site-policy review target:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/99`
@@ -115,7 +121,7 @@ validation.
 The public package baseline includes `qs-dmss validation fractal-ssfm` for the
 experimental `numpy_fractal_ssfm` backend.
 
-Use this review path when commenting on issue #105:
+Use this published-baseline review path when commenting on issue #183:
 
 ```powershell
 python -m pip install https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.2/qs_dmss-0.13.2-py3-none-any.whl
@@ -131,7 +137,7 @@ Expected signals:
 - explicit non-conservative labels for `soft_mask` and `hard_mask`
 
 Please leave one public comment on
-`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`.
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183`.
 The pinned release identity, maintainer baseline, focused questions, and gate
 closure criteria are recorded in
 [`fractal-ssfm-independent-review-v0.13.2.md`](fractal-ssfm-independent-review-v0.13.2.md).
@@ -233,7 +239,7 @@ Choose the lane that matches the feedback you want to provide.
 | Benchmark workflow | `benchmarks list`, `benchmarks validate`, metric envelope report, replay compatibility | Scientific review or reproducibility review |
 | Simulation showcase | `showcase run`, generated CSV/SVG outputs, replay comparison, scenario narrative | Scientific review or evidence review |
 | Lab Mode guided comparison | Cockpit Lab Mode, Evidence Explorer, guided variant comparison, report/bundle links | Product UX review or evidence review |
-| Fractal SSFM validation | Published package or source checkout, `validation fractal-ssfm`, JSON/Markdown report, conservation labels | Scientific review on #105 |
+| Fractal SSFM validation | Published package or source checkout, `validation fractal-ssfm`, JSON/Markdown report, conservation labels | Scientific review on #183 |
 | Dry-run Slurm review | `executors slurm-dry-run`, request bundle, scheduler script, no-submit policy | HPC/RSE review on #99 |
 | Documentation | README, reviewer quickstart, evidence glossary, benchmark expectations | Documentation issue |
 | Paper readiness | JOSS paper scaffold, state-of-field comparison, research impact evidence | Scientific review |
@@ -241,7 +247,7 @@ Choose the lane that matches the feedback you want to provide.
 Open feedback through the active public gates:
 
 - Fractal SSFM validation:
-  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`
+  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183`
 - HPC/RSE dry-run Slurm site-policy review:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/99`
 - Builder Board and product roadmap:

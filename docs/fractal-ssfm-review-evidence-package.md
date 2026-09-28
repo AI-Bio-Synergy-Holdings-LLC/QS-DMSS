@@ -56,7 +56,10 @@ The manifest requires reviewer identity, affiliation, a contact or public
 profile, an independence declaration, a human-accountability statement, and an
 AI-assistance disclosure. The validator confirms that these declarations are
 present; it cannot establish whether they are true. Human review and public
-finding disposition remain mandatory under issue #105.
+finding disposition remain mandatory under active issue #183. Closed issue #105
+is historical context, not scientific approval. This versioned package's identity,
+schema and historical issue bindings are unchanged; the development-candidate
+[falsification pilot](scientific-falsification-pilot.md) is a separate evidence track.
 
 Every valid result reports `scientific_validation_status` as
 `NOT_ESTABLISHED`. Any package that attempts to change that status is rejected.
