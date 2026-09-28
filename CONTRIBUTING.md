@@ -13,6 +13,16 @@ public-facing, so small, reproducible changes are preferred over broad rewrites.
 New contributors can use [docs/contributor-map.md](docs/contributor-map.md) to
 match user-facing behavior to source files and tests.
 
+## Scientific Challenge Review
+
+Use the [challenge registry and intake guide](docs/scientific-challenges.md) for
+FFT-energy, finite-graph operator, and evolution-accuracy assessments under active
+issue #183. Closed #105 is historical context. Supply source/artifact hashes,
+commands, environment, counterexamples or limitations, reviewer independence,
+AI assistance and a pending human disposition. PyPI v0.13.2 is not the later
+development candidate, despite their shared version string. Conceptual NOT_RUN
+feedback is welcome but does not establish independent reproduction.
+
 ## Funding And Stewardship
 
 QS-DMSS participates in Open Source Collective at
@@ -34,7 +44,8 @@ python -m venv .venv
 Before opening a pull request, run:
 
 ```powershell
-.\.venv\Scripts\python.exe -m ruff check src tests .github/scripts site/build_portal.py
+.\.venv\Scripts\python.exe -m ruff check src tests .github/scripts research site/build_portal.py
+.\.venv\Scripts\python.exe research/challenges/validate_registry.py
 .\.venv\Scripts\python.exe -m pytest -q --cov=qs_dmss --cov-fail-under=88
 .\.venv\Scripts\python.exe -m bandit -r src --severity-level medium --confidence-level medium -q
 .\.venv\Scripts\python.exe -m pip_audit --local

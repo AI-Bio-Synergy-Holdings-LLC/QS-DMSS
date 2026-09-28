@@ -21,8 +21,9 @@ Reviewer opt-in issue form:
 Historical community outreach wave 1:
 `docs/community-outreach-wave-1.md`
 
-Current focused reviewer outreach packet:
-`docs/v0.10-reviewer-outreach.md`
+Current focused scientific requests: [challenge registry and intake](scientific-challenges.md).
+The `docs/v0.10-reviewer-outreach.md` packet is historical, not a current contact
+list or authorization to message its named people. Closed #105 is not the active gate.
 
 ## Contact Principle
 
@@ -37,7 +38,7 @@ offers another channel.
 | Priority | Avenue | Best contact produced | Best QS-DMSS ask |
 | --- | --- | --- | --- |
 | 1 | GitHub Discussion #44 | Public GitHub handles from opt-in comments | Ask people to choose one review lane. |
-| 1 | Reviewer opt-in issue form | Public GitHub handles with lane consent | Route the reviewer to `#105`, `#99`, or `#57`. |
+| 1 | Reviewer opt-in issue form | Public GitHub handles with lane consent | Route the reviewer to `#183`, `#99`, or `#57`. |
 | 1 | US-RSE | Research software engineers and code-review volunteers | Ask for dry-run Slurm site-policy, install/reproducibility, and evidence-workflow feedback. |
 | 1 | Scientific Python community | Scientific Python maintainers and users | Ask for packaging, validation-harness, and reproducibility feedback. |
 | 2 | pyOpenSci | Python package peer-review contacts | Use later for package-quality review once scope is stable. |
@@ -148,7 +149,7 @@ preflight path first.
 
 Primary link: `https://joss.readthedocs.io/`
 
-Best ask now: request informal preflight comments through `#105` for the
+Best ask now: request informal preflight comments through `#183` for the
 Fractal SSFM validation gate or through the reviewer opt-in form. Submit only
 when the review packet, paper, examples, tests, and contribution path are
 ready.
@@ -160,7 +161,7 @@ ready.
    are likely to respond.
 3. Post one small ask to US-RSE and one to Scientific Python, each routing to
    Discussion #44 and the reviewer opt-in form.
-4. Ask domain contacts from OpenAstronomy to comment on `#105`, not to endorse
+4. Ask consenting domain contacts from OpenAstronomy to comment on `#183`, not to endorse
    the model.
 5. Use pyOpenSci, ASCL, Zenodo communities, and JOSS as staged readiness gates,
    not attention hacks.
@@ -179,8 +180,8 @@ public reference-data provenance, and install/reproducibility clarity.
 
 If you are open to reviewing one small lane, please comment on one active gate:
 
-Fractal/Quadrant SSFM validation:
-https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105
+Fractal/Quadrant SSFM scientific review (identify published or development track):
+https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183
 
 Dry-run Slurm site-policy review:
 https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/99

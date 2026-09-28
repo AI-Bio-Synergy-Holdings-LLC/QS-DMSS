@@ -118,7 +118,7 @@ boundary understandable?
 
 Good places to file that feedback:
 
-- Scientific validation gate: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`
+- Scientific review gate: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183`
 - HPC/RSE dry-run Slurm site-policy gate: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/99`
 - Builder roadmap and contribution tracks: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57`
 - Reviewer opt-in form: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=reviewer_opt_in.yml`

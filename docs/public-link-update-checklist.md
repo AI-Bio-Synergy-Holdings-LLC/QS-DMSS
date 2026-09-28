@@ -262,7 +262,7 @@ QS-DMSS Studio is live at https://qs-dmss.studio.
 
 QS-DMSS is beta software for reproducible package/evidence workflows, not
 peer-reviewed scientific validation. If you are open to a small review, please
-pick one lane: Fractal SSFM validation (#105), dry-run Slurm site-policy review
+pick one lane: Fractal SSFM scientific review (#183), dry-run Slurm site-policy review
 (#99), conceptual/citation boundary feedback, or builder/product roadmap
 feedback (#57).
 ```

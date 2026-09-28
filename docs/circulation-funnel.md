@@ -5,6 +5,11 @@ strategy lives in [product-vision.md](product-vision.md),
 [contributor-roadmap.md](contributor-roadmap.md), and
 [funding-roadmap.md](funding-roadmap.md).
 
+For current scientific requests, use the [bounded challenges and reviewer intake](scientific-challenges.md)
+under active #183. Closed #105 and the historical copy below do not establish
+scientific approval. Keep the published v0.13.2 track separate from the later
+source-pinned development candidate.
+
 This guide turns public attention into useful review, issues, commits, and
 release feedback. It is intentionally narrow: every path should end with a
 specific GitHub issue, pull request, or reproducibility signal.
@@ -19,7 +24,7 @@ specific GitHub issue, pull request, or reproducibility signal.
 - Latest PyPI package: `v0.13.2`
 - Latest archived Zenodo release DOI: `10.5281/zenodo.21366910` (`v0.13.2`)
 - Open Collective: `https://opencollective.com/qs-dmss`
-- Scientific review gate: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`
+- Scientific review gate: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183`
 - HPC/RSE site-policy review gate: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/99`
 - Builder board: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57`
 - Reviewer opt-in discussion: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/discussions/44`
@@ -34,7 +39,7 @@ Use these calls to action in public posts, direct outreach, and release notes.
 
 | Reviewer type | Ask | GitHub path |
 | --- | --- | --- |
-| Numerical/scientific reviewer | Comment on the Fractal SSFM validation harness, convergence, conservation, or diagnostics-only boundary. | `#105` |
+| Numerical/scientific reviewer | Choose a bounded challenge or identify the published-baseline review track; submit reproducible evidence and an accountable human assessment. | `#183` |
 | HPC/RSE reviewer | Comment on dry-run Slurm directives, environment setup, filesystem staging, or scheduler-state mapping. | `#99` |
 | Reproducibility reviewer | Install from PyPI, run the demo/campaign/showcase, and report friction through the reviewer opt-in form. | reviewer opt-in form |
 | Builder/contributor | Identify the first task or build lane that would make contribution easier. | `#57` |

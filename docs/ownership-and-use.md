@@ -97,7 +97,7 @@ not peer-reviewed scientific validation.
 The current GitHub and Zenodo release is `v0.13.2` / DOI
 `10.5281/zenodo.21366910`; the matching PyPI package is
 `qs-dmss==0.13.2`. Fractal/Quadrant SSFM scientific feedback is routed
-through issue #105 before any GPU expansion or decision-metric UI exposure for
+through issue #183 before any GPU expansion or decision-metric UI exposure for
 spectral diagnostics.
 
 ## Names, Marks, And Endorsement

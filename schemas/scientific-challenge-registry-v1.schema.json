@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/schemas/scientific-challenge-registry-v1.schema.json",
+  "title": "Scientific challenge registry v1: frozen pilot evidence, not scientific approval",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "registry_id", "review_gate", "historical_gate", "candidate", "published_baseline", "engineering_review", "evidence_packets", "challenges"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "registry_id": {"const": "qs-dmss-scientific-challenges-v1"},
+    "review_gate": {"const": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183"},
+    "historical_gate": {"const": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105"},
+    "candidate": {
+      "type": "object", "additionalProperties": false,
+      "required": ["source_commit", "reported_package_version", "published_release", "wheel_sha256", "wheel_availability", "protocol_path", "protocol_canonical_sha256"],
+      "properties": {
+        "source_commit": {"$ref": "#/$defs/commit"},
+        "reported_package_version": {"const": "0.13.2"},
+        "published_release": {"const": false},
+        "wheel_sha256": {"$ref": "#/$defs/sha256"},
+        "wheel_availability": {"$ref": "#/$defs/text"},
+        "protocol_path": {"const": "research/falsification/protocol-v1.json"},
+        "protocol_canonical_sha256": {"$ref": "#/$defs/sha256"}
+      }
+    },
+    "published_baseline": {
+      "type": "object", "additionalProperties": false,
+      "required": ["version", "source_commit", "wheel_sha256", "evidence_path", "scope"],
+      "properties": {
+        "version": {"const": "0.13.2"}, "source_commit": {"$ref": "#/$defs/commit"},
+        "wheel_sha256": {"$ref": "#/$defs/sha256"},
+        "evidence_path": {"const": "docs/review-evidence/fractal-ssfm-v0.13.2.json"},
+        "scope": {"$ref": "#/$defs/text"}
+      }
+    },
+    "engineering_review": {
+      "type": "object", "additionalProperties": false,
+      "required": ["status", "scope", "reviewed_head", "merged_commit", "record_url"],
+      "properties": {
+        "status": {"const": "OWNER_APPROVED"}, "scope": {"$ref": "#/$defs/text"},
+        "reviewed_head": {"const": "3027a7fa462fe13b4592fc8a12cda56f6c8ca450"},
+        "merged_commit": {"const": "a5f72e614dc7d38e72ffe3f4b752aace0bb408b4"},
+        "record_url": {"const": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/pull/194#issuecomment-5861432043"}
+      }
+    },
+    "evidence_packets": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/packet"}},
+    "challenges": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"$ref": "#/$defs/challenge"}}
+  },
+  "$defs": {
+    "text": {"type": "string", "minLength": 1, "maxLength": 1500},
+    "texts": {"type": "array", "minItems": 1, "maxItems": 12, "uniqueItems": true, "items": {"$ref": "#/$defs/text"}},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+    "outcome": {"enum": ["NOT_FALSIFIED_WITHIN_SCOPE", "FAIL", "INCONCLUSIVE"]},
+    "packet_id": {"enum": ["pilot-v1", "wolfram-v1"]},
+    "packet": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "path", "sha256", "url", "method", "environment_pointer"],
+      "properties": {
+        "id": {"$ref": "#/$defs/packet_id"}, "path": {"$ref": "#/$defs/text"},
+        "sha256": {"$ref": "#/$defs/sha256"}, "url": {"type": "string", "format": "uri"},
+        "method": {"$ref": "#/$defs/text"}, "environment_pointer": {"$ref": "#/$defs/text"}
+      }
+    },
+    "result": {
+      "type": "object", "additionalProperties": false,
+      "required": ["packet_id", "pointer", "case_count", "outcome"],
+      "properties": {
+        "packet_id": {"$ref": "#/$defs/packet_id"}, "pointer": {"$ref": "#/$defs/text"},
+        "case_count": {"type": "integer", "minimum": 1}, "outcome": {"$ref": "#/$defs/outcome"}
+      }
+    },
+    "challenge": {
+      "type": "object", "additionalProperties": false,
+      "required": ["id", "exercise", "title", "claim", "model_scope", "source_commit", "diagnostic_conventions", "case_count", "acceptance_limits", "evidence_outcome", "results", "scientific_assessment", "falsification_target", "limitations", "unresolved_questions", "reproduction_guide"],
+      "properties": {
+        "id": {"enum": ["SC-FFT-001", "SC-GRAPH-001", "SC-EVOLUTION-001"]},
+        "exercise": {"enum": ["fft", "graph", "evolution"]},
+        "title": {"$ref": "#/$defs/text"}, "claim": {"$ref": "#/$defs/text"},
+        "model_scope": {"$ref": "#/$defs/text"}, "source_commit": {"$ref": "#/$defs/commit"},
+        "diagnostic_conventions": {"$ref": "#/$defs/texts"}, "case_count": {"type": "integer", "minimum": 1},
+        "acceptance_limits": {
+          "type": "object", "minProperties": 1,
+          "additionalProperties": {"oneOf": [{"type": "number", "minimum": 0}, {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "number", "minimum": 0}}]}
+        },
+        "evidence_outcome": {"$ref": "#/$defs/outcome"},
+        "results": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/result"}},
+        "scientific_assessment": {"const": {"status": "NOT_ESTABLISHED", "independent_review": "PENDING", "human_disposition": "PENDING"}},
+        "falsification_target": {"$ref": "#/$defs/text"}, "limitations": {"$ref": "#/$defs/texts"},
+        "unresolved_questions": {"$ref": "#/$defs/texts"},
+        "reproduction_guide": {"const": "docs/scientific-challenges.md#reproduce-the-development-candidate"}
+      }
+    }
+  }
+}

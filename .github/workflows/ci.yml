@@ -43,7 +43,10 @@ jobs:
         run: python -m pip install -e .[quantum]
 
       - name: Run deterministic lint checks
-        run: python -m ruff check src tests .github/scripts research/falsification site/build_portal.py
+        run: python -m ruff check src tests .github/scripts research site/build_portal.py
+
+      - name: Check scientific challenge registry against retained evidence
+        run: python research/challenges/validate_registry.py
 
       - name: Audit installed dependencies
         if: matrix.python-version == '3.13'
@@ -117,6 +120,9 @@ jobs:
           assert sdist_root + "RELEASE.md" in sdist_names
           assert sdist_root + "research/falsification/wolfram_reference.wl" in sdist_names
           assert sdist_root + "research/falsification/compare_wolfram.py" in sdist_names
+          assert sdist_root + "research/challenges/registry-v1.json" in sdist_names
+          assert sdist_root + "research/challenges/validate_registry.py" in sdist_names
+          assert sdist_root + "schemas/scientific-challenge-registry-v1.schema.json" in sdist_names
           assert sdist_root + "docs/review-evidence/falsification-pilot-v1.zip" in sdist_names
           assert sdist_root + "docs/review-evidence/wolfram-falsification-v1.zip" in sdist_names
           assert (

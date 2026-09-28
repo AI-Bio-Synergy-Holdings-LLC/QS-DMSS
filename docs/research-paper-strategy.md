@@ -100,10 +100,10 @@ Claims to avoid until then:
 
 ## Immediate Writing Task
 
-Do not expand `paper/paper.md` into submission form yet. Use `v0.9.0` as the
-stable public package baseline, gather reviewer feedback through the review
-packet and issue #105, and then update the paper scaffold with evidence that a
-reviewer can reproduce.
+Do not expand `paper/paper.md` into submission form yet. Keep the published
+v0.13.2 baseline separate from the [development challenges](scientific-challenges.md),
+gather reviewer feedback through the review packet and issue #183, and then
+update the paper scaffold with evidence that a reviewer can reproduce.
 
 The current paper should remain a disciplined scaffold until the benchmark
 and Fractal SSFM validation review provide enough data.

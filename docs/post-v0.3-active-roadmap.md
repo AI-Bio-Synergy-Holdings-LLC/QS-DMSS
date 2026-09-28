@@ -52,7 +52,7 @@ measured evidence rather than inside the execution or recommendation path.
 The target user flow is:
 
 ```text
-pip install -> run fractal SSFM validation or reference-data calibration -> inspect JSON/Markdown/evidence output -> comment on issue #105 or related provenance issues
+choose published baseline or pinned development challenge -> reproduce -> inspect evidence -> human-accountable feedback on issue #183
 ```
 
 The current implementation should focus on review conversion after publication,
@@ -60,11 +60,13 @@ not another immediate feature release:
 
 - route numerical-methods, nonlinear-waves, spectral-methods, and
   scientific-Python reviewers to
-  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105`;
+  `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183`;
 - ask for one public comment on Strang refinement, fuzzy-potential norm
   conservation, non-conservative mask labels, or diagnostics-only status;
 - use the `v0.13.2` GitHub release wheel as the stable public review baseline
   while the validation and provenance gates are reviewed;
+- use the separately pinned [scientific challenges](scientific-challenges.md)
+  for corrected FFT/graph candidate evidence; do not substitute the PyPI wheel;
 - keep GPU expansion, real HPC submission, and decision-metric UI paused until
   the review target receives substantive technical feedback or exposes a
   blocker.

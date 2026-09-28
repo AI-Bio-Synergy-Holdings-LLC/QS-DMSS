@@ -64,6 +64,10 @@ Fractal SSFM scientific feedback is routed through
 Closed issue #105 remains historical context, not scientific approval. The
 unreleased, commit-pinned [falsification pilot](docs/scientific-falsification-pilot.md)
 is separate from the published baseline and does not establish physical validation.
+The [Scientific Challenge Registry and reviewer intake](docs/scientific-challenges.md)
+identify three bounded challenges, their immutable evidence and pending human
+assessment. Choose the published baseline or the later candidate explicitly;
+they report the same package version but are different source/wheel identities.
 The exact v0.13.2 wheel identity, maintainer baseline, focused questions, and
 independent closure criteria are pinned in the
 [Fractal SSFM review target](docs/fractal-ssfm-independent-review-v0.13.2.md).

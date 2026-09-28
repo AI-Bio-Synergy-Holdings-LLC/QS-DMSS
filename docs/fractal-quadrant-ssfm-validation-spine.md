@@ -11,7 +11,9 @@ This page describes the installable validation gate included in the current
 [fractal-ssfm-independent-review-v0.13.2.md](fractal-ssfm-independent-review-v0.13.2.md).
 Reviewers should run this harness from the published package or an editable
 source checkout and leave technical feedback on
-[issue #105](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/105).
+[issue #183](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183).
+Closed #105 remains historical. The [development challenges](scientific-challenges.md)
+use a later pinned source, not the published v0.13.2 wheel.
 GPU expansion, provider integration, and decision-metric UI for
 `spectral_leakage` / `aliasing_ratio` remain paused behind that review gate.
 

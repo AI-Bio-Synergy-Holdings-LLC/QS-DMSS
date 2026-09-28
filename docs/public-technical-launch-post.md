@@ -1,5 +1,9 @@
 # Public Technical Update Post
 
+Historical v0.9.0 draft: the release copy below is retained unchanged. For current
+scientific requests use the [challenge guide](scientific-challenges.md) and open
+gate #183; references to closed #105 below are historical, not scientific approval.
+
 Audience: technical readers, scientific-software reviewers, potential early
 adopters, research collaborators, RSE/HPC reviewers, and open-source funders.
 

@@ -1,8 +1,9 @@
 # Community Outreach Wave 1
 
 Status: retained as historical outreach planning for the early v0.3.0 review
-sprint. Current outreach targets should use `v0.9.0`, issue #105, issue #99,
-issue #57, and the reviewer opt-in form.
+sprint. Current scientific requests should use the
+[challenge guide](scientific-challenges.md), issue #183, and the reviewer opt-in
+form. Closed #105 is historical; HPC #99 and builder #57 remain separate lanes.
 
 This wave targets three communities that can produce valid, opt-in reviewer
 contacts for QS-DMSS `v0.3.0` without scraping anonymous traffic or collecting

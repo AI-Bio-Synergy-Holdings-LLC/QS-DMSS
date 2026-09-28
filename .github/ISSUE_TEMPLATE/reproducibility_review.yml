@@ -5,6 +5,10 @@ labels:
   - review-wanted
   - reproducibility
 body:
+  - type: markdown
+    attributes:
+      value: |
+        This form covers package/workflow reproducibility. For SC-FFT-001, SC-GRAPH-001 or SC-EVOLUTION-001, use the Scientific Review form and its commit-pinned candidate instructions instead. PyPI v0.13.2 is a different, older source than that candidate.
   - type: textarea
     id: path
     attributes:
@@ -28,7 +32,7 @@ body:
     attributes:
       label: Environment
       description: OS, Python version, shell, install source, and QS-DMSS version.
-      placeholder: "Windows 11, Python 3.13, PowerShell, PyPI qs-dmss==0.5.0"
+      placeholder: "Windows 11, Python 3.13, PowerShell, PyPI qs-dmss==0.13.2; include exact source/wheel identity if reviewing a development build."
     validations:
       required: true
   - type: textarea
