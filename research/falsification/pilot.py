@@ -81,22 +81,29 @@ def graph_solver(level, boundary, length, *, mass=1.3, coupling=0, potential=(0,
 def fft_exercise(protocol):
     p = protocol["fft"]
     rows = []
-    for dimension, backend, solver_type in (
-        (3, "numpy", QuantumScalarDarkMatterSolver),
-        (2, "numpy_fractal_ssfm", FractalQuadrantSSFMSolver),
+    for dimension, backend in (
+        (3, "numpy"),
+        (2, "numpy_fractal_ssfm"),
     ):
         for shape, length, mass, mode in product(p[f"shapes_{dimension}d"], p["lengths"],
                                                  p["masses"], p[f"modes_{dimension}d"]):
             shape = tuple(shape)
             engine_shape = shape if dimension == 3 else (*shape, 1)
-            solver = solver_type(EngineConfig(backend, engine_shape, length, mass, 0, 0.001, 1),
-                                 InitialConditionConfig("uniform", random_phase=False), 0)
+            engine = EngineConfig(backend, engine_shape, length, mass, 0, 0.001, 1)
+            initial = InitialConditionConfig("uniform", random_phase=False)
             axes = np.meshgrid(*(np.arange(n)/n for n in shape), indexing="ij")
             psi = np.exp(2j*np.pi*sum(n*x for n, x in zip(mode, axes))) / length**(dimension/2)
             expected = sum((2*np.pi*n/length)**2 for n in mode)/(2*mass)
-            actual = solver.compute_energy(psi, np.zeros(shape)) if dimension == 3 else solver.compute_energy(psi)
+            if dimension == 3:
+                solver_3d = QuantumScalarDarkMatterSolver(engine, initial, 0)
+                actual = solver_3d.compute_energy(psi, np.zeros(shape))
+                norm = solver_3d.compute_norm(psi)
+            else:
+                solver_2d = FractalQuadrantSSFMSolver(engine, initial, 0)
+                actual = solver_2d.compute_energy(psi)
+                norm = solver_2d.compute_norm(psi)
             error = scaled_error(actual, expected)
-            norm_error = abs(solver.compute_norm(psi) - 1)
+            norm_error = abs(norm - 1)
             legacy = actual / (length**dimension / np.prod(shape))
             control_rejected = not bounded(scaled_error(legacy, expected), p["scaled_energy_error_max"])
             rows.append({"backend": backend, "shape": shape, "length": length, "mass": mass,
