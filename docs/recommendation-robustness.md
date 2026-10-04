@@ -167,6 +167,16 @@ Excessively nested JSON on direct source, preview, save, reopen or bundle access
 receives the existing sanitized invalid-evidence HTTP 400, not a parser traceback
 or HTTP 500. Discovery still isolates individual invalid records.
 
+Artifact path-resolution loops are isolated across Python 3.10–3.13. A looped
+artifact directory returns the existing HTTP 404; a loop within its evidence
+files returns the sanitized invalid-evidence HTTP 400. Older Python's resolution
+`RuntimeError` is normalized only at the path boundary, and directory `ELOOP`
+has the same not-found contract. Permission errors keep their existing contract;
+unrelated service/scoring runtime failures are not misclassified as bad evidence.
+Discovery skips loops in the metadata it actually reads. It remains metadata-only:
+a loop in unread retained source or bundle files is rejected on full open/export,
+not necessarily during listing. Healthy records and original bytes are preserved.
+
 All parsed metadata keys and values, including unused fields, must be UTF-8
 encodable and all numbers finite. Escaped lone surrogates, NaN/Infinity constants
 and overflowing float exponents are rejected before response serialization.

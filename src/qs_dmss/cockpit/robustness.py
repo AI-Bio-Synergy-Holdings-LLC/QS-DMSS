@@ -12,6 +12,7 @@ import shutil
 import uuid
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from errno import ELOOP
 from pathlib import Path
 from typing import Callable
 
@@ -122,6 +123,15 @@ def _recorded_profile(profile: dict) -> None:
         raise ValueError("Recorded profile has no effective positive weight")
 
 
+def _artifact_path(root: Path, *parts: str | Path) -> Path:
+    # Only path resolution is normalized, never unrelated service/scoring bugs.
+    # Older CPython reports loops as RuntimeError instead of OSError(ELOOP).
+    try:
+        return contained_path(root, *parts)
+    except RuntimeError as exc:
+        raise ValueError("Recorded artifact path could not be resolved") from exc
+
+
 def _storage_directory(root: Path, name: str) -> Path:
     # Containment alone permits aliases into sibling evidence. These reserved
     # storage roots must keep their exact resolved parent and leaf identities.
@@ -141,13 +151,20 @@ def _storage_directory(root: Path, name: str) -> Path:
 def _directory(root: Path, identifier: str) -> Path:
     if not SAFE_ID.fullmatch(identifier):
         raise HTTPException(404, "Recorded artifact not found")
-    candidate = contained_path(root, identifier)
-    if (
-        candidate.parent != root.resolve()
-        or candidate.name != identifier
-        or not candidate.is_dir()
-    ):
-        raise HTTPException(404, "Recorded artifact not found")
+    try:
+        candidate = contained_path(root, identifier)
+        if (
+            candidate.parent != root.resolve()
+            or candidate.name != identifier
+            or not candidate.is_dir()
+        ):
+            raise HTTPException(404, "Recorded artifact not found")
+    except RuntimeError as exc:
+        raise HTTPException(404, "Recorded artifact not found") from exc
+    except OSError as exc:
+        if exc.errno != ELOOP:
+            raise  # Preserve existing permission and other filesystem contracts.
+        raise HTTPException(404, "Recorded artifact not found") from exc
     return candidate
 
 
@@ -177,7 +194,7 @@ def _entries(manifest: dict) -> dict:
 
 
 def _verified_bytes(root: Path, relative: str, entries: dict) -> bytes:
-    payload = _read_bytes(contained_path(root, relative))
+    payload = _read_bytes(_artifact_path(root, relative))
     entry = entries.get(relative, {})
     if len(payload) != entry.get("size_bytes") or hashlib.sha256(
         payload
@@ -303,7 +320,7 @@ class CockpitRobustnessService:
         for directory in _discovery_entries(self.experiments_root):
             try:
                 root = _directory(self.experiments_root, directory.name)
-                path = contained_path(root, "experiment.json")
+                path = _artifact_path(root, "experiment.json")
                 if path.is_file():
                     paths.append(path)
             except (HTTPException, ValueError, OSError):
@@ -311,7 +328,7 @@ class CockpitRobustnessService:
         paths.sort(reverse=True)
         for path in paths[:200]:
             try:
-                record = _json(_read_bytes(contained_path(self.experiments_root, path)))
+                record = _json(_read_bytes(_artifact_path(self.experiments_root, path)))
                 decision = record.get("decision")
                 if (
                     record.get("kind") != "campaign"
@@ -330,7 +347,7 @@ class CockpitRobustnessService:
     def _source(self, experiment_id: str) -> tuple[dict, dict[str, bytes]]:
         self._local()
         root = _directory(self.experiments_root, experiment_id)
-        manifest_bytes = _read_bytes(contained_path(root, "manifest.sha256.json"))
+        manifest_bytes = _read_bytes(_artifact_path(root, "manifest.sha256.json"))
         entries = _entries(_json(manifest_bytes))
         captures = {"manifest.sha256.json": manifest_bytes}
 
@@ -412,7 +429,7 @@ class CockpitRobustnessService:
             raise RobustnessError(
                 "Mixed energy diagnostic conventions cannot be rescored together"
             )
-        bundle = contained_path(root, "evidence_bundle.zip")
+        bundle = _artifact_path(root, "evidence_bundle.zip")
         if bundle.stat().st_size > MAX_BUNDLE_BYTES:
             raise RobustnessError("Source bundle exceeds the robustness resource limit")
         digest = hashlib.sha256()
@@ -484,10 +501,10 @@ class CockpitRobustnessService:
         pending_root.mkdir(parents=True, exist_ok=True)
         for _ in range(3):
             analysis_id = f"robustness-{uuid.uuid4().hex}"
-            published = contained_path(root, analysis_id)
+            published = _artifact_path(root, analysis_id)
             if published.exists():
                 continue
-            destination = contained_path(pending_root, analysis_id)
+            destination = _artifact_path(pending_root, analysis_id)
             try:
                 destination.mkdir(exist_ok=False)
                 break
@@ -530,7 +547,7 @@ class CockpitRobustnessService:
                 )
             (destination / "analysis.json").write_bytes(analysis_bytes)
             for name, payload in captures.items():
-                path = contained_path(destination, "source", name)
+                path = _artifact_path(destination, "source", name)
                 path.parent.mkdir(parents=True, exist_ok=True)
                 path.write_bytes(payload)
             write_manifest_for_directory(destination)
@@ -552,7 +569,7 @@ class CockpitRobustnessService:
         self._local()
         root = _directory(self._analysis_root(), analysis_id)
         entries = _entries(
-            _json(_read_bytes(contained_path(root, "manifest.sha256.json")))
+            _json(_read_bytes(_artifact_path(root, "manifest.sha256.json")))
         )
         result = _json(_verified_bytes(root, "analysis.json", entries))
         return root, entries, result
@@ -592,11 +609,11 @@ class CockpitRobustnessService:
                     )
         if result.get("analysis_id") != analysis_id:
             raise RobustnessError("Saved analysis identity is inconsistent")
-        bundle_hash = _read_bytes(contained_path(root, "bundle.sha256"), 64).decode(
+        bundle_hash = _read_bytes(_artifact_path(root, "bundle.sha256"), 64).decode(
             "ascii"
         )
         bundle = _read_bytes(
-            contained_path(root, "evidence_bundle.zip"), MAX_BUNDLE_BYTES
+            _artifact_path(root, "evidence_bundle.zip"), MAX_BUNDLE_BYTES
         )
         if hashlib.sha256(bundle).hexdigest() != bundle_hash:
             raise RobustnessError(
@@ -615,7 +632,7 @@ class CockpitRobustnessService:
         for directory in _discovery_entries(root):
             try:
                 artifact = _directory(root, directory.name)
-                path = contained_path(artifact, "analysis.json")
+                path = _artifact_path(artifact, "analysis.json")
                 paths.append((path.stat().st_mtime_ns, path))
             except (HTTPException, ValueError, OSError):
                 continue
@@ -638,7 +655,7 @@ class CockpitRobustnessService:
         # Compatibility for local callers. HTTP must use the verified byte
         # snapshot below rather than reopening this mutable filesystem path.
         self.load(analysis_id)  # Verify retained metadata before exporting.
-        return contained_path(
+        return _artifact_path(
             _directory(self._analysis_root(), analysis_id), "evidence_bundle.zip"
         )
 

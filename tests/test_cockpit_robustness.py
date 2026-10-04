@@ -6,6 +6,7 @@ import os
 import shutil
 import zipfile
 from copy import deepcopy
+from errno import EACCES, ELOOP
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -997,7 +998,208 @@ def _tree_bytes(root):
     return {
         path.relative_to(root): path.read_bytes()
         for path in root.rglob("*")
-        if path.is_file() and not path.is_symlink()
+        if not path.is_symlink() and path.is_file()
+    }
+
+
+def _resolution_loop(monkeypatch, target, mode):
+    if mode == "real_symlink":
+        directory = target.is_dir()
+        target.rename(target.with_name(target.name + "-unlooped"))
+        try:
+            target.symlink_to(target.name, target_is_directory=directory)
+        except OSError as exc:
+            if getattr(exc, "winerror", None) == 1314:
+                pytest.skip(
+                    "Windows symlink creation requires an unavailable privilege"
+                )
+            raise
+        return
+    resolve = Path.resolve
+
+    def looped(path, *args, **kwargs):
+        if path == target or target in path.parents:
+            if mode == "runtime":
+                raise RuntimeError("Private recorded path contains a symlink loop")
+            raise OSError(ELOOP, "Private recorded path contains a symlink loop")
+        return resolve(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "resolve", looped)
+
+
+_RESOLUTION_LOOP_CASES = [
+    ("sources", ""),
+    ("analyses", ""),
+    *[
+        ("sources", relative)
+        for relative in (
+            "manifest.sha256.json",
+            "experiment.json",
+            "comparison.json",
+            "runs",
+            "runs/run-a/metrics.json",
+            "runs/run-a/run.json",
+            "evidence_bundle.zip",
+        )
+    ],
+    *[
+        ("analyses", relative)
+        for relative in (
+            "manifest.sha256.json",
+            "analysis.json",
+            "source",
+            "source/manifest.sha256.json",
+            "source/experiment.json",
+            "source/runs/run-a/metrics.json",
+            "bundle.sha256",
+            "evidence_bundle.zip",
+        )
+    ],
+]
+
+
+@pytest.mark.parametrize("collection,relative", _RESOLUTION_LOOP_CASES)
+@pytest.mark.parametrize("mode", ["runtime", "eloop", "real_symlink"])
+def test_recorded_resolution_loops_preserve_isolation_and_error_contracts(
+    service, monkeypatch, collection, relative, mode
+):
+    request = _request(service)
+    if collection == "sources":
+        healthy_id, identifier = "campaign-a", "campaign-z-loop"
+        root = service.experiments_root
+        artifact = root / identifier
+        shutil.copytree(root / healthy_id, artifact)
+        record = json.loads((artifact / "experiment.json").read_bytes())
+        _write(artifact / "experiment.json", {**record, "experiment_id": identifier})
+        write_manifest_for_directory(artifact)
+        create_bundle_zip_for_directory(artifact)
+        invalid_request = request.model_copy(
+            update={
+                "experiment_id": identifier,
+                "source_fingerprint": service.source(identifier)["source_fingerprint"],
+            }
+        ).model_dump(mode="json")
+        endpoints = [f"/api/robustness/sources/{identifier}"]
+        discovery_reads_target = not relative or relative == "experiment.json"
+    else:
+        healthy = service.save(request)
+        broken = service.save(request)
+        healthy_id, identifier = healthy["analysis_id"], broken["analysis_id"]
+        root = service._analysis_root()
+        artifact = root / identifier
+        endpoints = [
+            f"/api/robustness/analyses/{identifier}{suffix}"
+            for suffix in ("", "/bundle")
+        ]
+        discovery_reads_target = not relative or relative in (
+            "manifest.sha256.json",
+            "analysis.json",
+        )
+    target = artifact / relative
+    assert target.exists()
+    client = _client(service, raise_server_exceptions=False)
+    _resolution_loop(monkeypatch, target, mode)
+    before = _tree_bytes(service.experiments_root)
+    writes = []
+
+    def forbidden_mkdir(path, *args, **kwargs):
+        writes.append(path)
+        raise AssertionError("Broken source/read path reached a directory writer")
+
+    monkeypatch.setattr(Path, "mkdir", forbidden_mkdir)
+    listing = client.get(f"/api/robustness/{collection}")
+    assert listing.status_code == 200
+    key = "experiment_id" if collection == "sources" else "analysis_id"
+    ids = [item[key] for item in listing.json()["items"]]
+    assert healthy_id in ids
+    assert (identifier not in ids) == discovery_reads_target
+    # Discovery remains metadata-only: unread files are checked on direct access.
+    responses = [client.get(endpoint) for endpoint in endpoints]
+    if collection == "sources":
+        responses.extend(
+            client.post(endpoint, json=invalid_request)
+            for endpoint in (
+                "/api/robustness/preview",
+                "/api/robustness/analyses",
+            )
+        )
+    for response in responses:
+        assert response.status_code == (400 if relative else 404)
+        assert response.json() == {
+            "detail": (
+                "Recorded robustness evidence is invalid, incompatible, or exceeds resource limits"
+                if relative
+                else "Recorded artifact not found"
+            )
+        }
+        assert "Private" not in response.text
+        assert str(root) not in response.text
+    assert client.get(f"/api/robustness/{collection}/{healthy_id}").status_code == 200
+    if collection == "sources":
+        assert (
+            client.post(
+                "/api/robustness/preview", json=request.model_dump(mode="json")
+            ).status_code
+            == 200
+        )
+        assert not service._analysis_root().exists()
+    else:
+        bundle = client.get(healthy["urls"]["bundle"])
+        assert bundle.status_code == 200
+        assert hashlib.sha256(bundle.content).hexdigest() == healthy["bundle_sha256"]
+    assert writes == []
+    assert _tree_bytes(service.experiments_root) == before
+
+
+@pytest.mark.parametrize("collection", ["sources", "analyses"])
+def test_directory_resolution_permission_errors_keep_existing_contract(
+    service, monkeypatch, collection
+):
+    identifier = (
+        "campaign-a"
+        if collection == "sources"
+        else service.save(_request(service))["analysis_id"]
+    )
+    root = (
+        service.experiments_root
+        if collection == "sources"
+        else service._analysis_root()
+    )
+    target, resolve = root / identifier, Path.resolve
+    client = _client(service, raise_server_exceptions=False)
+
+    def denied(path, *args, **kwargs):
+        if path == target:
+            raise PermissionError(EACCES, "Private artifact path is unreadable")
+        return resolve(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "resolve", denied)
+    assert client.get(f"/api/robustness/{collection}").json()["items"] == []
+    response = client.get(f"/api/robustness/{collection}/{identifier}")
+    assert response.status_code == 400
+    assert "Private" not in response.text
+
+
+@pytest.mark.parametrize(
+    "method,endpoint",
+    [
+        ("source", "/api/robustness/sources/campaign-a"),
+        ("load", "/api/robustness/analyses/robustness-test"),
+    ],
+)
+def test_unrelated_runtime_errors_are_not_misclassified_as_path_failures(
+    service, monkeypatch, method, endpoint
+):
+    client = _client(service, raise_server_exceptions=False)
+
+    def unrelated(*args, **kwargs):
+        raise RuntimeError("Unexpected implementation failure")
+
+    monkeypatch.setattr(robustness.CockpitRobustnessService, method, unrelated)
+    response = client.get(endpoint)
+    assert response.status_code == 500
+    assert response.json() == {
+        "detail": "Cockpit request failed; check server logs for details."
     }
 
 

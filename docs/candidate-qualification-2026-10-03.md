@@ -675,3 +675,55 @@ Remote Linux must exercise the real-symlink cases that
 cannot run with this Windows account's privileges. One completed Copilot re-review
 is required after automated gates; fresh owner review and explicit readiness/
 protected-merge authority are still required for the revised head.
+
+## Artifact path-resolution loop follow-up (2026-10-04)
+
+Owner authorization covers the previously missed medium finding in completed
+Copilot review `5407437244`, one focused implementation/qualification batch and
+one subsequent re-review. PR #197 remains draft; readiness, protected merge,
+deployment and publication require fresh explicit authorization.
+
+Path resolution now normalizes older CPython `RuntimeError` only at the artifact
+path boundary. Looped artifact directories return existing HTTP 404; nested
+evidence loops return sanitized HTTP 400. Directory `OSError(ELOOP)` is handled
+consistently, other filesystem contracts remain unchanged, and unrelated service
+runtime errors remain implementation failures. Shared path helpers, scoring,
+routes, payloads, persistence formats and metadata-only discovery scope are unchanged.
+
+The 55 new cases cover 17 directory/file locations using real self-symlinks,
+virtual legacy RuntimeError and modern ELOOP, plus permission and unrelated-error
+contracts. Before implementation: **19 failed, 19 passed, 17 Windows privilege
+skips**. Focused new/prior compatibility checks pass **56 tests, 19 privilege
+skips**. Full local quantum-enabled CPython 3.12.14 qualification passes
+**727 tests, 25 Windows symlink-privilege skips, 90.98% coverage**. Isolated offline
+no-project CPython 3.10.20 and 3.11.15 robustness/core runs each pass **343 tests,
+25 privilege skips** without managing the existing worktree environment.
+
+Ruff, configured Bandit, compilation, JavaScript syntax, all 18 Node contracts,
+baseline benchmark, registry/discovery consistency, 86-package compatibility
+and fresh-cache audit (no known vulnerabilities) pass. Existing low-severity
+security debt and Windows fresh-wheel Application Control limitation remain.
+The installed-wheel/Docker smoke adds `artifact_resolution_loops_sanitized` and
+`looped_entries_isolated`. An initial smoke-harness lookup conflated GET/POST
+routes; this QA-only TypeError was corrected by indexing method and path. Its
+initial generated corpus is retained; fresh source smoke passes under ignored
+`.tmp/artifact-loop-source-smoke-qualified/`.
+
+Owned ephemeral loopback Playwright/Chromium QA at 1440x1000 and 375x900 passes
+source/saved directory and metadata-file failures, matching 404/400 responses,
+cleared busy state, blocked save/download and keyboard recovery. Healthy saved
+bundles reopen/export with unchanged SHA-256
+`e1987c993f15c78ced2b340104671d7b0019c09628d606ad4101232eb17defc0`.
+All **29 corpus files** and the campaign fingerprint remain unchanged. There are
+zero page/unexpected console errors and nine expected HTTP-error entries in the
+completed run. An initial QA incorrectly expected a discovery-only unavailable
+state to clear hidden output's busy marker; direct-read recovery was then tested
+through native source selection. That separate hidden-state polish is not altered
+by this path-handling batch. No artifact save, solver or AI request occurs.
+Scripts/screenshots are retained under ignored `output/playwright/artifact-loops/`;
+the owned browser/service are stopped and user ports/browser are untouched.
+
+Revised-head remote matrix, Linux real-symlink coverage, installed-wheel/Docker,
+security/dependency checks and one completed Copilot re-review are required.
+This is not descriptor-anchored TOCTOU protection, independent scientific review,
+fresh-wheel Windows qualification, or permission to publish another version.

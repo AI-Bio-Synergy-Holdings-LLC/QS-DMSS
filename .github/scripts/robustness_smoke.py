@@ -378,6 +378,99 @@ def assert_storage_root_identities(service, identifier, analysis_id, request):
     assert service.load(analysis_id) == saved_before
 
 
+def assert_resolution_loop_contracts(service, identifier, analysis_id, request):
+    """Virtual older-Python loops exercise installed routes without artifact edits."""
+    resolve, scan = Path.resolve, robustness._discovery_entries
+    source_before, saved_before = service.source(identifier), service.load(analysis_id)
+    routes = {
+        (method, route.path): route.endpoint
+        for route in robustness.robustness_router(lambda request: None).routes
+        for method in route.methods
+    }
+    for collection, root, healthy_id, relative in (
+        ("sources", service.experiments_root, identifier, ""),
+        ("analyses", service._analysis_root(), analysis_id, ""),
+        ("sources", service.experiments_root, identifier, "experiment.json"),
+        ("analyses", service._analysis_root(), analysis_id, "analysis.json"),
+    ):
+        broken_id = healthy_id if relative else "artifact-smoke-loop"
+        target = root / broken_id / relative
+        writes = []
+
+        def looped(path, *args, **kwargs):
+            if path == target or target in path.parents:
+                raise RuntimeError("Private virtual recorded-artifact resolve loop")
+            return resolve(path, *args, **kwargs)
+
+        def scanned(base):
+            return (
+                [root / broken_id, *scan(base)]
+                if base == root and not relative
+                else scan(base)
+            )
+
+        def forbidden_mkdir(path, *args, **kwargs):
+            writes.append(path)
+            raise AssertionError("A looped evidence reader reached a directory writer")
+
+        with (
+            patch.object(Path, "resolve", looped),
+            patch.object(robustness, "_discovery_entries", scanned),
+            patch.object(Path, "mkdir", forbidden_mkdir),
+        ):
+            listing = (
+                service.sources() if collection == "sources" else service.analyses()
+            )
+            key = "experiment_id" if collection == "sources" else "analysis_id"
+            assert [item[key] for item in listing["items"]] == (
+                [] if relative else [healthy_id]
+            )
+            parameter = "experiment_id" if collection == "sources" else "analysis_id"
+            actions = [
+                (
+                    "GET",
+                    f"/api/robustness/{collection}/{{{parameter}}}",
+                    {parameter: broken_id},
+                )
+            ]
+            if collection == "analyses":
+                actions.append(
+                    (
+                        "GET",
+                        "/api/robustness/analyses/{analysis_id}/bundle",
+                        {parameter: broken_id},
+                    )
+                )
+            else:
+                invalid_request = request.model_copy(
+                    update={"experiment_id": broken_id}
+                )
+                actions.extend(
+                    ("POST", endpoint, {"payload": invalid_request})
+                    for endpoint in (
+                        "/api/robustness/preview",
+                        "/api/robustness/analyses",
+                    )
+                )
+            for method, endpoint, arguments in actions:
+                try:
+                    routes[method, endpoint](active=service, **arguments)
+                except HTTPException as exc:
+                    assert exc.status_code == (400 if relative else 404)
+                    assert exc.detail == (
+                        "Recorded robustness evidence is invalid, incompatible, or exceeds resource limits"
+                        if relative
+                        else "Recorded artifact not found"
+                    )
+                else:
+                    raise AssertionError(
+                        "A recorded-artifact resolution loop was admitted"
+                    )
+            assert writes == []
+    assert service.source(identifier) == source_before
+    assert service.load(analysis_id) == saved_before
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-root", required=True, type=Path)
@@ -422,6 +515,7 @@ def main() -> None:
     )
     assert_json_and_profile_admission(service, identifier, saved["analysis_id"])
     assert_storage_root_identities(service, identifier, saved["analysis_id"], payload)
+    assert_resolution_loop_contracts(service, identifier, saved["analysis_id"], payload)
     assert saved["sensitivity"]["case_count"] == 3
     with zipfile.ZipFile(service.bundle(saved["analysis_id"])) as archive:
         assert f"{saved['analysis_id']}/source/comparison.json" in archive.namelist()
@@ -506,6 +600,8 @@ def main() -> None:
                 "json_nesting_policy_enforced": True,
                 "storage_root_identity_enforced": True,
                 "staging_root_identity_enforced_before_writes": True,
+                "artifact_resolution_loops_sanitized": True,
+                "looped_entries_isolated": True,
                 "saved_reopened_exported": True,
                 "hosted_disabled": True,
             },
