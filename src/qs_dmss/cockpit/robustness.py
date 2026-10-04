@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import math
 import os
 import platform
 import re
@@ -25,6 +26,7 @@ from qs_dmss.evidence.bundle import (
 from qs_dmss.paths import contained_path
 from qs_dmss.robustness import (
     RobustnessError,
+    RobustnessProfile,
     RobustnessRequest,
     build_robustness_analysis,
     canonical_json,
@@ -33,6 +35,7 @@ from qs_dmss.robustness import (
 
 MAX_RUNS = 64
 MAX_FILE_BYTES = 2 * 1024 * 1024
+MAX_JSON_DEPTH = 64
 MAX_SOURCE_BYTES = 16 * 1024 * 1024
 MAX_BUNDLE_BYTES = 64 * 1024 * 1024
 MAX_DISCOVERY_ENTRIES = 4096
@@ -51,10 +54,72 @@ def _read_bytes(path: Path, limit: int = MAX_FILE_BYTES) -> bytes:
 
 
 def _json(payload: bytes) -> dict:
-    record = json.loads(payload)
+    # Match stdlib JSON's byte-encoding detection (including UTF-16/32/BOM).
+    # Check depth before entering the decoder, whose native limit varies by build.
+    text = payload.decode(json.detect_encoding(payload), "surrogatepass")
+    depth = 0
+    quoted = escaped = False
+    for character in text:
+        if quoted:
+            if escaped:
+                escaped = False
+            elif character == "\\":
+                escaped = True
+            elif character == '"':
+                quoted = False
+        elif character == '"':
+            quoted = True
+        elif character in "[{":
+            depth += 1
+            if depth > MAX_JSON_DEPTH:
+                raise ValueError("JSON nesting limit exceeded")
+        elif character in "]}":
+            depth -= 1
+    record = json.loads(text)
     if not isinstance(record, dict):
         raise RobustnessError("Recorded metadata must be a JSON object")
+    # Validate every key/value, including unused fields, before JSONResponse's
+    # UTF-8/allow_nan=False serialization outside the router's checked boundary.
+    # One iterator per container keeps traversal storage bounded by depth, not
+    # width. No normalization, ordering changes or artifact rewrites are made.
+    pending = [iter((record,))]
+    while pending:
+        try:
+            value = next(pending[-1])
+        except StopIteration:
+            pending.pop()
+            continue
+        if isinstance(value, dict):
+            for key in value:
+                key.encode("utf-8")
+            pending.append(iter(value.values()))
+        elif isinstance(value, list):
+            pending.append(iter(value))
+        elif isinstance(value, str):
+            value.encode("utf-8")
+        elif isinstance(value, float) and not math.isfinite(value):
+            # Includes JSON decoder constants and overflowing numeric exponents.
+            raise ValueError("Non-finite JSON number")
     return record
+
+
+def _recorded_profile(profile: dict) -> None:
+    # Request defaults are not an artifact migration: the editor/scorer require
+    # these recorded sections. Validate without dumping the normalized model,
+    # which would fill defaults and reorder the original scoring weights.
+    if (
+        not all(
+            isinstance(profile.get(key), dict)
+            for key in ("objective", "constraints", "ranking")
+        )
+        or not isinstance(profile["ranking"].get("weights"), dict)
+        or "primary_metric_weight" not in profile["ranking"]
+    ):
+        raise ValueError("Incomplete recorded scoring profile")
+    RobustnessProfile.model_validate(profile)
+    ranking = profile["ranking"]
+    if ranking["primary_metric_weight"] + sum(ranking["weights"].values()) <= 0:
+        raise ValueError("Recorded profile has no effective positive weight")
 
 
 def _directory(root: Path, identifier: str) -> Path:
@@ -284,6 +349,7 @@ class CockpitRobustnessService:
             or not isinstance(decision.get("profile"), dict)
         ):
             raise RobustnessError("Campaign has no shared scoring profile")
+        _recorded_profile(decision["profile"])
         conventions = {}
         for row in rows:
             run_id = row["run_id"]

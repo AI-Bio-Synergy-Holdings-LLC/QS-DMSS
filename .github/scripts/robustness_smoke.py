@@ -219,6 +219,107 @@ def assert_artifact_aliases_and_recursive_errors(service, identifier, analysis_i
     assert {path: read(path) for path in manifests} == originals
 
 
+def assert_json_and_profile_admission(service, identifier, analysis_id):
+    """Read-only, integrity-consistent bad metadata in the installed candidate."""
+    read = robustness._read_bytes
+    routes = {
+        route.path: route.endpoint
+        for route in robustness.robustness_router(lambda request: None).routes
+    }
+    for root, relative, actions in (
+        (
+            service.experiments_root / identifier,
+            "comparison.json",
+            (
+                (
+                    "/api/robustness/sources/{experiment_id}",
+                    {"experiment_id": identifier},
+                ),
+            ),
+        ),
+        (
+            service._analysis_root() / analysis_id,
+            "analysis.json",
+            (
+                (
+                    "/api/robustness/analyses/{analysis_id}",
+                    {"analysis_id": analysis_id},
+                ),
+                (
+                    "/api/robustness/analyses/{analysis_id}/bundle",
+                    {"analysis_id": analysis_id},
+                ),
+            ),
+        ),
+    ):
+        path = (root / relative).resolve()
+        manifest_path = (root / "manifest.sha256.json").resolve()
+        original = read(path)
+        original_manifest = read(manifest_path)
+        invalids = [
+            original.rstrip()[:-1] + suffix
+            for suffix in (
+                b',"unused":{"value":"\\ud800"}}',
+                b',"unused":{"\\udfff":"key"}}',
+                b',"unused":[NaN]}',
+                b',"unused":[Infinity]}',
+                b',"unused":[-Infinity]}',
+                b',"unused":[1e999]}',
+            )
+        ]
+        if relative == "comparison.json":
+            for missing in (
+                None,
+                "constraints",
+                "ranking",
+                "primary_metric_weight",
+                "weights",
+            ):
+                comparison = json.loads(original)
+                profile = comparison["decision"]["profile"]
+                if missing is None:
+                    profile.clear()
+                elif missing in ("constraints", "ranking"):
+                    del profile[missing]
+                else:
+                    del profile["ranking"][missing]
+                invalids.append(json.dumps(comparison).encode())
+        for invalid in invalids:
+            manifest = json.loads(original_manifest)
+            entry = next(item for item in manifest["files"] if item["path"] == relative)
+            entry.update(
+                size_bytes=len(invalid), sha256=hashlib.sha256(invalid).hexdigest()
+            )
+            replacements = {path: invalid, manifest_path: json.dumps(manifest).encode()}
+            with patch.object(
+                robustness,
+                "_read_bytes",
+                side_effect=lambda candidate, limit=robustness.MAX_FILE_BYTES: (
+                    replacements[candidate]
+                    if candidate in replacements
+                    else read(candidate, limit)
+                ),
+            ):
+                for route, arguments in actions:
+                    try:
+                        routes[route](active=service, **arguments)
+                    except HTTPException as exc:
+                        assert exc.status_code == 400
+                        assert exc.detail == (
+                            "Recorded robustness evidence is invalid, incompatible, or exceeds resource limits"
+                        )
+                    else:
+                        raise AssertionError("Unsafe metadata was admitted")
+        assert read(path) == original and read(manifest_path) == original_manifest
+    # No injected parser exception: this is the real pre-decoder nesting policy.
+    try:
+        robustness._json(b'{"nested":' + b"[" * 64 + b"0" + b"]" * 64 + b"}")
+    except ValueError:
+        pass
+    else:
+        raise AssertionError("Over-depth metadata was admitted")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-root", required=True, type=Path)
@@ -261,6 +362,7 @@ def main() -> None:
     assert_artifact_aliases_and_recursive_errors(
         service, identifier, saved["analysis_id"]
     )
+    assert_json_and_profile_admission(service, identifier, saved["analysis_id"])
     assert saved["sensitivity"]["case_count"] == 3
     with zipfile.ZipFile(service.bundle(saved["analysis_id"])) as archive:
         assert f"{saved['analysis_id']}/source/comparison.json" in archive.namelist()
@@ -340,6 +442,9 @@ def main() -> None:
                 "source_listing_identity_enforced": True,
                 "artifact_alias_identity_enforced": True,
                 "recursive_json_errors_sanitized": True,
+                "unsafe_json_tree_rejected": True,
+                "recorded_profile_admission_enforced": True,
+                "json_nesting_policy_enforced": True,
                 "saved_reopened_exported": True,
                 "hosted_disabled": True,
             },

@@ -167,6 +167,25 @@ Excessively nested JSON on direct source, preview, save, reopen or bundle access
 receives the existing sanitized invalid-evidence HTTP 400, not a parser traceback
 or HTTP 500. Discovery still isolates individual invalid records.
 
+All parsed metadata keys and values, including unused fields, must be UTF-8
+encodable and all numbers finite. Escaped lone surrogates, NaN/Infinity constants
+and overflowing float exponents are rejected before response serialization.
+A quote/escape-aware pre-decoder scan limits nesting to **64 containers**, with
+the root object counting as one; bracket characters inside strings do not count.
+Existing byte ceilings and stdlib UTF-8/BOM/UTF-16/UTF-32 compatibility remain.
+The complete-tree check uses an iterator stack bounded by depth, not width.
+
+Recorded scoring profiles must satisfy `RobustnessProfile` and contain the
+editor-required objective, constraints, ranking, ranking weights and explicit
+primary-metric weight. Request-model defaults are not a migration of incomplete
+historical evidence. Empty constraints, optional objective prose and partial
+individual weight maps remain supported; the editor supplies zero for omitted
+individual weights. At least one recorded effective weight must be positive.
+Validation does not replace the raw profile with a model dump, fill its defaults,
+reorder its weights or rewrite its hashes. Invalid sources receive the sanitized
+HTTP 400, hide editor/results, block save/download and clear matching busy state;
+a stale failure cannot clear a newer request's loading state.
+
 ## Rendering design and acceptance
 
 One native SVG horizontal ranking chart, at most 64 bars, paired with exact HTML

@@ -14,6 +14,7 @@ function section(start, end) {
 const callbacks = [
   section("  function invalidate(", "  function svg("),
   section("  function render(", "  async function preview("),
+  section("  async function openSource(", "  async function refreshSources("),
   section("  async function refreshSaved(", "  form.addEventListener(\"submit\""),
   section("  $(\"save\").addEventListener(", "  document.addEventListener(\"qs-dmss:experiment-selected\""),
 ].join("\n");
@@ -48,7 +49,7 @@ function harness(io) {
   };
   const state = {source: null, result: result(), displayed: result(), generation: 1,
     sourcesGeneration: 0, busy: false, timer: null};
-  const context = vm.createContext({$, state, form: {hidden: false}, clearTimeout, structuredClone,
+  const context = vm.createContext({$, state, form: {hidden: false}, chart: $("chart"), clearTimeout, structuredClone,
     metrics: {}, node: () => ({}), table: () => ({}), drawChart() {}, editor() {},
     option: (value, label) => ({value, label}),
     variant: row => row.variant_label || row.name || row.run_id,
@@ -59,6 +60,28 @@ function harness(io) {
   return {$, state, requests, messages, context};
 }
 const listingError = "Robustness discovery exceeds the directory-entry resource limit";
+
+test("rejected source clears busy state without exposing editor, stale result or save", async () => {
+  const h = harness(async () => { throw new Error("Invalid recorded evidence"); });
+  await h.context.openSource("campaign-a");
+  assert.equal(h.$("output").attrs.has("aria-busy"), false);
+  assert.equal(h.$("output").hidden, true);
+  assert.equal(h.context.form.hidden, true);
+  assert.equal(h.state.displayed, null);
+  assert.equal(h.$("save").disabled, true);
+  assert.equal(h.$("download").hidden, true);
+  assert.equal(h.messages.at(-1), "Invalid recorded evidence");
+});
+
+test("stale rejected source cannot clear a newer request's busy state", async () => {
+  const pending = deferred();
+  const h = harness(() => pending.promise);
+  const action = h.context.openSource("campaign-a");
+  h.context.invalidate("Newer source is loading");
+  pending.reject(new Error("Old source failed")); await action;
+  assert.equal(h.$("output").attrs.get("aria-busy"), "true");
+  assert.equal(h.messages.at(-1), "Newer source is loading");
+});
 
 test("successful immutable save remains successful when selector refresh fails", async () => {
   const h = harness(async (endpoint, payload) => { if (payload) return result(); throw new Error(listingError); });

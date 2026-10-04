@@ -555,3 +555,63 @@ retain the scientific and legal limitations. This pilot does not close EH-011,
 EH-012 or the controlled-restart publication gate. The next feature increment
 is one schema-validated data-only diagnostics pack, not executable plugins or
 hosted graph/AI expansion.
+
+## Admission-validation follow-up (2026-10-04)
+
+Owner authorization covered one focused batch for the two findings in Copilot
+review `5407263942`: unsafe full-tree JSON rendering and incomplete recorded
+profiles. It did not authorize readiness, merge, deployment or publication.
+
+Metadata now has a pre-decoder 64-container nesting ceiling, with quoted/escaped
+brackets excluded, and a depth-bounded full-tree UTF-8/finite-number check.
+Unknown/unused fields are checked too. Profiles use the request schema plus
+explicit editor-required recorded sections; validation never dumps normalized
+defaults over original evidence or changes persisted weight order. Empty
+constraints, optional prose, partial weights, valid astral Unicode, standard
+byte encodings and integer/float representations remain compatible. A rejected
+source also clears its matching busy state while hiding editor/results and
+keeping save/download blocked; stale-request guards are preserved.
+
+The 55-case Python batch was red before implementation (**50 failed, 5 passed**)
+and subsequently passed. Two Node source-rejection contracts were added; the
+new busy-state case was red before its narrow UI fix. All **14 Node contracts**
+now pass. Full local quantum-enabled qualification on the existing CPython
+3.12.14 source environment: **681 passed, 6 Windows symlink-privilege skips,
+90.93% coverage**, retaining the 88% gate. Isolated, offline, no-project Python
+3.10.20 and 3.11.15 runs each passed **297 tests, 6 privilege skips** across
+robustness core/API tests without managing the existing development environment.
+Ruff, the configured medium-or-higher Bandit gate, compilation, JavaScript syntax,
+baseline benchmark, registry/discovery consistency, dependency compatibility
+(86 packages) and fresh-cache audit (no known vulnerabilities) pass. An additional
+unfiltered Bandit diagnostic reported four existing low-severity findings in
+quantum-request metadata and the fixed git-provenance subprocess; these are not
+new findings in this batch or a claim of zero security debt.
+
+Source-development smoke passed original-score preservation, immutable save/
+reopen/export and hosted denial; it now emits `unsafe_json_tree_rejected`,
+`recorded_profile_admission_enforced` and `json_nesting_policy_enforced` for
+remote installed-wheel/Docker checks. Its generated campaign/analysis are kept
+under ignored `.tmp/admission-validation-source-smoke/`.
+
+Rendered Playwright/Chromium QA at 1440x1000 and 375x900 used an owned ephemeral
+loopback service with integrity-consistent in-memory metadata, not browser-made
+responses or mutated artifact files. Empty profile, missing ranking, lone
+surrogate and NaN each returned real HTTP 400, exposed a plain-text error,
+cleared busy state, hid editor/results, blocked save/download and recovered
+through keyboard refresh. Eight deliberate HTTP 400 console entries and zero
+unexpected console/page errors occurred in the successful run. Healthy saved
+analyses reopened/exported; retained bundle SHA-256 remained
+`5de11936636e982752baf3c02b2404904dba6b06eb5e9f2a91d97c7327395ec7`.
+All **51 corpus files remained byte-identical**, with no solver, AI or artifact
+write. An initial QA assertion used an obsolete 29-file corpus count and failed
+despite `unchanged=true`; corrected QA compares the captured baseline count and
+passed on rerun. Screenshots/scripts remain under ignored
+`output/playwright/admission-validation/`; no screenshot CSS or CSP changes.
+The owned browser and service were stopped; user ports/browser were untouched.
+
+Revised-head remote matrix, packaging, Docker, security/dependency checks and
+one completed Copilot re-review remain required. The local fresh-wheel
+Application Control restriction (WinError 4551) was not retried or bypassed.
+No dependency, version, scoring, production configuration or scientific-status
+change is included. PR #197 remains draft; fresh owner review and explicit
+protected readiness/merge authority are required on the revised head.

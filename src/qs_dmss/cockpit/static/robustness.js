@@ -177,7 +177,9 @@
       const source = await api(`/api/robustness/sources/${encodeURIComponent(id)}`);
       if (generation !== state.generation) return;
       state.source = source; editor(source); await preview();
-    } catch (error) { if (generation === state.generation) status(error.message); }
+    } catch (error) { if (generation === state.generation) {
+      $("output").removeAttribute("aria-busy"); status(error.message);
+    } }
   }
   async function refreshSources(selected = null) {
     const generation = ++state.sourcesGeneration;

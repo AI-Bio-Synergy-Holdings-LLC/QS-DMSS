@@ -109,6 +109,237 @@ _MISSING = object()
 _METRICS = ("energy_drift", "norm_drift", "max_density", "elapsed_seconds")
 
 
+def _virtual_metadata(monkeypatch, root, relative, payload):
+    """Inject integrity-consistent bytes without rewriting the evidence corpus."""
+    read = robustness._read_bytes
+    path = (root / relative).resolve()
+    manifest_path = (root / "manifest.sha256.json").resolve()
+    replacements = {path: payload}
+    if relative != "manifest.sha256.json":
+        manifest = json.loads(read(manifest_path))
+        entry = next(item for item in manifest["files"] if item["path"] == relative)
+        entry.update(
+            size_bytes=len(payload), sha256=hashlib.sha256(payload).hexdigest()
+        )
+        replacements[manifest_path] = canonical_json(manifest)
+
+    def injected(candidate, limit=robustness.MAX_FILE_BYTES):
+        return replacements.get(candidate.resolve(), None) or read(candidate, limit)
+
+    monkeypatch.setattr(robustness, "_read_bytes", injected)
+
+
+_UNSAFE_JSON = [
+    b'{"unused":{"value":"\\ud800"}}',
+    b'{"unused":[{"\\udfff":"key"}]}',
+    b'{"unused":[NaN]}',
+    b'{"unused":[Infinity]}',
+    b'{"unused":[-Infinity]}',
+    b'{"unused":[1e999]}',
+]
+
+
+@pytest.mark.parametrize("unsafe", _UNSAFE_JSON)
+@pytest.mark.parametrize(
+    "relative",
+    [
+        "manifest.sha256.json",
+        "experiment.json",
+        "comparison.json",
+        "runs/run-a/metrics.json",
+        "runs/run-a/run.json",
+    ],
+)
+def test_unsafe_json_tree_fails_closed_before_response_or_persistence(
+    service, monkeypatch, unsafe, relative
+):
+    request = _request(service).model_dump(mode="json")
+    root = service.experiments_root / "campaign-a"
+    before = {path: path.read_bytes() for path in root.rglob("*") if path.is_file()}
+    original = json.loads((root / relative).read_bytes())
+    payload = canonical_json(original).rstrip()[:-1] + b"," + unsafe[1:]
+    _virtual_metadata(monkeypatch, root, relative, payload)
+    client = _client(service, raise_server_exceptions=False)
+    responses = [
+        client.get("/api/robustness/sources/campaign-a"),
+        client.post("/api/robustness/preview", json=request),
+        client.post("/api/robustness/analyses", json=request),
+    ]
+    for response in responses:
+        assert response.status_code == 400
+        assert response.json() == {
+            "detail": (
+                "Recorded robustness evidence is invalid, incompatible, or exceeds resource limits"
+            )
+        }
+    if relative == "experiment.json":
+        assert client.get("/api/robustness/sources").json()["items"] == []
+    assert not service._analysis_root().exists()
+    assert {path: path.read_bytes() for path in before} == before
+
+
+@pytest.mark.parametrize("unsafe", _UNSAFE_JSON)
+def test_unsafe_saved_json_is_isolated_on_reopen_export_and_discovery(
+    service, monkeypatch, unsafe
+):
+    saved = service.save(_request(service))
+    root = service._analysis_root() / saved["analysis_id"]
+    before = {path: path.read_bytes() for path in root.rglob("*") if path.is_file()}
+    payload = (root / "analysis.json").read_bytes().rstrip()[:-1] + b"," + unsafe[1:]
+    _virtual_metadata(monkeypatch, root, "analysis.json", payload)
+    client = _client(service, raise_server_exceptions=False)
+    for suffix in ("", "/bundle"):
+        response = client.get(
+            f"/api/robustness/analyses/{saved['analysis_id']}{suffix}"
+        )
+        assert response.status_code == 400
+        assert "invalid, incompatible" in response.json()["detail"]
+    assert client.get("/api/robustness/analyses").json() == {"items": []}
+    assert {path: path.read_bytes() for path in before} == before
+
+
+@pytest.mark.parametrize("encoding", ["utf-8", "utf-8-sig", "utf-16", "utf-32"])
+def test_json_safety_preserves_encodings_unicode_order_and_finite_scalars(encoding):
+    original = {
+        "z": [{"astral": "\U0001f52c", "quoted": '[]{}\\"'}],
+        "a": [1, 1.5, True, None, "NaN", "Infinity"],
+    }
+    parsed = robustness._json(json.dumps(original, ensure_ascii=True).encode(encoding))
+    assert parsed == original
+    assert list(parsed) == ["z", "a"]
+
+
+def test_json_nesting_ceiling_is_checked_before_decoder(monkeypatch):
+    # Root object is depth one. Brackets inside strings are not containers.
+    limit = 64
+    allowed = (
+        b'{"quoted":"[]{}\\"","nested":'
+        + b"[" * (limit - 1)
+        + b"0"
+        + b"]" * (limit - 1)
+        + b"}"
+    )
+    assert isinstance(robustness._json(allowed), dict)
+    parse = json.loads
+    calls = []
+
+    def counted(*args, **kwargs):
+        calls.append(True)
+        return parse(*args, **kwargs)
+
+    monkeypatch.setattr(robustness.json, "loads", counted)
+    for depth in (limit, 8192):
+        payload = b'{"nested":' + b"[" * depth + b"0" + b"]" * depth + b"}"
+        with pytest.raises(ValueError):
+            robustness._json(payload)
+    assert calls == []
+
+
+@pytest.mark.parametrize(
+    "defect",
+    [
+        "empty",
+        "objective",
+        "constraints",
+        "ranking",
+        "weights",
+        "bonus",
+        "bad_goal",
+        "bad_metric",
+        "bad_weight",
+        "bool_weight",
+        "target_missing",
+        "extra",
+        "zero_effective_weights",
+    ],
+)
+def test_incomplete_or_invalid_recorded_profiles_are_rejected_before_editor(
+    service, monkeypatch, defect
+):
+    request = _request(service).model_dump(mode="json")
+    root = service.experiments_root / "campaign-a"
+    comparison = json.loads((root / "comparison.json").read_bytes())
+    profile = comparison["decision"]["profile"]
+    if defect == "empty":
+        profile.clear()
+    elif defect in ("objective", "constraints", "ranking"):
+        del profile[defect]
+    elif defect in ("weights", "bonus"):
+        del profile["ranking"][
+            "weights" if defect == "weights" else "primary_metric_weight"
+        ]
+    elif defect == "bad_goal":
+        profile["objective"]["goal"] = "guess"
+    elif defect == "bad_metric":
+        profile["objective"]["primary_metric"] = "unmeasured"
+    elif defect in ("bad_weight", "bool_weight"):
+        profile["ranking"]["weights"]["energy_drift"] = (
+            -1 if defect == "bad_weight" else True
+        )
+    elif defect == "target_missing":
+        profile["objective"]["goal"] = "target"
+    elif defect == "extra":
+        profile["ranking"]["execute"] = "not permitted"
+    else:
+        profile["ranking"] = {"primary_metric_weight": 0, "weights": {}}
+    _virtual_metadata(monkeypatch, root, "comparison.json", canonical_json(comparison))
+    client = _client(service, raise_server_exceptions=False)
+    for response in (
+        client.get("/api/robustness/sources/campaign-a"),
+        client.post("/api/robustness/preview", json=request),
+        client.post("/api/robustness/analyses", json=request),
+    ):
+        assert response.status_code == 400
+        assert "invalid, incompatible" in response.json()["detail"]
+    assert not service._analysis_root().exists()
+
+
+def test_profile_admission_preserves_partial_weights_defaults_and_stored_order(
+    service, monkeypatch
+):
+    root = service.experiments_root / "campaign-a"
+    comparison = json.loads((root / "comparison.json").read_bytes())
+    profile = comparison["decision"]["profile"]
+    profile["constraints"] = {}  # Existing require_verification default is safe.
+    del profile["objective"]["summary"]  # Editor does not require optional prose.
+    profile["ranking"]["weights"] = {"norm_drift": 1, "energy_drift": 2}
+    profile["ranking"]["primary_metric_weight"] = 2
+    payload = json.dumps(comparison, ensure_ascii=True).encode()
+    before = {path: path.read_bytes() for path in root.rglob("*") if path.is_file()}
+    _virtual_metadata(monkeypatch, root, "comparison.json", payload)
+    source = service.source("campaign-a")
+    admitted = source["comparison"]["decision"]["profile"]
+    assert admitted == profile
+    assert list(admitted["ranking"]["weights"]) == ["norm_drift", "energy_drift"]
+    assert "summary" not in admitted["objective"] and admitted["constraints"] == {}
+    assert source["sha256"]["comparison.json"] == hashlib.sha256(payload).hexdigest()
+    # The editor sets omitted individual weights to zero, not schema defaults.
+    explicit = deepcopy(profile)
+    explicit["ranking"]["weights"].update(max_density=0, elapsed_seconds=0)
+    request = RobustnessRequest.model_validate(
+        {
+            "experiment_id": "campaign-a",
+            "source_fingerprint": source["source_fingerprint"],
+            "profile": explicit,
+            "preferred_run_id": "run-a",
+            "weight_values": [0, 1],
+        }
+    )
+    expected = score_recorded_rows(comparison["rows"], profile)
+    preview = service.preview(request)
+    assert [
+        (row["decision_rank"], row["decision_score"])
+        for row in preview["current"]["rows"]
+    ] == [(row["decision_rank"], row["decision_score"]) for row in expected["rows"]]
+    saved = service.save(request)
+    assert service.load(saved["analysis_id"]) == saved
+    assert (
+        hashlib.sha256(service.bundle_snapshot(saved["analysis_id"])).hexdigest()
+        == saved["bundle_sha256"]
+    )
+    assert {path: path.read_bytes() for path in before} == before
+
+
 def _replace_captured_metric(service, metric, comparison_value, captured_value):
     root = service.experiments_root / "campaign-a"
     comparison = json.loads((root / "comparison.json").read_bytes())
