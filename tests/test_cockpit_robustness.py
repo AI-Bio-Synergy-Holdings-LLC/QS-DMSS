@@ -1117,6 +1117,339 @@ def test_source_bundle_short_reads_preserve_existing_hash_pin_preview_and_save(
     assert bundle.read_bytes() == original
 
 
+def _listing_json(value):
+    return json.dumps(
+        value, ensure_ascii=False, allow_nan=False, separators=(",", ":")
+    ).encode("utf-8")
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("label", {}),
+        ("label", []),
+        ("label", 1),
+        ("label", False),
+        ("label", "x" * 513),
+        ("label", "\udfff"),
+        ("run_count", {}),
+        ("run_count", []),
+        ("run_count", "2"),
+        ("run_count", True),
+        ("run_count", 2.0),
+        ("run_count", -1),
+        ("run_count", 65),
+        ("run_count", None),
+        ("run_count", _MISSING),
+        ("created_at", {}),
+        ("created_at", []),
+        ("created_at", True),
+        ("created_at", 1),
+        ("created_at", "x" * 65),
+        ("created_at", "\udfff"),
+    ],
+)
+def test_source_listing_isolates_invalid_scalar_summaries(service, field, value):
+    original = service.experiments_root / "campaign-a/experiment.json"
+    before = original.read_bytes()
+    record = json.loads(before)
+    record["experiment_id"] = "campaign-z"
+    if value is _MISSING:
+        record.pop(field, None)
+    else:
+        record[field] = value
+    invalid = service.experiments_root / "campaign-z/experiment.json"
+    _write(invalid, record)
+    invalid_before = invalid.read_bytes()
+    response = _client(service).get("/api/robustness/sources")
+    assert response.status_code == 200
+    assert [item["experiment_id"] for item in response.json()["items"]] == [
+        "campaign-a"
+    ]
+    assert original.read_bytes() == before
+    assert invalid.read_bytes() == invalid_before
+
+
+@pytest.mark.parametrize("label", [None, "", _MISSING])
+def test_source_listing_preserves_missing_label_and_timestamp_compatibility(
+    service, label
+):
+    path = service.experiments_root / "campaign-a/experiment.json"
+    record = json.loads(path.read_bytes())
+    if label is _MISSING:
+        record.pop("label")
+    else:
+        record["label"] = label
+    record.pop("created_at", None)
+    _write(path, record)
+    assert service.sources()["items"] == [
+        {
+            "experiment_id": "campaign-a",
+            "label": "campaign-a",
+            "run_count": 2,
+            "created_at": None,
+        }
+    ]
+
+
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        (("created_at",), {}),
+        (("created_at",), True),
+        (("created_at",), "x" * 65),
+        (("created_at",), "\udfff"),
+        (("source", "label"), {}),
+        (("source", "label"), []),
+        (("source", "label"), 1),
+        (("source", "label"), None),
+        (("source", "label"), ""),
+        (("source", "label"), "x" * 513),
+        (("source", "label"), "\udfff"),
+        (("source", "label"), _MISSING),
+        (("source", "experiment_id"), {}),
+        (("source", "experiment_id"), "../outside"),
+        (("source", "experiment_id"), "x" * 201),
+        (("source", "source_fingerprint"), {}),
+        (("source", "source_fingerprint"), "x" * 64),
+        (("source", "legacy_convention"), "false"),
+        (("source", "legacy_convention"), 0),
+    ],
+)
+def test_analysis_listing_isolates_invalid_compact_summaries(service, field, value):
+    healthy = service.save(_request(service))
+    result = deepcopy(healthy)
+    result["analysis_id"] = "summary-invalid"
+    parent = result if len(field) == 1 else result[field[0]]
+    if value is _MISSING:
+        parent.pop(field[-1], None)
+    else:
+        parent[field[-1]] = value
+    directory = service._analysis_root() / "summary-invalid"
+    _write(directory / "analysis.json", result)
+    write_manifest_for_directory(directory)
+    before = (directory / "analysis.json").read_bytes()
+    response = _client(service).get("/api/robustness/analyses")
+    assert response.status_code == 200
+    assert [item["analysis_id"] for item in response.json()["items"]] == [
+        healthy["analysis_id"]
+    ]
+    assert (directory / "analysis.json").read_bytes() == before
+    assert service.load(healthy["analysis_id"]) == healthy
+
+
+def test_analysis_listing_projects_small_source_but_direct_access_retains_provenance(
+    service,
+):
+    saved = service.save(_request(service))
+    directory = service._analysis_root() / saved["analysis_id"]
+    result = json.loads((directory / "analysis.json").read_bytes())
+    result["source"]["extra"] = {"large_unknown_payload": "x" * (1024 * 1024)}
+    _write(directory / "analysis.json", result)
+    write_manifest_for_directory(directory)
+    bundle = create_bundle_zip_for_directory(directory)
+    (directory / "bundle.sha256").write_text(
+        hashlib.sha256(bundle.read_bytes()).hexdigest(), encoding="ascii"
+    )
+    before = (directory / "analysis.json").read_bytes()
+    listing = service.analyses()
+    assert listing["items"][0] == {
+        "analysis_id": saved["analysis_id"],
+        "created_at": saved["created_at"],
+        "profile_sha256": saved["profile_sha256"],
+        "source": {
+            key: saved["source"][key]
+            for key in (
+                "label",
+                "experiment_id",
+                "source_fingerprint",
+                "legacy_convention",
+            )
+        },
+        "integrity_scope": "analysis_json_only",
+    }
+    assert len(_listing_json(listing)) < 1024
+    assert (
+        service.load(saved["analysis_id"])["source"]["extra"]
+        == result["source"]["extra"]
+    )
+    assert service.bundle_snapshot(saved["analysis_id"]) == bundle.read_bytes()
+    assert (directory / "analysis.json").read_bytes() == before
+
+
+@pytest.mark.parametrize("collection", ["sources", "analyses"])
+@pytest.mark.parametrize("offset", [-1, 0, 1])
+def test_listing_aggregate_ceiling_counts_complete_json_and_fails_explicitly(
+    service, monkeypatch, collection, offset
+):
+    if collection == "sources":
+        original = service.experiments_root / "campaign-a/experiment.json"
+        record = json.loads(original.read_bytes())
+        record.update(label='Literal <script> & "quote" \\ \n 🧪', created_at=None)
+        _write(original, record)
+        _write(
+            service.experiments_root / "campaign-b/experiment.json",
+            {**record, "experiment_id": "campaign-b"},
+        )
+    else:
+        service.save(_request(service))
+        service.save(_request(service))
+    expected = getattr(service, collection)()
+    assert len(expected["items"]) == 2
+    response_size = len(_listing_json(expected))
+    monkeypatch.setattr(
+        robustness, "MAX_LISTING_RESPONSE_BYTES", response_size + offset, raising=False
+    )
+    client = _client(service)
+    response = client.get(f"/api/robustness/{collection}")
+    if offset < 0:
+        assert response.status_code == 400
+        assert response.json() == {
+            "detail": "Robustness listing exceeds the response resource limit; "
+            "open a known artifact directly or use a smaller evidence root"
+        }
+        assert str(service.experiments_root) not in response.text
+        with pytest.raises(ValueError, match="listing exceeds the response"):
+            getattr(service, collection)()
+    else:
+        assert response.status_code == 200
+        assert response.json() == expected
+        assert len(response.content) == response_size
+        assert int(response.headers["content-length"]) == response_size
+
+
+@pytest.mark.parametrize("collection", ["sources", "analyses"])
+def test_listing_budget_counts_empty_envelope_and_stops_before_more_reads(
+    service, monkeypatch, collection
+):
+    root = (
+        service.experiments_root
+        if collection == "sources"
+        else service._analysis_root()
+    )
+    empty = (
+        {"available": True, "items": []} if collection == "sources" else {"items": []}
+    )
+    monkeypatch.setattr(robustness, "_discovery_entries", lambda _: [])
+    size = len(_listing_json(empty))
+    monkeypatch.setattr(robustness, "MAX_LISTING_RESPONSE_BYTES", size, raising=False)
+    assert getattr(service, collection)() == empty
+    monkeypatch.setattr(robustness, "MAX_LISTING_RESPONSE_BYTES", size - 1)
+    with pytest.raises(ValueError, match="listing exceeds the response"):
+        getattr(service, collection)()
+    assert not (root / "_pending").exists()
+
+
+@pytest.mark.parametrize("collection", ["sources", "analyses"])
+def test_listing_response_budget_stops_on_overflow_before_next_record_read(
+    service, monkeypatch, collection
+):
+    if collection == "sources":
+        record = json.loads(
+            (service.experiments_root / "campaign-a/experiment.json").read_bytes()
+        )
+        for identifier in ("campaign-b", "campaign-c"):
+            _write(
+                service.experiments_root / identifier / "experiment.json",
+                {**record, "experiment_id": identifier},
+            )
+    else:
+        for _ in range(3):
+            service.save(_request(service))
+    full = getattr(service, collection)()
+    expected = {**full, "items": full["items"][:1]}
+    monkeypatch.setattr(
+        robustness,
+        "MAX_LISTING_RESPONSE_BYTES",
+        len(_listing_json(expected)),
+        raising=False,
+    )
+    reads = []
+    original = robustness._read_bytes
+
+    def read(path, limit=robustness.MAX_FILE_BYTES):
+        reads.append(path)
+        return original(path, limit)
+
+    monkeypatch.setattr(robustness, "_read_bytes", read)
+    with pytest.raises(ValueError, match="listing exceeds the response"):
+        getattr(service, collection)()
+    assert len(reads) == (2 if collection == "sources" else 4)
+
+
+@pytest.mark.parametrize("collection", ["sources", "analyses"])
+def test_200_max_length_listing_summaries_stay_below_actual_response_ceiling(
+    service, collection
+):
+    label = "\x00" * 512  # Six JSON bytes per character, not a character-count budget.
+    timestamp = "\x00" * 64
+    if collection == "sources":
+        record = json.loads(
+            (service.experiments_root / "campaign-a/experiment.json").read_bytes()
+        )
+        (service.experiments_root / "campaign-a/experiment.json").unlink()
+        for index in range(200):
+            identifier = f"campaign-{index:03d}-" + "x" * 187
+            assert len(identifier) == 200
+            _write(
+                service.experiments_root / identifier / "experiment.json",
+                {
+                    **record,
+                    "experiment_id": identifier,
+                    "label": label,
+                    "created_at": timestamp,
+                    "run_count": 64,
+                },
+            )
+    else:
+        for index in range(200):
+            identifier = f"summary-{index:03d}-" + "x" * 188
+            assert len(identifier) == 200
+            directory = service._analysis_root() / identifier
+            _write(
+                directory / "analysis.json",
+                {
+                    "analysis_id": identifier,
+                    "created_at": timestamp,
+                    "profile_sha256": "0" * 64,
+                    "source": {
+                        "label": label,
+                        "experiment_id": "x" * 200,
+                        "source_fingerprint": "1" * 64,
+                        "legacy_convention": True,
+                    },
+                },
+            )
+            write_manifest_for_directory(directory)
+            os.utime(directory / "analysis.json", (index + 1, index + 1))
+    response = _client(service).get(f"/api/robustness/{collection}")
+    assert response.status_code == 200
+    assert len(response.json()["items"]) == 200
+    assert len(response.content) <= 1024 * 1024
+    print(f"{collection}: 200 max-length summaries, {len(response.content)} JSON bytes")
+
+
+@pytest.mark.parametrize("collection", ["sources", "analyses"])
+def test_listing_isolates_over_nested_json_records(service, collection):
+    if collection == "sources":
+        path = service.experiments_root / "campaign-z/experiment.json"
+        expected = "campaign-a"
+    else:
+        saved = service.save(_request(service))
+        path = service._analysis_root() / "summary-invalid/analysis.json"
+        expected = saved["analysis_id"]
+    path.parent.mkdir(parents=True, exist_ok=True)
+    payload = b'{"nested":' + b"[" * 1200 + b"0" + b"]" * 1200 + b"}"
+    path.write_bytes(payload)
+    if collection == "analyses":
+        write_manifest_for_directory(path.parent)
+    response = _client(service).get(f"/api/robustness/{collection}")
+    assert response.status_code == 200
+    key = "experiment_id" if collection == "sources" else "analysis_id"
+    assert [item[key] for item in response.json()["items"]] == [expected]
+    assert path.read_bytes() == payload
+
+
 @pytest.mark.parametrize("operation", ["source", "preview", "save"])
 def test_growing_source_bundle_http_rejects_before_preview_or_persistence(
     service, monkeypatch, operation

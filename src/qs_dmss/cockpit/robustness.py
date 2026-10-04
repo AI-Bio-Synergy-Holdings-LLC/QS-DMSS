@@ -36,6 +36,9 @@ MAX_FILE_BYTES = 2 * 1024 * 1024
 MAX_SOURCE_BYTES = 16 * 1024 * 1024
 MAX_BUNDLE_BYTES = 64 * 1024 * 1024
 MAX_DISCOVERY_ENTRIES = 4096
+MAX_LISTING_RESPONSE_BYTES = 1024 * 1024
+MAX_SUMMARY_LABEL_CHARS = 512
+MAX_SUMMARY_TIMESTAMP_CHARS = 64
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,199}$")
 
 
@@ -117,6 +120,86 @@ def _discovery_entries(root: Path) -> list[Path]:
     return entries
 
 
+def _summary_text(value: object, limit: int, *, nullable: bool = False) -> str | None:
+    if nullable and value is None:
+        return None
+    if not isinstance(value, str) or not value or len(value) > limit:
+        raise RobustnessError("Recorded listing summary is invalid or exceeds limits")
+    value.encode("utf-8")  # Isolate invalid surrogate text before response encoding.
+    return value
+
+
+def _source_summary(record: dict, experiment_id: str) -> dict:
+    label = record.get("label")
+    if label is None or label == "":
+        label = experiment_id  # Preserve legacy missing/empty-label fallback.
+    count = record.get("run_count")
+    if (
+        isinstance(count, bool)
+        or not isinstance(count, int)
+        or not 0 <= count <= MAX_RUNS
+    ):
+        raise RobustnessError("Recorded listing summary is invalid or exceeds limits")
+    return {
+        "experiment_id": experiment_id,
+        "label": _summary_text(label, MAX_SUMMARY_LABEL_CHARS),
+        "run_count": count,
+        "created_at": _summary_text(
+            record.get("created_at"), MAX_SUMMARY_TIMESTAMP_CHARS, nullable=True
+        ),
+    }
+
+
+def _analysis_source_summary(source: object) -> dict:
+    if not isinstance(source, dict):
+        raise RobustnessError("Saved analysis summary is invalid")
+    # A selector needs compact identity, not all hashes/conventions or arbitrary
+    # nested source data. Direct open/export still returns the full provenance.
+    summary = {"label": _summary_text(source.get("label"), MAX_SUMMARY_LABEL_CHARS)}
+    if "experiment_id" in source:
+        identifier = source["experiment_id"]
+        if not isinstance(identifier, str) or not SAFE_ID.fullmatch(identifier):
+            raise RobustnessError("Saved analysis summary is invalid")
+        summary["experiment_id"] = identifier
+    if "source_fingerprint" in source:
+        digest = source["source_fingerprint"]
+        if not isinstance(digest, str) or not re.fullmatch(r"[0-9a-f]{64}", digest):
+            raise RobustnessError("Saved analysis summary is invalid")
+        summary["source_fingerprint"] = digest
+    if "legacy_convention" in source:
+        if not isinstance(source["legacy_convention"], bool):
+            raise RobustnessError("Saved analysis summary is invalid")
+        summary["legacy_convention"] = source["legacy_convention"]
+    return summary
+
+
+def _listing_size(payload: dict) -> int:
+    # Match JSONResponse's compact UTF-8 serialization, including escaping.
+    size = len(
+        json.dumps(
+            payload, ensure_ascii=False, allow_nan=False, separators=(",", ":")
+        ).encode("utf-8")
+    )
+    return _checked_listing_size(size)
+
+
+def _checked_listing_size(size: int) -> int:
+    if size > MAX_LISTING_RESPONSE_BYTES:
+        raise RobustnessError(
+            "Robustness listing exceeds the response resource limit; "
+            "open a known artifact directly or use a smaller evidence root"
+        )
+    return size
+
+
+def _append_listing_item(payload: dict, item: dict, size: int) -> int:
+    # Check before retaining an item. Include the empty envelope and list commas;
+    # overflow must propagate, never be treated as an invalid individual record.
+    size = _checked_listing_size(size + _listing_size(item) + bool(payload["items"]))
+    payload["items"].append(item)
+    return size
+
+
 @dataclass(frozen=True)
 class CockpitRobustnessService:
     experiments_root: Path
@@ -129,7 +212,8 @@ class CockpitRobustnessService:
     def sources(self) -> dict:
         if self.hosted_demo_enabled:
             return {"available": False, "items": [], "reason": "Local-only pilot"}
-        items = []
+        payload = {"available": True, "items": []}
+        response_size = _listing_size(payload)
         paths = []
         for directory in _discovery_entries(self.experiments_root):
             try:
@@ -151,17 +235,11 @@ class CockpitRobustnessService:
                     or not decision.get("available")
                 ):
                     continue
-                items.append(
-                    {
-                        "experiment_id": path.parent.name,
-                        "label": str(record.get("label") or path.parent.name),
-                        "run_count": record.get("run_count"),
-                        "created_at": record.get("created_at"),
-                    }
-                )
-            except (ValueError, OSError, KeyError, TypeError):
+                item = _source_summary(record, path.parent.name)
+            except (ValueError, OSError, KeyError, TypeError, RecursionError):
                 continue  # Broken records are not launchable; originals remain untouched.
-        return {"available": True, "items": items}
+            response_size = _append_listing_item(payload, item, response_size)
+        return payload
 
     def _source(self, experiment_id: str) -> tuple[dict, dict[str, bytes]]:
         self._local()
@@ -396,14 +474,15 @@ class CockpitRobustnessService:
         if result.get("analysis_id") != analysis_id:
             raise RobustnessError("Saved analysis identity is inconsistent")
         summary = {
-            key: result[key]
-            for key in ("analysis_id", "created_at", "profile_sha256", "source")
+            "analysis_id": analysis_id,
+            "created_at": _summary_text(
+                result["created_at"], MAX_SUMMARY_TIMESTAMP_CHARS
+            ),
+            "profile_sha256": result["profile_sha256"],
+            "source": _analysis_source_summary(result["source"]),
         }
-        if (
-            not isinstance(summary["created_at"], str)
-            or not isinstance(summary["source"], dict)
-            or not isinstance(summary["profile_sha256"], str)
-            or not re.fullmatch(r"[0-9a-f]{64}", summary["profile_sha256"])
+        if not isinstance(summary["profile_sha256"], str) or not re.fullmatch(
+            r"[0-9a-f]{64}", summary["profile_sha256"]
         ):
             raise RobustnessError("Saved analysis summary is invalid")
         # Discovery is not full artifact verification; open/export still use load().
@@ -441,7 +520,8 @@ class CockpitRobustnessService:
 
     def analyses(self) -> dict:
         self._local()
-        items = []
+        payload = {"items": []}
+        response_size = _listing_size(payload)
         paths = []
         root = self._analysis_root()
         for directory in _discovery_entries(root):
@@ -454,10 +534,17 @@ class CockpitRobustnessService:
         for _, path in sorted(paths, key=lambda item: item[0], reverse=True)[:200]:
             try:
                 item = self._summary(path.parent.name)
-            except (HTTPException, OSError, ValueError, KeyError, TypeError):
+            except (
+                HTTPException,
+                OSError,
+                ValueError,
+                KeyError,
+                TypeError,
+                RecursionError,
+            ):
                 continue  # Direct access still fails closed; healthy entries remain discoverable.
-            items.append(item)
-        return {"items": items}
+            response_size = _append_listing_item(payload, item, response_size)
+        return payload
 
     def bundle(self, analysis_id: str) -> Path:
         # Compatibility for local callers. HTTP must use the verified byte

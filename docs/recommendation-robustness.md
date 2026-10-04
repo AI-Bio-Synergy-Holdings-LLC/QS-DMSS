@@ -108,6 +108,30 @@ closed if either is missing, corrupted or exceeds limits. The selector explains
 this distinction and links it as an accessible description. Hosted listing
 remains denied. Original saved files are not rewritten or given new summary files.
 
+Both discovery responses have a **1 MiB complete compact UTF-8 JSON ceiling**.
+Accounting includes the response envelope, commas, Unicode and JSON escaping;
+overflow stops before retaining the next item and returns an authored HTTP 400,
+not a misleading partial latest-items list. No later metadata records are read
+after overflow. This is a per-response bound, not concurrent traffic control or
+a limit on total metadata I/O across all 200 candidates.
+
+Campaign summaries retain their four selector fields: safe experiment ID, a
+non-empty string label of at most 512 characters, a non-boolean integer run count
+between 0 and 64, and a timestamp string of at most 64 characters or `null`.
+Missing/null/empty labels still fall back to the ID; missing timestamps remain
+`null`. Nested objects, invalid Unicode text and oversized scalar summaries are
+isolated without hiding healthy candidates. Timestamp length/type constraints
+are not a claim of date-format validation. Excessively nested JSON is isolated.
+
+Saved summaries retain analysis ID, timestamp, profile hash and integrity scope,
+but their `source` is deliberately compact: required label and, when present,
+safe experiment ID, SHA-256 source fingerprint and boolean legacy-convention
+flag. Historical label-only summaries remain discoverable. Other source keys,
+including full hash/convention maps and unknown nested data, are not copied into
+the list. **Direct open/export retains all original provenance and full integrity
+checks**; no saved record, manifest or ZIP is migrated or rewritten. Selector
+behavior and existing discovery ordering/candidate caps remain unchanged.
+
 Discovery streams immediate filesystem entries, counting **all** entries
 (including non-artifacts and `_pending`) before artifact stats, reads or sorting.
 It consumes at most 4097 entries to detect overflow. A root above the 4096-entry

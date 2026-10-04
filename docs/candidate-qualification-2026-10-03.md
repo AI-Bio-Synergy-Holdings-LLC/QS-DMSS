@@ -337,6 +337,65 @@ dependency or production changes were made. Latest-head artifact checks, remote
 gates and one completed re-review are recorded in the PR after commit. Fresh
 owner review and explicit readiness/protected-merge authority remain required.
 
+### Compact discovery summaries and aggregate response ceiling — 2026-10-04
+
+Automated gates passed on source `fb9bad2`, including **533 remote quantum tests,
+90.77% coverage**, installed-wheel OS matrix and Docker. The completed review
+still identified a high listing-payload resource concern: per-file limits did
+not bound the nested values copied into up to 200 response items. Small read-only
+in-memory probes reproduced that retention mechanism, not a maximum-load or
+production failure. The owner separately authorized this focused correction and
+the accompanying non-blocking import-style cleanup, not merge or publication.
+
+Campaign selector summaries now require small scalar fields: labels up to 512
+characters, non-boolean integer run counts 0–64, and nullable timestamp strings
+up to 64 characters. Missing/empty labels retain the ID fallback; missing dates
+remain null. Saved summaries project source label and optional validated
+experiment ID, source fingerprint and legacy flag. Full hash/convention maps and
+unknown nested provenance remain in the original record and direct open/export,
+not the discovery response. Label-only historical summaries remain compatible.
+Invalid shape, size, Unicode and over-nested JSON records are individually
+isolated. No stored artifact, manifest or bundle is rewritten.
+
+Both full response envelopes have a **1 MiB compact UTF-8 JSON ceiling** including
+commas and escaping. Accounting is incremental, before item retention; overflow
+propagates as an authored HTTP 400 instead of hiding the error or returning a
+partial latest-items list, and later metadata reads stop. Existing ordering,
+200-candidate selection, 4096-entry scan limit, two-file saved-summary checks,
+integrity-scope labeling and full direct-access verification remain unchanged.
+This is not concurrent-traffic control or a new aggregate metadata-I/O ceiling.
+The 512/64-character bounds are not scientific/date-format validation.
+
+Fifty-eight added cases cover malformed scalar shapes, booleans/floats, field
+boundaries, invalid surrogates, missing-field compatibility, compact projection
+with 1 MiB of unknown provenance, complete direct open/export, full serialized
+response boundaries and exact HTTP Content-Length, empty envelopes, early-stop
+reads, 200 max-length escaped summaries and deeply nested JSON. The initial
+49-case pre-fix batch produced **41 failures, 8 passes**. After correction all
+77 listing cases pass on Windows CPython **3.10.20, 3.11.15 and 3.12.14**. The
+200-item HTTP responses measured **743,828 campaign bytes** and **833,611 saved
+analysis bytes**; these are serialized sizes, not peak-memory/load benchmarks.
+
+Full local quantum-enabled suite: **587 passed, 4 skipped, 90.87% coverage**. The
+four pre-existing real-symlink skips are the Windows privilege limitation and
+must execute on Linux CI. Ruff, Bandit medium-or-higher, compilation, fresh-cache
+installed-dependency audit (no known vulnerabilities), baseline benchmark,
+scientific registry/discovery consistency and JavaScript syntax pass. The smoke
+script uses one module import style and checks compact projection, invalid
+scalar isolation and the aggregate response ceiling without altering the real
+campaign, adding `compact_listing_response_limits_enforced: true` to installed
+wheel/Docker qualification. Its source-development run also retains score/hash,
+reopen/export, snapshot, streaming-ceiling, CSP and hosted-denial checks.
+
+The local fresh-wheel console-launcher policy block remains unresolved; it was
+not retried through an alternate launcher or OS-policy change. No current local
+fresh-wheel or new browser-rendered pass is claimed. This server-only correction
+changes neither numerical/UI implementation, dependencies, hosted graph/AI,
+scientific status, version nor production settings. Build/archive checks and
+latest-head remote gates plus one completed re-review are recorded in the PR
+after commit. Fresh owner review and explicit readiness/protected-merge authority
+remain required; draft, deployment and release holds remain.
+
 Main CI, Python 3.10–3.13 matrix, Docker, CodeQL, Code Quality, policy, Pages and
 production auto-deploy verifier were successful on the pinned baseline. The
 latest scheduled quality/security checks also succeeded on that commit. The
