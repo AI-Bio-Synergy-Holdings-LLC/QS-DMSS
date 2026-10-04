@@ -193,6 +193,8 @@ class CockpitRobustnessService:
                 if (
                     isinstance(value, bool)
                     or not isinstance(value, (int, float))
+                    or isinstance(expected, bool)
+                    or not isinstance(expected, (int, float))
                     or value != expected
                     or not -1e12 <= value <= 1e12
                 ):

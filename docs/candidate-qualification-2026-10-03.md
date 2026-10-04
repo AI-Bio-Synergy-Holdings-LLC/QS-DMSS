@@ -142,6 +142,30 @@ execution and before the first save, then discovery of the saved artifact.
 Latest-head remote requalification and renewed owner approval are required;
 the approval on `c7ce7a4` is not inherited by this corrective commit.
 
+The empty-storage head (`11e33f9`) passed all remote gates, with **415 tests,
+90.62% coverage** in the Python 3.13 quantum job. Its completed Copilot review
+confirmed that correction but identified a captured-metric type gap in its
+previously-missed summary: Python permits `true == 1.0` and `false == 0.0`.
+The owner separately authorized this focused correction and requalification.
+Both comparison and captured values now require a non-boolean integer or float
+before numeric equality is considered. Numeric representation compatibility,
+finite/resource limits, scoring order and scientific boundaries are unchanged.
+
+The regression batch has 28 malformed-capture cases across all four metrics
+(true, false, null, numeric string, array, object and missing), plus 16 equal
+integer/float compatibility cases. Fixtures retain valid manifests and bundles,
+so invalid types cannot hide behind an unrelated integrity failure. Before the
+fix, the eight boolean cases failed because source admission did not reject
+them; the other 36 cases passed. After the fix, all 84 cockpit robustness tests
+pass, including authored HTTP 400 responses for source/preview/save and no
+analysis storage creation on rejection. The 44 added cases also pass on fresh
+Windows CPython 3.10.20 and 3.11.15. The full local quantum-enabled suite passes
+**459 tests, 90.69% coverage**. Ruff, Bandit, compilation and fresh-cache
+installed-dependency audit pass (no known vulnerabilities). Latest-head remote
+matrix, installed-wheel/Docker qualification and completed review remain
+required; neither old approval nor an automated workflow's success is a clean
+scientific or owner approval of the revised head.
+
 Main CI, Python 3.10–3.13 matrix, Docker, CodeQL, Code Quality, policy, Pages and
 production auto-deploy verifier were successful on the pinned baseline. The
 latest scheduled quality/security checks also succeeded on that commit. The

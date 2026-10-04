@@ -35,8 +35,10 @@ wins do not count as qualified wins.
   weights use canonical key order to survive saved-profile round trips.
 - Used comparison/experiment metadata and captured `metrics.json`/`run.json`
   are checked against the original campaign SHA-256 manifest. Comparison values
-  and identities must agree with those captures. The original bundle hash is
-  pinned, but this is not a fresh verification of every solver artifact.
+  and identities must agree with those captures. Both compared and captured
+  metrics must be numeric, not booleans; equal integer/float representations
+  remain compatible. The original bundle hash is pinned, but this is not a fresh
+  verification of every solver artifact.
 - Each run's energy convention is recorded. Mixed conventions are rejected.
   All-legacy campaigns remain readable with an explicit `legacy/unspecified`
   warning; no old evidence is migrated or reinterpreted as corrected energy.

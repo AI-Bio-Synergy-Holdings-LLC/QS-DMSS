@@ -102,6 +102,97 @@ def _request(service):
     )
 
 
+_MISSING = object()
+_METRICS = ("energy_drift", "norm_drift", "max_density", "elapsed_seconds")
+
+
+def _replace_captured_metric(service, metric, comparison_value, captured_value):
+    root = service.experiments_root / "campaign-a"
+    comparison = json.loads((root / "comparison.json").read_bytes())
+    comparison["rows"][0][metric] = comparison_value
+    comparison = score_recorded_rows(
+        comparison["rows"], comparison["decision"]["profile"]
+    )
+    _write(root / "comparison.json", {**comparison, "schema_version": 1})
+    record = json.loads((root / "experiment.json").read_bytes())
+    _write(root / "experiment.json", {**record, "decision": comparison["decision"]})
+    filename = "run.json" if metric == "elapsed_seconds" else "metrics.json"
+    path = root / "runs" / "run-a" / filename
+    captured = json.loads(path.read_bytes())
+    if captured_value is _MISSING:
+        captured.pop(metric)
+    else:
+        captured[metric] = captured_value
+    _write(path, captured)
+    # Valid hashes alone must not turn malformed metric types into numeric evidence.
+    write_manifest_for_directory(root)
+    create_bundle_zip_for_directory(root)
+
+
+@pytest.mark.parametrize("metric", _METRICS)
+@pytest.mark.parametrize(
+    "captured_value",
+    [
+        pytest.param(True, id="true-equals-one"),
+        pytest.param(False, id="false-equals-zero"),
+        pytest.param(None, id="null"),
+        pytest.param("1", id="numeric-string"),
+        pytest.param([], id="array"),
+        pytest.param({}, id="object"),
+        pytest.param(_MISSING, id="missing"),
+    ],
+)
+def test_malformed_captured_metrics_fail_closed_before_preview_or_save(
+    service, metric, captured_value
+):
+    payload = _request(service)
+    comparison_value = float(captured_value) if isinstance(captured_value, bool) else 1.0
+    _replace_captured_metric(service, metric, comparison_value, captured_value)
+    for operation, argument in (
+        (service.source, "campaign-a"),
+        (service.preview, payload),
+        (service.save, payload),
+    ):
+        with pytest.raises(ValueError, match="disagree with captured run evidence"):
+            operation(argument)
+    client = TestClient(
+        create_app(
+            repo_root=Path(__file__).resolve().parents[1],
+            output_root=service.experiments_root.parent / "runs",
+            hosted_demo=False,
+        )
+    )
+    responses = [client.get("/api/robustness/sources/campaign-a")]
+    responses.extend(
+        client.post(endpoint, json=payload.model_dump(mode="json"))
+        for endpoint in ("/api/robustness/preview", "/api/robustness/analyses")
+    )
+    for response in responses:
+        assert response.status_code == 400
+        assert response.json()["detail"] == (
+            "Comparison metrics disagree with captured run evidence or exceed limits"
+        )
+        assert str(service.experiments_root) not in response.text
+    assert not service._analysis_root().exists()
+
+
+@pytest.mark.parametrize("metric", _METRICS)
+@pytest.mark.parametrize(
+    "comparison_value,captured_value", [(0, 0.0), (1, 1.0), (0.0, 0), (1.0, 1)]
+)
+def test_captured_integer_float_equality_remains_compatible(
+    service, metric, comparison_value, captured_value
+):
+    _replace_captured_metric(service, metric, comparison_value, captured_value)
+    source = service.source("campaign-a")
+    payload = _request(service)
+    preview = service.preview(payload)
+    assert preview["current"]["rows"] == source["comparison"]["rows"]
+    saved = service.save(payload)
+    assert saved["current"] == preview["current"]
+    assert service.load(saved["analysis_id"]) == saved
+
+
 def test_snapshot_save_reopen_bundle_and_original_immutability(service):
     source = service.experiments_root / "campaign-a"
     originals = {
