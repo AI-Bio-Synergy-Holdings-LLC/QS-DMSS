@@ -22,6 +22,9 @@ def main() -> None:
     cockpit = CockpitService.create(
         repo_root=root, output_root=root / "runs", hosted_demo=False
     )
+    service = CockpitRobustnessService(cockpit.experiments_root)
+    assert service.analyses() == {"items": []}
+    assert not service._analysis_root().exists()
     config = deepcopy(
         cockpit.get_campaign_study_template("self-interaction-sweep")["template"][
             "config"
@@ -31,7 +34,8 @@ def main() -> None:
     config["campaign"]["dimensions"] = [{"path": "engine.g_int", "values": [0.0, 0.1]}]
     campaign = cockpit.launch_campaign(LaunchCampaignRequest(config=config))
     identifier = campaign["artifact"]["summary"]["experiment_id"]
-    service = CockpitRobustnessService(cockpit.experiments_root)
+    assert service.analyses() == {"items": []}
+    assert not service._analysis_root().exists()
     source = service.source(identifier)
     payload = RobustnessRequest.model_validate(
         {
@@ -46,6 +50,9 @@ def main() -> None:
     assert preview["current"]["rows"] == source["comparison"]["rows"]
     saved = service.save(payload)
     assert service.load(saved["analysis_id"]) == saved
+    assert [item["analysis_id"] for item in service.analyses()["items"]] == [
+        saved["analysis_id"]
+    ]
     assert saved["sensitivity"]["case_count"] == 3
     with zipfile.ZipFile(service.bundle(saved["analysis_id"])) as archive:
         assert f"{saved['analysis_id']}/source/comparison.json" in archive.namelist()
@@ -65,6 +72,7 @@ def main() -> None:
                 "campaign": identifier,
                 "analysis": saved["analysis_id"],
                 "original_scores_preserved": True,
+                "empty_saved_list_supported": True,
                 "saved_reopened_exported": True,
                 "hosted_disabled": True,
             },

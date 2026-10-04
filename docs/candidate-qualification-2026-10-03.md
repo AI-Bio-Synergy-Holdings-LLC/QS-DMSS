@@ -125,6 +125,23 @@ evidence-backed review disposition, not a bypass of an unresolved failing test.
 Latest-head remote gates and refreshed owner review are still required after
 these additional changes.
 
+Owner approval was subsequently recorded on `c7ce7a4`. The completed Copilot
+review identified one new fresh-install defect: listing saved analyses before
+the first save raised `FileNotFoundError` and returned HTTP 400. The focused
+correction catches missing storage only and returns `{"items": []}` without
+creating evidence storage. Permission errors and non-directory storage retain
+their sanitized error contract; hosted access remains denied. Five regression
+cases cover absent experiment/analysis roots, an empty existing root and the
+two storage-error classes. The pre-fix run reproduced both absent-root failures.
+All 40 cockpit robustness tests pass after correction, and the full local
+quantum-enabled suite passes **415 tests, 90.66% coverage**. The five new cases
+also pass on fresh Windows CPython 3.10.20 and 3.11.15. Ruff, Bandit, compilation
+and a fresh-cache installed-dependency audit pass (no known vulnerabilities).
+Installed-wheel/Docker smoke now checks the empty collection before campaign
+execution and before the first save, then discovery of the saved artifact.
+Latest-head remote requalification and renewed owner approval are required;
+the approval on `c7ce7a4` is not inherited by this corrective commit.
+
 Main CI, Python 3.10–3.13 matrix, Docker, CodeQL, Code Quality, policy, Pages and
 production auto-deploy verifier were successful on the pinned baseline. The
 latest scheduled quality/security checks also succeeded on that commit. The

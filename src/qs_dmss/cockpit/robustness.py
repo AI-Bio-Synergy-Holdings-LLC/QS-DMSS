@@ -375,12 +375,17 @@ class CockpitRobustnessService:
         paths = []
         # Older pathlib glob implementations stat literal child names during
         # enumeration, before the per-artifact error boundary can handle them.
-        for directory in self._analysis_root().iterdir():
-            path = directory / "analysis.json"
-            try:
-                paths.append((path.stat().st_mtime_ns, path))
-            except OSError:
-                continue
+        try:
+            for directory in self._analysis_root().iterdir():
+                path = directory / "analysis.json"
+                try:
+                    paths.append((path.stat().st_mtime_ns, path))
+                except OSError:
+                    continue
+        except FileNotFoundError:
+            # Storage is created on save; a read must not create it. Other
+            # root storage errors still fail closed through the router.
+            return {"items": []}
         for _, path in sorted(paths, key=lambda item: item[0], reverse=True)[:200]:
             try:
                 result = self.load(path.parent.name)

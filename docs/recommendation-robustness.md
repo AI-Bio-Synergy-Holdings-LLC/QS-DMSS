@@ -84,6 +84,12 @@ and `GET /analyses/{analysis_id}/bundle`. Request models forbid unknown keys;
 OpenAPI documents the finite profile/grid contract. Artifacts are separate under
 `experiments/_robustness/`. There is no update/delete route for saved analyses.
 
+Before the first save, `GET /analyses` returns HTTP 200 with `{"items": []}`
+without creating storage. An existing empty collection has the same response.
+Root permission/storage errors are not treated as empty data; they retain the
+sanitized HTTP 400 response. Individual invalid saved artifacts are skipped by
+listing, while direct access still fails closed. Hosted listing remains denied.
+
 ## Rendering design and acceptance
 
 One native SVG horizontal ranking chart, at most 64 bars, paired with exact HTML

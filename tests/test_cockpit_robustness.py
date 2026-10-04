@@ -472,3 +472,77 @@ def test_saved_listing_skips_bad_artifacts_but_direct_access_stays_closed(
         client.get(f"/api/robustness/analyses/{invalid['analysis_id']}").status_code
         == 400
     )
+
+
+@pytest.mark.parametrize("storage", ["no_experiments", "no_analyses", "empty_analyses"])
+def test_empty_saved_listing_is_successful_without_creating_storage(tmp_path, storage):
+    experiments = tmp_path / "experiments"
+    root = experiments / "_robustness"
+    if storage == "no_analyses":
+        experiments.mkdir()
+    elif storage == "empty_analyses":
+        root.mkdir(parents=True)
+    before = (experiments.exists(), root.exists())
+    service = robustness.CockpitRobustnessService(experiments)
+    assert service.analyses() == {"items": []}
+    assert (experiments.exists(), root.exists()) == before
+    client = TestClient(
+        create_app(
+            repo_root=Path(__file__).resolve().parents[1],
+            output_root=tmp_path / "runs",
+            hosted_demo=False,
+        )
+    )
+    # Cockpit startup may create general workspace folders; listing must not
+    # create the separate robustness evidence store or mutate workspace state.
+    before = (experiments.exists(), root.exists())
+    assert client.get("/api/robustness/sources").json() == {
+        "available": True,
+        "items": [],
+    }
+    response = client.get("/api/robustness/analyses")
+    assert response.status_code == 200
+    assert response.json() == {"items": []}
+    assert client.get("/api/robustness/analyses/missing").status_code == 404
+    assert (experiments.exists(), root.exists()) == before
+    hosted = TestClient(
+        create_app(
+            repo_root=Path(__file__).resolve().parents[1],
+            output_root=tmp_path / "runs",
+            hosted_demo=True,
+        )
+    )
+    assert hosted.get("/api/robustness/analyses").status_code == 403
+    assert (experiments.exists(), root.exists()) == before
+
+
+@pytest.mark.parametrize("error_type", [PermissionError, NotADirectoryError])
+def test_saved_listing_does_not_mask_root_storage_errors(
+    tmp_path, monkeypatch, error_type
+):
+    experiments = tmp_path / "experiments"
+    root = experiments / "_robustness"
+    original_iterdir = Path.iterdir
+
+    def iterdir(candidate):
+        if candidate == root:
+            raise error_type("simulated storage error with private path")
+        return original_iterdir(candidate)
+
+    monkeypatch.setattr(Path, "iterdir", iterdir)
+    service = robustness.CockpitRobustnessService(experiments)
+    with pytest.raises(error_type):
+        service.analyses()
+    client = TestClient(
+        create_app(
+            repo_root=Path(__file__).resolve().parents[1],
+            output_root=tmp_path / "runs",
+            hosted_demo=False,
+        )
+    )
+    response = client.get("/api/robustness/analyses")
+    assert response.status_code == 400
+    assert response.json()["detail"] == (
+        "Recorded robustness evidence is invalid, incompatible, or exceeds resource limits"
+    )
+    assert "private path" not in response.text
