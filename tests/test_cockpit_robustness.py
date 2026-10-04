@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import shutil
 import zipfile
 from copy import deepcopy
 from pathlib import Path
@@ -1448,6 +1449,144 @@ def test_listing_isolates_over_nested_json_records(service, collection):
     key = "experiment_id" if collection == "sources" else "analysis_id"
     assert [item[key] for item in response.json()["items"]] == [expected]
     assert path.read_bytes() == payload
+
+
+@pytest.mark.parametrize(
+    "recorded_id",
+    [
+        _MISSING,
+        None,
+        "",
+        0,
+        1,
+        True,
+        False,
+        2.0,
+        [],
+        {},
+        "campaign-a",
+        "Campaign-z",
+        "campaign-z/extra",
+        "../campaign-z",
+    ],
+)
+def test_source_discovery_excludes_inconsistent_identity_without_rewriting_evidence(
+    service, recorded_id
+):
+    original = service.experiments_root / "campaign-a"
+    request = _request(service)
+    original_metadata = (original / "experiment.json").read_bytes()
+    original_bundle = (original / "evidence_bundle.zip").read_bytes()
+    copied = service.experiments_root / "campaign-z"
+    shutil.copytree(original, copied)
+    record = json.loads((copied / "experiment.json").read_bytes())
+    if recorded_id is _MISSING:
+        record.pop("experiment_id")
+    else:
+        record["experiment_id"] = recorded_id
+    _write(copied / "experiment.json", record)
+    # Integrity-valid copies isolate identity rejection from hash/parser failures.
+    write_manifest_for_directory(copied)
+    create_bundle_zip_for_directory(copied)
+    copied_metadata = (copied / "experiment.json").read_bytes()
+    copied_bundle = (copied / "evidence_bundle.zip").read_bytes()
+    client = _client(service)
+    response = client.get("/api/robustness/sources")
+    assert response.status_code == 200
+    assert [item["experiment_id"] for item in response.json()["items"]] == [
+        "campaign-a"
+    ]
+    invalid_request = {**request.model_dump(mode="json"), "experiment_id": "campaign-z"}
+    responses = [
+        client.get("/api/robustness/sources/campaign-z"),
+        client.post("/api/robustness/preview", json=invalid_request),
+        client.post("/api/robustness/analyses", json=invalid_request),
+    ]
+    for response in responses:
+        assert response.status_code == 400
+        assert response.json() == {
+            "detail": "Select a completed campaign with a recorded scoring profile"
+        }
+        assert str(copied) not in response.text
+    assert not service._analysis_root().exists()
+    assert (
+        service.source("campaign-a")["source_fingerprint"] == request.source_fingerprint
+    )
+    assert (original / "experiment.json").read_bytes() == original_metadata
+    assert (original / "evidence_bundle.zip").read_bytes() == original_bundle
+    assert (copied / "experiment.json").read_bytes() == copied_metadata
+    assert (copied / "evidence_bundle.zip").read_bytes() == copied_bundle
+
+
+def test_identity_filtered_discovery_keeps_order_cap_and_metadata_only_reads(
+    service, monkeypatch
+):
+    original = service.experiments_root / "campaign-a/experiment.json"
+    record = json.loads(original.read_bytes())
+    for index in range(201):
+        identifier = f"campaign-{index:03d}"
+        _write(
+            service.experiments_root / identifier / "experiment.json",
+            {**record, "experiment_id": identifier},
+        )
+    for identifier in ("campaign-z", "campaign-y"):
+        _write(service.experiments_root / identifier / "experiment.json", record)
+    reads = []
+    read = robustness._read_bytes
+
+    def metadata_only(path, limit=robustness.MAX_FILE_BYTES):
+        assert path.name == "experiment.json"
+        reads.append((path, limit))
+        return read(path, limit)
+
+    monkeypatch.setattr(robustness, "_read_bytes", metadata_only)
+    client = _client(service)
+    response = client.get("/api/robustness/sources")
+    assert response.status_code == 200
+    assert [item["experiment_id"] for item in response.json()["items"]] == [
+        "campaign-a",
+        *[f"campaign-{index:03d}" for index in range(200, 3, -1)],
+    ]
+    assert len(reads) == 200
+    assert all(limit == robustness.MAX_FILE_BYTES for _, limit in reads)
+    assert len(response.content) <= robustness.MAX_LISTING_RESPONSE_BYTES
+    assert client.get("/api/robustness/sources/campaign-z/extra").status_code == 404
+
+
+def test_identity_matched_discovery_selection_preserves_complete_workflow(service):
+    # Mirror production: profiles are persisted in canonical JSON order before
+    # campaign scoring. The generic fixture also supports in-memory-order tests.
+    root = service.experiments_root / "campaign-a"
+    comparison = json.loads((root / "comparison.json").read_bytes())
+    comparison.update(
+        score_recorded_rows(comparison["rows"], comparison["decision"]["profile"])
+    )
+    _write(root / "comparison.json", comparison)
+    record = json.loads((root / "experiment.json").read_bytes())
+    _write(root / "experiment.json", {**record, "decision": comparison["decision"]})
+    write_manifest_for_directory(root)
+    create_bundle_zip_for_directory(root)
+    client = _client(service)
+    response = client.get("/api/robustness/sources")
+    assert response.status_code == 200
+    item = response.json()["items"][0]
+    assert item["experiment_id"] == "campaign-a"
+    opened = client.get(f"/api/robustness/sources/{item['experiment_id']}")
+    assert opened.status_code == 200
+    request = _request(service).model_dump(mode="json")
+    assert opened.json()["source_fingerprint"] == request["source_fingerprint"]
+    preview = client.post("/api/robustness/preview", json=request)
+    assert preview.status_code == 200
+    assert preview.json()["current"]["rows"] == opened.json()["comparison"]["rows"]
+    saved = client.post("/api/robustness/analyses", json=request)
+    assert saved.status_code == 200
+    record = saved.json()
+    loaded = client.get(f"/api/robustness/analyses/{record['analysis_id']}")
+    assert loaded.status_code == 200
+    assert loaded.json() == record
+    exported = client.get(record["urls"]["bundle"])
+    assert exported.status_code == 200
+    assert hashlib.sha256(exported.content).hexdigest() == record["bundle_sha256"]
 
 
 @pytest.mark.parametrize("operation", ["source", "preview", "save"])

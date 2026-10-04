@@ -118,6 +118,12 @@ a limit on total metadata I/O across all 200 candidates.
 Campaign summaries retain their four selector fields: safe experiment ID, a
 non-empty string label of at most 512 characters, a non-boolean integer run count
 between 0 and 64, and a timestamp string of at most 64 characters or `null`.
+The recorded experiment ID must exactly match its directory ID. Missing,
+non-string and mismatched IDs are excluded from discovery without rewriting
+evidence or relaxing direct-access identity/integrity checks. Invalid candidates
+still count toward the first-200 metadata selection cap; discovery does not read
+older records to backfill them. Listing is not full artifact verification and
+does not guarantee that every listed record can subsequently be opened.
 Missing/null/empty labels still fall back to the ID; missing timestamps remain
 `null`. Nested objects, invalid Unicode text and oversized scalar summaries are
 isolated without hiding healthy candidates. Timestamp length/type constraints

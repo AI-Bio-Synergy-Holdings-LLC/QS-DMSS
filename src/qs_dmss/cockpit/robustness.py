@@ -230,6 +230,7 @@ class CockpitRobustnessService:
                 decision = record.get("decision")
                 if (
                     record.get("kind") != "campaign"
+                    or record.get("experiment_id") != path.parent.name
                     or record.get("status", "completed") != "completed"
                     or not isinstance(decision, dict)
                     or not decision.get("available")

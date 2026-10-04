@@ -396,6 +396,50 @@ latest-head remote gates plus one completed re-review are recorded in the PR
 after commit. Fresh owner review and explicit readiness/protected-merge authority
 remain required; draft, deployment and release holds remain.
 
+### Campaign discovery identity admission — 2026-10-04
+
+Source `4a1fcbd` passed its automated remote gates, including **591 remote quantum
+tests, no skips, 90.83% coverage** and cross-platform installed-wheel/Docker smoke.
+Its one completed Copilot re-review resolved the previous high listing-resource
+finding but identified a medium identity mismatch under **Previously missed**,
+despite "Findings: None": copied campaign directories could be advertised under
+their directory ID although the retained record used another ID and direct open
+rejected it. A read-only probe confirmed that behavior without changing evidence.
+The owner separately authorized this focused correction and requalification.
+
+Discovery now requires exact equality between recorded and directory experiment
+IDs before constructing a summary. Missing, non-string and mismatched IDs are
+skipped, not repaired or migrated. Direct source/preview/save retain their existing
+authored identity HTTP 400 and full integrity checks. Healthy ordering, the
+first-200 candidate-read cap, metadata-only discovery, response/scan budgets,
+scoring and original hashes are unchanged. Skipped records are not backfilled
+from older candidates; discovery is still not full artifact verification.
+
+Sixteen added cases cover fourteen missing/malformed/mismatched identities in
+integrity-valid copied test artifacts, exact HTTP failures before persistence,
+unchanged original/copy bytes and fingerprints, ordered 200-read admission and
+the complete healthy discovery/open/preview/save/reopen/export workflow. After
+correcting a new test fixture to mirror production's canonical persisted-profile
+order, the authoritative pre-fix run was **15 failed, 1 passed**; no production
+scoring change was made. All 16 pass on Windows CPython **3.10.20, 3.11.15 and
+3.12.14** after the identity guard.
+
+Full local quantum-enabled qualification: **603 passed, 4 skipped, 90.87%
+coverage** (88% gate). Ruff, Bandit medium-or-higher, compilation, a fresh-cache
+installed-dependency audit (no known vulnerabilities), the baseline benchmark,
+scientific registry/discovery consistency and JavaScript syntax all pass.
+
+The source-development campaign smoke preserves its real campaign while injecting
+null and mismatched IDs in memory; installed-wheel/Docker smoke uses the same
+check and emits `source_listing_identity_enforced: true`. No new local fresh-wheel
+pass or browser-rendered pass is claimed. The existing Windows console-launcher
+Application Control block and four real-symlink privilege skips remain documented;
+neither is bypassed. No UI, solver, dependency, version, hosted graph/AI,
+scientific-status, production or release change is included. Current-head archive
+identity, remote gates and the single completed re-review are recorded in the PR
+after commit. Fresh owner review and explicit readiness/protected-merge authority
+remain required; draft, deployment and release holds remain.
+
 Main CI, Python 3.10–3.13 matrix, Docker, CodeQL, Code Quality, policy, Pages and
 production auto-deploy verifier were successful on the pinned baseline. The
 latest scheduled quality/security checks also succeeded on that commit. The

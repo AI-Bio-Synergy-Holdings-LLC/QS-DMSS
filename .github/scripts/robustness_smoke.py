@@ -91,6 +91,8 @@ def assert_compact_listing_limits(service, identifier, analysis_id):
     original = original_read(experiment)
     record = json.loads(original)
     for field, value in (
+        ("experiment_id", None),
+        ("experiment_id", identifier + "-copied"),
         ("label", {"nested": "x" * 8192}),
         ("run_count", {"nested": "x" * 8192}),
         ("created_at", "x" * 65),
@@ -237,6 +239,7 @@ def main() -> None:
                 "verified_bundle_snapshot": True,
                 "source_bundle_stream_limit_enforced": True,
                 "compact_listing_response_limits_enforced": True,
+                "source_listing_identity_enforced": True,
                 "saved_reopened_exported": True,
                 "hosted_disabled": True,
             },
