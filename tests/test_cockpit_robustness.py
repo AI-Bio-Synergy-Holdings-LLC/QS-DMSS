@@ -993,6 +993,173 @@ def _client(service, *, raise_server_exceptions=True):
     )
 
 
+def _tree_bytes(root):
+    return {
+        path.relative_to(root): path.read_bytes()
+        for path in root.rglob("*")
+        if path.is_file() and not path.is_symlink()
+    }
+
+
+@pytest.mark.parametrize(
+    "alias_kind",
+    [
+        "sibling",
+        "nested_same_leaf",
+        "outside",
+        "loop",
+        "real_symlink",
+    ],
+)
+def test_analysis_storage_root_alias_is_rejected_before_reads_or_writes(
+    service, monkeypatch, alias_kind
+):
+    request = _request(service)
+    saved = service.save(request)
+    intended = service._analysis_root()
+    campaign = service.experiments_root / "campaign-a"
+    resolve = robustness.contained_path
+    if alias_kind == "real_symlink":
+        target = campaign / "retained-analysis-storage"
+        intended.rename(target)  # Owned fixture only; never mutate user evidence.
+        try:
+            intended.symlink_to(target, target_is_directory=True)
+        except OSError as exc:
+            if getattr(exc, "winerror", None) == 1314:
+                pytest.skip(
+                    "Windows symlink creation requires an unavailable privilege"
+                )
+            raise
+    else:
+        target = {
+            "sibling": campaign,
+            "nested_same_leaf": campaign / "_robustness",
+            "outside": service.experiments_root.parent / "_robustness",
+            "loop": intended,
+        }[alias_kind]
+
+        def aliased(root, *parts):
+            if root == service.experiments_root and parts == ("_robustness",):
+                if alias_kind == "loop":
+                    raise RuntimeError("Symlink loop with private filesystem path")
+                return target
+            return resolve(root, *parts)
+
+        monkeypatch.setattr(robustness, "contained_path", aliased)
+    client = _client(service, raise_server_exceptions=False)
+    before = _tree_bytes(service.experiments_root)
+    writes = []
+
+    def forbidden_mkdir(path, *args, **kwargs):
+        writes.append(path)
+        raise AssertionError(
+            "No directory writer should run for an aliased storage root"
+        )
+
+    monkeypatch.setattr(Path, "mkdir", forbidden_mkdir)
+    responses = [
+        client.get("/api/robustness/analyses"),
+        client.get(f"/api/robustness/analyses/{saved['analysis_id']}"),
+        client.get(saved["urls"]["bundle"]),
+        client.post("/api/robustness/analyses", json=request.model_dump(mode="json")),
+    ]
+    for response in responses:
+        assert response.status_code == 400
+        assert response.json() == {
+            "detail": (
+                "Recorded robustness evidence is invalid, incompatible, or exceeds resource limits"
+            )
+        }
+        assert "private" not in response.text
+    assert writes == []
+    assert _tree_bytes(service.experiments_root) == before
+    assert client.get("/api/robustness/sources/campaign-a").status_code == 200
+    assert (
+        client.post(
+            "/api/robustness/preview", json=request.model_dump(mode="json")
+        ).status_code
+        == 200
+    )
+
+
+@pytest.mark.parametrize(
+    "alias_kind",
+    [
+        "retained_analysis",
+        "nested_same_leaf",
+        "outside",
+        "loop",
+        "real_symlink",
+    ],
+)
+def test_staging_storage_alias_blocks_save_without_disabling_healthy_reads(
+    service, monkeypatch, alias_kind
+):
+    request = _request(service)
+    saved = service.save(request)
+    root = service._analysis_root()
+    retained = root / saved["analysis_id"]
+    intended = root / "_pending"
+    resolve = robustness.contained_path
+    if alias_kind == "real_symlink":
+        intended.rename(root / "_pending-original")  # Empty, owned fixture only.
+        try:
+            intended.symlink_to(retained, target_is_directory=True)
+        except OSError as exc:
+            if getattr(exc, "winerror", None) == 1314:
+                pytest.skip(
+                    "Windows symlink creation requires an unavailable privilege"
+                )
+            raise
+    else:
+        target = {
+            "retained_analysis": retained,
+            "nested_same_leaf": retained / "_pending",
+            "outside": service.experiments_root / "_pending",
+            "loop": intended,
+        }[alias_kind]
+
+        def aliased(base, *parts):
+            if base == root and parts == ("_pending",):
+                if alias_kind == "loop":
+                    raise RuntimeError("Symlink loop with private filesystem path")
+                return target
+            return resolve(base, *parts)
+
+        monkeypatch.setattr(robustness, "contained_path", aliased)
+    client = _client(service, raise_server_exceptions=False)
+    before = _tree_bytes(service.experiments_root)
+    writes = []
+
+    def forbidden_mkdir(path, *args, **kwargs):
+        writes.append(path)
+        raise AssertionError("Storage identities must be checked before any mkdir")
+
+    monkeypatch.setattr(Path, "mkdir", forbidden_mkdir)
+    response = client.post(
+        "/api/robustness/analyses", json=request.model_dump(mode="json")
+    )
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": (
+            "Recorded robustness evidence is invalid, incompatible, or exceeds resource limits"
+        )
+    }
+    assert writes == []
+    listing = client.get("/api/robustness/analyses")
+    assert listing.status_code == 200
+    assert [item["analysis_id"] for item in listing.json()["items"]] == [
+        saved["analysis_id"]
+    ]
+    assert (
+        client.get(f"/api/robustness/analyses/{saved['analysis_id']}").json() == saved
+    )
+    exported = client.get(saved["urls"]["bundle"])
+    assert exported.status_code == 200
+    assert hashlib.sha256(exported.content).hexdigest() == saved["bundle_sha256"]
+    assert _tree_bytes(service.experiments_root) == before
+
+
 @pytest.mark.parametrize("collection", ["sources", "analyses"])
 @pytest.mark.parametrize("real_symlink", [False, True], ids=["virtual", "real-symlink"])
 def test_sibling_artifact_aliases_are_excluded_and_direct_access_is_not_found(

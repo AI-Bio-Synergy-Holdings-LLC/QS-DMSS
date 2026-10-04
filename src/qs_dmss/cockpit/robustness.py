@@ -122,6 +122,22 @@ def _recorded_profile(profile: dict) -> None:
         raise ValueError("Recorded profile has no effective positive weight")
 
 
+def _storage_directory(root: Path, name: str) -> Path:
+    # Containment alone permits aliases into sibling evidence. These reserved
+    # storage roots must keep their exact resolved parent and leaf identities.
+    # Missing literal directories remain valid; readers do not create them.
+    try:
+        candidate = contained_path(root, name)
+        parent = root.resolve()
+    except RuntimeError as exc:
+        # Older Python raises RuntimeError for resolution loops, newer versions
+        # may raise OSError. Neither should disclose paths or become HTTP 500.
+        raise ValueError("Invalid robustness storage directory identity") from exc
+    if candidate.parent != parent or candidate.name != name:
+        raise ValueError("Invalid robustness storage directory identity")
+    return candidate
+
+
 def _directory(root: Path, identifier: str) -> Path:
     if not SAFE_ID.fullmatch(identifier):
         raise HTTPException(404, "Recorded artifact not found")
@@ -451,7 +467,7 @@ class CockpitRobustnessService:
         }
 
     def _analysis_root(self) -> Path:
-        return contained_path(self.experiments_root, "_robustness")
+        return _storage_directory(self.experiments_root, "_robustness")
 
     def save(self, request: RobustnessRequest) -> dict:
         # Read once: the exact verified bytes and scores form one retained snapshot.
@@ -462,8 +478,9 @@ class CockpitRobustnessService:
             )
         result = build_robustness_analysis(source["comparison"]["rows"], request)
         root = self._analysis_root()
+        pending_root = _storage_directory(root, "_pending")
+        # Validate both reserved identities before the first filesystem write.
         root.mkdir(parents=True, exist_ok=True)
-        pending_root = contained_path(root, "_pending")
         pending_root.mkdir(parents=True, exist_ok=True)
         for _ in range(3):
             analysis_id = f"robustness-{uuid.uuid4().hex}"

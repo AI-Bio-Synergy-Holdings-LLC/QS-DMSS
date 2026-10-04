@@ -8,7 +8,7 @@
     energy_drift: "Energy drift", norm_drift: "Norm drift",
     max_density: "Maximum density", elapsed_seconds: "Elapsed time",
   };
-  const state = {source: null, result: null, displayed: null, generation: 0, sourcesGeneration: 0, timer: null, busy: false};
+  const state = {source: null, result: null, displayed: null, generation: 0, sourcesGeneration: 0, savedGeneration: 0, timer: null, busy: false};
   const form = $("form");
   const chart = $("chart");
   function node(tag, value, className) {
@@ -201,9 +201,13 @@
     } catch (error) { if (generation === state.sourcesGeneration) status(error.message); }
   }
   async function refreshSaved() {
-    const result = await api("/api/robustness/analyses");
-    $("saved").replaceChildren(option("", "Choose a saved analysis"));
-    result.items.forEach(item => $("saved").append(option(item.analysis_id, `${item.created_at.slice(0, 19)} · ${item.source.label}`)));
+    const generation = ++state.savedGeneration;
+    try {
+      const result = await api("/api/robustness/analyses");
+      if (generation !== state.savedGeneration) return;
+      $("saved").replaceChildren(option("", "Choose a saved analysis"));
+      result.items.forEach(item => $("saved").append(option(item.analysis_id, `${item.created_at.slice(0, 19)} · ${item.source.label}`)));
+    } catch (error) { if (generation === state.savedGeneration) throw error; }
   }
   form.addEventListener("submit", event => { event.preventDefault(); clearTimeout(state.timer); invalidate(); preview(); });
   form.addEventListener("input", () => {

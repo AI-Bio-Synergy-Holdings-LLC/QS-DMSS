@@ -48,7 +48,7 @@ function harness(io) {
     return elements.get(name);
   };
   const state = {source: null, result: result(), displayed: result(), generation: 1,
-    sourcesGeneration: 0, busy: false, timer: null};
+    sourcesGeneration: 0, savedGeneration: 0, busy: false, timer: null};
   const context = vm.createContext({$, state, form: {hidden: false}, chart: $("chart"), clearTimeout, structuredClone,
     metrics: {}, node: () => ({}), table: () => ({}), drawChart() {}, editor() {},
     option: (value, label) => ({value, label}),
@@ -60,6 +60,50 @@ function harness(io) {
   return {$, state, requests, messages, context};
 }
 const listingError = "Robustness discovery exceeds the directory-entry resource limit";
+
+test("older saved-list success cannot replace a newer post-save list", async () => {
+  const old = deferred(), newer = deferred(); let count = 0;
+  const h = harness(() => ++count === 1 ? old.promise : newer.promise);
+  const first = h.context.refreshSaved(), second = h.context.refreshSaved();
+  newer.resolve({items: [result("newly-saved")]}); await second;
+  old.resolve({items: []}); await first;
+  assert.deepEqual(h.$("saved").children.map(item => item.value), ["", "newly-saved"]);
+});
+
+test("older saved-list failure cannot propagate after a newer request starts", async () => {
+  const old = deferred(), newer = deferred(); let count = 0;
+  const h = harness(() => ++count === 1 ? old.promise : newer.promise);
+  const first = h.context.refreshSaved(), second = h.context.refreshSaved();
+  old.reject(new Error("Older list failed")); await first;
+  newer.resolve({items: [result("newly-saved")]}); await second;
+  assert.equal(h.$("saved").children[1].value, "newly-saved");
+});
+
+test("latest saved-list failure still propagates and older success stays ignored", async () => {
+  const old = deferred(), newer = deferred(); let count = 0;
+  const h = harness(() => ++count === 1 ? old.promise : newer.promise);
+  const first = h.context.refreshSaved(), second = h.context.refreshSaved();
+  newer.reject(new Error("Latest list failed"));
+  await assert.rejects(second, /Latest list failed/);
+  old.resolve({items: [result("stale-saved")]}); await first;
+  assert.equal(h.$("saved").children.length, 0);
+});
+
+test("late initial list failure cannot replace completed save status or download", async () => {
+  const old = deferred(); let lists = 0;
+  const h = harness(async (endpoint, payload) => {
+    if (payload) return result("newly-saved");
+    return ++lists === 1 ? old.promise : {items: [result("newly-saved")]};
+  });
+  const initial = h.context.refreshSaved().catch(error => h.context.status(error.message));
+  await h.$("save").click();
+  const successfulStatus = h.messages.at(-1);
+  old.reject(new Error("Older initial list failed")); await initial;
+  assert.equal(h.messages.at(-1), successfulStatus);
+  assert.match(successfulStatus, /Saved immutable analysis newly-saved/);
+  assert.equal(h.$("download").href, result("newly-saved").urls.bundle);
+  assert.equal(h.$("save").disabled, true);
+});
 
 test("rejected source clears busy state without exposing editor, stale result or save", async () => {
   const h = harness(async () => { throw new Error("Invalid recorded evidence"); });

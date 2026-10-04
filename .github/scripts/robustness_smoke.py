@@ -320,6 +320,64 @@ def assert_json_and_profile_admission(service, identifier, analysis_id):
         raise AssertionError("Over-depth metadata was admitted")
 
 
+def assert_storage_root_identities(service, identifier, analysis_id, request):
+    """Reject virtual storage/staging redirects before any mkdir or evidence write."""
+    resolve = robustness.contained_path
+    root = service._analysis_root()
+    source_before = service.source(identifier)
+    saved_before = service.load(analysis_id)
+    for base, name, target in (
+        (
+            service.experiments_root,
+            "_robustness",
+            service.experiments_root / identifier,
+        ),
+        (root, "_pending", root / analysis_id),
+    ):
+        writes = []
+
+        def redirected(parent, *parts):
+            return (
+                target
+                if parent == base and parts == (name,)
+                else resolve(parent, *parts)
+            )
+
+        def forbidden_mkdir(path, *args, **kwargs):
+            writes.append(path)
+            raise AssertionError("Invalid storage identity reached a filesystem writer")
+
+        with (
+            patch.object(robustness, "contained_path", redirected),
+            patch.object(Path, "mkdir", forbidden_mkdir),
+        ):
+            actions = [lambda: service.save(request)]
+            if name == "_robustness":
+                actions.extend(
+                    (
+                        service.analyses,
+                        lambda: service.load(analysis_id),
+                        lambda: service.bundle_snapshot(analysis_id),
+                    )
+                )
+            else:
+                assert service.load(analysis_id) == saved_before
+                assert (
+                    hashlib.sha256(service.bundle_snapshot(analysis_id)).hexdigest()
+                    == saved_before["bundle_sha256"]
+                )
+            for action in actions:
+                try:
+                    action()
+                except ValueError:
+                    pass
+                else:
+                    raise AssertionError("An aliased storage identity was admitted")
+            assert writes == []
+    assert service.source(identifier) == source_before
+    assert service.load(analysis_id) == saved_before
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-root", required=True, type=Path)
@@ -363,6 +421,7 @@ def main() -> None:
         service, identifier, saved["analysis_id"]
     )
     assert_json_and_profile_admission(service, identifier, saved["analysis_id"])
+    assert_storage_root_identities(service, identifier, saved["analysis_id"], payload)
     assert saved["sensitivity"]["case_count"] == 3
     with zipfile.ZipFile(service.bundle(saved["analysis_id"])) as archive:
         assert f"{saved['analysis_id']}/source/comparison.json" in archive.namelist()
@@ -445,6 +504,8 @@ def main() -> None:
                 "unsafe_json_tree_rejected": True,
                 "recorded_profile_admission_enforced": True,
                 "json_nesting_policy_enforced": True,
+                "storage_root_identity_enforced": True,
+                "staging_root_identity_enforced_before_writes": True,
                 "saved_reopened_exported": True,
                 "hosted_disabled": True,
             },

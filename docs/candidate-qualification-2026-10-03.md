@@ -615,3 +615,63 @@ Application Control restriction (WinError 4551) was not retried or bypassed.
 No dependency, version, scoring, production configuration or scientific-status
 change is included. PR #197 remains draft; fresh owner review and explicit
 protected readiness/merge authority are required on the revised head.
+
+## Storage identity and saved-list concurrency follow-up (2026-10-04)
+
+Owner authorization covers one focused batch following Copilot review
+`5407348262`: the reserved storage-root alias finding, the related staging-root
+identity variant, and saved-list response ordering. PR #197 remains draft; no
+readiness, merge, deployment or publication is authorized by this batch.
+
+Both `_robustness` and `_pending` must resolve to their exact expected parent and
+leaf before the first `mkdir`. Sibling, nested same-leaf, outside-root and loop
+identities fail closed under the existing sanitized HTTP 400 contract. Missing
+literal storage remains compatible; invalid staging blocks writes but does not
+disable healthy saved list/load/export. The safeguard checks resolved identities
+at access time; it does not claim descriptor-anchored protection from adversarial
+concurrent filesystem replacement. No retained artifact is repaired in place.
+
+Saved-list refreshes now use a separate monotonic generation. Stale successes
+cannot replace the newer selector and stale failures cannot replace successful
+save status/download. The latest failure still propagates to the existing warning
+path. Scoring, routes, persistence formats, solver and AI boundaries are unchanged.
+
+The ten new Python cases were red before implementation (**8 failures, 2 Windows
+privilege skips**) and four new actual-callback Node races were also red. The
+focused storage/missing-directory compatibility checks pass (**13 passed,
+2 privilege skips**), and all **18 Node callback contracts** pass. The full
+quantum-enabled source environment on CPython 3.12.14 passes **689 tests,
+8 Windows symlink-privilege skips, 90.94% coverage**, retaining the 88% gate.
+Isolated offline no-project CPython 3.10.20 and 3.11.15 robustness/core runs each
+pass **305 tests, 8 privilege skips**, without managing the worktree environment.
+Ruff, configured Bandit, compilation, JavaScript syntax, baseline benchmark,
+registry/discovery consistency, 86-package compatibility and a fresh-cache audit
+with no known vulnerabilities pass. Existing low-severity security debt and the
+fresh-wheel Windows Application Control limitation are not asserted resolved.
+
+The source-development smoke preserves original scores and immutable saves,
+reopen/export and hosted denial. Virtual storage/staging redirects are rejected
+before any writer, with healthy staging-independent reads preserved. It emits
+`storage_root_identity_enforced` and
+`staging_root_identity_enforced_before_writes` for installed-wheel/Docker gates.
+Generated evidence is isolated under ignored `.tmp/storage-concurrency-source-smoke/`.
+
+Rendered Playwright/Chromium acceptance passes at 1440x1000 and 375x900. An actual
+pre-save GET response is fetched and held until a newer post-save GET completes;
+its delayed success or deliberate transport failure cannot change the newer
+selector, status or download. Four keyboard saves return real HTTP 200, reopen
+successfully and download with matching bundle hashes. Zero page/unexpected
+console errors, two deliberate transport-error entries and no page-wide overflow
+occurred. All 29 captured original corpus files and the campaign fingerprint are
+unchanged. The completed run adds four analyses (count 4 to 8); an initial QA
+attempt added three, then lost keyboard focus during core initialization before
+its fourth POST. The QA synchronization was corrected; all seven generated QA
+saves remain retained, alongside the initial source-smoke analysis. Scripts,
+hashes and unmodified-CSS screenshots are retained under ignored
+`output/playwright/storage-concurrency/`. No solver or AI request is involved.
+
+Revised-head remote qualification is recorded in the PR after completion.
+Remote Linux must exercise the real-symlink cases that
+cannot run with this Windows account's privileges. One completed Copilot re-review
+is required after automated gates; fresh owner review and explicit readiness/
+protected-merge authority are still required for the revised head.

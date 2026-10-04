@@ -217,6 +217,21 @@ unavailable. An older failed request cannot clear a newer request's busy state
 or replace its status. Built-in Node callback-state tests supplement, rather than
 replace, rendered browser acceptance with real isolated saves and injected errors.
 
+Saved-list refreshes have their own monotonic request generation. An older
+successful response cannot replace a newer selector, and an older failed response
+cannot overwrite a completed save's status or download. The newest failure still
+propagates to the existing listing-warning path; ignoring stale failures does not
+hide a current refresh failure.
+
+The reserved `_robustness` and `_pending` directories must resolve to their exact
+expected parent and leaf identities, not merely somewhere inside the evidence
+root. Saving checks both before any directory creation. An invalid storage root
+fails list/load/export/save with the existing sanitized HTTP 400 contract; an
+invalid staging root blocks saving while healthy retained reads remain available.
+Missing literal directories remain compatible and reads do not create them.
+These are check-time identity safeguards, not descriptor-anchored isolation from
+adversarial concurrent filesystem replacement.
+
 Generated report/workbook previews allow only same-origin framing; the cockpit
 and other surfaces retain framing denial. This repairs the pre-existing conflict
 between report iframes and blanket anti-framing headers, not a cross-origin embed
