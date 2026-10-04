@@ -295,6 +295,48 @@ this server-only batch; valid generated workbook/report HTTP contracts are teste
 Fresh owner review and explicit readiness/merge authorization remain required.
 PR stays draft; no merge, deployment, release or hosted capability activation.
 
+### Source-bundle streamed-byte ceiling — 2026-10-04
+
+The four-finding head (`e47b82c`) passed every automated remote gate, including
+**518 tests, no skips, 90.72% coverage** in Linux quantum CI and actual symlink
+regressions. Its single completed Copilot re-review no longer flagged those four
+issues but identified a medium concern under **Previously missed**, despite
+"Findings: None": the source ZIP size check preceded an unbounded read-to-EOF
+hash loop. A bounded read-only simulation reproduced acceptance with an 8-byte
+injected ceiling, 4-byte reported stat and 12 bytes consumed. Retained evidence
+was unchanged. This was not a physical file-growth or production load experiment.
+
+The owner separately authorized the focused guard and requalification. Hashing
+now counts streamed bytes, requests at most the remaining allowance plus one
+overflow-detection byte (and never more than 1 MiB per read), rejects overflow
+before updating the digest, and closes the stream through its context manager.
+The initial stat remains a fast rejection only. The declared 64 MiB ceiling,
+authored source-limit HTTP 400, valid hashes/fingerprints, scoring and original
+artifacts remain unchanged. This is a per-read resource bound, not a concurrent
+traffic limit or guarantee of coherent snapshots under arbitrary local mutation.
+
+Fifteen added cases cover one-byte-below/at/above 8-byte, multichunk and actual
+64 MiB boundaries, underreported stat, bounded never-ending short reads, fast
+oversize rejection without opening, valid short-read hash/pin/preview/save
+compatibility and source/preview/save HTTP rejection before persistence. The
+pre-fix run had **13 failures, 2 passes**. After correction all 15 pass on
+Windows CPython 3.10.20, 3.11.15 and 3.12.14. Full local quantum qualification:
+**529 passed, 4 skipped, 90.81% coverage**; the four pre-existing real-symlink
+skips reflect this host's unavailable privilege, not a new streaming-test skip.
+
+Ruff, Bandit medium-or-higher, compilation, fresh-cache dependency audit (no known
+vulnerabilities), baseline benchmark, registry/discovery consistency and JavaScript
+syntax pass. The source-development campaign smoke also passes save/reopen/export,
+original-score agreement, hosted denial and the new in-memory growth check
+(`source_bundle_stream_limit_enforced: true`), with its generated evidence retained.
+Installed-wheel/Docker smoke now performs the same growth check and confirms the
+real campaign fingerprint is unchanged afterward. No new local installed-wheel
+pass is claimed: the previously observed Windows console-launcher policy block
+remains unresolved and was not bypassed. No UI, numerical, scientific-status,
+dependency or production changes were made. Latest-head artifact checks, remote
+gates and one completed re-review are recorded in the PR after commit. Fresh
+owner review and explicit readiness/protected-merge authority remain required.
+
 Main CI, Python 3.10–3.13 matrix, Docker, CodeQL, Code Quality, policy, Pages and
 production auto-deploy verifier were successful on the pinned baseline. The
 latest scheduled quality/security checks also succeeded on that commit. The

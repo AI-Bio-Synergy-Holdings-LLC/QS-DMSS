@@ -81,6 +81,14 @@ file/derived analysis, 16 MiB total used source metadata, 64 MiB source bundle,
 listed campaigns/analyses. A grid that removes
 every positive weight is rejected, not silently omitted.
 
+The source ZIP ceiling is enforced while hashing, not only by an initial size
+check. Reads are at most 1 MiB and never exceed the remaining allowance plus
+one overflow-detection byte. A source growing past 64 MiB is rejected with the
+existing authored HTTP 400 before preview or persistence; the stream is closed.
+Valid bundle hashes, source fingerprints and scoring remain unchanged. This
+bounds one source read, not concurrent request load or malicious replacement
+of a file and its manifest together.
+
 Routes under `/api/robustness`: `GET /sources`, `GET /sources/{experiment_id}`,
 `POST /preview`, `POST /analyses`, `GET /analyses`, `GET /analyses/{analysis_id}`,
 and `GET /analyses/{analysis_id}/bundle`. Request models forbid unknown keys;

@@ -9,9 +9,12 @@ import zipfile
 from copy import deepcopy
 from io import BytesIO
 from pathlib import Path
+from types import SimpleNamespace
+from unittest.mock import patch
 
 from fastapi import HTTPException
 
+import qs_dmss.cockpit.robustness as robustness
 from qs_dmss.cockpit.api import (
     BASELINE_SECURITY_HEADERS,
     CockpitService,
@@ -20,6 +23,47 @@ from qs_dmss.cockpit.api import (
 from qs_dmss.cockpit.robustness import CockpitRobustnessService
 from qs_dmss.evidence.html_security import MAX_REPORT_CSP_BYTES, report_preview_headers
 from qs_dmss.robustness import RobustnessRequest
+
+
+def assert_streamed_bundle_ceiling(service, identifier):
+    """Model growth in memory, without changing the generated campaign ZIP."""
+    bundle = (service.experiments_root / identifier / "evidence_bundle.zip").resolve()
+    original_open, original_stat = Path.open, Path.stat
+
+    class CountedStream(BytesIO):
+        consumed = 0
+
+        def read(self, size=-1):
+            chunk = super().read(size)
+            self.consumed += len(chunk)
+            return chunk
+
+    stream = CountedStream(b"x" * 12)
+
+    def opened(path, *args, **kwargs):
+        return stream if path == bundle else original_open(path, *args, **kwargs)
+
+    def stat(path, *args, **kwargs):
+        return (
+            SimpleNamespace(st_size=4)
+            if path == bundle
+            else original_stat(path, *args, **kwargs)
+        )
+
+    with (
+        patch.object(robustness, "MAX_BUNDLE_BYTES", 8),
+        patch.object(Path, "open", opened),
+        patch.object(Path, "stat", stat),
+    ):
+        try:
+            service.source(identifier)
+        except ValueError as exc:
+            assert str(exc) == "Source bundle exceeds the robustness resource limit"
+        else:
+            raise AssertionError(
+                "A source growing beyond the byte ceiling was accepted"
+            )
+    assert stream.consumed == 9 and stream.closed
 
 
 def main() -> None:
@@ -67,6 +111,10 @@ def main() -> None:
     assert hashlib.sha256(snapshot).hexdigest() == saved["bundle_sha256"]
     with zipfile.ZipFile(BytesIO(snapshot)) as archive:
         assert f"{saved['analysis_id']}/analysis.json" in archive.namelist()
+    assert (
+        service.source(identifier)["source_fingerprint"] == source["source_fingerprint"]
+    )
+    assert_streamed_bundle_ceiling(service, identifier)
     assert (
         service.source(identifier)["source_fingerprint"] == source["source_fingerprint"]
     )
@@ -130,6 +178,7 @@ def main() -> None:
                 "report_csp_budget_enforced": True,
                 "unclosed_style_preview_fail_closed": True,
                 "verified_bundle_snapshot": True,
+                "source_bundle_stream_limit_enforced": True,
                 "saved_reopened_exported": True,
                 "hosted_disabled": True,
             },

@@ -6,6 +6,7 @@ import os
 import zipfile
 from copy import deepcopy
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from fastapi import HTTPException
@@ -955,3 +956,201 @@ def test_campaign_discovery_preserves_descending_order_and_200_candidate_cap(ser
         "campaign-a",
         *[f"campaign-{index:03d}" for index in range(200, 1, -1)],
     ]
+
+
+def _intercept_source_bundle(
+    service, patches, *, reported_size, size, short_read=None, content=None
+):
+    path = (service.experiments_root / "campaign-a/evidence_bundle.zip").resolve()
+    original_open, original_stat = Path.open, Path.stat
+    streams = []
+
+    class Stream:
+        consumed = 0
+        closed = False
+
+        def __init__(self):
+            self.requests = []
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            self.closed = True
+
+        def read(self, requested):
+            assert requested > 0
+            self.requests.append((self.consumed, requested))
+            # The never-ending-source probe fails safely if the production guard
+            # is absent; it must not itself perform unbounded test I/O.
+            if size is None and self.consumed > robustness.MAX_BUNDLE_BYTES + 1:
+                raise AssertionError("Growing-stream probe exceeded its test budget")
+            count = min(requested, short_read) if short_read else requested
+            if size is not None:
+                count = min(count, size - self.consumed)
+            if content is None:
+                chunk = b"x" * count
+            else:
+                chunk = content[self.consumed : self.consumed + count]
+            self.consumed += len(chunk)
+            return chunk
+
+    def opened(candidate, *args, **kwargs):
+        if candidate == path:
+            assert args == ("rb",) and not kwargs
+            stream = Stream()
+            streams.append(stream)
+            return stream
+        return original_open(candidate, *args, **kwargs)
+
+    def stat(candidate, *args, **kwargs):
+        return (
+            SimpleNamespace(st_size=reported_size)
+            if candidate == path
+            else original_stat(candidate, *args, **kwargs)
+        )
+
+    patches.setattr(Path, "open", opened)
+    patches.setattr(Path, "stat", stat)
+    return streams
+
+
+def _assert_stream_bound(streams, limit):
+    assert streams and all(stream.closed for stream in streams)
+    for stream in streams:
+        assert stream.consumed <= limit + 1
+        assert all(
+            requested <= min(1024 * 1024, limit - consumed + 1)
+            for consumed, requested in stream.requests
+        )
+
+
+@pytest.mark.parametrize("limit", [8, 1024 * 1024 + 8, 64 * 1024 * 1024])
+@pytest.mark.parametrize("offset", [-1, 0, 1])
+def test_source_bundle_stream_enforces_exact_boundary_after_underreported_stat(
+    service, monkeypatch, limit, offset
+):
+    original = (
+        service.experiments_root / "campaign-a/evidence_bundle.zip"
+    ).read_bytes()
+    size = limit + offset
+    with monkeypatch.context() as patches:
+        patches.setattr(robustness, "MAX_BUNDLE_BYTES", limit)
+        streams = _intercept_source_bundle(service, patches, reported_size=4, size=size)
+        if offset > 0:
+            with pytest.raises(
+                ValueError,
+                match="^Source bundle exceeds the robustness resource limit$",
+            ):
+                service.source("campaign-a")
+        else:
+            result = service.source("campaign-a")
+            digest = hashlib.sha256()
+            for start in range(0, size, 1024 * 1024):
+                digest.update(b"x" * min(1024 * 1024, size - start))
+            assert result["sha256"]["evidence_bundle.zip"] == digest.hexdigest()
+            assert (
+                service.source("campaign-a")["source_fingerprint"]
+                == result["source_fingerprint"]
+            )
+            assert all(stream.consumed == size for stream in streams)
+        _assert_stream_bound(streams, limit)
+    assert (
+        service.experiments_root / "campaign-a/evidence_bundle.zip"
+    ).read_bytes() == original
+
+
+def test_source_bundle_stream_stops_a_never_ending_short_read_source(
+    service, monkeypatch
+):
+    with monkeypatch.context() as patches:
+        patches.setattr(robustness, "MAX_BUNDLE_BYTES", 8)
+        streams = _intercept_source_bundle(
+            service, patches, reported_size=4, size=None, short_read=3
+        )
+        with pytest.raises(
+            ValueError, match="^Source bundle exceeds the robustness resource limit$"
+        ):
+            service.source("campaign-a")
+        assert streams[0].consumed == 9
+        assert streams[0].requests == [(0, 9), (3, 6), (6, 3)]
+        _assert_stream_bound(streams, 8)
+
+
+def test_source_bundle_initial_size_rejection_does_not_open_stream(
+    service, monkeypatch
+):
+    with monkeypatch.context() as patches:
+        patches.setattr(robustness, "MAX_BUNDLE_BYTES", 8)
+        streams = _intercept_source_bundle(service, patches, reported_size=9, size=9)
+        with pytest.raises(
+            ValueError, match="^Source bundle exceeds the robustness resource limit$"
+        ):
+            service.source("campaign-a")
+        assert streams == []
+
+
+def test_source_bundle_short_reads_preserve_existing_hash_pin_preview_and_save(
+    service, monkeypatch
+):
+    original_source = service.source("campaign-a")
+    request = _request(service)
+    bundle = service.experiments_root / "campaign-a/evidence_bundle.zip"
+    original = bundle.read_bytes()
+    with monkeypatch.context() as patches:
+        streams = _intercept_source_bundle(
+            service,
+            patches,
+            reported_size=len(original),
+            size=len(original),
+            short_read=13,
+            content=original,
+        )
+        assert service.source("campaign-a") == original_source
+        preview = service.preview(request)
+        assert preview["source"]["source_fingerprint"] == request.source_fingerprint
+        saved = service.save(request)
+        assert saved["source"] == preview["source"]
+        assert service.load(saved["analysis_id"]) == saved
+        assert all(stream.consumed == len(original) for stream in streams)
+        _assert_stream_bound(streams, robustness.MAX_BUNDLE_BYTES)
+    assert bundle.read_bytes() == original
+
+
+@pytest.mark.parametrize("operation", ["source", "preview", "save"])
+def test_growing_source_bundle_http_rejects_before_preview_or_persistence(
+    service, monkeypatch, operation
+):
+    request = _request(service)
+    client = _client(service)
+    bundle = service.experiments_root / "campaign-a/evidence_bundle.zip"
+    original = bundle.read_bytes()
+    with monkeypatch.context() as patches:
+        patches.setattr(robustness, "MAX_BUNDLE_BYTES", 8)
+        streams = _intercept_source_bundle(
+            service, patches, reported_size=4, size=12, short_read=3
+        )
+        with pytest.raises(
+            ValueError, match="^Source bundle exceeds the robustness resource limit$"
+        ):
+            getattr(service, operation)(
+                "campaign-a" if operation == "source" else request
+            )
+        if operation == "source":
+            response = client.get("/api/robustness/sources/campaign-a")
+        else:
+            response = client.post(
+                "/api/robustness/preview"
+                if operation == "preview"
+                else "/api/robustness/analyses",
+                json=request.model_dump(mode="json"),
+            )
+        assert response.status_code == 400
+        assert response.json() == {
+            "detail": "Source bundle exceeds the robustness resource limit"
+        }
+        assert str(service.experiments_root) not in response.text
+        assert len(streams) == 2 and all(stream.consumed == 9 for stream in streams)
+        _assert_stream_bound(streams, 8)
+        assert not service._analysis_root().exists()
+    assert bundle.read_bytes() == original

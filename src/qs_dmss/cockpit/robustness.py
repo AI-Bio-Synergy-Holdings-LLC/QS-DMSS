@@ -251,8 +251,18 @@ class CockpitRobustnessService:
         if bundle.stat().st_size > MAX_BUNDLE_BYTES:
             raise RobustnessError("Source bundle exceeds the robustness resource limit")
         digest = hashlib.sha256()
+        bundle_bytes = 0
         with bundle.open("rb") as handle:
-            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            # The file can grow after stat. Bound every read and reject after
+            # at most one overflow-detection byte; never hash an oversized chunk.
+            while chunk := handle.read(
+                min(1024 * 1024, MAX_BUNDLE_BYTES - bundle_bytes + 1)
+            ):
+                bundle_bytes += len(chunk)
+                if bundle_bytes > MAX_BUNDLE_BYTES:
+                    raise RobustnessError(
+                        "Source bundle exceeds the robustness resource limit"
+                    )
                 digest.update(chunk)
         hashes = {
             name: hashlib.sha256(data).hexdigest() for name, data in captures.items()
