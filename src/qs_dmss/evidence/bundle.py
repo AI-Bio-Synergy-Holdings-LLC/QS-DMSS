@@ -10,6 +10,8 @@ from datetime import datetime, timezone
 from importlib import metadata
 from pathlib import Path
 
+from qs_dmss.evidence.html_security import WORKBOOK_TABS_SCRIPT
+
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -847,7 +849,7 @@ qs-dmss executors slurm-dry-run configs/demo.yaml --request-root dry-run-jobs --
   </section>
   <section role="tabpanel" id="panel-data" aria-labelledby="tab-data" hidden><h2>Embedded comparison data</h2><pre>{comparison_json}</pre></section>
 </main>
-<script>const tabs=[...document.querySelectorAll('[role=tab]')];tabs.forEach(tab=>tab.addEventListener('click',()=>{{tabs.forEach(item=>{{const selected=item===tab;item.setAttribute('aria-selected',String(selected));document.getElementById(item.getAttribute('aria-controls')).hidden=!selected;}});}}));</script>
+<script>{WORKBOOK_TABS_SCRIPT}</script>
 </body></html>""",
         encoding="utf-8",
     )

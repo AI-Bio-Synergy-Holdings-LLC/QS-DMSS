@@ -5391,6 +5391,7 @@ function updateSweepContract({ applyDefault = false } = {}) {
 function renderSelectedExperiment(detail) {
   state.selectedExperiment = detail;
   state.selectedExperimentId = detail.summary.experiment_id;
+  document.dispatchEvent(new CustomEvent("qs-dmss:experiment-selected", { detail: detail.summary }));
 
   els.experimentTitle.textContent = detail.summary.label;
   els.experimentContext.textContent = detail.summary.shared_experiment
