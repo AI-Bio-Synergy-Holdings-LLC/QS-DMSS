@@ -89,8 +89,15 @@ OpenAPI documents the finite profile/grid contract. Artifacts are separate under
 Before the first save, `GET /analyses` returns HTTP 200 with `{"items": []}`
 without creating storage. An existing empty collection has the same response.
 Root permission/storage errors are not treated as empty data; they retain the
-sanitized HTTP 400 response. Individual invalid saved artifacts are skipped by
-listing, while direct access still fails closed. Hosted listing remains denied.
+sanitized HTTP 400 response. Listing verifies each `analysis.json` against its
+manifest, checks identity/summary fields and labels items with
+`integrity_scope: analysis_json_only`. It reads only those two bounded metadata
+files per item (up to 200), not retained source or bundle bytes. Invalid summaries
+are skipped; a listed item is not a claim of full artifact integrity. Direct
+open/export still verifies all retained source and the complete bundle, failing
+closed if either is missing, corrupted or exceeds limits. The selector explains
+this distinction and links it as an accessible description. Hosted listing
+remains denied. Original saved files are not rewritten or given new summary files.
 
 ## Rendering design and acceptance
 
@@ -124,6 +131,12 @@ inline handler attributes. A separate fixed legacy tab-script hash preserves
 historical tab behavior without rewriting evidence or enabling `unsafe-inline`
 or `unsafe-hashes`. Use the browser print command for historical workbooks whose
 old inline print control remains intentionally blocked.
+
+Invalid UTF-8 report/workbook bytes are served unchanged with artifact inline
+styles blocked, matching oversized-preview behavior. Strict decoding is used
+only to authorize exact style hashes; replacement decoding does not broaden CSP.
+Fixed core-owned script hashes, same-origin framing and other baseline headers
+remain unchanged. No report bytes or historical evidence are repaired in place.
 
 ## Next increment: data-only add-on admission
 

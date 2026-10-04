@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import zipfile
 from copy import deepcopy
 from pathlib import Path
@@ -333,6 +334,104 @@ def test_saved_bundle_and_retained_source_are_verified(service):
     (root / "source/comparison.json").write_bytes(b"{}")
     with pytest.raises(ValueError, match="integrity"):
         service.load(saved["analysis_id"])
+
+
+@pytest.mark.parametrize("count", [1, 3, 201])
+def test_saved_listing_reads_only_bounded_summary_metadata(service, monkeypatch, count):
+    root = service._analysis_root()
+    for index in range(count):
+        identifier = f"summary-{index}"
+        directory = root / identifier
+        _write(
+            directory / "analysis.json",
+            {
+                "analysis_id": identifier,
+                "created_at": "2026-10-04T00:00:00+00:00",
+                "profile_sha256": "0" * 64,
+                "source": {"label": "Metadata-only fixture"},
+            },
+        )
+        write_manifest_for_directory(directory)
+        os.utime(directory / "analysis.json", (index + 1, index + 1))
+    reads = []
+    original_read = robustness._read_bytes
+
+    def read(path, limit=robustness.MAX_FILE_BYTES):
+        assert path.name in {"manifest.sha256.json", "analysis.json"}
+        assert "source" not in path.parts
+        reads.append((path, limit))
+        return original_read(path, limit)
+
+    monkeypatch.setattr(robustness, "_read_bytes", read)
+    items = service.analyses()["items"]
+    assert [item["analysis_id"] for item in items] == [
+        f"summary-{index}" for index in range(count - 1, max(-1, count - 201), -1)
+    ]
+    assert all(item["integrity_scope"] == "analysis_json_only" for item in items)
+    assert len(reads) == 2 * min(count, 200)
+    assert all(limit == robustness.MAX_FILE_BYTES for _, limit in reads)
+
+
+@pytest.mark.parametrize("failure", ["source", "bundle", "missing_bundle"])
+def test_summary_listing_defers_full_checks_but_http_open_export_fail_closed(
+    service, failure
+):
+    saved = service.save(_request(service))
+    root = service._analysis_root() / saved["analysis_id"]
+    if failure == "source":
+        (root / "source/comparison.json").write_bytes(b"{}")
+    elif failure == "bundle":
+        (root / "evidence_bundle.zip").write_bytes(b"invalid bundle")
+    else:
+        (root / "evidence_bundle.zip").unlink()
+    client = TestClient(
+        create_app(
+            repo_root=Path(__file__).resolve().parents[1],
+            output_root=service.experiments_root.parent / "runs",
+            hosted_demo=False,
+        )
+    )
+    response = client.get("/api/robustness/analyses")
+    assert response.status_code == 200
+    assert [item["analysis_id"] for item in response.json()["items"]] == [
+        saved["analysis_id"]
+    ]
+    assert response.json()["items"][0]["integrity_scope"] == "analysis_json_only"
+    for suffix in ("", "/bundle"):
+        response = client.get(f"/api/robustness/analyses/{saved['analysis_id']}{suffix}")
+        assert response.status_code == 400
+        assert str(root) not in response.text
+
+
+@pytest.mark.parametrize(
+    "failure",
+    ["identity", "missing_field", "manifest", "source_type", "created_type", "profile_hash"],
+)
+def test_saved_listing_skips_invalid_summary_without_hiding_valid_metadata(
+    service, failure
+):
+    invalid = service.save(_request(service))
+    healthy = service.save(_request(service))
+    root = service._analysis_root() / invalid["analysis_id"]
+    if failure == "manifest":
+        (root / "manifest.sha256.json").write_bytes(b"invalid JSON")
+    else:
+        record = json.loads((root / "analysis.json").read_bytes())
+        if failure == "identity":
+            record["analysis_id"] = "wrong-identity"
+        elif failure == "missing_field":
+            record.pop("source")
+        elif failure == "source_type":
+            record["source"] = None
+        elif failure == "created_type":
+            record["created_at"] = []
+        else:
+            record["profile_sha256"] = "not-a-sha256"
+        _write(root / "analysis.json", record)
+        write_manifest_for_directory(root)
+    assert [item["analysis_id"] for item in service.analyses()["items"]] == [
+        healthy["analysis_id"]
+    ]
 
 
 def test_failed_save_removes_only_its_pending_directory(service, monkeypatch):

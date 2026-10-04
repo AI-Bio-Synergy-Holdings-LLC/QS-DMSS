@@ -166,6 +166,40 @@ matrix, installed-wheel/Docker qualification and completed review remain
 required; neither old approval nor an automated workflow's success is a clean
 scientific or owner approval of the revised head.
 
+The captured-metric head (`716e3c8`) passed all remote gates with **459 tests,
+90.62% coverage** in the quantum job. Its completed Copilot summary identified
+two additional previously-missed concerns, separately authorized as one batch:
+full bundle/source reads during summary listing, and uncaught invalid UTF-8
+in report style-hash generation. Listing now reads only the manifest and
+`analysis.json`, checks identity/summary fields, retains newest-first ordering
+and the 200-item cap, and labels each item `analysis_json_only`. Direct
+open/export still checks retained sources and the entire bundle. The UI explains
+the distinction beside the selector and attaches an accessible description.
+Malformed reports keep their original bytes and baseline style allowlist;
+no artifact style hashes are admitted when strict UTF-8 decoding fails.
+Fixed core-owned script hashes and same-origin-only framing remain unchanged.
+
+Eighteen added cases cover 1/3/201-item listings with exactly two bounded reads
+per returned item, invalid summaries, damaged/missing source/bundle rejection
+on HTTP open/export, three malformed UTF-8 sequences and the actual run-report,
+experiment-report and workbook HTTP routes. The initial 15-case pre-fix batch
+had **12 failures, 3 passes**, reproducing both findings. After correction, all
+104 report-security/cockpit-robustness cases pass. The complete local suite
+passes **477 tests, 90.68% coverage** with quantum extras; Ruff, Bandit,
+compilation and fresh-cache dependency audit pass. All 18 additions also pass
+on fresh Windows CPython 3.10.20 and 3.11.15. Installed-wheel/Docker smoke
+explicitly checks the summary scope and malformed-preview fallback.
+
+Rendered QA: Playwright CLI 0.1.22/Chromium at 1440x1000 and 375x900 on a
+dedicated temporary localhost service (not user ports or production).
+The dedicated Browser skill was unavailable. Run Lab -> saved selector ->
+reopened analysis passed; the download control remained visible, the description
+was visible and correctly associated, native selector focus worked, and there
+was no page-wide overflow or console warning/error. Screenshots were inspected
+and retained outside tracked source. No layout redesign was performed.
+Latest-head remote qualification and one completed Copilot review remain
+required; no merge, deployment, release or scientific approval is implied.
+
 Main CI, Python 3.10–3.13 matrix, Docker, CodeQL, Code Quality, policy, Pages and
 production auto-deploy verifier were successful on the pinned baseline. The
 latest scheduled quality/security checks also succeeded on that commit. The

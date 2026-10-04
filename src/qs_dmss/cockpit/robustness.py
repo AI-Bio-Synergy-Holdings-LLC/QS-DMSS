@@ -342,11 +342,33 @@ class CockpitRobustnessService:
             raise
         return self.load(analysis_id)
 
-    def load(self, analysis_id: str) -> dict:
+    def _analysis_metadata(self, analysis_id: str) -> tuple[Path, dict, dict]:
         self._local()
         root = _directory(self._analysis_root(), analysis_id)
         entries = _entries(_json(_read_bytes(root / "manifest.sha256.json")))
         result = _json(_verified_bytes(root, "analysis.json", entries))
+        return root, entries, result
+
+    def _summary(self, analysis_id: str) -> dict:
+        _, _, result = self._analysis_metadata(analysis_id)
+        if result.get("analysis_id") != analysis_id:
+            raise RobustnessError("Saved analysis identity is inconsistent")
+        summary = {
+            key: result[key]
+            for key in ("analysis_id", "created_at", "profile_sha256", "source")
+        }
+        if (
+            not isinstance(summary["created_at"], str)
+            or not isinstance(summary["source"], dict)
+            or not isinstance(summary["profile_sha256"], str)
+            or not re.fullmatch(r"[0-9a-f]{64}", summary["profile_sha256"])
+        ):
+            raise RobustnessError("Saved analysis summary is invalid")
+        # Discovery is not full artifact verification; open/export still use load().
+        return {**summary, "integrity_scope": "analysis_json_only"}
+
+    def load(self, analysis_id: str) -> dict:
+        root, entries, result = self._analysis_metadata(analysis_id)
         retained_bytes = 0
         for relative in entries:
             if relative.startswith("source/"):
@@ -390,11 +412,7 @@ class CockpitRobustnessService:
             return {"items": []}
         for _, path in sorted(paths, key=lambda item: item[0], reverse=True)[:200]:
             try:
-                result = self.load(path.parent.name)
-                item = {
-                    key: result[key]
-                    for key in ("analysis_id", "created_at", "profile_sha256", "source")
-                }
+                item = self._summary(path.parent.name)
             except (HTTPException, OSError, ValueError, KeyError, TypeError):
                 continue  # Direct access still fails closed; healthy entries remain discoverable.
             items.append(item)

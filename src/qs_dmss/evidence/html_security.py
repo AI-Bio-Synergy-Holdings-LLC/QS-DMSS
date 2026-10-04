@@ -29,13 +29,17 @@ def _csp_hash(content: str) -> str:
 
 def report_preview_headers(path: Path, baseline: dict[str, str]) -> dict[str, str]:
     # Avoid unbounded reads of locally modified files. Oversized previews keep
-    # inline styles blocked; external framing is always denied.
+    # inline styles blocked, as do invalid UTF-8 reports. External framing is denied.
     with path.open("rb") as handle:
         payload = handle.read(4 * 1024 * 1024 + 1)
     styles = []
     if len(payload) <= 4 * 1024 * 1024:
-        text = payload.decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")
-        styles = [_csp_hash(style) for style in STYLE_BLOCK.findall(text)]
+        try:
+            text = payload.decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")
+        except UnicodeDecodeError:
+            text = None  # Serve unchanged bytes without authorizing artifact styles.
+        if text is not None:
+            styles = [_csp_hash(style) for style in STYLE_BLOCK.findall(text)]
     policy = baseline["Content-Security-Policy"].replace(
         "frame-ancestors 'none'", "frame-ancestors 'self'"
     )

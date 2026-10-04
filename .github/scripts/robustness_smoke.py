@@ -10,8 +10,13 @@ from pathlib import Path
 
 from fastapi import HTTPException
 
-from qs_dmss.cockpit.api import CockpitService, LaunchCampaignRequest
+from qs_dmss.cockpit.api import (
+    BASELINE_SECURITY_HEADERS,
+    CockpitService,
+    LaunchCampaignRequest,
+)
 from qs_dmss.cockpit.robustness import CockpitRobustnessService
+from qs_dmss.evidence.html_security import report_preview_headers
 from qs_dmss.robustness import RobustnessRequest
 
 
@@ -50,9 +55,9 @@ def main() -> None:
     assert preview["current"]["rows"] == source["comparison"]["rows"]
     saved = service.save(payload)
     assert service.load(saved["analysis_id"]) == saved
-    assert [item["analysis_id"] for item in service.analyses()["items"]] == [
-        saved["analysis_id"]
-    ]
+    items = service.analyses()["items"]
+    assert [item["analysis_id"] for item in items] == [saved["analysis_id"]]
+    assert items[0]["integrity_scope"] == "analysis_json_only"
     assert saved["sensitivity"]["case_count"] == 3
     with zipfile.ZipFile(service.bundle(saved["analysis_id"])) as archive:
         assert f"{saved['analysis_id']}/source/comparison.json" in archive.namelist()
@@ -66,6 +71,17 @@ def main() -> None:
         assert exc.status_code == 403
     else:
         raise AssertionError("Hosted robustness pilot must stay disabled")
+    malformed_report = root / "malformed-preview-fixture.html"
+    malformed_bytes = b"<style>body{color:red}</style>\xff"
+    malformed_report.write_bytes(malformed_bytes)
+    headers = report_preview_headers(malformed_report, BASELINE_SECURITY_HEADERS)
+    styles = next(
+        directive.strip()
+        for directive in headers["Content-Security-Policy"].split(";")
+        if directive.strip().startswith("style-src")
+    )
+    assert styles == "style-src 'self' https://fonts.googleapis.com"
+    assert malformed_report.read_bytes() == malformed_bytes
     print(
         json.dumps(
             {
@@ -73,6 +89,8 @@ def main() -> None:
                 "analysis": saved["analysis_id"],
                 "original_scores_preserved": True,
                 "empty_saved_list_supported": True,
+                "summary_scope_explicit": True,
+                "invalid_utf8_preview_fail_closed": True,
                 "saved_reopened_exported": True,
                 "hosted_disabled": True,
             },

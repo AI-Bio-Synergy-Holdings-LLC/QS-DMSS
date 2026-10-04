@@ -988,7 +988,8 @@
                     <p class="rob-boundary" data-robustness-boundary></p>
                   </div>
                 </div>
-                <div class="rob-toolbar"><label class="rob-field"><span>Reopen retained analysis (read-only)</span><select data-robustness-saved><option value="">No saved analyses yet</option></select></label></div>
+                <div class="rob-toolbar"><label class="rob-field"><span>Reopen retained analysis (read-only)</span><select data-robustness-saved aria-describedby="robustnessSavedIntegrity"><option value="">No saved analyses yet</option></select></label></div>
+                <p id="robustnessSavedIntegrity" class="rob-boundary">The list checks summary metadata only. Opening an analysis or downloading its bundle verifies the retained source and complete analysis bundle.</p>
                 <details class="rob-guide"><summary>Evidence Assistant · deterministic interpretation guide</summary>
                   <p><strong>Evidence summary:</strong> inspect the current weighted ranking, explicit grid and pinned campaign hashes. Higher scores are relative to this recorded candidate set.</p>
                   <p><strong>Claim-boundary review:</strong> winning sampled profiles does not establish optimality, physical correctness, uncertainty estimates or independent scientific approval.</p>
