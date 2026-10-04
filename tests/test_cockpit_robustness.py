@@ -751,14 +751,230 @@ def test_saved_listing_does_not_mask_root_storage_errors(
     assert "private path" not in response.text
 
 
-def _client(service):
+def _client(service, *, raise_server_exceptions=True):
     return TestClient(
         create_app(
             repo_root=Path(__file__).resolve().parents[1],
             output_root=service.experiments_root.parent / "runs",
             hosted_demo=False,
+        ),
+        raise_server_exceptions=raise_server_exceptions,
+    )
+
+
+@pytest.mark.parametrize("collection", ["sources", "analyses"])
+@pytest.mark.parametrize("real_symlink", [False, True], ids=["virtual", "real-symlink"])
+def test_sibling_artifact_aliases_are_excluded_and_direct_access_is_not_found(
+    service, monkeypatch, collection, real_symlink
+):
+    request = _request(service)
+    if collection == "sources":
+        identifier = "campaign-a"
+        root = service.experiments_root
+        endpoints = [f"/api/robustness/sources/{identifier}"]
+        alias_endpoints = ["/api/robustness/sources/campaign-z-alias"]
+        alias_id = "campaign-z-alias"
+    else:
+        identifier = service.save(request)["analysis_id"]
+        root = service._analysis_root()
+        endpoints = [
+            f"/api/robustness/analyses/{identifier}{suffix}"
+            for suffix in ("", "/bundle")
+        ]
+        alias_id = "robustness-z-alias"
+        alias_endpoints = [
+            f"/api/robustness/analyses/{alias_id}{suffix}" for suffix in ("", "/bundle")
+        ]
+    artifact = root / identifier
+    alias = root / alias_id
+    before = {
+        path.relative_to(artifact): path.read_bytes()
+        for path in artifact.rglob("*")
+        if path.is_file()
+    }
+    if real_symlink:
+        try:
+            alias.symlink_to(artifact, target_is_directory=True)
+        except OSError as exc:
+            if getattr(exc, "winerror", None) == 1314:
+                pytest.skip(
+                    "Windows symlink creation requires an unavailable privilege"
+                )
+            raise
+    else:
+        resolve, scan = robustness.contained_path, robustness._discovery_entries
+
+        def resolved(base, *parts):
+            return (
+                artifact
+                if base == root and parts == (alias_id,)
+                else resolve(base, *parts)
+            )
+
+        monkeypatch.setattr(robustness, "contained_path", resolved)
+        monkeypatch.setattr(
+            robustness,
+            "_discovery_entries",
+            lambda base: [alias, artifact] if base == root else scan(base),
+        )
+    client = _client(service)
+    listing = client.get(f"/api/robustness/{collection}")
+    assert listing.status_code == 200
+    key = "experiment_id" if collection == "sources" else "analysis_id"
+    assert [item[key] for item in listing.json()["items"]] == [identifier]
+    for endpoint in endpoints:
+        assert client.get(endpoint).status_code == 200
+    rejected = [client.get(endpoint) for endpoint in alias_endpoints]
+    if collection == "sources":
+        rejected.extend(
+            client.post(
+                endpoint,
+                json={**request.model_dump(mode="json"), "experiment_id": alias_id},
+            )
+            for endpoint in ("/api/robustness/preview", "/api/robustness/analyses")
+        )
+        assert not service._analysis_root().exists()
+    for response in rejected:
+        assert response.status_code == 404
+        assert response.json() == {"detail": "Recorded artifact not found"}
+        assert str(root) not in response.text
+    assert before == {
+        path.relative_to(artifact): path.read_bytes()
+        for path in artifact.rglob("*")
+        if path.is_file()
+    }
+
+
+@pytest.mark.parametrize("collection", ["sources", "analyses"])
+def test_aliases_cannot_consume_the_healthy_candidate_window(
+    service, monkeypatch, collection
+):
+    if collection == "sources":
+        identifier, root = "campaign-a", service.experiments_root
+    else:
+        identifier = service.save(_request(service))["analysis_id"]
+        root = service._analysis_root()
+    artifact = root / identifier
+    aliases = {f"alias-{index:03d}": artifact for index in range(200)}
+    resolve, scan, read = (
+        robustness.contained_path,
+        robustness._discovery_entries,
+        robustness._read_bytes,
+    )
+    reads = []
+
+    def resolved(base, *parts):
+        if base == root and len(parts) == 1 and parts[0] in aliases:
+            return aliases[parts[0]]
+        return resolve(base, *parts)
+
+    def recorded_read(path, limit=robustness.MAX_FILE_BYTES):
+        reads.append(path.name)
+        return read(path, limit)
+
+    monkeypatch.setattr(robustness, "contained_path", resolved)
+    monkeypatch.setattr(
+        robustness,
+        "_discovery_entries",
+        lambda base: (
+            [*(root / name for name in aliases), artifact]
+            if base == root
+            else scan(base)
+        ),
+    )
+    monkeypatch.setattr(robustness, "_read_bytes", recorded_read)
+    response = _client(service).get(f"/api/robustness/{collection}")
+    assert response.status_code == 200
+    key = "experiment_id" if collection == "sources" else "analysis_id"
+    assert [item[key] for item in response.json()["items"]] == [identifier]
+    assert reads == (
+        ["experiment.json"]
+        if collection == "sources"
+        else ["manifest.sha256.json", "analysis.json"]
+    )
+
+
+_DEEP_JSON = b'{"nested":' + b"[" * 8192 + b"0" + b"]" * 8192 + b"}"
+
+
+@pytest.mark.parametrize(
+    "relative",
+    [
+        "manifest.sha256.json",
+        "experiment.json",
+        "comparison.json",
+        "runs/run-a/metrics.json",
+        "runs/run-a/run.json",
+    ],
+)
+@pytest.mark.parametrize("operation", ["source", "preview", "save"])
+def test_recursive_source_json_is_sanitized_before_persistence(
+    service, relative, operation
+):
+    request = _request(service)
+    root = service.experiments_root / "campaign-a"
+    path = root / relative
+    path.write_bytes(_DEEP_JSON)
+    if relative != "manifest.sha256.json":
+        write_manifest_for_directory(root)
+        create_bundle_zip_for_directory(root)
+    before = {
+        path.relative_to(root): path.read_bytes()
+        for path in root.rglob("*")
+        if path.is_file()
+    }
+    client = _client(service, raise_server_exceptions=False)
+    response = (
+        client.get("/api/robustness/sources/campaign-a")
+        if operation == "source"
+        else client.post(
+            "/api/robustness/preview"
+            if operation == "preview"
+            else "/api/robustness/analyses",
+            json=request.model_dump(mode="json"),
         )
     )
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": "Recorded robustness evidence is invalid, incompatible, or exceeds resource limits"
+    }
+    assert str(root) not in response.text and "RecursionError" not in response.text
+    assert not service._analysis_root().exists()
+    assert before == {
+        path.relative_to(root): path.read_bytes()
+        for path in root.rglob("*")
+        if path.is_file()
+    }
+
+
+@pytest.mark.parametrize("relative", ["manifest.sha256.json", "analysis.json"])
+@pytest.mark.parametrize("suffix", ["", "/bundle"], ids=["open", "export"])
+def test_recursive_saved_json_is_sanitized_without_rewriting_evidence(
+    service, relative, suffix
+):
+    saved = service.save(_request(service))
+    root = service._analysis_root() / saved["analysis_id"]
+    (root / relative).write_bytes(_DEEP_JSON)
+    if relative != "manifest.sha256.json":
+        write_manifest_for_directory(root)
+    before = {
+        path.relative_to(root): path.read_bytes()
+        for path in root.rglob("*")
+        if path.is_file()
+    }
+    response = _client(service, raise_server_exceptions=False).get(
+        f"/api/robustness/analyses/{saved['analysis_id']}{suffix}"
+    )
+    assert response.status_code == 400
+    assert response.json() == {
+        "detail": "Recorded robustness evidence is invalid, incompatible, or exceeds resource limits"
+    }
+    assert str(root) not in response.text and "RecursionError" not in response.text
+    assert before == {
+        path.relative_to(root): path.read_bytes()
+        for path in root.rglob("*")
+        if path.is_file()
+    }
 
 
 @pytest.mark.parametrize(

@@ -157,6 +157,16 @@ name, content length and baseline security headers are preserved. The local
 `bundle()` path accessor remains for compatibility but is not used for HTTP
 delivery; callers requiring verified bytes should use `bundle_snapshot()`.
 
+The resolved artifact directory must also retain the exact requested ID as its
+leaf name. A sibling symlink/junction alias to a differently named artifact is
+excluded before the 200-candidate selection window and direct access returns the
+existing HTTP 404. Such entries still count toward the 4096-entry root scan
+ceiling. Root containment and recorded-metadata identity checks remain separate
+requirements. No alias or historical evidence is removed or rewritten.
+Excessively nested JSON on direct source, preview, save, reopen or bundle access
+receives the existing sanitized invalid-evidence HTTP 400, not a parser traceback
+or HTTP 500. Discovery still isolates individual invalid records.
+
 ## Rendering design and acceptance
 
 One native SVG horizontal ranking chart, at most 64 bars, paired with exact HTML
@@ -178,6 +188,15 @@ Acceptance requires:
 - Tampering, mixed conventions, path escapes, oversized input and hosted calls fail closed.
 - Desktop/mobile, keyboard controls, safe text rendering, empty/error states and
   zero new browser errors pass rendered QA.
+
+A completed immutable save remains successful when refreshing the saved selector
+fails: its ID, download and disabled Save control remain available, with a distinct
+listing warning. A rejected POST remains retryable; this is not an idempotency
+guarantee for ambiguous network failures. A failed saved-analysis reopen clears
+its busy state and labels any previous valid result while keeping save/download
+unavailable. An older failed request cannot clear a newer request's busy state
+or replace its status. Built-in Node callback-state tests supplement, rather than
+replace, rendered browser acceptance with real isolated saves and injected errors.
 
 Generated report/workbook previews allow only same-origin framing; the cockpit
 and other surfaces retain framing denial. This repairs the pre-existing conflict

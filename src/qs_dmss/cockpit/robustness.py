@@ -61,7 +61,11 @@ def _directory(root: Path, identifier: str) -> Path:
     if not SAFE_ID.fullmatch(identifier):
         raise HTTPException(404, "Recorded artifact not found")
     candidate = contained_path(root, identifier)
-    if candidate.parent != root.resolve() or not candidate.is_dir():
+    if (
+        candidate.parent != root.resolve()
+        or candidate.name != identifier
+        or not candidate.is_dir()
+    ):
         raise HTTPException(404, "Recorded artifact not found")
     return candidate
 
@@ -574,7 +578,7 @@ def robustness_router(service_dependency: Callable) -> APIRouter:
             return action()
         except RobustnessError as exc:
             raise HTTPException(400, str(exc)) from exc
-        except (OSError, ValueError, KeyError, TypeError) as exc:
+        except (OSError, ValueError, KeyError, TypeError, RecursionError) as exc:
             # Never send filesystem paths or raw parser exception text to clients.
             raise HTTPException(
                 400,

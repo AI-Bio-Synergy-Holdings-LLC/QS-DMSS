@@ -440,6 +440,73 @@ identity, remote gates and the single completed re-review are recorded in the PR
 after commit. Fresh owner review and explicit readiness/protected-merge authority
 remain required; draft, deployment and release holds remain.
 
+### Sibling artifact identity and failure-state corrections — 2026-10-04
+
+Source `cde9bac` passed all remote gates, including **607 quantum tests, no skips,
+90.83% coverage** and cross-platform installed-wheel/Docker smoke. Its one
+completed Copilot review (5407137876) nevertheless recommended changes: a high
+sibling-alias identity concern and three previously-missed medium findings
+(recursive JSON HTTP 500, successful-save/list-refresh failure, and failed-reopen
+busy state). Read-only probes reproduced these mechanisms; the owner separately
+authorized one focused four-finding batch, not readiness, merge or publication.
+
+Resolved artifact leaves now match the requested ID exactly, in addition to
+parent containment. Sibling aliases are filtered before the 200-candidate window
+and direct access returns the existing HTTP 404. All entries still count toward
+the 4096-entry scan ceiling. Router error normalization includes `RecursionError`
+in the existing sanitized HTTP 400, without leaking paths or parser messages.
+Successful returned saves keep their ID/download and disabled Save control when
+selector refresh fails; genuine POST rejection remains retryable. Failed reopen
+clears busy and labels the previous result without permitting save/download.
+Generation guards preserve newer requests. This is not network idempotency.
+
+Twenty-five Python cases cover both collections' virtual/real sibling aliases,
+200-alias candidate-window instrumentation, and 8192-level / 16,396-byte JSON
+across five source metadata files and source/preview/save/open/export paths.
+Evidence hashes/bytes and healthy contracts are retained. The authoritative
+pre-fix batch had **23 failures, 2 Windows symlink skips**; after correction it
+passes **23 tests, 2 skips** on CPython 3.10.20, 3.11.15 and 3.12.14. New built-in
+Node tests execute the actual UI callbacks under a minimal DOM/I/O shim: the
+initial 11 cases had **3 failures, 8 passes**, and the final 12 pass on Node
+26.3.0, including an additional post-save display-error guard. CI runs these
+dependency-free contracts on Node 22 in every supported Python matrix job; the
+sdist explicitly retains the CJS test. These are not rendered-layout tests.
+
+Full local quantum-enabled qualification: **626 passed, 6 skipped, 90.87%
+coverage** (88% gate). The six real-symlink skips are Windows WinError 1314
+(four existing, two new), not skipped JSON or UI-state tests; Linux must execute
+them. Ruff, Bandit medium-or-higher, compilation, fresh-cache dependency audit
+(no known vulnerabilities), benchmark, registry/discovery and JavaScript syntax
+pass. Source-development smoke additionally emits
+`artifact_alias_identity_enforced: true` and `recursive_json_errors_sanitized:
+true`, alongside unchanged score, fingerprint, export/snapshot, resource, CSP
+and hosted-denial checks. Latest-head archive and remote evidence is recorded
+in the PR after commit; older gates are not inherited by the new head.
+
+Rendered acceptance used cached Playwright CLI 0.1.22/Chromium on an isolated
+ephemeral loopback service at desktop 1440x1000 and mobile 375x900. Native
+keyboard save/reopen, real successful saves followed by injected listing HTTP
+400, no duplicate POST on retry, downloaded bundle SHA-256, prior-chart retention,
+busy clearing, overlapping-request generation guards, recovery and unchanged
+source fingerprints pass. Exactly two new QA analyses are retained in the
+isolated corpus; user/production evidence was not used. Mobile page width is
+375 px, with component bounds 43–332 px. The acceptance run had no page errors
+or unexpected console errors; its six HTTP 400 entries were deliberate injected
+failures. Four original component screenshots were inspected and retained under
+ignored `output/playwright/followup-guards/`; sticky navigation appears in the
+long scrolling captures. A separate attempt to hide that chrome for two extra
+captures generated two expected HTTP 400 and four CSP style-block errors: the
+policy correctly blocked screenshot-only injected CSS. Those captures are not
+claimed as chrome-free, and that attempt does not make the whole console log
+error-free. No security policy was weakened. The owned browser/service stopped.
+
+No solver/scoring, dependency, version, scientific-status, production or hosted
+graph/AI change is included. The local fresh-wheel Application Control block
+(WinError 4551) remains unresolved and was not bypassed; no fresh local installed
+wheel pass is claimed. One completed latest-head re-review and fresh owner
+review plus explicit readiness/protected-merge authority remain required.
+PR stays draft; deployment and release holds remain.
+
 Main CI, Python 3.10–3.13 matrix, Docker, CodeQL, Code Quality, policy, Pages and
 production auto-deploy verifier were successful on the pinned baseline. The
 latest scheduled quality/security checks also succeeded on that commit. The

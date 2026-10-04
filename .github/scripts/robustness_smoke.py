@@ -124,6 +124,90 @@ def assert_compact_listing_limits(service, identifier, analysis_id):
                 raise AssertionError("An oversized listing response was accepted")
 
 
+def assert_artifact_aliases_and_recursive_errors(service, identifier, analysis_id):
+    """Exercise installed boundaries with virtual aliases and parser fixtures."""
+    resolve, scan, read = (
+        robustness.contained_path,
+        robustness._discovery_entries,
+        robustness._read_bytes,
+    )
+    for root, target_id, alias_id, listing, key in (
+        (
+            service.experiments_root,
+            identifier,
+            "campaign-smoke-alias",
+            service.sources,
+            "experiment_id",
+        ),
+        (
+            service._analysis_root(),
+            analysis_id,
+            "robustness-smoke-alias",
+            service.analyses,
+            "analysis_id",
+        ),
+    ):
+        target = root / target_id
+
+        def resolved(base, *parts):
+            return (
+                target
+                if base == root and parts == (alias_id,)
+                else resolve(base, *parts)
+            )
+
+        def scanned(base):
+            return [root / alias_id, target] if base == root else scan(base)
+
+        with (
+            patch.object(robustness, "contained_path", resolved),
+            patch.object(robustness, "_discovery_entries", scanned),
+        ):
+            assert [item[key] for item in listing()["items"]] == [target_id]
+            try:
+                robustness._directory(root, alias_id)
+            except HTTPException as exc:
+                assert (
+                    exc.status_code == 404
+                    and exc.detail == "Recorded artifact not found"
+                )
+            else:
+                raise AssertionError("An artifact alias was admitted")
+
+    manifests = {
+        (service.experiments_root / identifier / "manifest.sha256.json").resolve(),
+        (service._analysis_root() / analysis_id / "manifest.sha256.json").resolve(),
+    }
+    originals = {path: read(path) for path in manifests}
+    deep_json = b'{"nested":' + b"[" * 8192 + b"0" + b"]" * 8192 + b"}"
+    router = robustness.robustness_router(lambda request: None)
+    routes = {route.path: route.endpoint for route in router.routes}
+
+    def nested(path, limit=robustness.MAX_FILE_BYTES):
+        return deep_json if path in manifests else read(path, limit)
+
+    with patch.object(robustness, "_read_bytes", nested):
+        for path, arguments in (
+            ("/api/robustness/sources/{experiment_id}", {"experiment_id": identifier}),
+            ("/api/robustness/analyses/{analysis_id}", {"analysis_id": analysis_id}),
+            (
+                "/api/robustness/analyses/{analysis_id}/bundle",
+                {"analysis_id": analysis_id},
+            ),
+        ):
+            try:
+                routes[path](active=service, **arguments)
+            except HTTPException as exc:
+                assert exc.status_code == 400
+                assert (
+                    exc.detail
+                    == "Recorded robustness evidence is invalid, incompatible, or exceeds resource limits"
+                )
+            else:
+                raise AssertionError("Recursive parser errors were not sanitized")
+    assert {path: read(path) for path in manifests} == originals
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-root", required=True, type=Path)
@@ -163,6 +247,9 @@ def main() -> None:
     assert [item["analysis_id"] for item in items] == [saved["analysis_id"]]
     assert items[0]["integrity_scope"] == "analysis_json_only"
     assert_compact_listing_limits(service, identifier, saved["analysis_id"])
+    assert_artifact_aliases_and_recursive_errors(
+        service, identifier, saved["analysis_id"]
+    )
     assert saved["sensitivity"]["case_count"] == 3
     with zipfile.ZipFile(service.bundle(saved["analysis_id"])) as archive:
         assert f"{saved['analysis_id']}/source/comparison.json" in archive.namelist()
@@ -240,6 +327,8 @@ def main() -> None:
                 "source_bundle_stream_limit_enforced": True,
                 "compact_listing_response_limits_enforced": True,
                 "source_listing_identity_enforced": True,
+                "artifact_alias_identity_enforced": True,
+                "recursive_json_errors_sanitized": True,
                 "saved_reopened_exported": True,
                 "hosted_disabled": True,
             },

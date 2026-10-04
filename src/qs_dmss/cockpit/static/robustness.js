@@ -216,14 +216,19 @@
   $("refresh").addEventListener("click", () => refreshSources($("source").value || null));
   $("reset").addEventListener("click", () => { editor(state.source); invalidate(); preview(); });
   $("save").addEventListener("click", async () => {
-    if (!state.result || state.busy) return;
+    if (!state.result || state.busy || $("save").disabled) return;
     state.busy = true; $("save").disabled = true;
     const generation = state.generation, request = structuredClone(state.result.request);
+    let saved = null;
     try {
-      const result = await api("/api/robustness/analyses", request);
-      if (generation === state.generation) render(result, true);
-      await refreshSaved();
-    } catch (error) { if (generation === state.generation) { $("save").disabled = false; status(error.message); } }
+      saved = await api("/api/robustness/analyses", request);
+      if (generation === state.generation) render(saved, true);
+      try { await refreshSaved(); }
+      catch (error) { if (generation === state.generation) status(`Saved immutable analysis ${saved.analysis_id}. Evidence bundle ready. Saved list could not be refreshed: ${error.message}`); }
+    } catch (error) { if (generation === state.generation) {
+      $("save").disabled = Boolean(saved);
+      status(saved ? `Saved immutable analysis ${saved.analysis_id}. Display update failed: ${error.message}` : error.message);
+    } }
     finally { state.busy = false; }
   });
   $("saved").addEventListener("change", async event => {
@@ -239,7 +244,10 @@
       state.source = {experiment_id: result.source.experiment_id, source_fingerprint: result.source.source_fingerprint,
         comparison: {rows: result.current.rows, decision: {profile: result.profile, recommended_run_id: result.request.preferred_run_id}}};
       editor(state.source, result.request); form.hidden = true; render(result, true);
-    } catch (error) { if (generation === state.generation) status(error.message); }
+    } catch (error) { if (generation === state.generation) {
+      $("output").removeAttribute("aria-busy");
+      status(`${error.message}${state.displayed ? " Showing the previous valid result; saving is disabled." : ""}`);
+    } }
   });
   document.addEventListener("qs-dmss:experiment-selected", event => {
     if (event.detail?.kind === "campaign" && event.detail?.experiment_id) refreshSources(event.detail.experiment_id);
