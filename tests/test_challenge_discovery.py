@@ -117,7 +117,8 @@ def test_discovery_assets_participate_in_shell_cache_revision(tmp_path):
     service = SimpleNamespace(static_root=tmp_path / "static")
     service.static_root.mkdir()
     names = ("styles.css", "app.js", "scientific-challenges.js",
-             "scientific-challenges.css", "scientific-challenges.json")
+             "scientific-challenges.css", "scientific-challenges.json",
+             "robustness.js", "robustness.css")
     for name in names:
         (service.static_root / name).write_bytes((STATIC / name).read_bytes())
     baseline = CockpitService.static_asset_revision(service)

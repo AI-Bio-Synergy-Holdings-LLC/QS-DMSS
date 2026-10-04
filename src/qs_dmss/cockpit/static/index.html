@@ -71,6 +71,7 @@
     />
     <link rel="stylesheet" href="/static/styles.css?v=__QS_DMSS_STATIC_REVISION__" />
     <link rel="stylesheet" href="/static/scientific-challenges.css?v=__QS_DMSS_STATIC_REVISION__" />
+    <link rel="stylesheet" href="/static/robustness.css?v=__QS_DMSS_STATIC_REVISION__" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -953,6 +954,47 @@
                 <p class="lab-review-prompt" id="campaignStudioBoundary">
                   Add campaign metadata to make Scenario Library entries launch configurable studies.
                 </p>
+              </section>
+
+              <section class="robustness-panel local-only-surface" id="recommendationRobustness" aria-labelledby="robustnessTitle">
+                <p class="rob-kicker">Campaign Studio · recorded-result pilot</p>
+                <h3 id="robustnessTitle">Recommendation robustness explorer</h3>
+                <p>Does your preferred configuration remain competitive when research priorities change? Re-score recorded campaign evidence without running another simulation.</p>
+                <div class="rob-toolbar">
+                  <label class="rob-field"><span>Recorded campaign</span><select data-robustness-source><option value="">Loading campaigns…</option></select></label>
+                  <button data-robustness-refresh type="button">Refresh campaigns</button>
+                </div>
+                <p class="rob-status" data-robustness-status role="status" aria-live="polite">Opening recorded evidence…</p>
+                <div class="rob-layout">
+                  <form class="rob-controls" data-robustness-form hidden>
+                    <details open>
+                      <summary>Scoring profile and sensitivity grid</summary>
+                      <p>Weights express preferences, not confidence. A fixed primary-objective bonus is added to that metric’s base weight.</p>
+                      <div class="rob-fields" data-robustness-fields></div>
+                      <details><summary>Qualification constraints</summary><div class="rob-fields" data-robustness-constraints></div></details>
+                      <div class="rob-toolbar"><button class="rob-primary" type="submit">Update analysis</button><button data-robustness-reset type="button">Reset campaign profile</button></div>
+                    </details>
+                  </form>
+                  <div class="rob-output" data-robustness-output hidden>
+                    <p class="rob-insight" data-robustness-insight></p>
+                    <h4>Current candidate ranking</h4>
+                    <p data-robustness-winner></p>
+                    <div class="rob-chart" data-robustness-chart></div>
+                    <p class="rob-chart-note">Relative scores (0–1). “Fails” marks a configuration outside the current constraints, even if its score is high.</p>
+                    <details><summary>All configurations and constraint failures</summary><div class="rob-table" data-robustness-rows role="region" aria-label="Current configuration ranking details" tabindex="0"></div></details>
+                    <details><summary>Every sampled scoring profile</summary><p>Only the chosen base weight changes; other weights, goals and constraints stay fixed. Each exact profile is retained in the saved bundle.</p><div class="rob-table" data-robustness-sensitivity-rows role="region" aria-label="Sampled scoring profiles" tabindex="0"></div></details>
+                    <details><summary>Profile, evidence hashes and conventions</summary><div data-robustness-provenance></div></details>
+                    <div class="rob-toolbar"><button class="rob-primary" data-robustness-save type="button" disabled>Save traceable analysis</button><a class="rob-download" data-robustness-download hidden download>Download analysis bundle</a></div>
+                    <p class="rob-boundary" data-robustness-boundary></p>
+                  </div>
+                </div>
+                <div class="rob-toolbar"><label class="rob-field"><span>Reopen retained analysis (read-only)</span><select data-robustness-saved><option value="">No saved analyses yet</option></select></label></div>
+                <details class="rob-guide"><summary>Evidence Assistant · deterministic interpretation guide</summary>
+                  <p><strong>Evidence summary:</strong> inspect the current weighted ranking, explicit grid and pinned campaign hashes. Higher scores are relative to this recorded candidate set.</p>
+                  <p><strong>Claim-boundary review:</strong> winning sampled profiles does not establish optimality, physical correctness, uncertainty estimates or independent scientific approval.</p>
+                  <p><strong>Comparison critique:</strong> inspect failed constraints, ranking ties, energy conventions and environment-dependent runtime before interpreting a changed recommendation.</p>
+                  <p><strong>Next-experiment proposals:</strong> consider controlled new configurations or temporal refinement after reviewing this sensitivity result. This guide does not launch or authorize experiments.</p>
+                </details>
               </section>
 
               <div class="artifact-list-shell lab-artifact-shell">
@@ -2207,5 +2249,6 @@
 
     <script type="module" src="/static/app.js?v=__QS_DMSS_STATIC_REVISION__"></script>
     <script src="/static/scientific-challenges.js?v=__QS_DMSS_STATIC_REVISION__" defer></script>
+    <script src="/static/robustness.js?v=__QS_DMSS_STATIC_REVISION__" defer></script>
   </body>
 </html>

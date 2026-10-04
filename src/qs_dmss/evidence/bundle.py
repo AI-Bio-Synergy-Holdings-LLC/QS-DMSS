@@ -10,6 +10,8 @@ from datetime import datetime, timezone
 from importlib import metadata
 from pathlib import Path
 
+from qs_dmss.evidence.html_security import WORKBOOK_TABS_SCRIPT
+
 
 def _utc_now() -> str:
     return datetime.now(timezone.utc).isoformat()
@@ -821,7 +823,7 @@ def write_experiment_workbook(
   <p class="eyebrow">Portable comparison research object</p>
   <h1>QS-DMSS Research Workbook</h1>
   <p class="lede">{html.escape(experiment_record['label'])} · generated {html.escape(experiment_record['created_at'])}</p>
-  <div class="actions"><button class="primary" type="button" onclick="window.print()">Print / save PDF</button><a href="./workbook/download">Download workbook (.html)</a><a href="./report">Open concise report</a><a href="./bundle">Download evidence bundle</a></div>
+  <div class="actions"><button class="primary" id="workbook-print" type="button">Print / save PDF</button><a href="./workbook/download">Download workbook (.html)</a><a href="./report">Open concise report</a><a href="./bundle">Download evidence bundle</a></div>
   <p class="boundary">This workbook compares reproducible workflow outputs. It does not claim peer-reviewed physical validation.</p>
   <div class="tab-list" role="tablist" aria-label="Workbook sections">
     <button role="tab" id="tab-overview" aria-controls="panel-overview" aria-selected="true">Overview</button>
@@ -847,7 +849,7 @@ qs-dmss executors slurm-dry-run configs/demo.yaml --request-root dry-run-jobs --
   </section>
   <section role="tabpanel" id="panel-data" aria-labelledby="tab-data" hidden><h2>Embedded comparison data</h2><pre>{comparison_json}</pre></section>
 </main>
-<script>const tabs=[...document.querySelectorAll('[role=tab]')];tabs.forEach(tab=>tab.addEventListener('click',()=>{{tabs.forEach(item=>{{const selected=item===tab;item.setAttribute('aria-selected',String(selected));document.getElementById(item.getAttribute('aria-controls')).hidden=!selected;}});}}));</script>
+<script>{WORKBOOK_TABS_SCRIPT}</script>
 </body></html>""",
         encoding="utf-8",
     )

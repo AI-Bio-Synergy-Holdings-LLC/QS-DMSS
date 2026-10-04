@@ -1,0 +1,46 @@
+/* Dedicated rendering boundary; no overrides of the shared cockpit layout. */
+.robustness-panel { margin-top: 24px; padding: clamp(18px, 3vw, 32px); border: 1px solid var(--line-strong, #cbd7d2); background: #fcfdfb; border-radius: 18px; color: #173d37; min-width: 0; }
+.robustness-panel [hidden] { display: none !important; }
+.robustness-panel h3, .robustness-panel h4 { margin: 0 0 12px; }
+.robustness-panel p { line-height: 1.6; }
+.robustness-panel .rob-kicker { color: #16766a; font-size: .75rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.rob-toolbar { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; margin: 20px 0; }
+.rob-toolbar .rob-field { flex: 1 1 260px; }
+.rob-field { display: grid; gap: 7px; min-width: 0; font-size: .82rem; font-weight: 700; }
+.rob-field input, .rob-field select { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid #b7c8c0; border-radius: 6px; background: white; color: #173d37; font: inherit; }
+.robustness-panel button, .robustness-panel a.rob-download { min-height: 44px; padding: 10px 16px; border: 1px solid #16766a; border-radius: 6px; background: white; color: #145e55; font: inherit; font-size: .85rem; font-weight: 750; cursor: pointer; }
+.robustness-panel button:disabled { opacity: .5; cursor: not-allowed; }
+.robustness-panel button.rob-primary { background: #145e55; color: white; }
+.robustness-panel :focus-visible { outline: 3px solid #b45526; outline-offset: 3px; }
+.rob-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, .72fr); gap: 28px; align-items: start; }
+.rob-controls { grid-column: 2; grid-row: 1; }
+.rob-output { grid-column: 1; grid-row: 1; min-width: 0; }
+.rob-output[aria-busy="true"] { opacity: .6; }
+.rob-output .rob-insight { padding: 16px; background: #eaf2ed; border-left: 3px solid #16766a; margin: 0 0 16px; }
+.rob-controls details { border: 1px solid #d1ddd6; border-radius: 8px; padding: 14px; }
+.robustness-panel summary { cursor: pointer; min-height: 32px; font-weight: 750; line-height: 1.4; }
+.rob-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 18px 0; }
+.rob-fields > :first-child { grid-column: 1 / -1; }
+.rob-check { display: flex; align-items: start; gap: 10px; font-size: .82rem; line-height: 1.5; }
+.rob-check input { width: 20px; height: 20px; flex: 0 0 20px; }
+.rob-chart { width: 100%; min-width: 0; overflow: hidden; }
+.rob-chart svg { display: block; max-width: 100%; font-family: "Manrope", "Segoe UI", sans-serif; font-variant-numeric: tabular-nums; }
+.rob-table { overflow-x: auto; margin: 16px 0; }
+.rob-table table { width: 100%; border-collapse: collapse; font-size: .8rem; font-variant-numeric: tabular-nums; }
+.rob-table th, .rob-table td { padding: 10px; border-bottom: 1px solid #d4ded8; text-align: left; vertical-align: top; }
+.rob-table th { background: #edf3ef; font-weight: 750; }
+.robustness-panel code, .robustness-panel pre { display: block; white-space: pre-wrap; overflow-wrap: anywhere; font-size: .75rem; padding: 10px; background: #f0f4f1; }
+.rob-boundary, .rob-status { font-size: .85rem; color: #526961; }
+.rob-chart-note { font-size: .8rem; color: #526961; }
+.rob-guide { margin: 20px 0; border-top: 1px solid #d1ddd6; padding-top: 16px; }
+@media (max-width: 1100px) {
+  .rob-layout { display: flex; flex-direction: column; }
+  .rob-output { order: 0; width: 100%; }
+  .rob-controls { order: 1; width: 100%; }
+}
+@media (max-width: 480px) {
+  .rob-output .rob-insight, .rob-output > p { font-size: .875rem; line-height: 1.5; }
+  .rob-fields { grid-template-columns: 1fr; }
+  .rob-toolbar > button, .rob-toolbar > a { flex: 1 1 auto; }
+  .robustness-panel { border-radius: 10px; }
+}
