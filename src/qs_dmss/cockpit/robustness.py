@@ -203,9 +203,14 @@ class CockpitRobustnessService:
                 raise RobustnessError("Recorded verification state is missing")
             if run.get("run_id") != run_id:
                 raise RobustnessError("Captured run identity is inconsistent")
-            conventions[run_id] = metrics.get(
+            convention = metrics.get(
                 "energy_diagnostic_convention", "legacy/unspecified"
             )
+            if not isinstance(convention, str) or not convention.strip():
+                raise RobustnessError(
+                    "Energy diagnostic convention must be a non-empty string"
+                )
+            conventions[run_id] = convention
         if len(set(conventions.values())) != 1:
             raise RobustnessError(
                 "Mixed energy diagnostic conventions cannot be rescored together"

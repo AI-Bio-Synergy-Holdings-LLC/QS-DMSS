@@ -981,8 +981,8 @@
                     <p data-robustness-winner></p>
                     <div class="rob-chart" data-robustness-chart></div>
                     <p class="rob-chart-note">Relative scores (0–1). “Fails” marks a configuration outside the current constraints, even if its score is high.</p>
-                    <details><summary>All configurations and constraint failures</summary><div class="rob-table" data-robustness-rows></div></details>
-                    <details><summary>Every sampled scoring profile</summary><p>Only the chosen base weight changes; other weights, goals and constraints stay fixed. Each exact profile is retained in the saved bundle.</p><div class="rob-table" data-robustness-sensitivity-rows></div></details>
+                    <details><summary>All configurations and constraint failures</summary><div class="rob-table" data-robustness-rows role="region" aria-label="Current configuration ranking details" tabindex="0"></div></details>
+                    <details><summary>Every sampled scoring profile</summary><p>Only the chosen base weight changes; other weights, goals and constraints stay fixed. Each exact profile is retained in the saved bundle.</p><div class="rob-table" data-robustness-sensitivity-rows role="region" aria-label="Sampled scoring profiles" tabindex="0"></div></details>
                     <details><summary>Profile, evidence hashes and conventions</summary><div data-robustness-provenance></div></details>
                     <div class="rob-toolbar"><button class="rob-primary" data-robustness-save type="button" disabled>Save traceable analysis</button><a class="rob-download" data-robustness-download hidden download>Download analysis bundle</a></div>
                     <p class="rob-boundary" data-robustness-boundary></p>

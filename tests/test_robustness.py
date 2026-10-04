@@ -1,14 +1,17 @@
 from __future__ import annotations
 
+import json
 from copy import deepcopy
 
 import pytest
 from pydantic import ValidationError
 
 from qs_dmss.decision import apply_decision_profile, apply_explicit_decision_profile
+from qs_dmss.io.config import RankingConfig
 from qs_dmss.robustness import (
     RobustnessRequest,
     build_robustness_analysis,
+    canonical_json,
     score_recorded_rows,
 )
 
@@ -111,6 +114,27 @@ def test_sensitivity_exposes_preference_switch_without_mutating_source():
     assert cases[2]["profile"]["ranking"]["weights"]["elapsed_seconds"] == 2.0
     assert result["ai_advice"] is None
     assert result["independent_scientific_assessment"] == "not_established"
+
+
+def test_recorded_profile_roundtrip_preserves_every_scoring_component():
+    # Run records are serialized with sort_keys=True before campaign scoring.
+    # The explorer must preserve that recorded order, not substitute the
+    # in-memory RankingConfig order after the campaign has already been scored.
+    original = profile()
+    original["ranking"] = RankingConfig().to_dict()
+    recorded = json.loads(canonical_json(original))
+    expected = score_recorded_rows(rows(), recorded)
+    actual = build_robustness_analysis(rows(), request(profile=recorded))["current"]
+    assert actual == expected
+    assert [item["metric"] for item in actual["rows"][0]["decision_components"]] == (
+        sorted(RankingConfig().weights_dict())
+    )
+    proposed = deepcopy(recorded)
+    proposed["ranking"]["weights"] = {
+        **RankingConfig().weights_dict(),
+        **recorded["ranking"]["weights"],
+    }
+    assert score_recorded_rows(rows(), proposed)["rows"] != expected["rows"]
 
 
 def test_qualification_precedes_score_and_fallback_is_not_counted_as_a_win():

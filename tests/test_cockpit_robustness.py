@@ -179,6 +179,29 @@ def test_mixed_and_legacy_energy_conventions(service):
     assert service.source("campaign-a")["legacy_convention"] is True
 
 
+@pytest.mark.parametrize("convention", [None, 7, "", "   ", False, [], {}])
+def test_explicit_malformed_energy_conventions_are_rejected(service, convention):
+    root = service.experiments_root / "campaign-a"
+    for path in root.glob("runs/*/metrics.json"):
+        metrics = json.loads(path.read_bytes())
+        _write(path, {**metrics, "energy_diagnostic_convention": convention})
+    write_manifest_for_directory(root)
+    with pytest.raises(ValueError, match="convention must be a non-empty string"):
+        service.source("campaign-a")
+    client = TestClient(
+        create_app(
+            repo_root=Path(__file__).resolve().parents[1],
+            output_root=service.experiments_root.parent / "runs",
+            hosted_demo=False,
+        )
+    )
+    response = client.get("/api/robustness/sources/campaign-a")
+    assert response.status_code == 400
+    assert response.json()["detail"] == (
+        "Energy diagnostic convention must be a non-empty string"
+    )
+
+
 def test_inconsistent_metric_identity_and_failed_campaign_are_rejected(service):
     root = service.experiments_root / "campaign-a"
     path = root / "comparison.json"

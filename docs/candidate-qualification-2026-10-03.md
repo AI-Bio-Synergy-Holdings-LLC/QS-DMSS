@@ -102,6 +102,29 @@ robustness tests also passed on a fresh Windows CPython 3.11.15 runtime.
 Latest-head remote matrix and
 Docker qualification remain required; the failed first follow-up is not a pass.
 
+That compatibility head (`6c7a75a`) subsequently passed its complete remote
+Python 3.10–3.13/quantum matrix, Docker, cross-platform candidate-wheel smoke,
+CodeQL, Code Quality and dependency/policy/metadata gates.
+
+The next Copilot pass confirmed the first three fixes and identified explicit
+malformed convention values and unnamed, unfocusable scrollable table regions.
+Explicit conventions now require a non-empty string; only an absent field uses
+the legacy fallback. Both table regions are named and keyboard-focusable.
+Chromium desktop/mobile checks passed Tab reachability and native arrow-key
+horizontal scrolling, with no page-wide overflow or runtime/console errors.
+The source/qualification suite passed **410 tests, 90.66% coverage**, with Ruff
+and Bandit clean. Eight new regression cases cover malformed conventions and
+complete recorded scoring-component agreement.
+
+The suggested change to `RankingConfig` iteration order was not adopted:
+actual run records are serialized with sorted keys before campaign scoring.
+The unchanged real-campaign HTTP equality test passes with canonical order;
+the added complete-positive-weight regression demonstrates that the proposed
+in-memory default order changes the recorded component list. This is an
+evidence-backed review disposition, not a bypass of an unresolved failing test.
+Latest-head remote gates and refreshed owner review are still required after
+these additional changes.
+
 Main CI, Python 3.10–3.13 matrix, Docker, CodeQL, Code Quality, policy, Pages and
 production auto-deploy verifier were successful on the pinned baseline. The
 latest scheduled quality/security checks also succeeded on that commit. The
