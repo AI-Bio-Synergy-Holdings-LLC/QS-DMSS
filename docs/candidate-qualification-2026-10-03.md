@@ -507,6 +507,27 @@ wheel pass is claimed. One completed latest-head re-review and fresh owner
 review plus explicit readiness/protected-merge authority remain required.
 PR stays draft; deployment and release holds remain.
 
+The first remote qualification of this batch (`e53cde9`) exposed a fixture
+portability error, not a passing gate: standard Linux/macOS CPython 3.12/3.13
+parsed the 8192-level fixture and reached other authored validation errors,
+where the bundled Windows runtime raised `RecursionError`. Python 3.12/3.13
+tests and fresh-wheel smoke failed; Docker was consequently skipped. Tests and
+installed smoke now inject the parser exception deterministically only for the
+exact malformed fixture, preserving healthy JSON reads and the exact sanitized
+HTTP 400 assertion. The production fix is unchanged. These are parser-exception
+contract tests, not a universal JSON depth limit or cross-platform native-parser
+reproduction claim. Revised-head qualification is required from scratch.
+
+The portable 25-case batch again passes **23 tests, 2 Windows symlink skips**
+in isolated offline CPython 3.10.20/3.11.15 and existing 3.12.14 environments;
+the unchanged 12 Node callback contracts and source-development smoke pass.
+The full local quantum suite was rerun: **626 passed, 6 Windows symlink skips,
+90.90% coverage**, with the 88% gate retained. Production source bytes did not
+change during this fixture-only follow-up.
+Initial project-scoped UV attempts failed with access denied rather than
+switching the active 3.12 environment; its interpreter/imports remain intact.
+The successful compatibility runs explicitly use `--no-project --isolated`.
+
 Main CI, Python 3.10–3.13 matrix, Docker, CodeQL, Code Quality, policy, Pages and
 production auto-deploy verifier were successful on the pinned baseline. The
 latest scheduled quality/security checks also succeeded on that commit. The

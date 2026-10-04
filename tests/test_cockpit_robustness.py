@@ -897,6 +897,20 @@ def test_aliases_cannot_consume_the_healthy_candidate_window(
 _DEEP_JSON = b'{"nested":' + b"[" * 8192 + b"0" + b"]" * 8192 + b"}"
 
 
+def _inject_recursive_parser_error(monkeypatch):
+    """Make the parser exception portable without changing healthy JSON reads."""
+    parse = robustness._json
+
+    def recursive(payload):
+        if payload == _DEEP_JSON:
+            # CPython build/version-specific C-stack limits vary. This is an
+            # exception-boundary contract, not a claimed universal depth limit.
+            raise RecursionError("Injected parser recursion limit")
+        return parse(payload)
+
+    monkeypatch.setattr(robustness, "_json", recursive)
+
+
 @pytest.mark.parametrize(
     "relative",
     [
@@ -909,8 +923,9 @@ _DEEP_JSON = b'{"nested":' + b"[" * 8192 + b"0" + b"]" * 8192 + b"}"
 )
 @pytest.mark.parametrize("operation", ["source", "preview", "save"])
 def test_recursive_source_json_is_sanitized_before_persistence(
-    service, relative, operation
+    service, monkeypatch, relative, operation
 ):
+    _inject_recursive_parser_error(monkeypatch)
     request = _request(service)
     root = service.experiments_root / "campaign-a"
     path = root / relative
@@ -950,8 +965,9 @@ def test_recursive_source_json_is_sanitized_before_persistence(
 @pytest.mark.parametrize("relative", ["manifest.sha256.json", "analysis.json"])
 @pytest.mark.parametrize("suffix", ["", "/bundle"], ids=["open", "export"])
 def test_recursive_saved_json_is_sanitized_without_rewriting_evidence(
-    service, relative, suffix
+    service, monkeypatch, relative, suffix
 ):
+    _inject_recursive_parser_error(monkeypatch)
     saved = service.save(_request(service))
     root = service._analysis_root() / saved["analysis_id"]
     (root / relative).write_bytes(_DEEP_JSON)

@@ -180,13 +180,24 @@ def assert_artifact_aliases_and_recursive_errors(service, identifier, analysis_i
     }
     originals = {path: read(path) for path in manifests}
     deep_json = b'{"nested":' + b"[" * 8192 + b"0" + b"]" * 8192 + b"}"
+    parse = robustness._json
     router = robustness.robustness_router(lambda request: None)
     routes = {route.path: route.endpoint for route in router.routes}
 
     def nested(path, limit=robustness.MAX_FILE_BYTES):
         return deep_json if path in manifests else read(path, limit)
 
-    with patch.object(robustness, "_read_bytes", nested):
+    def recursive(payload):
+        if payload == deep_json:
+            # Standard and bundled CPython builds have different parser limits.
+            # Inject only this fixture's error; do not relax route assertions.
+            raise RecursionError("Injected parser recursion limit")
+        return parse(payload)
+
+    with (
+        patch.object(robustness, "_read_bytes", nested),
+        patch.object(robustness, "_json", recursive),
+    ):
         for path, arguments in (
             ("/api/robustness/sources/{experiment_id}", {"experiment_id": identifier}),
             ("/api/robustness/analyses/{analysis_id}", {"analysis_id": analysis_id}),
