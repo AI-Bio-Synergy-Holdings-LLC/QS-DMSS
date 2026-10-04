@@ -7,13 +7,17 @@ import hashlib
 import re
 from pathlib import Path
 
-# The only inline script admitted is this fixed, core-owned workbook tab control.
-WORKBOOK_TABS_SCRIPT = (
+# Keep the prior fixed tab script admitted for immutable historical workbooks.
+LEGACY_WORKBOOK_TABS_SCRIPT = (
     "const tabs=[...document.querySelectorAll('[role=tab]')];"
     "tabs.forEach(tab=>tab.addEventListener('click',()=>{tabs.forEach(item=>{"
     "const selected=item===tab;item.setAttribute('aria-selected',String(selected));"
     "document.getElementById(item.getAttribute('aria-controls')).hidden=!selected;"
     "});}));"
+)
+WORKBOOK_TABS_SCRIPT = (
+    LEGACY_WORKBOOK_TABS_SCRIPT
+    + "document.getElementById('workbook-print')?.addEventListener('click',()=>window.print());"
 )
 STYLE_BLOCK = re.compile(r"<style\b[^>]*>(.*?)</style\s*>", re.IGNORECASE | re.DOTALL)
 
@@ -41,6 +45,11 @@ def report_preview_headers(path: Path, baseline: dict[str, str]) -> dict[str, st
         )
     # Never hash and authorize arbitrary scripts from the artifact contents.
     policy = policy.replace(
-        "script-src 'self'", "script-src 'self' " + _csp_hash(WORKBOOK_TABS_SCRIPT)
+        "script-src 'self'",
+        "script-src 'self' "
+        + " ".join(
+            _csp_hash(script)
+            for script in (WORKBOOK_TABS_SCRIPT, LEGACY_WORKBOOK_TABS_SCRIPT)
+        ),
     )
     return {"Content-Security-Policy": policy, "X-Frame-Options": "SAMEORIGIN"}

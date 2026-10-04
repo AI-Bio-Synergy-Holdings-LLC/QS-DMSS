@@ -4,7 +4,11 @@ import base64
 import hashlib
 
 from qs_dmss.cockpit.api import BASELINE_SECURITY_HEADERS
-from qs_dmss.evidence.html_security import WORKBOOK_TABS_SCRIPT, report_preview_headers
+from qs_dmss.evidence.html_security import (
+    LEGACY_WORKBOOK_TABS_SCRIPT,
+    WORKBOOK_TABS_SCRIPT,
+    report_preview_headers,
+)
 
 
 def _hash(text):
@@ -25,8 +29,10 @@ def test_report_csp_only_allows_same_origin_and_exact_styles_and_fixed_script(tm
     assert "frame-ancestors 'self'" in headers["Content-Security-Policy"]
     assert _hash(style) in headers["Content-Security-Policy"]
     assert _hash(WORKBOOK_TABS_SCRIPT) in headers["Content-Security-Policy"]
+    assert _hash(LEGACY_WORKBOOK_TABS_SCRIPT) in headers["Content-Security-Policy"]
     assert _hash(malicious) not in headers["Content-Security-Policy"]
     assert "unsafe-inline" not in headers["Content-Security-Policy"]
+    assert "unsafe-hashes" not in headers["Content-Security-Policy"]
     assert BASELINE_SECURITY_HEADERS["X-Frame-Options"] == "DENY"
 
 

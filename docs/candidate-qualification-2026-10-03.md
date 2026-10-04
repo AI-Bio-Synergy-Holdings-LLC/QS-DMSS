@@ -71,6 +71,26 @@ python .github/scripts/fresh_install_smoke.py --source candidate-wheel --wheel-p
 
 ## External state and remaining gates
 
+### Review follow-up
+
+Owner approval was recorded for initial pilot commit `1b18269`. Copilot then
+identified three bounded issues: non-object decisions in recorded JSON,
+whole-list failure from one corrupted saved analysis, and an inline workbook
+print handler blocked by CSP. A single follow-up batch fixes them and adds nine
+regression cases. **402 tests passed, 90.65% coverage** locally with quantum
+extras; the cockpit robustness service now has 93% statement coverage.
+
+New workbooks bind print through the fixed core-owned script. The prior tab
+script hash remains authorized for historical workbooks; arbitrary handlers,
+`unsafe-inline` and `unsafe-hashes` remain blocked. Historical artifacts are
+not rewritten (use the browser's print command for their legacy print control).
+Chromium desktop/mobile checks verified click/keyboard print invocation using
+a print spy, new/legacy tabs and mobile bounds. The native print dialog/PDF
+save was not automated; a pre-existing standalone `/favicon.ico` 404 is
+unrelated to CSP or the action. These changes require requalification and
+refreshed owner approval of the revised head, not approval inherited from
+`1b18269`.
+
 Main CI, Python 3.10–3.13 matrix, Docker, CodeQL, Code Quality, policy, Pages and
 production auto-deploy verifier were successful on the pinned baseline. The
 latest scheduled quality/security checks also succeeded on that commit. The

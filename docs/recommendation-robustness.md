@@ -111,6 +111,12 @@ and other surfaces retain framing denial. This repairs the pre-existing conflict
 between report iframes and blanket anti-framing headers, not a cross-origin embed
 feature.
 
+New workbook print controls are bound by the hash-authorized core script, not
+inline handler attributes. A separate fixed legacy tab-script hash preserves
+historical tab behavior without rewriting evidence or enabling `unsafe-inline`
+or `unsafe-hashes`. Use the browser print command for historical workbooks whose
+old inline print control remains intentionally blocked.
+
 ## Next increment: data-only add-on admission
 
 After this pilot's protected review and researcher feedback, prove a closed,

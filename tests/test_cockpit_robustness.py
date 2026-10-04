@@ -296,6 +296,11 @@ def test_real_campaign_http_workflow_and_hosted_boundary(tmp_path):
     assert report.headers["x-frame-options"] == "SAMEORIGIN"
     assert "frame-ancestors 'self'" in report.headers["content-security-policy"]
     assert client.get("/").headers["x-frame-options"] == "DENY"
+    workbook = client.get(launch["artifact"]["urls"]["workbook"])
+    assert workbook.status_code == 200
+    assert 'id="workbook-print"' in workbook.text
+    assert 'onclick="window.print()"' not in workbook.text
+    assert "addEventListener('click',()=>window.print())" in workbook.text
     saved = client.post("/api/robustness/analyses", json=payload).json()
     assert (
         client.get(f"/api/robustness/analyses/{saved['analysis_id']}").json() == saved
@@ -361,3 +366,86 @@ def test_retained_source_total_limit_is_enforced_on_reopen(service, monkeypatch)
     monkeypatch.setattr(robustness, "MAX_SOURCE_BYTES", 20)
     with pytest.raises(ValueError, match="Retained source exceeds"):
         service.load(saved["analysis_id"])
+
+
+@pytest.mark.parametrize("decision", ["invalid", [1], True, 7])
+def test_sources_skip_non_object_decisions_without_hiding_healthy_sources(
+    service, decision
+):
+    root = service.experiments_root / "campaign-a"
+    record = json.loads((root / "experiment.json").read_bytes())
+    _write(
+        service.experiments_root / "campaign-bad/experiment.json",
+        {**record, "experiment_id": "campaign-bad", "decision": decision},
+    )
+    assert [item["experiment_id"] for item in service.sources()["items"]] == [
+        "campaign-a"
+    ]
+
+
+@pytest.mark.parametrize("decision", ["invalid", [1], True])
+def test_non_object_comparison_decision_returns_authored_http_error(service, decision):
+    root = service.experiments_root / "campaign-a"
+    comparison = json.loads((root / "comparison.json").read_bytes())
+    _write(root / "comparison.json", {**comparison, "decision": decision})
+    write_manifest_for_directory(root)
+    client = TestClient(
+        create_app(
+            repo_root=Path(__file__).resolve().parents[1],
+            output_root=service.experiments_root.parent / "runs",
+            hosted_demo=False,
+        )
+    )
+    response = client.get("/api/robustness/sources/campaign-a")
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Campaign has no shared scoring profile"
+
+
+@pytest.mark.parametrize("failure", ["tampered", "unreadable"])
+def test_saved_listing_skips_bad_artifacts_but_direct_access_stays_closed(
+    service, monkeypatch, failure
+):
+    invalid = service.save(_request(service))
+    healthy = service.save(_request(service))
+    path = service._analysis_root() / invalid["analysis_id"] / "analysis.json"
+    if failure == "tampered":
+        path.write_bytes(b"{}")
+    else:
+        original_stat = Path.stat
+
+        def stat(candidate, *args, **kwargs):
+            if candidate == path:
+                raise OSError("simulated unreadable artifact")
+            return original_stat(candidate, *args, **kwargs)
+
+        monkeypatch.setattr(Path, "stat", stat)
+        original_read = robustness._read_bytes
+
+        def read(candidate, limit=robustness.MAX_FILE_BYTES):
+            if candidate == path:
+                raise OSError("simulated unreadable artifact")
+            return original_read(candidate, limit)
+
+        monkeypatch.setattr(robustness, "_read_bytes", read)
+    assert [item["analysis_id"] for item in service.analyses()["items"]] == [
+        healthy["analysis_id"]
+    ]
+    assert service.load(healthy["analysis_id"]) == healthy
+    with pytest.raises((ValueError, OSError)):
+        service.load(invalid["analysis_id"])
+    client = TestClient(
+        create_app(
+            repo_root=Path(__file__).resolve().parents[1],
+            output_root=service.experiments_root.parent / "runs",
+            hosted_demo=False,
+        )
+    )
+    response = client.get("/api/robustness/analyses")
+    assert response.status_code == 200
+    assert [item["analysis_id"] for item in response.json()["items"]] == [
+        healthy["analysis_id"]
+    ]
+    assert (
+        client.get(f"/api/robustness/analyses/{invalid['analysis_id']}").status_code
+        == 400
+    )

@@ -113,10 +113,12 @@ class CockpitRobustnessService:
         for path in paths[:200]:
             try:
                 record = _json(_read_bytes(contained_path(self.experiments_root, path)))
+                decision = record.get("decision")
                 if (
                     record.get("kind") != "campaign"
                     or record.get("status", "completed") != "completed"
-                    or not (record.get("decision") or {}).get("available")
+                    or not isinstance(decision, dict)
+                    or not decision.get("available")
                 ):
                     continue
                 items.append(
@@ -162,9 +164,11 @@ class CockpitRobustnessService:
         run_ids = [row["run_id"] for row in rows]
         if len(set(run_ids)) != len(rows) or run_ids != record.get("run_ids"):
             raise RobustnessError("Campaign run identity or ordering is inconsistent")
-        decision = comparison.get("decision") or {}
-        if not decision.get("available") or not isinstance(
-            decision.get("profile"), dict
+        decision = comparison.get("decision")
+        if (
+            not isinstance(decision, dict)
+            or not decision.get("available")
+            or not isinstance(decision.get("profile"), dict)
         ):
             raise RobustnessError("Campaign has no shared scoring profile")
         conventions = {}
@@ -363,19 +367,22 @@ class CockpitRobustnessService:
     def analyses(self) -> dict:
         self._local()
         items = []
-        paths = sorted(
-            self._analysis_root().glob("*/analysis.json"),
-            key=lambda path: path.stat().st_mtime_ns,
-            reverse=True,
-        )
-        for path in paths[:200]:
-            result = self.load(path.parent.name)
-            items.append(
-                {
+        paths = []
+        for path in self._analysis_root().glob("*/analysis.json"):
+            try:
+                paths.append((path.stat().st_mtime_ns, path))
+            except OSError:
+                continue
+        for _, path in sorted(paths, key=lambda item: item[0], reverse=True)[:200]:
+            try:
+                result = self.load(path.parent.name)
+                item = {
                     key: result[key]
                     for key in ("analysis_id", "created_at", "profile_sha256", "source")
                 }
-            )
+            except (HTTPException, OSError, ValueError, KeyError, TypeError):
+                continue  # Direct access still fails closed; healthy entries remain discoverable.
+            items.append(item)
         return {"items": items}
 
     def bundle(self, analysis_id: str) -> Path:
