@@ -368,7 +368,10 @@ class CockpitRobustnessService:
         self._local()
         items = []
         paths = []
-        for path in self._analysis_root().glob("*/analysis.json"):
+        # Older pathlib glob implementations stat literal child names during
+        # enumeration, before the per-artifact error boundary can handle them.
+        for directory in self._analysis_root().iterdir():
+            path = directory / "analysis.json"
             try:
                 paths.append((path.stat().st_mtime_ns, path))
             except OSError:

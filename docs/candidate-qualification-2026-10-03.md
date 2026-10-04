@@ -91,6 +91,17 @@ unrelated to CSP or the action. These changes require requalification and
 refreshed owner approval of the revised head, not approval inherited from
 `1b18269`.
 
+The first follow-up remote matrix exposed a Python 3.10/3.11 compatibility
+failure in the unreadable-artifact regression: older `pathlib.glob` performs
+an existence/stat check while enumerating literal child names, outside the
+per-artifact exception boundary. Listing now enumerates immediate entries and
+checks each `analysis.json` inside that boundary. The regression was retained,
+not weakened. The full Windows CPython 3.12 suite again passed **402 tests,
+90.65% coverage**, with Ruff and Bandit clean. All 28 isolated cockpit
+robustness tests also passed on a fresh Windows CPython 3.11.15 runtime.
+Latest-head remote matrix and
+Docker qualification remain required; the failed first follow-up is not a pass.
+
 Main CI, Python 3.10–3.13 matrix, Docker, CodeQL, Code Quality, policy, Pages and
 production auto-deploy verifier were successful on the pinned baseline. The
 latest scheduled quality/security checks also succeeded on that commit. The
