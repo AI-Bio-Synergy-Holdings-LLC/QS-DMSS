@@ -16,7 +16,7 @@ from qs_dmss.cockpit.api import (
     LaunchCampaignRequest,
 )
 from qs_dmss.cockpit.robustness import CockpitRobustnessService
-from qs_dmss.evidence.html_security import report_preview_headers
+from qs_dmss.evidence.html_security import MAX_REPORT_CSP_BYTES, report_preview_headers
 from qs_dmss.robustness import RobustnessRequest
 
 
@@ -82,6 +82,28 @@ def main() -> None:
     )
     assert styles == "style-src 'self' https://fonts.googleapis.com"
     assert malformed_report.read_bytes() == malformed_bytes
+    for repeated in (True, False):
+        report = root / f"style-budget-fixture-{repeated}.html"
+        payload = (
+            b"<style>x</style>" * 4096
+            if repeated
+            else b"".join(f"<style>/*{i}*/</style>".encode() for i in range(4096))
+        )
+        report.write_bytes(payload)
+        policy = report_preview_headers(report, BASELINE_SECURITY_HEADERS)[
+            "Content-Security-Policy"
+        ]
+        assert len(policy.encode("utf-8")) <= MAX_REPORT_CSP_BYTES == 8 * 1024
+        style_policy = next(
+            part.strip()
+            for part in policy.split(";")
+            if part.strip().startswith("style-src")
+        )
+        if repeated:
+            assert style_policy.count("'sha256-") == 1
+        else:
+            assert style_policy == styles
+        assert report.read_bytes() == payload
     print(
         json.dumps(
             {
@@ -91,6 +113,7 @@ def main() -> None:
                 "empty_saved_list_supported": True,
                 "summary_scope_explicit": True,
                 "invalid_utf8_preview_fail_closed": True,
+                "report_csp_budget_enforced": True,
                 "saved_reopened_exported": True,
                 "hosted_disabled": True,
             },

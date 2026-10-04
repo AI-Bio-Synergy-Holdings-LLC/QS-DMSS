@@ -138,6 +138,17 @@ only to authorize exact style hashes; replacement decoding does not broaden CSP.
 Fixed core-owned script hashes, same-origin framing and other baseline headers
 remain unchanged. No report bytes or historical evidence are repaired in place.
 
+Report-derived style hashes are deduplicated in first-seen order. Their admission
+is bounded by an **8 KiB complete CSP-value budget**, including baseline
+directives and the fixed current/legacy workbook-script hashes. Style blocks are
+iterated rather than collected in an unbounded hash list. If the next unique
+hash would exceed the budget, iteration stops and **all** artifact style hashes
+are omitted, not a partial set. The original report bytes and baseline policy
+are preserved. A trusted baseline already exceeding the budget is not weakened
+or truncated; it receives no artifact style hashes. The application's current
+baseline plus fixed hashes is below the budget. This is a value-size admission
+limit, not a guarantee about every proxy's total-header limits.
+
 ## Next increment: data-only add-on admission
 
 After this pilot's protected review and researcher feedback, prove a closed,

@@ -200,6 +200,49 @@ and retained outside tracked source. No layout redesign was performed.
 Latest-head remote qualification and one completed Copilot review remain
 required; no merge, deployment, release or scientific approval is implied.
 
+The summary/report head (`3557561`) subsequently passed all automated remote
+gates with **477 tests, 90.64% coverage** in the quantum job. Its completed
+Copilot summary no longer flags either corrected issue but identifies a new
+previously-missed resource concern: the 4 MiB report-read bound did not bound
+the generated CSP value. Read-only function-level fixtures produced 14,156,157
+CSP bytes from repeated style blocks and 221,565 bytes from 4,096 distinct
+styles. Those measurements alone did not test server/proxy rejection.
+
+The owner separately authorized a bounded correction. Style hashes are now
+deduplicated in first-seen order and admitted only within an **8 KiB complete
+CSP-value budget**, including baseline directives and the fixed current/legacy
+workbook-script hashes. A lazy style iterator stops on budget overflow and
+omits all artifact hashes rather than admitting a partial list. An already
+oversized trusted baseline is preserved without adding artifact hashes; no
+baseline directives or core script hashes are removed. Report bytes, scientific
+code, UI implementation and historical evidence remain unchanged.
+
+Thirteen added cases cover stable deduplication, an exact 4 MiB repeated-style
+fixture, early stopping on distinct hashes, one-byte-below/at/above budget
+boundaries, oversized trusted-baseline preservation and actual HTTP delivery
+through all three report/workbook routes. Before correction, **11 failed and
+2 passed**. Afterward all **21 report-security tests** pass on Windows CPython
+3.10.20, 3.11.15 and 3.12.14. The full quantum-enabled local suite passes
+**490 tests, 90.72% coverage**; the CSP helper has 100% statement coverage.
+Ruff, Bandit, compilation, fresh-cache dependency audit (no known vulnerabilities),
+baseline benchmark and registry/discovery consistency checks pass. The same
+stress fixtures now yield **435 CSP bytes / 1 style hash** for repetitions and
+**381 bytes / 0 artifact hashes** for distinct-style overflow. Installed-wheel
+and Docker smoke explicitly check both deduplication and budget fallback.
+
+Compatibility QA used Playwright CLI 0.1.22/Chromium at 1440x1000 and 375x900 on
+a dedicated temporary port 8104. The Browser mention was visible, but the
+dedicated Browser skill/runtime was not exposed in the session. A retained
+campaign workbook rendered with its original styles; Overview -> Variant
+matrix -> Overview changed the visible tab panel, and Print invoked the fixed
+script through a spy. The native print dialog/PDF export was not automated.
+The actual workbook response was HTTP 200 with a 435-byte CSP and SAMEORIGIN
+framing. Screenshots were inspected and retained outside source. There was no
+page-wide overflow, error overlay or CSP/script error. The sole console error
+was the previously known standalone `/favicon.ico` 404, not a clean zero-error
+claim. Latest-head remote gates, one completed re-review and fresh owner
+approval remain required; there is no readiness, merge or release authorization.
+
 Main CI, Python 3.10–3.13 matrix, Docker, CodeQL, Code Quality, policy, Pages and
 production auto-deploy verifier were successful on the pinned baseline. The
 latest scheduled quality/security checks also succeeded on that commit. The
