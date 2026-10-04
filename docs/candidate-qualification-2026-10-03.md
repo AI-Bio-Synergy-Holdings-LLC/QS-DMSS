@@ -525,8 +525,18 @@ The full local quantum suite was rerun: **626 passed, 6 Windows symlink skips,
 90.90% coverage**, with the 88% gate retained. Production source bytes did not
 change during this fixture-only follow-up.
 Initial project-scoped UV attempts failed with access denied rather than
-switching the active 3.12 environment; its interpreter/imports remain intact.
-The successful compatibility runs explicitly use `--no-project --isolated`.
+switching the active 3.12 interpreter, but partially removed development
+dependencies; the subsequent build check exposed the damage. The environment
+was repaired through normal package reinstallation, without OS-policy changes
+or a console-launcher bypass, and must pass fresh dependency/build/test checks.
+Successful compatibility runs explicitly use `--no-project --isolated` and
+do not manage this worktree's development environment.
+Reinstallation completed with 86 compatible installed packages and a fresh-cache
+audit reporting no known vulnerabilities. Auxiliary `charset-normalizer` moved
+from 3.5.1 to 3.5.2 and `rpds-py` from 2026.6.3 to 2026.9.1; core numerical/
+quantum versions remained as recorded above. Ruff, Bandit, compilation and the
+source-development smoke pass after repair. No regenerated console launcher was
+executed; this remains source-environment qualification, not a fresh-wheel pass.
 
 Main CI, Python 3.10–3.13 matrix, Docker, CodeQL, Code Quality, policy, Pages and
 production auto-deploy verifier were successful on the pinned baseline. The
