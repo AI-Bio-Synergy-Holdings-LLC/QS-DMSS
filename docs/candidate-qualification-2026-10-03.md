@@ -243,6 +243,58 @@ was the previously known standalone `/favicon.ico` 404, not a clean zero-error
 claim. Latest-head remote gates, one completed re-review and fresh owner
 approval remain required; there is no readiness, merge or release authorization.
 
+### Bounded retained-artifact and parser follow-up
+
+The CSP-budget head (`9e63957`) passed its remote matrix, Docker, cross-platform
+installed-wheel and security gates (**490 passed, 90.68%** in the quantum job).
+Its completed Copilot review nevertheless identified four new concerns, including
+three in the previously-missed summary. The owner explicitly authorized one
+batch and a **4096-entry discovery ceiling**, without historical deletion.
+
+Retained manifests, hash files and ZIPs now use child containment checks. Load
+and HTTP export share a verified, bounded ZIP snapshot; HTTP serves those exact
+bytes rather than reopening a mutable path after verification. The compatibility
+path accessor returns a resolved contained path and is not used for HTTP delivery.
+Streaming `os.scandir` bounds discovery to 4097 consumed entries and at most
+4096 stored candidates before stats, reads or sorting. Every immediate entry
+counts, including non-artifacts and `_pending`. Overflow returns an explicit
+HTTP 400, never a partial latest list; direct known-ID access remains available.
+Missing roots, root storage failures, ordering, 200-candidate selection and
+individual-record isolation retain their documented contracts. This also avoids
+older Python's literal-child glob/stat failure and eager `iterdir` enumeration.
+
+Style extraction now uses forward-only, quote-aware opening-tag and closing-tag
+scans. Unclosed markup scans its remaining suffix once and admits no artifact
+hashes, including any earlier valid styles. Exact CSS, newline normalization,
+deduplication order, core-script hashes and the complete 8 KiB CSP budget remain
+unchanged. No HTML, historical evidence or scientific implementation is rewritten.
+
+The 28 additional cases cover simulated and real symlink escapes, a bundle
+changed after verification but before response creation, unreadable campaign
+discovery, 4096/4097/5000-entry scan instrumentation for both collections,
+ordering/caps, quoted attributes, malformed suffix fallback, one closing search
+for 4000 unclosed openings, full 4 MiB malformed inputs and all three preview
+HTTP routes. The initial focused red test run had **15 failed, 5 passed and
+4 skipped**, including tests for the not-yet-implemented helpers. After correction,
+the full Windows CPython 3.12.14 quantum-enabled suite passes **514 tests,
+4 skipped, 90.76% coverage**. CSP helper statement coverage is 100%. All
+**141 targeted tests pass, 4 skipped** on CPython 3.10.20 and 3.11.15 as well.
+The four real-symlink cases are skipped because this Windows host denies symlink
+creation (WinError 1314); simulated containment tests pass. Linux CI must execute
+the real-link cases; no Windows privilege or OS policy change was attempted.
+
+Ruff, Bandit medium-or-higher, compilation, fresh-cache dependency audit (no known
+vulnerabilities), baseline benchmark, registry/discovery checks and JavaScript
+syntax pass. Installed-wheel/Docker smoke additionally asserts verified ZIP
+snapshot identity and unclosed-style fallback. Latest-head artifact checks,
+remote requalification and one completed re-review are recorded in the PR after
+commit; older gates are not inherited by this head. The previously observed local
+fresh-wheel console-launcher block (WinError 4551) remains unresolved and was not
+bypassed with an alternate launcher. No new rendered-browser pass is claimed for
+this server-only batch; valid generated workbook/report HTTP contracts are tested.
+Fresh owner review and explicit readiness/merge authorization remain required.
+PR stays draft; no merge, deployment, release or hosted capability activation.
+
 Main CI, Python 3.10–3.13 matrix, Docker, CodeQL, Code Quality, policy, Pages and
 production auto-deploy verifier were successful on the pinned baseline. The
 latest scheduled quality/security checks also succeeded on that commit. The

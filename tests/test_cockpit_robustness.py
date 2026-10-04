@@ -147,7 +147,9 @@ def test_malformed_captured_metrics_fail_closed_before_preview_or_save(
     service, metric, captured_value
 ):
     payload = _request(service)
-    comparison_value = float(captured_value) if isinstance(captured_value, bool) else 1.0
+    comparison_value = (
+        float(captured_value) if isinstance(captured_value, bool) else 1.0
+    )
     _replace_captured_metric(service, metric, comparison_value, captured_value)
     for operation, argument in (
         (service.source, "campaign-a"),
@@ -398,14 +400,23 @@ def test_summary_listing_defers_full_checks_but_http_open_export_fail_closed(
     ]
     assert response.json()["items"][0]["integrity_scope"] == "analysis_json_only"
     for suffix in ("", "/bundle"):
-        response = client.get(f"/api/robustness/analyses/{saved['analysis_id']}{suffix}")
+        response = client.get(
+            f"/api/robustness/analyses/{saved['analysis_id']}{suffix}"
+        )
         assert response.status_code == 400
         assert str(root) not in response.text
 
 
 @pytest.mark.parametrize(
     "failure",
-    ["identity", "missing_field", "manifest", "source_type", "created_type", "profile_hash"],
+    [
+        "identity",
+        "missing_field",
+        "manifest",
+        "source_type",
+        "created_type",
+        "profile_hash",
+    ],
 )
 def test_saved_listing_skips_invalid_summary_without_hiding_valid_metadata(
     service, failure
@@ -712,14 +723,14 @@ def test_saved_listing_does_not_mask_root_storage_errors(
 ):
     experiments = tmp_path / "experiments"
     root = experiments / "_robustness"
-    original_iterdir = Path.iterdir
+    original_scandir = os.scandir
 
-    def iterdir(candidate):
+    def scandir(candidate):
         if candidate == root:
             raise error_type("simulated storage error with private path")
-        return original_iterdir(candidate)
+        return original_scandir(candidate)
 
-    monkeypatch.setattr(Path, "iterdir", iterdir)
+    monkeypatch.setattr(os, "scandir", scandir)
     service = robustness.CockpitRobustnessService(experiments)
     with pytest.raises(error_type):
         service.analyses()
@@ -736,3 +747,211 @@ def test_saved_listing_does_not_mask_root_storage_errors(
         "Recorded robustness evidence is invalid, incompatible, or exceeds resource limits"
     )
     assert "private path" not in response.text
+
+
+def _client(service):
+    return TestClient(
+        create_app(
+            repo_root=Path(__file__).resolve().parents[1],
+            output_root=service.experiments_root.parent / "runs",
+            hosted_demo=False,
+        )
+    )
+
+
+@pytest.mark.parametrize(
+    "relative",
+    [
+        "manifest.sha256.json",
+        "bundle.sha256",
+        "evidence_bundle.zip",
+        "source/comparison.json",
+    ],
+)
+@pytest.mark.parametrize(
+    "real_symlink", [False, True], ids=["resolved-escape", "real-symlink"]
+)
+def test_retained_children_cannot_read_symlink_targets_outside_artifact(
+    service, monkeypatch, relative, real_symlink
+):
+    saved = service.save(_request(service))
+    root = service._analysis_root() / saved["analysis_id"]
+    child = root / relative
+    external = service.experiments_root.parent / "outside-artifact" / child.name
+    external.parent.mkdir(exist_ok=True)
+    original = child.read_bytes()
+    external.write_bytes(original)
+    if real_symlink:
+        child.unlink()
+        try:
+            child.symlink_to(external)
+        except OSError as exc:
+            if getattr(exc, "winerror", None) == 1314:
+                pytest.skip(
+                    "Windows symlink creation requires an unavailable privilege"
+                )
+            raise
+    else:
+        original_resolve = Path.resolve
+
+        def resolve(path, *args, **kwargs):
+            return (
+                external if path == child else original_resolve(path, *args, **kwargs)
+            )
+
+        monkeypatch.setattr(Path, "resolve", resolve)
+    reads = []
+    original_read = robustness._read_bytes
+
+    def read(path, limit=robustness.MAX_FILE_BYTES):
+        reads.append(path)
+        return original_read(path, limit)
+
+    monkeypatch.setattr(robustness, "_read_bytes", read)
+    for operation in (service.load, service.bundle, service.bundle_snapshot):
+        with pytest.raises(ValueError, match="escapes expected root"):
+            operation(saved["analysis_id"])
+    for suffix in ("", "/bundle"):
+        response = _client(service).get(
+            f"/api/robustness/analyses/{saved['analysis_id']}{suffix}"
+        )
+        assert response.status_code == 400
+        assert str(external) not in response.text
+    assert all(path.resolve() != external.resolve() for path in reads)
+    assert external.read_bytes() == original
+
+
+def test_bundle_path_resolves_contained_alias_and_http_serves_verified_snapshot(
+    service, monkeypatch
+):
+    saved = service.save(_request(service))
+    root = service._analysis_root() / saved["analysis_id"]
+    path = root / "evidence_bundle.zip"
+    original = path.read_bytes()
+    assert service.bundle(saved["analysis_id"]) == path.resolve()
+    snapshot = robustness.CockpitRobustnessService.bundle_snapshot
+
+    def swap_after_verification(active, identifier):
+        payload = snapshot(active, identifier)
+        path.write_bytes(b"changed after validation; never serve this")
+        return payload
+
+    monkeypatch.setattr(
+        robustness.CockpitRobustnessService, "bundle_snapshot", swap_after_verification
+    )
+    response = _client(service).get(saved["urls"]["bundle"])
+    assert response.status_code == 200
+    assert response.content == original
+    assert hashlib.sha256(response.content).hexdigest() == saved["bundle_sha256"]
+    assert response.headers["content-type"] == "application/zip"
+    assert int(response.headers["content-length"]) == len(original)
+    assert response.headers["content-disposition"] == (
+        f'attachment; filename="{saved["analysis_id"]}.zip"'
+    )
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert path.read_bytes() != original  # A path-based reread would have served this.
+
+
+def test_campaign_discovery_isolates_unreadable_literal_child(service, monkeypatch):
+    bad = service.experiments_root / "campaign-z" / "experiment.json"
+    _write(
+        bad,
+        json.loads(
+            (service.experiments_root / "campaign-a/experiment.json").read_bytes()
+        ),
+    )
+    original_stat = Path.stat
+
+    def stat(candidate, *args, **kwargs):
+        if candidate == bad:
+            raise PermissionError("simulated unreadable campaign")
+        return original_stat(candidate, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "stat", stat)
+    assert [item["experiment_id"] for item in service.sources()["items"]] == [
+        "campaign-a"
+    ]
+    response = _client(service).get("/api/robustness/sources")
+    assert response.status_code == 200
+    assert [item["experiment_id"] for item in response.json()["items"]] == [
+        "campaign-a"
+    ]
+
+
+@pytest.mark.parametrize("collection", ["sources", "analyses"])
+@pytest.mark.parametrize("count", [4096, 4097, 5000])
+def test_discovery_streams_at_most_ceiling_plus_one_without_reading_or_deleting(
+    service, monkeypatch, collection, count
+):
+    saved = service.save(_request(service))
+    client = _client(service)  # General cockpit startup is outside the discovery probe.
+    root = (
+        service.experiments_root
+        if collection == "sources"
+        else service._analysis_root()
+    )
+    consumed = []
+
+    class Entry:
+        def __init__(self, index):
+            self.name = f"absent-{index}"
+
+    class Scan:
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *_):
+            return False
+
+        def __iter__(self):
+            for index in range(count):
+                consumed.append(index)
+                yield Entry(index)
+
+    original_scan = os.scandir
+    monkeypatch.setattr(
+        os,
+        "scandir",
+        lambda candidate: Scan() if candidate == root else original_scan(candidate),
+    )
+    read = robustness._read_bytes
+    reads = []
+
+    def counted_read(path, limit=robustness.MAX_FILE_BYTES):
+        reads.append(path)
+        return read(path, limit)
+
+    monkeypatch.setattr(robustness, "_read_bytes", counted_read)
+    response = client.get(f"/api/robustness/{collection}")
+    assert len(consumed) == min(count, 4097)
+    assert reads == []
+    if count == 4096:
+        assert response.status_code == 200
+        assert response.json()["items"] == []
+    else:
+        assert response.status_code == 400
+        assert response.json()["detail"] == (
+            "Robustness discovery exceeds the 4096-entry scan limit; "
+            "open a known artifact directly or use a smaller evidence root"
+        )
+    assert service.load(saved["analysis_id"]) == saved
+    assert service.source("campaign-a")["experiment_id"] == "campaign-a"
+    assert (
+        root / ("campaign-a" if collection == "sources" else saved["analysis_id"])
+    ).exists()
+
+
+def test_campaign_discovery_preserves_descending_order_and_200_candidate_cap(service):
+    record = json.loads(
+        (service.experiments_root / "campaign-a/experiment.json").read_bytes()
+    )
+    for index in range(201):
+        identifier = f"campaign-{index:03d}"
+        _write(
+            service.experiments_root / identifier / "experiment.json",
+            {**record, "experiment_id": identifier},
+        )
+    assert [item["experiment_id"] for item in service.sources()["items"]] == [
+        "campaign-a",
+        *[f"campaign-{index:03d}" for index in range(200, 1, -1)],
+    ]

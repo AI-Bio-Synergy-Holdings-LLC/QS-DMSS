@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import zipfile
 from copy import deepcopy
+from io import BytesIO
 from pathlib import Path
 
 from fastapi import HTTPException
@@ -61,6 +63,10 @@ def main() -> None:
     assert saved["sensitivity"]["case_count"] == 3
     with zipfile.ZipFile(service.bundle(saved["analysis_id"])) as archive:
         assert f"{saved['analysis_id']}/source/comparison.json" in archive.namelist()
+    snapshot = service.bundle_snapshot(saved["analysis_id"])
+    assert hashlib.sha256(snapshot).hexdigest() == saved["bundle_sha256"]
+    with zipfile.ZipFile(BytesIO(snapshot)) as archive:
+        assert f"{saved['analysis_id']}/analysis.json" in archive.namelist()
     assert (
         service.source(identifier)["source_fingerprint"] == source["source_fingerprint"]
     )
@@ -82,6 +88,14 @@ def main() -> None:
     )
     assert styles == "style-src 'self' https://fonts.googleapis.com"
     assert malformed_report.read_bytes() == malformed_bytes
+    unclosed_report = root / "unclosed-style-preview-fixture.html"
+    unclosed_bytes = b"<style>" * 4096
+    unclosed_report.write_bytes(unclosed_bytes)
+    unclosed_headers = report_preview_headers(
+        unclosed_report, BASELINE_SECURITY_HEADERS
+    )
+    assert unclosed_headers == headers
+    assert unclosed_report.read_bytes() == unclosed_bytes
     for repeated in (True, False):
         report = root / f"style-budget-fixture-{repeated}.html"
         payload = (
@@ -114,6 +128,8 @@ def main() -> None:
                 "summary_scope_explicit": True,
                 "invalid_utf8_preview_fail_closed": True,
                 "report_csp_budget_enforced": True,
+                "unclosed_style_preview_fail_closed": True,
+                "verified_bundle_snapshot": True,
                 "saved_reopened_exported": True,
                 "hosted_disabled": True,
             },

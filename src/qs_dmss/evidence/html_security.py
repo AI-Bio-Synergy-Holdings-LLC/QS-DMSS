@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import re
+from collections.abc import Iterator
 from pathlib import Path
 
 # Keep the prior fixed tab script admitted for immutable historical workbooks.
@@ -19,7 +20,8 @@ WORKBOOK_TABS_SCRIPT = (
     LEGACY_WORKBOOK_TABS_SCRIPT
     + "document.getElementById('workbook-print')?.addEventListener('click',()=>window.print());"
 )
-STYLE_BLOCK = re.compile(r"<style\b[^>]*>(.*?)</style\s*>", re.IGNORECASE | re.DOTALL)
+STYLE_OPEN = re.compile(r"<style(?=[\t\n\f\r />])", re.IGNORECASE)
+STYLE_CLOSE = re.compile(r"</style\s*>", re.IGNORECASE)
 MAX_REPORT_BYTES = 4 * 1024 * 1024
 MAX_REPORT_CSP_BYTES = 8 * 1024
 
@@ -27,6 +29,32 @@ MAX_REPORT_CSP_BYTES = 8 * 1024
 def _csp_hash(content: str) -> str:
     digest = hashlib.sha256(content.encode("utf-8")).digest()
     return "'sha256-" + base64.b64encode(digest).decode("ascii") + "'"
+
+
+def _style_contents(text: str) -> Iterator[str]:
+    # Each cursor only moves forward. In particular, one unclosed style scans
+    # its suffix once, not once for every subsequent apparent <style> opening.
+    cursor = 0
+    while opening := STYLE_OPEN.search(text, cursor):
+        cursor = opening.end()
+        quote = None
+        while cursor < len(text):
+            char = text[cursor]
+            cursor += 1
+            if quote:
+                if char == quote:
+                    quote = None
+            elif char in "\"'":
+                quote = char
+            elif char == ">":
+                break
+        else:
+            raise ValueError("Unclosed report style opening")
+        closing = STYLE_CLOSE.search(text, cursor)
+        if closing is None:
+            raise ValueError("Unclosed report style content")
+        yield text[cursor : closing.start()]
+        cursor = closing.end()
 
 
 def report_preview_headers(path: Path, baseline: dict[str, str]) -> dict[str, str]:
@@ -59,16 +87,19 @@ def report_preview_headers(path: Path, baseline: dict[str, str]) -> dict[str, st
     styles: list[str] = []
     seen: set[str] = set()
     if text is not None and policy_bytes < MAX_REPORT_CSP_BYTES:
-        for match in STYLE_BLOCK.finditer(text):
-            style = _csp_hash(match.group(1))
-            if style in seen:
-                continue
-            policy_bytes += 1 + len(style)  # Hash tokens are ASCII; one separator.
-            if policy_bytes > MAX_REPORT_CSP_BYTES:
-                styles = []
-                break
-            seen.add(style)
-            styles.append(style)
+        try:
+            for content in _style_contents(text):
+                style = _csp_hash(content)
+                if style in seen:
+                    continue
+                policy_bytes += 1 + len(style)  # Hash tokens are ASCII; one separator.
+                if policy_bytes > MAX_REPORT_CSP_BYTES:
+                    styles = []
+                    break
+                seen.add(style)
+                styles.append(style)
+        except ValueError:
+            styles = []  # Malformed style markup never gets a partial allowlist.
     if styles:
         policy = policy.replace(
             "style-src 'self'", "style-src 'self' " + " ".join(styles)

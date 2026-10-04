@@ -77,7 +77,8 @@ denies analysis access/mutations. Hosted graph execution and AI remain unchanged
 Limits: 2–64 candidates, 2–41 distinct finite sampled weights, weights 0–10000,
 finite metrics/targets/constraints bounded to magnitude 1e12, 2 MiB per metadata
 file/derived analysis, 16 MiB total used source metadata, 64 MiB source bundle,
-4096 manifest entries and 200 listed campaigns/analyses. A grid that removes
+4096 manifest entries, a 4096-entry discovery scan ceiling per root, and 200
+listed campaigns/analyses. A grid that removes
 every positive weight is rejected, not silently omitted.
 
 Routes under `/api/robustness`: `GET /sources`, `GET /sources/{experiment_id}`,
@@ -98,6 +99,25 @@ open/export still verifies all retained source and the complete bundle, failing
 closed if either is missing, corrupted or exceeds limits. The selector explains
 this distinction and links it as an accessible description. Hosted listing
 remains denied. Original saved files are not rewritten or given new summary files.
+
+Discovery streams immediate filesystem entries, counting **all** entries
+(including non-artifacts and `_pending`) before artifact stats, reads or sorting.
+It consumes at most 4097 entries to detect overflow. A root above the 4096-entry
+ceiling returns an explicit HTTP 400, not a potentially misleading partial
+latest-200 list. Missing roots remain empty, genuine root storage failures remain
+errors, and unreadable individual records are isolated on Python 3.10–3.13.
+Below the ceiling, campaign lexicographic-descending and analysis mtime-descending
+ordering and the 200-candidate selection cap remain unchanged. No historical
+artifact is deleted; direct access to a known ID remains available beyond the
+discovery ceiling. Use a deliberately smaller evidence root for discovery.
+
+Every retained child read, including the manifest, bundle hash and ZIP, resolves
+within its artifact directory. HTTP exports serve the exact bounded ZIP byte
+snapshot whose hash was checked, so replacing the original path after verification
+cannot change the download. Normal ZIP response bytes, media type, attachment
+name, content length and baseline security headers are preserved. The local
+`bundle()` path accessor remains for compatibility but is not used for HTTP
+delivery; callers requiring verified bytes should use `bundle_snapshot()`.
 
 ## Rendering design and acceptance
 
@@ -148,6 +168,13 @@ are preserved. A trusted baseline already exceeding the budget is not weakened
 or truncated; it receives no artifact style hashes. The application's current
 baseline plus fixed hashes is below the budget. This is a value-size admission
 limit, not a guarantee about every proxy's total-header limits.
+
+Style extraction uses forward-only opening-tag, quote-aware attribute and closing
+tag scans rather than a lazy whole-block regex. An unclosed opening/content scans
+its remaining suffix once and omits all artifact style hashes. Exact valid CSS,
+newline normalization, stable hash order, fixed scripts and CSP budgets remain
+unchanged. This is a narrow style-admission scanner, not general HTML sanitization;
+the report bytes are still served unchanged under the restricted baseline CSP.
 
 ## Next increment: data-only add-on admission
 

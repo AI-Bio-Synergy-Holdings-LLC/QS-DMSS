@@ -21,7 +21,9 @@ def _hash(text):
 
 
 def _directive(policy, name):
-    return next(part.strip() for part in policy.split(";") if part.strip().startswith(name))
+    return next(
+        part.strip() for part in policy.split(";") if part.strip().startswith(name)
+    )
 
 
 def test_report_csp_only_allows_same_origin_and_exact_styles_and_fixed_script(tmp_path):
@@ -149,9 +151,7 @@ def test_distinct_styles_exceeding_budget_fail_closed_and_stop_hashing(
     tmp_path, monkeypatch
 ):
     path = tmp_path / "report.html"
-    payload = b"".join(
-        f"<style>/*{index}*/</style>".encode() for index in range(4096)
-    )
+    payload = b"".join(f"<style>/*{index}*/</style>".encode() for index in range(4096))
     path.write_bytes(payload)
     empty = tmp_path / "empty.html"
     empty.write_bytes(b"")
@@ -175,7 +175,9 @@ def test_distinct_styles_exceeding_budget_fail_closed_and_stop_hashing(
 
 
 @pytest.mark.parametrize("offset", [-1, 0, 1])
-def test_csp_budget_counts_baseline_and_fixed_scripts_at_byte_boundary(tmp_path, offset):
+def test_csp_budget_counts_baseline_and_fixed_scripts_at_byte_boundary(
+    tmp_path, offset
+):
     empty = tmp_path / "empty.html"
     empty.write_bytes(b"")
     style = "body{color:red}"
@@ -262,3 +264,111 @@ def test_style_heavy_report_http_keeps_bytes_and_bounded_fail_closed_headers(
     assert response.headers["x-frame-options"] == "SAMEORIGIN"
     assert response.headers["x-content-type-options"] == "nosniff"
     assert path.read_bytes() == payload
+
+
+@pytest.mark.parametrize(
+    "opening",
+    ['<StYlE media="screen > print">', "<style data-note='a>b'>", "<style\n>"],
+)
+def test_style_scanner_preserves_exact_content_with_quoted_attributes(
+    tmp_path, opening
+):
+    path = tmp_path / "report.html"
+    style = "\nbody::before{content:'<style> is CSS text'}\n"
+    path.write_text(opening + style + "</STYLE  >", encoding="utf-8")
+    policy = report_preview_headers(path, BASELINE_SECURITY_HEADERS)[
+        "Content-Security-Policy"
+    ]
+    assert _hash(style) in _directive(policy, "style-src")
+
+
+@pytest.mark.parametrize(
+    "suffix", ["<style>" * 2000, '<style note="' + "<style" * 2000]
+)
+def test_malformed_style_suffix_omits_all_artifact_hashes(tmp_path, suffix):
+    path = tmp_path / "report.html"
+    path.write_text("<style>body{color:red}</style>" + suffix, encoding="utf-8")
+    policy = report_preview_headers(path, BASELINE_SECURITY_HEADERS)[
+        "Content-Security-Policy"
+    ]
+    assert _directive(policy, "style-src") == _directive(
+        BASELINE_SECURITY_HEADERS["Content-Security-Policy"], "style-src"
+    )
+
+
+def test_many_unclosed_style_openings_make_only_one_closing_search(monkeypatch):
+    searches = []
+    real_close = html_security.STYLE_CLOSE
+
+    class CountedClose:
+        def search(self, text, start):
+            searches.append(start)
+            return real_close.search(text, start)
+
+    monkeypatch.setattr(html_security, "STYLE_CLOSE", CountedClose())
+    with pytest.raises(ValueError, match="Unclosed report style"):
+        list(html_security._style_contents("<style>" * 4000))
+    assert searches == [len("<style>")]
+
+
+@pytest.mark.parametrize("unterminated_attribute", [False, True])
+def test_four_mib_malformed_style_scan_does_not_revisit_characters(
+    tmp_path, unterminated_attribute
+):
+    class CountedText(str):
+        reads = 0
+
+        def __getitem__(self, key):
+            if isinstance(key, int):
+                self.reads += 1
+            return super().__getitem__(key)
+
+    prefix = '<style note="' if unterminated_attribute else "<style>"
+    suffix = "<style>" * ((html_security.MAX_REPORT_BYTES - len(prefix)) // 7)
+    text = CountedText((prefix + suffix).ljust(html_security.MAX_REPORT_BYTES))
+    with pytest.raises(ValueError, match="Unclosed report style"):
+        list(html_security._style_contents(text))
+    assert text.reads <= len(text)
+    path = tmp_path / "report.html"
+    payload = text.encode()
+    path.write_bytes(payload)
+    policy = report_preview_headers(path, BASELINE_SECURITY_HEADERS)[
+        "Content-Security-Policy"
+    ]
+    assert _directive(policy, "style-src") == _directive(
+        BASELINE_SECURITY_HEADERS["Content-Security-Policy"], "style-src"
+    )
+    assert path.read_bytes() == payload
+
+
+@pytest.mark.parametrize(
+    "kind,filename,route",
+    [
+        ("runs", "report.html", "/api/runs/report-test/report"),
+        ("experiments", "report.html", "/api/experiments/report-test/report"),
+        ("experiments", "workbook.html", "/api/experiments/report-test/workbook"),
+    ],
+)
+def test_unclosed_styles_http_preserves_bytes_and_fail_closed_policy(
+    tmp_path, kind, filename, route
+):
+    root = tmp_path / kind / "report-test"
+    root.mkdir(parents=True)
+    (root / ("run.json" if kind == "runs" else "experiment.json")).write_text(
+        "{}", encoding="utf-8"
+    )
+    payload = b"<style>" * 2000
+    (root / filename).write_bytes(payload)
+    response = TestClient(
+        create_app(
+            repo_root=Path(__file__).resolve().parents[1],
+            output_root=tmp_path / "runs",
+            hosted_demo=False,
+        )
+    ).get(route)
+    assert response.status_code == 200
+    assert response.content == payload
+    assert _directive(
+        response.headers["content-security-policy"], "style-src"
+    ) == _directive(BASELINE_SECURITY_HEADERS["Content-Security-Policy"], "style-src")
+    assert response.headers["x-frame-options"] == "SAMEORIGIN"

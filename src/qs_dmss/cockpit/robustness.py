@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import platform
 import re
 import shutil
@@ -14,7 +15,7 @@ from pathlib import Path
 from typing import Callable
 
 from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import Response
 
 from qs_dmss import __version__
 from qs_dmss.evidence.bundle import (
@@ -34,6 +35,7 @@ MAX_RUNS = 64
 MAX_FILE_BYTES = 2 * 1024 * 1024
 MAX_SOURCE_BYTES = 16 * 1024 * 1024
 MAX_BUNDLE_BYTES = 64 * 1024 * 1024
+MAX_DISCOVERY_ENTRIES = 4096
 SAFE_ID = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]{0,199}$")
 
 
@@ -96,6 +98,25 @@ def _verified_bytes(root: Path, relative: str, entries: dict) -> bytes:
     return payload
 
 
+def _discovery_entries(root: Path) -> list[Path]:
+    # scandir streams on every supported Python; older Path.iterdir uses listdir.
+    # Count all immediate entries, including non-artifacts and _pending, before
+    # stat/read/sort work. Never return a misleading partial "latest" collection.
+    entries = []
+    try:
+        with os.scandir(root) as scan:
+            for entry in scan:
+                if len(entries) == MAX_DISCOVERY_ENTRIES:
+                    raise RobustnessError(
+                        f"Robustness discovery exceeds the {MAX_DISCOVERY_ENTRIES}-entry scan limit; "
+                        "open a known artifact directly or use a smaller evidence root"
+                    )
+                entries.append(root / entry.name)
+    except FileNotFoundError:
+        return []  # A read does not create storage; other root errors propagate.
+    return entries
+
+
 @dataclass(frozen=True)
 class CockpitRobustnessService:
     experiments_root: Path
@@ -109,7 +130,16 @@ class CockpitRobustnessService:
         if self.hosted_demo_enabled:
             return {"available": False, "items": [], "reason": "Local-only pilot"}
         items = []
-        paths = sorted(self.experiments_root.glob("*/experiment.json"), reverse=True)
+        paths = []
+        for directory in _discovery_entries(self.experiments_root):
+            try:
+                root = _directory(self.experiments_root, directory.name)
+                path = contained_path(root, "experiment.json")
+                if path.is_file():
+                    paths.append(path)
+            except (HTTPException, ValueError, OSError):
+                continue
+        paths.sort(reverse=True)
         for path in paths[:200]:
             try:
                 record = _json(_read_bytes(contained_path(self.experiments_root, path)))
@@ -345,7 +375,9 @@ class CockpitRobustnessService:
     def _analysis_metadata(self, analysis_id: str) -> tuple[Path, dict, dict]:
         self._local()
         root = _directory(self._analysis_root(), analysis_id)
-        entries = _entries(_json(_read_bytes(root / "manifest.sha256.json")))
+        entries = _entries(
+            _json(_read_bytes(contained_path(root, "manifest.sha256.json")))
+        )
         result = _json(_verified_bytes(root, "analysis.json", entries))
         return root, entries, result
 
@@ -368,6 +400,10 @@ class CockpitRobustnessService:
         return {**summary, "integrity_scope": "analysis_json_only"}
 
     def load(self, analysis_id: str) -> dict:
+        result, _ = self._load_snapshot(analysis_id)
+        return result
+
+    def _load_snapshot(self, analysis_id: str) -> tuple[dict, bytes]:
         root, entries, result = self._analysis_metadata(analysis_id)
         retained_bytes = 0
         for relative in entries:
@@ -379,37 +415,32 @@ class CockpitRobustnessService:
                     )
         if result.get("analysis_id") != analysis_id:
             raise RobustnessError("Saved analysis identity is inconsistent")
-        bundle_hash = _read_bytes(root / "bundle.sha256", 64).decode("ascii")
-        if (
-            hashlib.sha256(
-                _read_bytes(root / "evidence_bundle.zip", MAX_BUNDLE_BYTES)
-            ).hexdigest()
-            != bundle_hash
-        ):
+        bundle_hash = _read_bytes(contained_path(root, "bundle.sha256"), 64).decode(
+            "ascii"
+        )
+        bundle = _read_bytes(
+            contained_path(root, "evidence_bundle.zip"), MAX_BUNDLE_BYTES
+        )
+        if hashlib.sha256(bundle).hexdigest() != bundle_hash:
             raise RobustnessError(
                 "Saved analysis bundle failed its retained integrity hash"
             )
         result["bundle_sha256"] = bundle_hash
         result["urls"] = {"bundle": f"/api/robustness/analyses/{analysis_id}/bundle"}
-        return result
+        return result, bundle
 
     def analyses(self) -> dict:
         self._local()
         items = []
         paths = []
-        # Older pathlib glob implementations stat literal child names during
-        # enumeration, before the per-artifact error boundary can handle them.
-        try:
-            for directory in self._analysis_root().iterdir():
-                path = directory / "analysis.json"
-                try:
-                    paths.append((path.stat().st_mtime_ns, path))
-                except OSError:
-                    continue
-        except FileNotFoundError:
-            # Storage is created on save; a read must not create it. Other
-            # root storage errors still fail closed through the router.
-            return {"items": []}
+        root = self._analysis_root()
+        for directory in _discovery_entries(root):
+            try:
+                artifact = _directory(root, directory.name)
+                path = contained_path(artifact, "analysis.json")
+                paths.append((path.stat().st_mtime_ns, path))
+            except (HTTPException, ValueError, OSError):
+                continue
         for _, path in sorted(paths, key=lambda item: item[0], reverse=True)[:200]:
             try:
                 item = self._summary(path.parent.name)
@@ -419,8 +450,16 @@ class CockpitRobustnessService:
         return {"items": items}
 
     def bundle(self, analysis_id: str) -> Path:
+        # Compatibility for local callers. HTTP must use the verified byte
+        # snapshot below rather than reopening this mutable filesystem path.
         self.load(analysis_id)  # Verify retained metadata before exporting.
-        return _directory(self._analysis_root(), analysis_id) / "evidence_bundle.zip"
+        return contained_path(
+            _directory(self._analysis_root(), analysis_id), "evidence_bundle.zip"
+        )
+
+    def bundle_snapshot(self, analysis_id: str) -> bytes:
+        _, bundle = self._load_snapshot(analysis_id)
+        return bundle
 
 
 def robustness_router(service_dependency: Callable) -> APIRouter:
@@ -474,9 +513,13 @@ def robustness_router(service_dependency: Callable) -> APIRouter:
 
     @router.get("/analyses/{analysis_id}/bundle")
     def bundle(analysis_id: str, active: CockpitRobustnessService = Depends(service)):
-        path = checked(lambda: active.bundle(analysis_id))
-        return FileResponse(
-            path, media_type="application/zip", filename=f"{analysis_id}.zip"
+        payload = checked(lambda: active.bundle_snapshot(analysis_id))
+        return Response(
+            payload,
+            media_type="application/zip",
+            headers={
+                "Content-Disposition": f'attachment; filename="{analysis_id}.zip"'
+            },
         )
 
     return router
