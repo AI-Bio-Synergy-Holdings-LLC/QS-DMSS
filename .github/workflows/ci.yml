@@ -107,6 +107,10 @@ jobs:
               wheel_names = set(archive.namelist())
           assert "qs_dmss/assets/configs/demo.yaml" in wheel_names
           assert "qs_dmss/assets/schemas/run_config.schema.json" in wheel_names
+          for name in ("manifest.json", "cases.json"):
+              assert "qs_dmss/assets/diagnostic-packs/fft-plane-wave-v1/" + name in wheel_names
+          for name in ("diagnostic-pack-v1", "diagnostic-pack-cases-v1"):
+              assert "qs_dmss/assets/schemas/" + name + ".schema.json" in wheel_names
           assert "qs_dmss/assets/benchmarks/scenarios/demo-baseline.yaml" in wheel_names
           assert "qs_dmss/assets/benchmarks/expected/demo-baseline.metrics.json" in wheel_names
           assert "qs_dmss/assets/showcases/canonical-simulation.yaml" in wheel_names
@@ -130,6 +134,9 @@ jobs:
           with tarfile.open(sdist) as archive:
               sdist_names = set(archive.getnames())
           assert sdist_root + "RELEASE.md" in sdist_names
+          assert sdist_root + "tests/test_diagnostic_packs.py" in sdist_names
+          for name in ("diagnostic-pack-v1", "diagnostic-pack-cases-v1"):
+              assert sdist_root + "schemas/" + name + ".schema.json" in sdist_names
           assert sdist_root + "tests/robustness_ui_state.test.cjs" in sdist_names
           assert sdist_root + "research/falsification/wolfram_reference.wl" in sdist_names
           assert sdist_root + "research/falsification/compare_wolfram.py" in sdist_names
@@ -193,6 +200,7 @@ jobs:
           "$GITHUB_WORKSPACE"/wheel-smoke/bin/qs-dmss benchmarks validate --scenario demo-baseline
           "$GITHUB_WORKSPACE"/wheel-smoke/bin/qs-dmss showcase run --output-root simulation-showcase
           "$GITHUB_WORKSPACE"/wheel-smoke/bin/python "$GITHUB_WORKSPACE"/.github/scripts/robustness_smoke.py --output-root recorded-robustness
+          "$GITHUB_WORKSPACE"/wheel-smoke/bin/python "$GITHUB_WORKSPACE"/.github/scripts/diagnostic_pack_smoke.py --output-root diagnostic-pack
 
   quantum-sidecar:
     name: Quantum sidecar
@@ -328,3 +336,9 @@ jobs:
           docker run --rm --entrypoint python
           -v "$GITHUB_WORKSPACE/.github/scripts/robustness_smoke.py:/tmp/robustness_smoke.py:ro"
           qs-dmss:ci /tmp/robustness_smoke.py --output-root /tmp/recorded-robustness
+
+      - name: Exercise data-only diagnostic pack from the installed container
+        run: >-
+          docker run --rm --entrypoint python
+          -v "$GITHUB_WORKSPACE/.github/scripts/diagnostic_pack_smoke.py:/tmp/diagnostic_pack_smoke.py:ro"
+          qs-dmss:ci /tmp/diagnostic_pack_smoke.py --output-root /tmp/diagnostic-pack

@@ -1,0 +1,33 @@
+{
+  "schema_version": "qs-dmss-diagnostic-pack/v1",
+  "pack_id": "fft-plane-wave-reference",
+  "pack_type": "diagnostic",
+  "version": "1.0.0",
+  "title": "Periodic FFT plane-wave energy reference",
+  "description": "Twelve bounded analytic kinetic-energy cases for the CPU rectangular periodic Fractal SSFM diagnostic. No evolution or physical-validation claim.",
+  "supported_core_versions": {
+    "min_inclusive": "0.13.2",
+    "max_exclusive": "0.15.0"
+  },
+  "required_diagnostic_conventions": [
+    "fft_cell_measure_v2"
+  ],
+  "dependencies": [],
+  "license": "Apache-2.0",
+  "attribution": "Original analytic-reference data: AI-Bio Synergy Holdings LLC.",
+  "source": "Maintainer-authored closed-form plane-wave references; hbar=1, zero potential and interaction, unit norm.",
+  "redistribution": "permitted_under_declared_license",
+  "resource_limits": {
+    "max_file_bytes": 16384,
+    "max_cases": 12,
+    "max_grid_cells": 16384,
+    "max_total_grid_cells": 32768
+  },
+  "evidence_schema_version": "qs-dmss-diagnostic-pack-result/v1",
+  "diagnostic_id": "fft_plane_wave_energy_v1",
+  "acceptance_suite": "fft_plane_wave_pack_contract_v1",
+  "content": {
+    "path": "cases.json",
+    "sha256": "b42ef7076b5cf2425217d6c570b7d45ea16326e2ab506abb78ccd9b8c9b54055"
+  }
+}

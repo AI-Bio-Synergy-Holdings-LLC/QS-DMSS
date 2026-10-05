@@ -9,6 +9,7 @@ include RELEASE.md
 include SECURITY.md
 include codemeta.json
 include pyproject.toml
+include .gitattributes
 recursive-include configs *.yaml
 recursive-include benchmarks *.md
 recursive-include docs *.md
@@ -18,6 +19,7 @@ include docs/review-evidence/wolfram-falsification-v1.zip
 recursive-include paper *.bib *.md
 recursive-include schemas *.json
 recursive-include src/qs_dmss/assets/benchmarks *.yaml *.json
+recursive-include src/qs_dmss/assets/diagnostic-packs *.json
 recursive-include src/qs_dmss/assets/quantum *.yaml *.csv *.json *.md *.zip
 recursive-include src/qs_dmss/assets/showcases *.yaml
 recursive-include src/qs_dmss/cockpit/static *.png *.svg
