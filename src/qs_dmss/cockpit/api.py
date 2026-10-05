@@ -53,12 +53,14 @@ from qs_dmss.cockpit.campaigns import (
     CampaignLaunchSpec,
     CockpitCampaignService,
 )
+from qs_dmss.cockpit.robustness import robustness_router
 from qs_dmss.cockpit.workspaces import (
     CockpitWorkspaceService,
     WorkspaceExportSpec,
 )
 from qs_dmss.decision import evaluate_run_decision
 from qs_dmss.deployment import public_deployment_provenance
+from qs_dmss.evidence.html_security import report_preview_headers
 from qs_dmss.evidence.verify import verify_run_path
 from qs_dmss.execution import (
     ExecutionArtifact,
@@ -1526,6 +1528,7 @@ class CockpitService:
         for asset_name in (
             "styles.css", "app.js", "scientific-challenges.js",
             "scientific-challenges.css", "scientific-challenges.json",
+            "robustness.js", "robustness.css",
         ):
             asset_path = self.static_root / asset_name
             digest.update(asset_name.encode("utf-8"))
@@ -2349,6 +2352,8 @@ def create_app(
         client_host = request.client.host if request.client else "unknown"
         return f"{session_id}:{client_host}"
 
+    app.include_router(robustness_router(current_service))
+
     def run_hosted_job_guard(
         request: Request,
         active_service: CockpitService,
@@ -2382,7 +2387,12 @@ def create_app(
         filename: str | None = None,
     ) -> FileResponse:
         active_service.assert_hosted_download_allowed(path)
-        return FileResponse(path, media_type=media_type, filename=filename)
+        headers = {}
+        if media_type == "text/html" and filename is None:
+            # The cockpit deliberately previews its own generated reports.
+            # Keep every other surface DENY and retain cross-origin framing denial.
+            headers = report_preview_headers(path, BASELINE_SECURITY_HEADERS)
+        return FileResponse(path, media_type=media_type, filename=filename, headers=headers)
 
     @app.get("/")
     def root() -> HTMLResponse:

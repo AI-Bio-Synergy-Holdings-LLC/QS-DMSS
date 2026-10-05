@@ -76,6 +76,10 @@ jobs:
         run: |
           node --check src/qs_dmss/cockpit/static/app.js
           node --check src/qs_dmss/cockpit/static/scientific-challenges.js
+          node --check src/qs_dmss/cockpit/static/robustness.js
+
+      - name: Test robustness UI failure-state contracts
+        run: node --test tests/robustness_ui_state.test.cjs
 
       - name: Build release artifacts
         run: python -m build --sdist --wheel
@@ -116,6 +120,8 @@ jobs:
           )
           assert "qs_dmss/assets/quantum/fractal-fuzzy-4x4.yaml" in wheel_names
           assert "qs_dmss/cockpit/static/favicon.svg" in wheel_names
+          assert "qs_dmss/cockpit/static/robustness.js" in wheel_names
+          assert "qs_dmss/cockpit/static/robustness.css" in wheel_names
           assert "qs_dmss/cockpit/static/hosted-demo-social-preview.png" in wheel_names
           for extension in ("css", "js", "json"):
               assert f"qs_dmss/cockpit/static/scientific-challenges.{extension}" in wheel_names
@@ -124,6 +130,7 @@ jobs:
           with tarfile.open(sdist) as archive:
               sdist_names = set(archive.getnames())
           assert sdist_root + "RELEASE.md" in sdist_names
+          assert sdist_root + "tests/robustness_ui_state.test.cjs" in sdist_names
           assert sdist_root + "research/falsification/wolfram_reference.wl" in sdist_names
           assert sdist_root + "research/falsification/compare_wolfram.py" in sdist_names
           assert sdist_root + "research/challenges/registry-v1.json" in sdist_names
@@ -185,6 +192,7 @@ jobs:
           "$GITHUB_WORKSPACE"/wheel-smoke/bin/qs-dmss run-demo --output-root runs
           "$GITHUB_WORKSPACE"/wheel-smoke/bin/qs-dmss benchmarks validate --scenario demo-baseline
           "$GITHUB_WORKSPACE"/wheel-smoke/bin/qs-dmss showcase run --output-root simulation-showcase
+          "$GITHUB_WORKSPACE"/wheel-smoke/bin/python "$GITHUB_WORKSPACE"/.github/scripts/robustness_smoke.py --output-root recorded-robustness
 
   quantum-sidecar:
     name: Quantum sidecar
@@ -314,3 +322,9 @@ jobs:
           assert payload["default_name"] == "demo.yaml", payload
           assert payload["items"], payload
           PY
+
+      - name: Exercise recorded robustness from the installed container
+        run: >-
+          docker run --rm --entrypoint python
+          -v "$GITHUB_WORKSPACE/.github/scripts/robustness_smoke.py:/tmp/robustness_smoke.py:ro"
+          qs-dmss:ci /tmp/robustness_smoke.py --output-root /tmp/recorded-robustness

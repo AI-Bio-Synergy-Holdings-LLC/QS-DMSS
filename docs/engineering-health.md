@@ -7,6 +7,14 @@ Latest repository reconciliation: 2026-09-23. See
 updated baseline, dependency remediation, evidence-validator fixes, and
 remaining review gates. The July measurements below are historical.
 
+Latest feature qualification: 2026-10-03. See
+[the recorded-result robustness pilot](candidate-qualification-2026-10-03.md)
+for its clean-baseline and full-gate evidence. It adds an isolated API/rendering
+boundary without closing EH-001/EH-003 for the remaining shared modules.
+Multidimensional sensitivity, defensible runtime uncertainty and data-pack
+admission remain separate increments; no executable-extension framework or
+scientific/legal approval is bundled into that pilot.
+
 This register separates measured engineering health from work that needs a
 larger architectural, operational, scientific, or legal decision. It is not a
 release-readiness approval and does not expand the project's scientific claim.

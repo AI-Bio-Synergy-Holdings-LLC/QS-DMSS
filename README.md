@@ -426,6 +426,7 @@ Inside the cockpit you can:
 - Inspect Scenario Library metadata for packaged scenarios, including purpose, expected runtime, artifacts, readiness, limitations, and suggested next actions
 - Select the packaged Self-Interaction Sweep study template to inspect purpose, expected runtime, metrics, limitations, non-claims, and guided interpretation for an `engine.g_int` campaign
 - Edit the Campaign Studio parameter grid and decision profile for the bundled decision campaign, preview the scoring contract, and launch the edited campaign through the existing evidence/recommendation workflow
+- In the unreleased local [Recommendation robustness explorer](docs/recommendation-robustness.md), re-score recorded campaign results, track any configuration across a bounded preference grid, and save exact profiles and source hashes without rerunning or altering original evidence
 - Save Campaign Studio edits as local study templates, inspect visible template cards with objective/run metadata, reload or rerun saved templates, and import/export the study JSON so another user can reproduce the same campaign design
 - Inspect LocalExecutor job provenance for selected runs, campaign variants,
   saved experiment artifacts, and persisted research-object exports, including

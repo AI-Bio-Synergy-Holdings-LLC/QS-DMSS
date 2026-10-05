@@ -388,6 +388,32 @@ def apply_decision_profile(
             "reason": unavailable_reason,
         }
 
+    return apply_explicit_decision_profile(
+        comparison,
+        profile,
+        {
+            row["run_id"]: bool(detail["verification"]["success"])
+            for detail, row in zip(run_details, rows)
+        },
+        profile_groups=profile_groups,
+    )
+
+
+def apply_explicit_decision_profile(
+    comparison: dict[str, Any],
+    profile: dict[str, Any],
+    verification_by_run: dict[str, bool],
+    *,
+    profile_groups: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Score recorded rows with the established campaign scoring contract.
+
+    Mutates only the supplied comparison rows. Callers proposing a new profile
+    must validate it and copy their source comparison first.
+    """
+    rows = comparison["rows"]
+    profile_groups = profile_groups or []
+
     ranking = profile["ranking"]
     objective = profile["objective"]
     weights = {
@@ -442,11 +468,11 @@ def apply_decision_profile(
 
     total_weight = sum(active_weights.values())
     row_decisions: list[dict[str, Any]] = []
-    for detail, row in zip(run_details, rows):
+    for row in rows:
         evaluation = _evaluate_row_decision(
             profile,
             row,
-            bool(detail["verification"]["success"]),
+            verification_by_run[row["run_id"]],
         )
         weighted_score = 0.0
         for metric, weight in active_weights.items():
