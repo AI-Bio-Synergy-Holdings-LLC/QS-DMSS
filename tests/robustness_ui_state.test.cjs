@@ -12,8 +12,11 @@ function section(start, end) {
   return source.slice(begin, finish);
 }
 const callbacks = [
+  section("  function variant(", "  function editor("),
   section("  function invalidate(", "  function svg("),
+  section("  function svg(", "  function render("),
   section("  function render(", "  async function preview("),
+  section("  async function preview(", "  async function openSource("),
   section("  async function openSource(", "  async function refreshSources("),
   section("  async function refreshSaved(", "  form.addEventListener(\"submit\""),
   section("  $(\"save\").addEventListener(", "  document.addEventListener(\"qs-dmss:experiment-selected\""),
@@ -37,22 +40,23 @@ function deferred() {
 }
 function harness(io) {
   const elements = new Map(), requests = [], messages = [];
+  const element = () => ({hidden: false, disabled: false, attrs: new Map(), children: [], clientWidth: 800,
+    addEventListener(event, callback) { this[event] = callback; },
+    setAttribute(key, value) { this.attrs.set(key, value); },
+    removeAttribute(key) { this.attrs.delete(key); },
+    replaceChildren(...children) { this.children = children; },
+    append(...children) { this.children.push(...children); },
+  });
   const $ = name => {
-    if (!elements.has(name)) elements.set(name, {hidden: false, disabled: false, attrs: new Map(), children: [],
-      addEventListener(event, callback) { this[event] = callback; },
-      setAttribute(key, value) { this.attrs.set(key, value); },
-      removeAttribute(key) { this.attrs.delete(key); },
-      replaceChildren(...children) { this.children = children; },
-      append(...children) { this.children.push(...children); },
-    });
+    if (!elements.has(name)) elements.set(name, element());
     return elements.get(name);
   };
   const state = {source: null, result: result(), displayed: result(), generation: 1,
     sourcesGeneration: 0, savedGeneration: 0, busy: false, timer: null};
   const context = vm.createContext({$, state, form: {hidden: false}, chart: $("chart"), clearTimeout, structuredClone,
-    metrics: {}, node: () => ({}), table: () => ({}), drawChart() {}, editor() {},
+    metrics: {}, node(tag, value) { const item = element(); item.tag = tag; if (value !== undefined) item.textContent = String(value); return item; },
+    document: {createElementNS: () => element()}, editor() {}, requestPayload: () => result().request,
     option: (value, label) => ({value, label}),
-    variant: row => row.variant_label || row.name || row.run_id,
     status(message) { messages.push(message); },
     async api(endpoint, payload) { requests.push({endpoint, payload}); return io(endpoint, payload); },
   });
@@ -60,6 +64,93 @@ function harness(io) {
   return {$, state, requests, messages, context};
 }
 const listingError = "Robustness discovery exceeds the directory-entry resource limit";
+
+const labelCases = [
+  [{variant_label: "Interaction=0", name: "Run name"}, "Interaction=0"],
+  [{variant_label: "  valid label  ", name: "Run name"}, "  valid label  "],
+  [{variant_label: "", name: "Run name"}, "Run name"],
+  [{variant_label: " \t ", name: "Run name"}, "Run name"],
+  [{variant_label: null, name: "Run name"}, "Run name"],
+  [{variant_label: {label: "object"}, name: "Run name"}, "Run name"],
+  [{variant_label: ["array"], name: "Run name"}, "Run name"],
+  [{variant_label: 42, name: "Run name"}, "Run name"],
+  [{variant_label: true, name: "Run name"}, "Run name"],
+  [{variant_label: {label: "object"}, name: ["array"]}, "run-a"],
+  [{variant_label: false, name: 7}, "run-a"],
+  [{variant_label: null, name: null}, "run-a"],
+  [{variant_label: "λ <img src=x onerror=alert(1)> 🧪", name: "Run name"}, "λ <img src=x onerror=alert(1)> 🧪"],
+  [{}, "run-a"],
+];
+for (const [index, [labels, expected]] of labelCases.entries()) {
+  test(`display label ${index} renders actual SVG/table without altering recorded fields`, () => {
+    const h = harness(async () => result());
+    const analysis = result(); Object.assign(analysis.current.rows[0], labels);
+    const before = JSON.stringify(analysis);
+    for (const width of [800, 320]) {
+      h.$("chart").clientWidth = width;
+      assert.equal(h.context.variant(analysis.current.rows[0]), expected);
+      h.context.render(analysis);
+      assert.equal(h.$("save").disabled, false);
+      assert.equal(h.$("chart").children.length, 1);
+      assert.match(h.$("winner").textContent, /Current recommendation:/);
+      assert.equal(h.$("rows").children[0].children[1].children[0].children[0].textContent, `${expected} · tracked`);
+    }
+    assert.equal(JSON.stringify(analysis), before);
+  });
+}
+
+test("Save and download remain gated until complete chart rendering", () => {
+  const h = harness(async () => result());
+  h.$("save").disabled = false; h.$("download").hidden = false;
+  h.context.drawChart = () => {
+    assert.equal(h.$("save").disabled, true);
+    assert.equal(h.$("download").hidden, true);
+  };
+  h.context.render(result());
+  assert.equal(h.$("save").disabled, false);
+  h.context.render(result(), true);
+  assert.equal(h.$("save").disabled, true);
+  assert.equal(h.$("download").hidden, false);
+});
+
+for (const saved of [false, true]) {
+  test(`failed ${saved ? "saved" : "preview"} render clears partial state and disables actions`, async () => {
+    const h = harness(async () => result());
+    h.$("save").disabled = false; h.$("download").hidden = false;
+    h.context.drawChart = () => { throw new Error("Display failed"); };
+    assert.throws(() => h.context.render(result(), saved), /Display failed/);
+    assert.equal(h.$("save").disabled, true);
+    assert.equal(h.$("download").hidden, true);
+    assert.equal(h.$("output").hidden, true);
+    assert.equal(h.$("output").attrs.has("aria-busy"), false);
+    assert.equal(h.state.result, null);
+    assert.equal(h.state.displayed, null);
+    h.context.drawChart = () => {};
+    h.context.render(result(), saved);
+    assert.equal(h.$("output").hidden, false);
+    assert.equal(h.$("save").disabled, saved);
+  });
+}
+
+test("preview rendering failure cannot advertise a previous valid profile or issue Save", async () => {
+  const h = harness(async () => result());
+  h.context.drawChart = () => { throw new Error("Display failed"); };
+  await h.context.preview();
+  assert.equal(h.messages.at(-1), "Display failed");
+  await h.$("save").click();
+  assert.equal(h.requests.filter(item => item.endpoint === "/api/robustness/analyses").length, 0);
+});
+
+test("failed saved editor does not replace the active source or expose editable partial fields", async () => {
+  const h = harness(async () => result());
+  const original = {experiment_id: "healthy-source"}; h.state.source = original;
+  h.context.editor = () => { throw new Error("Invalid saved profile"); };
+  await h.$("saved").change({target: {value: "saved-a"}});
+  assert.equal(h.state.source, original);
+  assert.equal(h.context.form.hidden, true);
+  assert.equal(h.$("save").disabled, true);
+  assert.equal(h.$("download").hidden, true);
+});
 
 test("older saved-list success cannot replace a newer post-save list", async () => {
   const old = deferred(), newer = deferred(); let count = 0;

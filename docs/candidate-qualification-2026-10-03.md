@@ -727,3 +727,32 @@ Revised-head remote matrix, Linux real-symlink coverage, installed-wheel/Docker,
 security/dependency checks and one completed Copilot re-review are required.
 This is not descriptor-anchored TOCTOU protection, independent scientific review,
 fresh-wheel Windows qualification, or permission to publish another version.
+
+## Display-label/render-state follow-up (2026-10-04)
+
+The owner authorized one focused correction of completed Copilot review
+`5407668568`, qualification and one re-review, preceded by an end-to-end engineering
+assessment. [That assessment](robustness-engineering-review-2026-10-04.md) records
+the cross-boundary review, regression evidence, rendered workflow and limitations.
+
+Display now selects a nonblank string from variant label, name or validated run
+ID without migrating recorded metadata. Save/download become actionable only
+after complete rendering. Rendering failures clear partial state and fail closed;
+saved-editor preparation cannot replace the active source on failure. API/scoring,
+routes, schemas, resource ceilings and persistence formats are unchanged.
+
+All **37 Node contracts** pass (new cases red: 12 failures / 25 passes). Nine new
+Python raw-label compatibility cases pass through source, preview, save, reopen
+and export. Full local quantum suite: **736 passed / 25 Windows privilege skips /
+90.95% coverage**; isolated Python 3.10/3.11: **352 passed / 25 privilege skips**
+each. Lint, configured security/dependency checks, benchmark, compilation, registry
+and source smoke pass. Installed-wheel/Docker smoke adds
+`raw_display_fields_preserved`; remote Linux must run the privileged loop cases.
+
+Desktop/mobile real-HTTP QA passes six keyboard saves, read-only reopens and ZIP
+downloads with matching hashes, literal hostile text, safe label fallback,
+fail-closed rendering, stale/tampered rejection and recovery. Original evidence
+is byte-identical; no solver or AI call is made. Latest-head artifact/remote gates
+and the single subsequent review are recorded on PR #197 when complete. The PR
+remains draft; fresh owner approval and explicit protected-merge authority remain
+required, with no release or production change included.

@@ -42,7 +42,11 @@
     choices.forEach(([key, text]) => select.append(option(key, text)));
     select.value = value; field.append(node("span", label), select); return field;
   }
-  function variant(row) { return row.variant_label || row.name || row.run_id; }
+  function variant(row) {
+    // Display-only fallback: never coerce objects or rewrite recorded evidence.
+    return [row?.variant_label, row?.name, row?.run_id]
+      .find(value => typeof value === "string" && value.trim()) || "Unnamed configuration";
+  }
   function editor(source, request = null) {
     const profile = request?.profile || source.comparison.decision.profile;
     const fields = $("fields"); fields.replaceChildren();
@@ -136,30 +140,40 @@
     table.append(head, body); return table;
   }
   function render(result, saved = false) {
-    state.result = result; state.displayed = result; $("output").hidden = false; $("output").removeAttribute("aria-busy");
-    const sensitivity = result.sensitivity;
-    $("insight").textContent = `Tracked configuration wins ${sensitivity.preferred_win_count} of ${sensitivity.case_count} sampled profiles with constraints satisfied. Rank range: ${sensitivity.preferred_rank_range.join("–")}. ${sensitivity.qualification_fallback_count} profiles have no qualified configuration.`;
-    const winner = result.current.rows.find(row => row.run_id === result.current.decision.recommended_run_id);
-    $("winner").textContent = `Current recommendation: ${variant(winner)} · ${result.current.decision.status}. ${result.current.decision.qualified_run_count}/${result.current.rows.length} configurations satisfy constraints.${result.current.decision.status === "fallback" ? " Fallback only: no configuration meets every constraint." : ""}`;
-    $("rows").replaceChildren(table(["Configuration", "Rank", "Score", "Constraints", "Energy drift", "Norm drift", "Peak density", "Seconds"],
-      [...result.current.rows].sort((a, b) => a.decision_rank - b.decision_rank).map(row => [
-        `${variant(row)}${row.run_id === result.request.preferred_run_id ? " · tracked" : ""}`, row.decision_rank,
-        row.decision_score.toFixed(6), row.decision_qualified ? "Satisfied" : row.constraint_failures.join("; "),
-        row.energy_drift.toExponential(3), row.norm_drift.toExponential(3), row.max_density.toPrecision(5), row.elapsed_seconds,
-      ])));
-    $("sensitivity-rows").replaceChildren(table([`${metrics[sensitivity.metric]} base weight`, "Recommended configuration", "Tracked rank", "Tracked score", "Qualification"],
-      sensitivity.cases.map(item => [Number(item.weight.toPrecision(5)),
-        variant(result.current.rows.find(row => row.run_id === item.recommended_run_id)), item.preferred_rank,
-        item.preferred_score.toFixed(6), item.status === "fallback" ? "No qualified candidate — fallback" : "Qualified recommendation"])));
-    $("provenance").replaceChildren(node("p", `Scoring: ${result.scoring_convention}; sensitivity: ${result.analysis_convention}.`),
-      node("p", result.source.integrity_scope), node("p", result.source.verification_scope),
-      node("p", `Energy convention: ${[...new Set(Object.values(result.source.energy_diagnostic_conventions))].join(", ")}${result.source.legacy_convention ? " — legacy semantics are unspecified; interpret cautiously." : ""}`),
-      node("code", `Profile SHA-256: ${result.profile_sha256}`), node("code", `Source fingerprint: ${result.source.source_fingerprint}`),
-      node("pre", JSON.stringify(result.profile, null, 2)), node("pre", JSON.stringify(result.source.sha256, null, 2)));
-    $("boundary").textContent = result.claim_boundary;
-    $("save").disabled = saved;
-    if (saved) { $("download").href = result.urls.bundle; $("download").hidden = false; }
-    drawChart(); status(saved ? `Saved immutable analysis ${result.analysis_id}. Evidence bundle ready.` : "Recorded scores updated. Original campaign evidence is unchanged.");
+    // Rendering is a commit boundary: a partial result must never be actionable.
+    state.result = null; $("save").disabled = true; $("download").hidden = true;
+    try {
+      state.displayed = result; $("output").hidden = false; $("output").removeAttribute("aria-busy");
+      const sensitivity = result.sensitivity;
+      $("insight").textContent = `Tracked configuration wins ${sensitivity.preferred_win_count} of ${sensitivity.case_count} sampled profiles with constraints satisfied. Rank range: ${sensitivity.preferred_rank_range.join("–")}. ${sensitivity.qualification_fallback_count} profiles have no qualified configuration.`;
+      const winner = result.current.rows.find(row => row.run_id === result.current.decision.recommended_run_id);
+      $("winner").textContent = `Current recommendation: ${variant(winner)} · ${result.current.decision.status}. ${result.current.decision.qualified_run_count}/${result.current.rows.length} configurations satisfy constraints.${result.current.decision.status === "fallback" ? " Fallback only: no configuration meets every constraint." : ""}`;
+      $("rows").replaceChildren(table(["Configuration", "Rank", "Score", "Constraints", "Energy drift", "Norm drift", "Peak density", "Seconds"],
+        [...result.current.rows].sort((a, b) => a.decision_rank - b.decision_rank).map(row => [
+          `${variant(row)}${row.run_id === result.request.preferred_run_id ? " · tracked" : ""}`, row.decision_rank,
+          row.decision_score.toFixed(6), row.decision_qualified ? "Satisfied" : row.constraint_failures.join("; "),
+          row.energy_drift.toExponential(3), row.norm_drift.toExponential(3), row.max_density.toPrecision(5), row.elapsed_seconds,
+        ])));
+      $("sensitivity-rows").replaceChildren(table([`${metrics[sensitivity.metric]} base weight`, "Recommended configuration", "Tracked rank", "Tracked score", "Qualification"],
+        sensitivity.cases.map(item => [Number(item.weight.toPrecision(5)),
+          variant(result.current.rows.find(row => row.run_id === item.recommended_run_id)), item.preferred_rank,
+          item.preferred_score.toFixed(6), item.status === "fallback" ? "No qualified candidate — fallback" : "Qualified recommendation"])));
+      $("provenance").replaceChildren(node("p", `Scoring: ${result.scoring_convention}; sensitivity: ${result.analysis_convention}.`),
+        node("p", result.source.integrity_scope), node("p", result.source.verification_scope),
+        node("p", `Energy convention: ${[...new Set(Object.values(result.source.energy_diagnostic_conventions))].join(", ")}${result.source.legacy_convention ? " — legacy semantics are unspecified; interpret cautiously." : ""}`),
+        node("code", `Profile SHA-256: ${result.profile_sha256}`), node("code", `Source fingerprint: ${result.source.source_fingerprint}`),
+        node("pre", JSON.stringify(result.profile, null, 2)), node("pre", JSON.stringify(result.source.sha256, null, 2)));
+      $("boundary").textContent = result.claim_boundary;
+      drawChart();
+      if (saved) { $("download").href = result.urls.bundle; $("download").hidden = false; }
+      state.result = result; $("save").disabled = saved;
+      status(saved ? `Saved immutable analysis ${result.analysis_id}. Evidence bundle ready.` : "Recorded scores updated. Original campaign evidence is unchanged.");
+    } catch (error) {
+      state.result = null; state.displayed = null; chart.replaceChildren();
+      $("output").hidden = true; $("output").removeAttribute("aria-busy");
+      $("save").disabled = true; $("download").hidden = true;
+      throw error;
+    }
   }
   async function preview() {
     const generation = state.generation;
@@ -242,14 +256,16 @@
     state.sourcesGeneration += 1;
     clearTimeout(state.timer);
     invalidate("Checking retained analysis evidence…");
+    form.hidden = true;
     const generation = state.generation;
     try {
       const result = await api(`/api/robustness/analyses/${encodeURIComponent(event.target.value)}`);
       if (generation !== state.generation) return;
       // Saved evidence can be inspected even if its original campaign is no longer present.
-      state.source = {experiment_id: result.source.experiment_id, source_fingerprint: result.source.source_fingerprint,
+      const source = {experiment_id: result.source.experiment_id, source_fingerprint: result.source.source_fingerprint,
         comparison: {rows: result.current.rows, decision: {profile: result.profile, recommended_run_id: result.request.preferred_run_id}}};
-      editor(state.source, result.request); form.hidden = true; render(result, true);
+      editor(source, result.request); form.hidden = true; render(result, true);
+      state.source = source;
     } catch (error) { if (generation === state.generation) {
       $("output").removeAttribute("aria-busy");
       status(`${error.message}${state.displayed ? " Showing the previous valid result; saving is disabled." : ""}`);

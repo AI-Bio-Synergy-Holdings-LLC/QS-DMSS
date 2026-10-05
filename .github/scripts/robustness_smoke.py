@@ -471,6 +471,52 @@ def assert_resolution_loop_contracts(service, identifier, analysis_id, request):
     assert service.load(analysis_id) == saved_before
 
 
+def assert_raw_display_fields_preserved(service, identifier, request):
+    """The UI chooses safe text without migrating metadata or changing scoring."""
+    root = service.experiments_root / identifier
+    path, manifest_path = root / "comparison.json", root / "manifest.sha256.json"
+    read = robustness._read_bytes
+    original, original_manifest = read(path), read(manifest_path)
+    for labels in (
+        {"variant_label": {"label": "object"}, "name": ["array"]},
+        {"variant_label": True, "name": 7},
+        {"variant_label": "λ <img src=x onerror=alert(1)> 🧪", "name": None},
+    ):
+        comparison = json.loads(original)
+        comparison["rows"][0].update(labels)
+        payload = json.dumps(comparison).encode()
+        manifest = json.loads(original_manifest)
+        entry = next(
+            item for item in manifest["files"] if item["path"] == "comparison.json"
+        )
+        entry.update(
+            size_bytes=len(payload), sha256=hashlib.sha256(payload).hexdigest()
+        )
+        replacements = {path: payload, manifest_path: json.dumps(manifest).encode()}
+        with patch.object(
+            robustness,
+            "_read_bytes",
+            side_effect=lambda candidate, limit=robustness.MAX_FILE_BYTES: (
+                replacements[candidate]
+                if candidate in replacements
+                else read(candidate, limit)
+            ),
+        ):
+            source = service.source(identifier)
+            preview = service.preview(
+                request.model_copy(
+                    update={"source_fingerprint": source["source_fingerprint"]}
+                )
+            )
+            assert all(
+                preview["current"]["rows"][0][key] == value
+                for key, value in labels.items()
+            )
+            for row, baseline in zip(preview["current"]["rows"], comparison["rows"]):
+                assert row["decision_score"] == baseline["decision_score"]
+    assert read(path) == original and read(manifest_path) == original_manifest
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-root", required=True, type=Path)
@@ -516,6 +562,7 @@ def main() -> None:
     assert_json_and_profile_admission(service, identifier, saved["analysis_id"])
     assert_storage_root_identities(service, identifier, saved["analysis_id"], payload)
     assert_resolution_loop_contracts(service, identifier, saved["analysis_id"], payload)
+    assert_raw_display_fields_preserved(service, identifier, payload)
     assert saved["sensitivity"]["case_count"] == 3
     with zipfile.ZipFile(service.bundle(saved["analysis_id"])) as archive:
         assert f"{saved['analysis_id']}/source/comparison.json" in archive.namelist()
@@ -602,6 +649,7 @@ def main() -> None:
                 "staging_root_identity_enforced_before_writes": True,
                 "artifact_resolution_loops_sanitized": True,
                 "looped_entries_isolated": True,
+                "raw_display_fields_preserved": True,
                 "saved_reopened_exported": True,
                 "hosted_disabled": True,
             },

@@ -430,6 +430,58 @@ def test_captured_integer_float_equality_remains_compatible(
     assert service.load(saved["analysis_id"]) == saved
 
 
+@pytest.mark.parametrize(
+    "labels",
+    [
+        {"variant_label": {"label": "object"}, "name": "Run name"},
+        {"variant_label": ["array"], "name": "Run name"},
+        {"variant_label": 42, "name": "Run name"},
+        {"variant_label": True, "name": "Run name"},
+        {"variant_label": None, "name": "Run name"},
+        {"variant_label": " \t ", "name": "Run name"},
+        {"variant_label": {"label": "object"}, "name": ["array"]},
+        {"variant_label": False, "name": 7},
+        {"variant_label": "λ <img src=x onerror=alert(1)> 🧪", "name": None},
+    ],
+)
+def test_display_only_labels_preserve_source_preview_save_reopen_and_export(
+    service, labels
+):
+    root = service.experiments_root / "campaign-a"
+    comparison = json.loads((root / "comparison.json").read_bytes())
+    comparison["rows"][0].update(labels)
+    _write(root / "comparison.json", comparison)
+    write_manifest_for_directory(root)
+    create_bundle_zip_for_directory(root)
+    originals = _tree_bytes(root)
+    source = service.source("campaign-a")
+    request = _request(service).model_dump(mode="json")
+    client = _client(service)
+    preview = client.post("/api/robustness/preview", json=request)
+    saved_response = client.post("/api/robustness/analyses", json=request)
+    assert preview.status_code == saved_response.status_code == 200
+    saved = saved_response.json()
+    reopened = client.get(f"/api/robustness/analyses/{saved['analysis_id']}")
+    assert reopened.status_code == 200
+    for result in (source["comparison"], preview.json()["current"], saved["current"]):
+        assert all(result["rows"][0][key] == value for key, value in labels.items())
+    assert reopened.json() == saved
+    assert preview.json()["current"] == saved["current"]
+    exported = client.get(saved["urls"]["bundle"])
+    assert exported.status_code == 200
+    assert hashlib.sha256(exported.content).hexdigest() == saved["bundle_sha256"]
+    with zipfile.ZipFile(service.bundle(saved["analysis_id"])) as archive:
+        assert (
+            archive.read(f"{saved['analysis_id']}/source/comparison.json")
+            == originals[Path("comparison.json")]
+        )
+    assert _tree_bytes(root) == originals
+    assert (
+        service.source("campaign-a")["source_fingerprint"]
+        == source["source_fingerprint"]
+    )
+
+
 def test_snapshot_save_reopen_bundle_and_original_immutability(service):
     source = service.experiments_root / "campaign-a"
     originals = {

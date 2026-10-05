@@ -277,6 +277,27 @@ newline normalization, stable hash order, fixed scripts and CSP budgets remain
 unchanged. This is a narrow style-admission scanner, not general HTML sanitization;
 the report bytes are still served unchanged under the restricted baseline CSP.
 
+## Display labels and rendering admission
+
+Optional recorded `variant_label` and `name` fields remain unchanged in source
+metadata, preview/save payloads and exported evidence. Display chooses the first
+nonblank string from `variant_label`, `name`, then the validated run ID; it never
+coerces objects, arrays, numbers or booleans into a purported scientific label.
+Valid strings retain their original content and are rendered as literal text.
+The same fallback is used in selectors, recommendations, tables and SVG labels.
+
+Rendering is an action-admission boundary. Save and download remain blocked
+until the whole result, including its chart, has rendered. A rendering exception
+clears the actionable/displayed result, hides partial output, clears loading
+state and leaves actions disabled. An API rejection before rendering can still
+show the previous valid profile, explicitly labeled as unsaveable. A saved
+analysis remains read-only; failed editor preparation does not replace the active
+source or expose partially prepared controls. No historical artifact migration,
+scoring change or solver/AI call is involved.
+
+The bounded pre-re-review engineering assessment is recorded in
+[the 2026-10-04 review](robustness-engineering-review-2026-10-04.md).
+
 ## Next increment: data-only add-on admission
 
 After this pilot's protected review and researcher feedback, prove a closed,
