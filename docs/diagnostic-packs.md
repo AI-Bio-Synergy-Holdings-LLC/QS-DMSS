@@ -131,6 +131,11 @@ a fresh numerical replay, a signature, or proof that references/measurements
 are correct. A malicious party can replace a file and its manifest together.
 Rerun a preserved `pack/` snapshot with the pinned candidate to reproduce.
 
+Bundle input must itself be a literal regular file, not a link, reparse point,
+directory or pipe. It is checked before opening and rechecked after opening;
+check-time race limitations still apply. Legacy output-parent resolution loops
+receive an authored failure before output creation, not a parser/storage traceback.
+
 ## Scope freeze after this pilot
 
 After protected review/merge and post-merge checks, freeze v0.14.0 feature scope.

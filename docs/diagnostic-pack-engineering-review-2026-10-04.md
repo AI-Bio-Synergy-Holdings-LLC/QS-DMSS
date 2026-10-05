@@ -91,6 +91,26 @@ commit are recorded on the PR to avoid self-referential artifact identities.
 
 ## Honest limitations and remaining gates
 
+Before any review request, a final negative-path assessment found two narrow
+input-handling gaps: older Python's output-parent resolution RuntimeError was
+not authored, and bundle verification did not explicitly reject nonregular input
+before opening. The focused follow-up normalizes only that resolution boundary
+and shares the bounded regular-file snapshot reader for both pack and bundle
+inputs. Two regressions reproduce the gaps. Earlier commit/artifact qualifications
+remain historical; the updated head is qualified separately and recorded on the PR.
+
+Follow-up qualification: **839 passed / 25 existing privilege skips / 91.44%
+coverage**, with **103 pack contracts** and 100% new-module statement coverage.
+Ruff, configured Bandit and compilation pass. The rebuilt installed Docker wheel
+passes the 12-case CLI/no-overwrite/integrity smoke, and actual Linux symlink
+roots/children plus a FIFO are rejected before reads. The retained revised Docker
+bundle is `.tmp/diagnostic-pack-container-qa/revised-installed/result/diagnostic-pack-evidence.zip`,
+SHA-256 `a1c9e2a39a7ccbaf4b1bffd2bca9a57f035ba974dff8b6e99d6461131901d265`.
+The first remote head had all gates green (862 Linux quantum tests, 91.40%
+coverage; all-OS candidate and Docker smoke). Those results do not substitute
+for the updated head's fresh remote qualification. No Copilot request was made
+before this follow-up assessment.
+
 This is a closed CLI pilot, not general plugin isolation or third-party licensing
 validation. Resource ceilings are per-invocation work bounds, not hard wall-clock
 or concurrent-load guarantees. Link checks are not descriptor-anchored TOCTOU

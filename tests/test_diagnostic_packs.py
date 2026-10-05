@@ -564,6 +564,47 @@ def test_bundle_read_is_bounded_and_invalid_zip_is_authored(tmp_path):
         verify_bundle(bundle)
 
 
+def test_output_parent_resolution_loop_is_authored(tmp_path, monkeypatch):
+    pack = admit_pack()
+    report = fft.evaluate_pack(pack)
+    parent = tmp_path / "loop"
+    original = Path.resolve
+
+    def resolve(path, *args, **kwargs):
+        if path == parent:
+            raise RuntimeError("legacy resolution loop detail must not escape")
+        return original(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "resolve", resolve)
+    with pytest.raises(PackError, match="Output parent cannot be resolved safely"):
+        export_result(pack, report, parent / "result")
+    assert not parent.exists()
+
+
+def test_bundle_nonregular_input_is_rejected_before_open(tmp_path, monkeypatch):
+    path = tmp_path / "pipe"
+    original = Path.lstat
+
+    class Pipe:
+        st_mode = 0o010600
+        st_file_attributes = 0
+
+    monkeypatch.setattr(
+        Path,
+        "lstat",
+        lambda item, **kwargs: Pipe() if item == path else original(item, **kwargs),
+    )
+    monkeypatch.setattr(
+        Path,
+        "open",
+        lambda *_args, **_kwargs: pytest.fail(
+            "Nonregular input must be rejected before opening."
+        ),
+    )
+    with pytest.raises(PackError, match="regular"):
+        verify_bundle(path)
+
+
 def test_complete_cli_workflow_and_failure_codes(tmp_path, capsys, monkeypatch):
     assert main(["diagnostic-packs", "inspect"]) == 0
     summary = json.loads(capsys.readouterr().out)

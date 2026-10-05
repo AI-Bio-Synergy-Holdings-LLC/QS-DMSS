@@ -12,6 +12,7 @@ from qs_dmss.diagnostic_packs.admission import (
     AdmittedPack,
     PackError,
     decode_json,
+    read_regular_snapshot,
     sha256,
 )
 from qs_dmss.diagnostic_packs.models import MAX_BUNDLE_BYTES
@@ -104,7 +105,12 @@ def export_result(
     # No overwrite, including an existing empty directory. Failed writes leave
     # their partial output for diagnosis; do not remove user-owned paths.
     try:
-        target.parent.resolve(strict=True)
+        try:
+            target.parent.resolve(strict=True)
+        except RuntimeError as exc:
+            # Older supported CPython reports resolution loops as RuntimeError.
+            # Normalize only this path boundary, not arbitrary write failures.
+            raise PackError("Output parent cannot be resolved safely.") from exc
         target.mkdir(exist_ok=False)
         (target / "pack").mkdir()
         for name, data in files.items():
@@ -129,10 +135,7 @@ def export_result(
 
 def verify_bundle(path: str | Path) -> dict:
     try:
-        with Path(path).open("rb") as stream:
-            data = stream.read(MAX_BUNDLE_BYTES + 1)
-        if len(data) > MAX_BUNDLE_BYTES:
-            raise PackError("Evidence bundle exceeds the core byte ceiling.")
+        data = read_regular_snapshot(Path(path), byte_limit=MAX_BUNDLE_BYTES)
         with zipfile.ZipFile(io.BytesIO(data)) as archive:
             entries = archive.infolist()
             if (

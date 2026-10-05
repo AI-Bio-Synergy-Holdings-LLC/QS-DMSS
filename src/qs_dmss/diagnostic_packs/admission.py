@@ -147,7 +147,7 @@ def admit_bytes(
     return AdmittedPack(manifest, cases, manifest_bytes, cases_bytes)
 
 
-def _bounded_regular_file(path: Path) -> bytes:
+def read_regular_snapshot(path: Path, *, byte_limit: int = MAX_FILE_BYTES) -> bytes:
     # Check literal children before opening, including Windows reparse points.
     info = path.lstat()
     if (
@@ -156,13 +156,13 @@ def _bounded_regular_file(path: Path) -> bytes:
         or getattr(info, "st_file_attributes", 0)
         & getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
     ):
-        raise PackError("Pack children must be literal regular files, not links.")
+        raise PackError("Evidence inputs must be literal regular files, not links.")
     with path.open("rb") as stream:
         if not stat.S_ISREG(os.fstat(stream.fileno()).st_mode):
-            raise PackError("Pack child is not a regular file.")
-        data = stream.read(MAX_FILE_BYTES + 1)
-    if len(data) > MAX_FILE_BYTES:
-        raise PackError("Pack file exceeds the core byte ceiling.")
+            raise PackError("Evidence input is not a regular file.")
+        data = stream.read(byte_limit + 1)
+    if len(data) > byte_limit:
+        raise PackError("Evidence file exceeds the core byte ceiling.")
     return data
 
 
@@ -200,8 +200,8 @@ def admit_pack(path: str | Path | None = None) -> AdmittedPack:
                 "Pack directory must contain exactly manifest.json and cases.json."
             )
         return admit_bytes(
-            _bounded_regular_file(root / "manifest.json"),
-            _bounded_regular_file(root / "cases.json"),
+            read_regular_snapshot(root / "manifest.json"),
+            read_regular_snapshot(root / "cases.json"),
         )
     except (OSError, RuntimeError) as exc:
         raise PackError("Pack storage cannot be read safely.") from exc
