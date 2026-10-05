@@ -1,0 +1,215 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "Content": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "const": "cases.json",
+          "title": "Path",
+          "type": "string"
+        },
+        "sha256": {
+          "maxLength": 64,
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Sha256",
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "sha256"
+      ],
+      "title": "Content",
+      "type": "object"
+    },
+    "CoreVersions": {
+      "additionalProperties": false,
+      "properties": {
+        "min_inclusive": {
+          "maxLength": 14,
+          "pattern": "^(0|[1-9][0-9]{0,3})\\.(0|[1-9][0-9]{0,3})\\.(0|[1-9][0-9]{0,3})$",
+          "title": "Min Inclusive",
+          "type": "string"
+        },
+        "max_exclusive": {
+          "maxLength": 14,
+          "pattern": "^(0|[1-9][0-9]{0,3})\\.(0|[1-9][0-9]{0,3})\\.(0|[1-9][0-9]{0,3})$",
+          "title": "Max Exclusive",
+          "type": "string"
+        }
+      },
+      "required": [
+        "min_inclusive",
+        "max_exclusive"
+      ],
+      "title": "CoreVersions",
+      "type": "object"
+    },
+    "ResourceLimits": {
+      "additionalProperties": false,
+      "properties": {
+        "max_file_bytes": {
+          "maximum": 65536,
+          "minimum": 1,
+          "title": "Max File Bytes",
+          "type": "integer"
+        },
+        "max_cases": {
+          "maximum": 32,
+          "minimum": 1,
+          "title": "Max Cases",
+          "type": "integer"
+        },
+        "max_grid_cells": {
+          "maximum": 16384,
+          "minimum": 64,
+          "title": "Max Grid Cells",
+          "type": "integer"
+        },
+        "max_total_grid_cells": {
+          "maximum": 65536,
+          "minimum": 64,
+          "title": "Max Total Grid Cells",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "max_file_bytes",
+        "max_cases",
+        "max_grid_cells",
+        "max_total_grid_cells"
+      ],
+      "title": "ResourceLimits",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "qs-dmss-diagnostic-pack/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "pack_id": {
+      "maxLength": 64,
+      "pattern": "^[a-z][a-z0-9-]{0,63}$",
+      "title": "Pack Id",
+      "type": "string"
+    },
+    "pack_type": {
+      "const": "diagnostic",
+      "title": "Pack Type",
+      "type": "string"
+    },
+    "version": {
+      "maxLength": 14,
+      "pattern": "^(0|[1-9][0-9]{0,3})\\.(0|[1-9][0-9]{0,3})\\.(0|[1-9][0-9]{0,3})$",
+      "title": "Version",
+      "type": "string"
+    },
+    "title": {
+      "maxLength": 160,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "description": {
+      "maxLength": 1024,
+      "minLength": 1,
+      "title": "Description",
+      "type": "string"
+    },
+    "supported_core_versions": {
+      "$ref": "#/$defs/CoreVersions"
+    },
+    "required_diagnostic_conventions": {
+      "maxItems": 1,
+      "minItems": 1,
+      "prefixItems": [
+        {
+          "const": "fft_cell_measure_v2",
+          "type": "string"
+        }
+      ],
+      "title": "Required Diagnostic Conventions",
+      "type": "array"
+    },
+    "dependencies": {
+      "items": {
+        "type": "string"
+      },
+      "maxItems": 0,
+      "title": "Dependencies",
+      "type": "array"
+    },
+    "license": {
+      "enum": [
+        "Apache-2.0",
+        "CC0-1.0"
+      ],
+      "title": "License",
+      "type": "string"
+    },
+    "attribution": {
+      "maxLength": 512,
+      "minLength": 1,
+      "title": "Attribution",
+      "type": "string"
+    },
+    "source": {
+      "maxLength": 512,
+      "minLength": 1,
+      "title": "Source",
+      "type": "string"
+    },
+    "redistribution": {
+      "const": "permitted_under_declared_license",
+      "title": "Redistribution",
+      "type": "string"
+    },
+    "resource_limits": {
+      "$ref": "#/$defs/ResourceLimits"
+    },
+    "evidence_schema_version": {
+      "const": "qs-dmss-diagnostic-pack-result/v1",
+      "title": "Evidence Schema Version",
+      "type": "string"
+    },
+    "diagnostic_id": {
+      "const": "fft_plane_wave_energy_v1",
+      "title": "Diagnostic Id",
+      "type": "string"
+    },
+    "acceptance_suite": {
+      "const": "fft_plane_wave_pack_contract_v1",
+      "title": "Acceptance Suite",
+      "type": "string"
+    },
+    "content": {
+      "$ref": "#/$defs/Content"
+    }
+  },
+  "required": [
+    "schema_version",
+    "pack_id",
+    "pack_type",
+    "version",
+    "title",
+    "description",
+    "supported_core_versions",
+    "required_diagnostic_conventions",
+    "dependencies",
+    "license",
+    "attribution",
+    "source",
+    "redistribution",
+    "resource_limits",
+    "evidence_schema_version",
+    "diagnostic_id",
+    "acceptance_suite",
+    "content"
+  ],
+  "title": "PackManifest",
+  "type": "object"
+}

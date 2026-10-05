@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$defs": {
+    "PlaneWaveCase": {
+      "additionalProperties": false,
+      "properties": {
+        "case_id": {
+          "maxLength": 64,
+          "pattern": "^[a-z][a-z0-9-]{0,63}$",
+          "title": "Case Id",
+          "type": "string"
+        },
+        "grid_shape": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "maximum": 128,
+              "minimum": 8,
+              "type": "integer"
+            },
+            {
+              "maximum": 128,
+              "minimum": 8,
+              "type": "integer"
+            }
+          ],
+          "title": "Grid Shape",
+          "type": "array"
+        },
+        "box_size": {
+          "maximum": 100.0,
+          "minimum": 0.1,
+          "title": "Box Size",
+          "type": "number"
+        },
+        "mass": {
+          "maximum": 100.0,
+          "minimum": 0.1,
+          "title": "Mass",
+          "type": "number"
+        },
+        "modes": {
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "maximum": 63,
+              "minimum": -63,
+              "type": "integer"
+            },
+            {
+              "maximum": 63,
+              "minimum": -63,
+              "type": "integer"
+            }
+          ],
+          "title": "Modes",
+          "type": "array"
+        },
+        "expected_energy": {
+          "maximum": 100000000.0,
+          "minimum": 0.0,
+          "title": "Expected Energy",
+          "type": "number"
+        },
+        "absolute_tolerance": {
+          "maximum": 1e-09,
+          "minimum": 1e-14,
+          "title": "Absolute Tolerance",
+          "type": "number"
+        },
+        "relative_tolerance": {
+          "maximum": 1e-09,
+          "minimum": 1e-14,
+          "title": "Relative Tolerance",
+          "type": "number"
+        }
+      },
+      "required": [
+        "case_id",
+        "grid_shape",
+        "box_size",
+        "mass",
+        "modes",
+        "expected_energy",
+        "absolute_tolerance",
+        "relative_tolerance"
+      ],
+      "title": "PlaneWaveCase",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "qs-dmss-diagnostic-pack-cases/v1",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "cases": {
+      "items": {
+        "$ref": "#/$defs/PlaneWaveCase"
+      },
+      "maxItems": 32,
+      "minItems": 1,
+      "title": "Cases",
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "cases"
+  ],
+  "title": "PackCases",
+  "type": "object"
+}

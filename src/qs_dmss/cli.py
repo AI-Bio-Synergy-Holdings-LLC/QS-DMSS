@@ -18,6 +18,10 @@ def _build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
+    from qs_dmss.diagnostic_packs.cli import register_commands
+
+    register_commands(subparsers)
+
     run_parser = subparsers.add_parser("run", help="Run a config and emit an evidence bundle.")
     run_parser.add_argument("config", help="Path to a YAML config file.")
     run_parser.add_argument(
@@ -512,6 +516,11 @@ def _print_verification_result(path: Path) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+
+    if args.command == "diagnostic-packs":
+        from qs_dmss.diagnostic_packs.cli import dispatch
+
+        return dispatch(args)
 
     if args.command == "run":
         outputs = execute_run_from_path(

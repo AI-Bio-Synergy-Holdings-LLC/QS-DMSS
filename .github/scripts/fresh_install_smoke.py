@@ -309,6 +309,12 @@ def run_smoke(
                 cwd=workspace,
             )
 
+            _run(
+                [str(python), str(Path(__file__).with_name("diagnostic_pack_smoke.py")),
+                 "--output-root", str(output_root / "diagnostic-pack")],
+                cwd=workspace,
+            )
+
         print(
             f"Fresh install smoke passed for {source} "
             f"qs-dmss=={package_version} in {workspace}",

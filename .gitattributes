@@ -1,3 +1,5 @@
 # Discovery catalogs are hash-checked by the browser; preserve exact LF bytes.
 site/scientific-challenges.* text eol=lf
 src/qs_dmss/cockpit/static/scientific-challenges.* text eol=lf
+# Bundled pack hashes identify exact JSON bytes on every checkout platform.
+src/qs_dmss/assets/diagnostic-packs/*/*.json text eol=lf

@@ -300,6 +300,11 @@ The bounded pre-re-review engineering assessment is recorded in
 
 ## Next increment: data-only add-on admission
 
+The focused [data-only diagnostics pilot](diagnostic-packs.md) implements this
+admission contract with one bounded FFT plane-wave reference pack. It adds no
+hosted routes or executable extension loading. After its protected merge and
+post-merge verification, freeze feature scope for v0.14.0 release qualification.
+
 After this pilot's protected review and researcher feedback, prove a closed,
 schema-validated diagnostic-pack contract with one bounded analytic-reference
 pack. Do not introduce general executable extension loading first.
