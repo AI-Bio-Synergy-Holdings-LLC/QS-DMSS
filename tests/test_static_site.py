@@ -14,7 +14,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SITE_ROOT = REPO_ROOT / "site"
 GITHUB_SOCIAL_PREVIEW_SIZE = (1280, 640)
 SITE_SOCIAL_PREVIEW_SIZE = (1200, 630)
-PORTAL_JSON_LD_CSP_HASH = "sha256-uQPjsLuxWo6Y5jZ3N/VPMV67/GD+W/MmwsScEXX88F8="
+PORTAL_JSON_LD_CSP_HASH = "sha256-k32hMctlSQIFfX2rrALQyMGKEaoAOwPoMOBOlMAjXew="
 
 
 def _png_dimensions(path: Path) -> tuple[int, int]:
@@ -109,7 +109,7 @@ def test_portal_build_generates_render_deployment_provenance(tmp_path: Path) -> 
 
     assert payload["schema_version"] == 1
     assert payload["service"] == "qs-dmss-studio-portal"
-    assert payload["version"] == "0.13.2"
+    assert payload["version"] == "0.14.0"
     assert payload["deployment"]["provider"] == "render"
     assert payload["deployment"]["git_commit"] == commit
     assert payload["deployment"]["git_branch"] == "main"
@@ -166,7 +166,7 @@ def test_static_site_metadata_hardening() -> None:
     assert "Sitemap: https://qs-dmss.studio/sitemap.xml" in robots
     assert "Allow: /llms.txt" in robots
     assert "<loc>https://qs-dmss.studio/</loc>" in sitemap
-    assert "<lastmod>2026-07-15</lastmod>" in sitemap
+    assert "<lastmod>2026-10-08</lastmod>" in sitemap
     assert "<image:loc>https://qs-dmss.studio/assets/social-preview-v0132.png</image:loc>" in sitemap
     assert "Latest archived release DOI: https://doi.org/10.5281/zenodo.21366910" in llms
     assert "Current GitHub and Zenodo release: v0.13.2" in llms

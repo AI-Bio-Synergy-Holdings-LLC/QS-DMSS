@@ -37,6 +37,13 @@ live in
 
 ## Current Public State
 
+Source and cockpit build metadata now identify the **v0.14.0 development build**,
+under [release qualification](docs/release-v0.14.0.md), not yet published. It adds
+the corrected FFT energy diagnostic, experimental local CPU graph backend,
+scientific challenge handoff, recorded-result robustness explorer, and data-only
+FFT diagnostics pack. The semantic checker is deferred; hosted AI and graph
+execution remain disabled. Scientific review #183 remains open.
+
 QS-DMSS `v0.13.2` is published on GitHub, archived by Zenodo, and distributed
 on PyPI. This backward-compatible patch refreshes live quantum-validation
 evidence after each local harness run, hardens public cockpit responses,
@@ -67,7 +74,8 @@ is separate from the published baseline and does not establish physical validati
 The [Scientific Challenge Registry and reviewer intake](docs/scientific-challenges.md)
 identify three bounded challenges, their immutable evidence and pending human
 assessment. Choose the published baseline or the later candidate explicitly;
-they report the same package version but are different source/wheel identities.
+The retained pilot candidate reports 0.13.2, unlike the new v0.14.0 build; both
+still require exact source/wheel identities. Historical evidence is not relabeled.
 The exact v0.13.2 wheel identity, maintainer baseline, focused questions, and
 independent closure criteria are pinned in the
 [Fractal SSFM review target](docs/fractal-ssfm-independent-review-v0.13.2.md).

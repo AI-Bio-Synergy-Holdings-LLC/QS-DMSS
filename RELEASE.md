@@ -15,6 +15,13 @@ update tracked in `docs/public-link-update-checklist.md`.
 
 ## Version Alignment
 
+The current development build is `0.14.0`, under focused release preparation;
+it is **not published**. See [v0.14.0 preparation](docs/release-v0.14.0.md) for
+qualification, the local Windows policy restriction, scientific non-claims,
+and the separate publication gate. Keep published v0.13.2 download links and
+DOI records until actual publication is verified. Semantic-checker admission
+is deferred from this release; its historical evidence remains on HOLD.
+
 - GitHub release-candidate tags use SemVer-style names such as `v0.1.0-rc.1`.
 - Python package metadata uses the equivalent PEP 440 form, such as
   `0.1.0rc1`.

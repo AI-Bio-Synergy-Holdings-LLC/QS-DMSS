@@ -8,6 +8,8 @@ Canonical website: https://qs-dmss.studio/
 Hosted demo: https://app.qs-dmss.studio/
 Repository: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
 Current GitHub and Zenodo release: v0.13.2
+Development build under release qualification (not published): v0.14.0
+Preparation notes: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/release-v0.14.0.md
 GitHub release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.13.2
 Latest published PyPI package: https://pypi.org/project/qs-dmss/0.13.2/
 Project DOI: https://doi.org/10.5281/zenodo.20074924
@@ -23,6 +25,9 @@ hardens public responses, reduces health-endpoint disclosure, and carries the
 Research Runbook and contextual Evidence Assistant.
 
 Important boundaries:
+- Independent scientific review #183 remains open; numerical evidence is not scientific approval.
+- The CPU graph-spectral backend is experimental and local-only.
+- Hosted AI and graph execution remain disabled; the semantic checker is deferred from v0.14.0.
 - QS-DMSS is beta for reproducible package/evidence workflows.
 - QS-DMSS is not peer-reviewed scientific validation.
 - Public source provenance is workflow evidence, not provider-data model

@@ -24,7 +24,7 @@ def test_version_metadata_is_aligned() -> None:
     pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
     declared_version = pyproject["project"]["version"]
 
-    assert declared_version == "0.13.2"
+    assert declared_version == "0.14.0"
     assert qs_dmss.__version__ == declared_version
     assert metadata.version("qs-dmss") == declared_version
 
@@ -80,7 +80,7 @@ def test_public_discovery_metadata_is_present() -> None:
     assert urls["Documentation"] == "https://qs-dmss.studio"
     assert "Latest Archived Release DOI" not in urls
     assert "Latest Archived Zenodo Record" not in urls
-    assert urls["Release Notes"].endswith("/docs/release-v0.13.2.md")
+    assert urls["Release Notes"].endswith("/docs/release-v0.14.0.md")
     assert project["readme"] == "README-pypi.md"
 
     package_readme = (repo_root / project["readme"]).read_text(encoding="utf-8")
@@ -123,10 +123,10 @@ def test_source_and_packaged_config_assets_are_semantically_aligned() -> None:
     assert source_schema == packaged_schema
 
 
-def test_current_fractal_review_gate_matches_release_and_is_path_free() -> None:
+def test_historical_fractal_review_packet_is_not_relabeled_and_is_path_free() -> None:
     repo_root = Path(__file__).resolve().parents[1]
-    pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
-    declared_version = pyproject["project"]["version"]
+    # Published evidence is immutable, not regenerated for each software version.
+    declared_version = "0.13.2"
     snapshot_path = (
         repo_root
         / "docs"

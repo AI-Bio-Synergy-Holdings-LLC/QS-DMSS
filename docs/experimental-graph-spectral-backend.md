@@ -2,13 +2,13 @@
 
 This is an additive, local-only research backend. `numpy`, `numpy_fractal_ssfm`,
 `cupy_fractal_ssfm`, their geometry/spectral configuration, and quantum-sidecar
-profiles remain supported without changes. No runtime dependency or release-version changes
-are required. Execution is available through the CLI or explicit local API config,
+profiles remain supported without changes. No additional runtime dependency is
+required. Execution is available through the CLI or explicit local API config,
 not the rectangular Run Setup selector. The public demo cannot execute this backend.
 
 ## Run and inspect
 
-Use this development checkout or its candidate wheel; the published v0.13.2 wheel
+Use the v0.14.0 development checkout or its candidate wheel; the published v0.13.2 wheel
 does not contain this backend. This is an engineering admission candidate, not a
 new release or an independently validated scientific model.
 

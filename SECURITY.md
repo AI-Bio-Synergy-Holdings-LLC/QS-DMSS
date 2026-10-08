@@ -5,6 +5,11 @@
 The currently supported public release line is `v0.13.x`, beginning with
 `v0.13.2`.
 
+The current development line is `v0.14.x`, under release preparation and not
+yet published. Security fixes target this `main` source first. Publishing 0.14.0
+and changing the supported public line require the separate publication gate;
+the preparation version bump does not silently end v0.13.x support.
+
 Current `main` may include security or governance fixes that have not yet been
 packaged into a release. Security fixes should target `main` first and be
 backported to `v0.13.x` only when the maintainer determines that a public patch
