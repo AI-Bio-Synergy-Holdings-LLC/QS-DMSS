@@ -102,3 +102,38 @@ off-device backup; their location and hashes support subsequent controlled backu
 - Protected merge, main CI and public app/portal version/commit/header verification.
 - Separate publication authorization; no tag, release, PyPI upload, new DOI or
   deployment was performed in this pass. Independent scientific review #183 is open.
+
+## PR #199 review corrections (2026-10-08)
+
+All four findings in Copilot's review of `c5ca812` were confirmed. Candidate
+CodeMeta and cockpit JSON-LD no longer advertise a generic PyPI download or
+package identity. Research-object citations and Markdown exports omit that
+target and explicitly distinguish the v0.13.2 historical archive from this
+build. The release notes now use the registered `fft_cell_measure_v2` spelling.
+The portal's explicitly versioned published-package links and its staged CSP
+hash are unchanged. No solver, scientific status or semantic-checker scope changed.
+
+Regression tests execute the actual Lab/Campaign Markdown and citation-rendering
+callbacks, validate both structured-metadata surfaces and check the convention
+against its schema. The new Node contract is included in the sdist and in CI.
+The complete quantum-enabled source suite passed: **851 passed, 25 skipped,
+91.44% coverage**. All skips retain the same Windows symlink-privilege reason.
+All **40 Node tests**, JavaScript syntax, Ruff, Bandit, dependency audit, pip check
+and frozen challenge/discovery checks passed. The first-party unpublished
+distribution remains excluded from the external advisory lookup.
+
+Chrome rendered the revised installed Docker cockpit at `http://127.0.0.1:8015/`.
+A bounded packaged run verified and replayed; its research object was composed
+and its actual Markdown download retained. The citation has no PyPI target and
+labels the historical archive; no console errors or warnings were observed.
+The Browser runtime was available for this correction pass; the frontend-testing
+skill used it instead of the earlier Playwright fallback. This targeted desktop
+check is not a complete mobile regression or served-portal qualification.
+
+Correction logs, JUnit/coverage, screenshots, downloaded Markdown, generated
+run/export evidence and rebuilt-artifact receipts are retained separately under
+`C:/Dev/QS-DMSS-Release-Evidence/v0.14.0-20261008/review-correction-20261008`.
+Earlier qualification and artifact identities above remain historical; revised
+artifact identity and installed acceptance are recorded in that directory, not
+inferred from the earlier artifacts. Remote gates and review must apply to the
+correction head. No merge, publication or production deployment is implied.

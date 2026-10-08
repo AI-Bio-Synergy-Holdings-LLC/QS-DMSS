@@ -78,8 +78,8 @@ jobs:
           node --check src/qs_dmss/cockpit/static/scientific-challenges.js
           node --check src/qs_dmss/cockpit/static/robustness.js
 
-      - name: Test robustness UI failure-state contracts
-        run: node --test tests/robustness_ui_state.test.cjs
+      - name: Test robustness UI and research-object release contracts
+        run: node --test tests/robustness_ui_state.test.cjs tests/research_object_release.test.cjs
 
       - name: Build release artifacts
         run: python -m build --sdist --wheel
@@ -138,6 +138,7 @@ jobs:
           for name in ("diagnostic-pack-v1", "diagnostic-pack-cases-v1"):
               assert sdist_root + "schemas/" + name + ".schema.json" in sdist_names
           assert sdist_root + "tests/robustness_ui_state.test.cjs" in sdist_names
+          assert sdist_root + "tests/research_object_release.test.cjs" in sdist_names
           assert sdist_root + "research/falsification/wolfram_reference.wl" in sdist_names
           assert sdist_root + "research/falsification/compare_wolfram.py" in sdist_names
           assert sdist_root + "research/challenges/registry-v1.json" in sdist_names

@@ -25,5 +25,6 @@ recursive-include src/qs_dmss/assets/showcases *.yaml
 recursive-include src/qs_dmss/cockpit/static *.png *.svg
 recursive-include tests *.py
 include tests/robustness_ui_state.test.cjs
+include tests/research_object_release.test.cjs
 recursive-include research/falsification *.py *.json *.txt *.md *.wl
 recursive-include research/challenges *.py *.json *.js *.css

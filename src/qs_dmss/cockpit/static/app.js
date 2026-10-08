@@ -468,7 +468,6 @@ const citationMetadata = {
   conceptDoi: "10.5281/zenodo.20074924",
   releaseDoi: "10.5281/zenodo.21366910",
   releaseUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.13.2",
-  pypiUrl: "https://pypi.org/project/qs-dmss/",
   repositoryUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
   openCollectiveUrl: "https://opencollective.com/qs-dmss",
   builderBoardUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57",
@@ -2860,7 +2859,7 @@ function buildResearchObjectMarkdown(researchObject) {
     `Latest archived release (${citationMetadata.archivedReleaseTag}) DOI: https://doi.org/${citationMetadata.releaseDoi}`,
     `Repository: ${citationMetadata.repositoryUrl}`,
     `Latest archived release: ${citationMetadata.releaseUrl}`,
-    `PyPI: ${citationMetadata.pypiUrl}`,
+    "The archived release is a separate historical publication, not an install source for this build.",
     "",
     "## Build Participation",
     "",
@@ -3235,7 +3234,6 @@ function renderResearchObjectSurface(researchObject) {
         <div class="research-object-link-row">
           <a href="${citationMetadata.repositoryUrl}" target="_blank" rel="noreferrer">Repository</a>
           <a href="${citationMetadata.releaseUrl}" target="_blank" rel="noreferrer">Archived ${citationMetadata.archivedReleaseTag} release</a>
-          <a href="${citationMetadata.pypiUrl}" target="_blank" rel="noreferrer">PyPI package</a>
         </div>
       </section>
       <section class="research-object-card research-object-provenance-card">

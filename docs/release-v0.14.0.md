@@ -7,7 +7,7 @@ The latest published GitHub/PyPI release remains v0.13.2, archived at
 
 ## Frozen scope
 
-- FFT energy correction (#192): `FFT_cell_measure_v2` includes cell measure in
+- FFT energy correction (#192): `fft_cell_measure_v2` includes cell measure in
   the discrete kinetic-energy diagnostic. Historical energy numbers and benchmark
   expectations must be compared using their recorded convention, not mixed with
   corrected values. See [diagnostic migration](fft-energy-diagnostic-correction.md).
@@ -87,6 +87,13 @@ The portal separately describes the latest **published** application as 0.13.2;
 its download/install/archive links remain valid for that version. The cockpit's
 project citation uses the concept DOI and labels the historical archive explicitly.
 Do not associate the v0.13.2 DOI with v0.14.0 results.
+
+Candidate CodeMeta and cockpit structured metadata omit public download URLs.
+The research-object composer and Markdown exports also omit the PyPI target;
+the archived release links identify a separate historical publication, not an
+install source for this build. Restore version-specific download metadata only
+after the corresponding artifact is actually published and verified. The portal's
+explicit v0.13.2 published-package links remain available and unchanged.
 
 The portal JSON-LD change requires its exact new CSP hash at the Render edge;
 see [deployment instructions](website-deployment.md). This external header change
