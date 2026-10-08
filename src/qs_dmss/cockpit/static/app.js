@@ -463,12 +463,11 @@ const toneColorByEvidence = {
 };
 
 const citationMetadata = {
-  packageVersion: "0.13.2",
-  releaseTag: "v0.13.2",
+  packageVersion: "0.14.0",
+  archivedReleaseTag: "v0.13.2",
   conceptDoi: "10.5281/zenodo.20074924",
   releaseDoi: "10.5281/zenodo.21366910",
   releaseUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.13.2",
-  pypiUrl: "https://pypi.org/project/qs-dmss/",
   repositoryUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
   openCollectiveUrl: "https://opencollective.com/qs-dmss",
   builderBoardUrl: "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/57",
@@ -2857,10 +2856,10 @@ function buildResearchObjectMarkdown(researchObject) {
     "## Citation",
     "",
     `Project DOI: https://doi.org/${citationMetadata.conceptDoi}`,
-    `Latest archived release DOI: https://doi.org/${citationMetadata.releaseDoi}`,
+    `Latest archived release (${citationMetadata.archivedReleaseTag}) DOI: https://doi.org/${citationMetadata.releaseDoi}`,
     `Repository: ${citationMetadata.repositoryUrl}`,
-    `Release: ${citationMetadata.releaseUrl}`,
-    `PyPI: ${citationMetadata.pypiUrl}`,
+    `Latest archived release: ${citationMetadata.releaseUrl}`,
+    "The archived release is a separate historical publication, not an install source for this build.",
     "",
     "## Build Participation",
     "",
@@ -3226,15 +3225,15 @@ function renderResearchObjectSurface(researchObject) {
           <a href="https://doi.org/${citationMetadata.conceptDoi}" target="_blank" rel="noreferrer">
             ${citationMetadata.conceptDoi}
           </a>
-          or the latest archived release DOI
+          with this object's source identity. The latest archived release is ${citationMetadata.archivedReleaseTag},
+          not an archive of this build:
           <a href="https://doi.org/${citationMetadata.releaseDoi}" target="_blank" rel="noreferrer">
             ${citationMetadata.releaseDoi}
           </a>.
         </p>
         <div class="research-object-link-row">
           <a href="${citationMetadata.repositoryUrl}" target="_blank" rel="noreferrer">Repository</a>
-          <a href="${citationMetadata.releaseUrl}" target="_blank" rel="noreferrer">GitHub release</a>
-          <a href="${citationMetadata.pypiUrl}" target="_blank" rel="noreferrer">PyPI package</a>
+          <a href="${citationMetadata.releaseUrl}" target="_blank" rel="noreferrer">Archived ${citationMetadata.archivedReleaseTag} release</a>
         </div>
       </section>
       <section class="research-object-card research-object-provenance-card">
@@ -3303,7 +3302,7 @@ function renderResearchObjectComposer() {
         <ul>
           <li>Scenario narrative, metrics, and claim boundary.</li>
           <li>Evidence bundle, verification, replay status, and artifact links.</li>
-          <li>DOI citation block for QS-DMSS ${citationMetadata.releaseTag} and the latest archived DOI.</li>
+          <li>Project DOI citation with build identity; the separate ${citationMetadata.archivedReleaseTag} archive is historical.</li>
           <li>Guided Comparison details if they have been generated.</li>
           <li>Campaign Studio study template, scoring contract, and recommendation rationale if a campaign has been run.</li>
         </ul>
@@ -4967,7 +4966,7 @@ function renderEvidence(detail) {
 
 function renderReleaseIdentity(release = {}) {
   const version = String(release.version || citationMetadata.packageVersion).replace(/^v/i, "");
-  const archivedTag = String(release.latest_archived_release_tag || citationMetadata.releaseTag);
+  const archivedTag = String(release.latest_archived_release_tag || citationMetadata.archivedReleaseTag);
   const archivedDoi = release.archived_release_doi || "10.5281/zenodo.21366910";
   const archivedDoiUrl = release.archived_release_doi_url || `https://doi.org/${archivedDoi}`;
   const projectDoi = release.project_doi || "10.5281/zenodo.20074924";

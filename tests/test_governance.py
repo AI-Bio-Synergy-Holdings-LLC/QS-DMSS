@@ -73,16 +73,18 @@ def test_contribution_and_release_policies_enforce_boundary() -> None:
     assert "QPU execution" in release_policy
 
 
-def test_security_policy_names_current_supported_release() -> None:
+def test_security_policy_distinguishes_published_support_from_development() -> None:
     security = (REPO_ROOT / "SECURITY.md").read_text(encoding="utf-8")
     pyproject = tomllib.loads(
         (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
     )
     version = pyproject["project"]["version"].split(".")
-    supported_line = f"v{version[0]}.{version[1]}.x"
+    development_line = f"v{version[0]}.{version[1]}.x"
 
-    assert f"supported public release line is `{supported_line}`" in security
-    assert f"backported to `{supported_line}`" in security
+    assert "supported public release line is `v0.13.x`" in security
+    assert "backported to `v0.13.x`" in security
+    assert f"current development line is `{development_line}`" in security
+    assert "not\nyet published" in security
 
 
 def test_relative_markdown_links_resolve() -> None:

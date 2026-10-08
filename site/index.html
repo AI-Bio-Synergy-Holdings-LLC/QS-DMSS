@@ -16,7 +16,7 @@
     <meta name="creator" content="AI-Bio Synergy Holdings LLC" />
     <meta name="publisher" content="AI-Bio Synergy Holdings LLC" />
     <meta name="application-name" content="QS-DMSS Studio" />
-    <meta name="application-version" content="0.13.2" />
+    <meta name="application-version" content="0.14.0" />
     <meta name="theme-color" content="#101a18" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta property="og:title" content="QS-DMSS Studio | Evidence-First Research Workflows" />
@@ -77,11 +77,11 @@
             "@type": "SoftwareSourceCode",
             "@id": "https://qs-dmss.studio/#software",
             "name": "QS-DMSS",
-            "description": "Apache-2.0 public beta software for reproducible QuantumScalar simulation, validation spines, and provider-neutral simulator-first quantum-readiness artifacts.",
+            "description": "Apache-2.0 v0.14.0 development source under release qualification; the latest published package remains v0.13.2. Reproducible numerical evidence is not independent scientific validation.",
             "codeRepository": "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
             "programmingLanguage": "Python",
             "license": "https://www.apache.org/licenses/LICENSE-2.0",
-            "version": "0.13.2",
+            "version": "0.14.0",
             "runtimePlatform": "Python 3.10+",
             "keywords": [
               "QuantumScalar dark matter",
@@ -97,7 +97,6 @@
             "sameAs": [
               "https://pypi.org/project/qs-dmss/",
               "https://doi.org/10.5281/zenodo.20074924",
-              "https://doi.org/10.5281/zenodo.21366910",
               "https://opencollective.com/qs-dmss"
             ],
             "maintainer": {
@@ -107,7 +106,8 @@
           {
             "@type": "SoftwareApplication",
             "@id": "https://qs-dmss.studio/#application",
-            "name": "QS-DMSS Studio",
+            "name": "QS-DMSS Studio published package",
+            "description": "Latest published package v0.13.2; distinct from the v0.14.0 development source and deployed cockpit build.",
             "applicationCategory": "Scientific simulation software",
             "applicationSubCategory": "Reproducible research software",
             "operatingSystem": "Windows, macOS, Linux",
@@ -139,7 +139,7 @@
             "name": "QS-DMSS Studio | Reproducible QuantumScalar simulation lab",
             "url": "https://qs-dmss.studio/",
             "description": "QS-DMSS Studio is an evidence-first Python simulation lab for QuantumScalar dark matter workflows, campaign comparison, validation spines, data provenance, and citable research artifacts.",
-            "dateModified": "2026-07-15",
+            "dateModified": "2026-10-08",
             "isPartOf": {
               "@id": "https://qs-dmss.studio/#website"
             },
@@ -210,6 +210,13 @@
             <a class="button" href="https://doi.org/10.5281/zenodo.20074924">Read DOI</a>
             <a class="button support" href="https://opencollective.com/qs-dmss">Support on Open Collective</a>
           </div>
+          <p class="claim-note" id="candidate-release-note">
+            Development build v0.14.0 is under release qualification, not yet published.
+            <a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/release-v0.14.0.md">Preparation notes</a>:
+            recorded-result robustness and a data-only diagnostics pack; the CPU graph model remains experimental and local-only.
+            <a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183">Independent scientific review #183 remains open</a>.
+            Hosted AI and graph execution remain disabled.
+          </p>
         </div>
 
         <aside class="hero-panel" aria-labelledby="release-title">

@@ -1,9 +1,9 @@
 # Recommendation robustness explorer (local pilot)
 
 This is a recorded-result consumer of Campaign Studio, not a new solver or a
-scientific-validation badge. No version is published by this change. The installed
-metadata still says `0.13.2`; development-candidate identity must additionally use
-the source commit or wheel hash. Published v0.13.2 does not contain this feature.
+scientific-validation badge. The v0.14.0 development build is under release
+qualification, not published; identify it by source commit and wheel hash as well
+as version. Published v0.13.2 does not contain this feature.
 
 ## Researcher workflow
 

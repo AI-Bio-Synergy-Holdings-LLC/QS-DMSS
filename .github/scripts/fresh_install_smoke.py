@@ -89,6 +89,12 @@ def _available_port() -> int:
         return int(listener.getsockname()[1])
 
 
+def _includes_admitted_pilots(source: str, package_version: str) -> bool:
+    # Candidate admission predates the version bump; published v0.13.2 does not
+    # contain these features. Final 0.14.0 distributions must exercise them too.
+    return source == "candidate-wheel" or _version_at_least(package_version, (0, 14, 0))
+
+
 def _smoke_cockpit(
     cli: Path,
     workspace: Path,
@@ -290,9 +296,8 @@ def run_smoke(
 
         _smoke_cockpit(cli, workspace, cockpit_root, package_version)
 
-        if source == "candidate-wheel":
-            # Keep this admission check off published v0.13.2 smoke runs: the
-            # experimental backend is not in that release and is not promoted here.
+        if _includes_admitted_pilots(source, package_version):
+            # Engineering checks do not promote the experimental scientific model.
             _run(
                 [str(python), str(Path(__file__).with_name("graph_backend_smoke.py")),
                  "--output-root", str(output_root / "experimental-graph")],

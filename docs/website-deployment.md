@@ -70,13 +70,21 @@ Render injects the following response headers for `/*` on the static service:
 The production CSP is:
 
 ```text
-default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' 'sha256-uQPjsLuxWo6Y5jZ3N/VPMV67/GD+W/MmwsScEXX88F8='; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; upgrade-insecure-requests
+default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' 'sha256-k32hMctlSQIFfX2rrALQyMGKEaoAOwPoMOBOlMAjXew='; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; upgrade-insecure-requests
 ```
 
 The hash allows only the inline JSON-LD block in `site/index.html`. Recompute
 and replace it in the Render header rule whenever that block changes; otherwise
 the browser will reject the updated structured data. Do not add
 `'unsafe-inline'` as a maintenance shortcut.
+
+The v0.14.0 preparation changes that hash from
+`sha256-uQPjsLuxWo6Y5jZ3N/VPMV67/GD+W/MmwsScEXX88F8=` to
+`sha256-k32hMctlSQIFfX2rrALQyMGKEaoAOwPoMOBOlMAjXew=`. Before authorized
+merge/deployment, the operator must stage both hashes in Render's `script-src`,
+preserving every other directive. After the new portal is verified, remove only
+the old hash. This prevents a gap while Render serves the old page; the PR alone
+does not change Render's dashboard header rule or authorize deployment.
 
 Do not treat a `<meta http-equiv>` element or a host-specific `_headers` file as
 equivalent. Verify the actual edge response after every header, domain, or
@@ -121,7 +129,7 @@ or run:
 python .github/scripts/verify_public_deployment.py \
   --expected-portal-commit <latest-40-character-site-sha> \
   --expected-app-commit <40-character-main-sha> \
-  --expected-version 0.13.2
+  --expected-version <deployed-package-version>
 ```
 
 If convergence times out, inspect the GitHub App repository authorization,

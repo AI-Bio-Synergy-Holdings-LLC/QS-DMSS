@@ -1,8 +1,8 @@
 # Data-only diagnostics pack pilot
 
-This development feature is not in the published v0.13.2 wheel. Current source
-metadata still says 0.13.2; identify a candidate by commit, wheel SHA-256 and the
-retained implementation hashes, not that version string alone. No publication,
+This feature is in the v0.14.0 development build, not the published v0.13.2 wheel.
+Identify a candidate by commit, wheel SHA-256 and retained implementation hashes,
+not the version string alone. No publication,
 scientific promotion, hosted compute or AI activation is authorized by this pilot.
 
 ## Complete researcher workflow
