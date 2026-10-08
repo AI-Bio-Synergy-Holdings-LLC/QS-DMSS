@@ -6,6 +6,7 @@ import importlib.util
 import json
 import re
 from pathlib import Path
+from urllib.parse import urlsplit
 
 import pytest
 import yaml
@@ -54,7 +55,10 @@ def test_candidate_metadata_does_not_advertise_a_published_download(path: str) -
     assert metadata["codeRepository"].endswith("/QS-DMSS")
     assert "downloadUrl" not in metadata
     assert "installUrl" not in metadata
-    assert not any("pypi.org" in url for url in metadata.get("sameAs", []))
+    assert {urlsplit(url).hostname for url in metadata.get("sameAs", [])} <= {
+        "github.com",
+        "doi.org",
+    }
 
 
 def test_candidate_export_does_not_link_to_a_different_published_package() -> None:

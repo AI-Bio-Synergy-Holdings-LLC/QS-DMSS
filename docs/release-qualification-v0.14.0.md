@@ -137,3 +137,9 @@ Earlier qualification and artifact identities above remain historical; revised
 artifact identity and installed acceptance are recorded in that directory, not
 inferred from the earlier artifacts. Remote gates and review must apply to the
 correction head. No merge, publication or production deployment is implied.
+
+The first correction head, `c1def7e`, produced CodeQL alert #21 on a new test's
+substring URL assertion. The test now compares parsed hostnames against the
+project/repository identifier hosts instead. This is a test-contract correction,
+not a production sanitizer change; the alert is not dismissed or waived. Its
+remote analysis must confirm the corrected head before protected merge.
