@@ -27,7 +27,32 @@ The next package release should expose the Studio site through project metadata:
 Keep Repository, Issues, Releases, PyPI, DOI, and Reviewer links as supporting
 project URLs.
 
-## v0.13.2 Publication Status
+## v0.14.0 Publication Status
+
+v0.14.0 is published and verified, from immutable source commit
+`15377b5ab1f9f3e32a37494e2e8973efce5211c3`:
+
+- GitHub release: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.14.0`
+- Version DOI: `https://doi.org/10.5281/zenodo.23250727`
+- Zenodo record: `https://zenodo.org/records/23250727`
+- PyPI package: `https://pypi.org/project/qs-dmss/0.14.0/`
+
+GitHub/PyPI wheel SHA-256:
+`22a2d4f3f6af64f562916f45ca319606a03132e89d8b7787da034c88ad87cbed`.
+GitHub/PyPI sdist SHA-256:
+`bf54d49832fac8e227fea122eab6250f597941bd3c9ed8ccf908421fd29d76a1`.
+All six published-install checks passed (PyPI and release wheel on Windows,
+macOS and Linux). See [release verification](release-v0.14.0.md) for retained
+qualification, the initial macOS index delay, and canonical Zenodo source checks.
+
+The post-publication PR activates these verified links without moving the tag,
+replacing distributions, relabeling historical packets, or promoting scientific
+validation. Production public metadata remains unchanged until that PR passes
+review, CSP staging, protected merge and deployment verification.
+Existing generic social-preview images retain their stable `v0132` cache keys;
+their URLs are not package-version assertions. No new social post is authorized.
+
+## v0.13.2 Publication Status (historical)
 
 v0.13.2 is published on GitHub, archived by Zenodo, and distributed on PyPI:
 

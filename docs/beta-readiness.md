@@ -10,12 +10,13 @@ The intended beta claim is narrow:
 
 ## Current Decision
 
-- Current GitHub and Zenodo release: `v0.13.2` / `0.13.2`
-- Current PyPI baseline: `v0.13.2` / `0.13.2`
+- Current GitHub and Zenodo release: `v0.14.0` / `0.14.0`
+- Current PyPI baseline: `v0.14.0` / `0.14.0`
 - Current PyPI classifier target: `Development Status :: 4 - Beta`
 - Promotion basis: `v0.1.5` passed the beta-readiness gate
 - Current Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: `10.5281/zenodo.21366910`
+- Latest archived release DOI: `10.5281/zenodo.23250727`
+- `v0.14.0` release DOI: `10.5281/zenodo.23250727`
 - `v0.13.2` release DOI: `10.5281/zenodo.21366910`
 - Previous `v0.13.1` release DOI: `10.5281/zenodo.21348597`
 - Previous `v0.13.0` release DOI: `10.5281/zenodo.21348257`
@@ -28,7 +29,8 @@ The intended beta claim is narrow:
 - `v0.5.0` release DOI: `10.5281/zenodo.20617028`
 
 The beta classifier is only appropriate for the narrow package/evidence surface
-defined below.
+defined below. [v0.14.0 publication qualification](release-v0.14.0.md) does not
+promote the experimental graph model or close scientific review #183.
 
 ## Beta-Stable Surface
 

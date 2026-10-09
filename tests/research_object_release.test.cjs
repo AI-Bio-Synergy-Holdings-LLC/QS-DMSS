@@ -49,18 +49,18 @@ for (const campaign of [false, true]) {
     const {context} = harness();
     const markdown = context.buildResearchObjectMarkdown(researchObject(campaign));
     assert.match(markdown, /Package: qs-dmss==0\.14\.0/);
-    assert.match(markdown, /Latest archived release \(v0\.13\.2\) DOI:/);
-    assert.match(markdown, /publication, not an install source for this build/);
+    assert.match(markdown, /Latest archived release \(v0\.14\.0\) DOI:/);
+    assert.match(markdown, /compare source commit and artifact hashes/);
     assert.doesNotMatch(markdown, /pypi\.org|PyPI:/);
     assert.match(markdown, /qs-dmss verify/);
     if (campaign) assert.match(markdown, /## Campaign Study Template/);
   });
 }
 
-test("Rendered research-object citation omits the unpublished package download target", () => {
+test("Rendered citation identifies the published archive without assuming build identity", () => {
   const {context, surface} = harness();
   context.renderResearchObjectSurface(researchObject());
-  assert.match(surface.innerHTML, /Archived v0\.13\.2 release/);
-  assert.match(surface.innerHTML, /not an archive of this build/);
+  assert.match(surface.innerHTML, /Archived v0\.14\.0 release/);
+  assert.match(surface.innerHTML, /source commit and artifact hashes must match/);
   assert.doesNotMatch(surface.innerHTML, /pypi\.org|PyPI package/);
 });

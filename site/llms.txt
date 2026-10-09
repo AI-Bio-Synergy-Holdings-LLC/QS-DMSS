@@ -7,22 +7,23 @@ workflows.
 Canonical website: https://qs-dmss.studio/
 Hosted demo: https://app.qs-dmss.studio/
 Repository: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
-Current GitHub and Zenodo release: v0.13.2
-Development build under release qualification (not published): v0.14.0
-Preparation notes: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/release-v0.14.0.md
-GitHub release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.13.2
-Latest published PyPI package: https://pypi.org/project/qs-dmss/0.13.2/
+Current GitHub and Zenodo release: v0.14.0
+Published source commit: 15377b5ab1f9f3e32a37494e2e8973efce5211c3
+Release notes: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/release-v0.14.0.md
+GitHub release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.14.0
+Latest published PyPI package: https://pypi.org/project/qs-dmss/0.14.0/
 Project DOI: https://doi.org/10.5281/zenodo.20074924
-Latest archived release DOI: https://doi.org/10.5281/zenodo.21366910
+Latest archived release DOI: https://doi.org/10.5281/zenodo.23250727
 Open Collective: https://opencollective.com/qs-dmss
 
 QS-DMSS helps users run simulations, inspect evidence, compare campaigns,
 record public reference-data provenance, verify/replay outputs, and publish
 reproducible research artifacts.
 
-v0.13.2 refreshes live quantum-validation evidence after each harness run,
-hardens public responses, reduces health-endpoint disclosure, and carries the
-Research Runbook and contextual Evidence Assistant.
+v0.14.0 adds the corrected FFT energy diagnostic, experimental local CPU graph
+backend, Scientific Challenges, recorded-result robustness explorer, and one
+data-only FFT diagnostics pack. Frozen challenge results retain their original
+source/version identities; they are not new runs of the published package.
 
 Important boundaries:
 - Independent scientific review #183 remains open; numerical evidence is not scientific approval.

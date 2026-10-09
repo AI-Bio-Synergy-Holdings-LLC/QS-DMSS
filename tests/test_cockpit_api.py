@@ -190,12 +190,12 @@ def test_cockpit_public_discovery_metadata(tmp_path: Path, monkeypatch) -> None:
     assert health_payload["release"] == {
         "version": __version__,
         "tag": f"v{__version__}",
-        "latest_archived_release_tag": "v0.13.2",
+        "latest_archived_release_tag": "v0.14.0",
         "project_doi": "10.5281/zenodo.20074924",
         "project_doi_url": "https://doi.org/10.5281/zenodo.20074924",
-        "archived_release_doi": "10.5281/zenodo.21366910",
-        "archived_release_doi_url": "https://doi.org/10.5281/zenodo.21366910",
-        "archived_release_record_url": "https://zenodo.org/records/21366910",
+        "archived_release_doi": "10.5281/zenodo.23250727",
+        "archived_release_doi_url": "https://doi.org/10.5281/zenodo.23250727",
+        "archived_release_record_url": "https://zenodo.org/records/23250727",
     }
     assert {
         "package_root",

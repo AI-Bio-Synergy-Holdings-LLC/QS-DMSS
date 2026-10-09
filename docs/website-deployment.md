@@ -67,7 +67,7 @@ Render injects the following response headers for `/*` on the static service:
 - `Strict-Transport-Security`; and
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()`.
 
-The production CSP is:
+The current production CSP (pre-publication metadata) is:
 
 ```text
 default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' 'sha256-k32hMctlSQIFfX2rrALQyMGKEaoAOwPoMOBOlMAjXew='; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; upgrade-insecure-requests
@@ -78,13 +78,22 @@ and replace it in the Render header rule whenever that block changes; otherwise
 the browser will reject the updated structured data. Do not add
 `'unsafe-inline'` as a maintenance shortcut.
 
-The v0.14.0 preparation changes that hash from
-`sha256-uQPjsLuxWo6Y5jZ3N/VPMV67/GD+W/MmwsScEXX88F8=` to
-`sha256-k32hMctlSQIFfX2rrALQyMGKEaoAOwPoMOBOlMAjXew=`. Before authorized
-merge/deployment, the operator must stage both hashes in Render's `script-src`,
+The v0.14.0 preparation transition from `sha256-uQPjsLuxWo6Y5jZ3N/VPMV67/GD+W/MmwsScEXX88F8=`
+to `sha256-k32hMctlSQIFfX2rrALQyMGKEaoAOwPoMOBOlMAjXew=` is complete;
+the retired preparation hash was removed under separate owner authorization.
+
+The post-publication metadata PR introduces the exact JSON-LD hash
+`sha256-a4lZCq9finfGFq2lU6R2setX2qPeO9sJ6RET0UuhHtA=`. Before separately authorized
+merge/deployment, the operator must stage both current/new hashes in Render's `script-src`,
 preserving every other directive. After the new portal is verified, remove only
-the old hash. This prevents a gap while Render serves the old page; the PR alone
+the superseded hash under separate authorization. This prevents a gap while Render serves the old page; the PR alone
 does not change Render's dashboard header rule or authorize deployment.
+
+Required staging policy (not yet applied):
+
+```text
+default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' 'sha256-k32hMctlSQIFfX2rrALQyMGKEaoAOwPoMOBOlMAjXew=' 'sha256-a4lZCq9finfGFq2lU6R2setX2qPeO9sJ6RET0UuhHtA='; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; upgrade-insecure-requests
+```
 
 Do not treat a `<meta http-equiv>` element or a host-specific `_headers` file as
 equivalent. Verify the actual edge response after every header, domain, or
