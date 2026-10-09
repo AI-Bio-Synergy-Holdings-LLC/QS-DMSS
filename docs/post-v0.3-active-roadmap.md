@@ -9,8 +9,8 @@ The current QS-DMSS direction is:
 run simulations -> inspect evidence -> compare campaigns -> publish reproducible artifacts
 ```
 
-The current GitHub, Zenodo, and PyPI release is `v0.13.2`; its archived DOI is
-`10.5281/zenodo.21366910`.
+The current GitHub, Zenodo, and PyPI release is `v0.14.0`; its archived DOI is
+`10.5281/zenodo.23250727`.
 
 ## Strategic Shift
 
@@ -31,7 +31,7 @@ The full strategy now lives in:
 - [contributor-roadmap.md](contributor-roadmap.md)
 - [funding-roadmap.md](funding-roadmap.md)
 
-## Current Active Slice: v0.13.2 Research-Grade Reliability
+## Current Active Slice: v0.14.0 Evidence-First Workflows
 
 Lab Mode and Campaign Studio now make QS-DMSS feel meaningfully different from
 a generic open simulator. `v0.9.0` shipped the dry-run Slurm review target, and
@@ -39,10 +39,12 @@ a generic open simulator. `v0.9.0` shipped the dry-run Slurm review target, and
 inside Studio, including redrawable topology and attribution figures, the
 Research Runbook, and a contextual Evidence Assistant. The released GitHub
 wheel also retains the public reference-data provenance calibration sandbox,
-Conceptual Reference Map links, and job-registry path hardening. PyPI remains
-on `v0.13.2` while the research and provenance gates are reviewed.
+Conceptual Reference Map links, and job-registry path hardening. The published
+`v0.14.0` package adds the local recorded-result robustness explorer and data-only
+diagnostics pack pilot, and includes the experimental CPU graph-spectral backend.
+Publication is not independent scientific approval; issue #183 remains open.
 
-The next local-first slice adds an opt-in model sidecar to the contextual
+The released local-first package includes an opt-in model sidecar to the contextual
 Evidence Assistant. Its first boundary is intentionally narrow: evidence
 summary, claim-boundary review, comparison critique, and next-experiment
 proposals. Server-selected context, provider provenance, separate manifested
@@ -64,9 +66,12 @@ not another immediate feature release:
 - ask for one public comment on Strang refinement, fuzzy-potential norm
   conservation, non-conservative mask labels, or diagnostics-only status;
 - use the `v0.13.2` GitHub release wheel as the stable public review baseline
-  while the validation and provenance gates are reviewed;
+  only when reproducing the explicitly historical v0.13.2 review target;
 - use the separately pinned [scientific challenges](scientific-challenges.md)
-  for corrected FFT/graph candidate evidence; do not substitute the PyPI wheel;
+  for corrected FFT/graph candidate evidence; do not substitute either published
+  wheel for the source and hashes specified by those packets;
+- use the [v0.14.0 reviewer quickstart](reviewer-wheel-quickstart.md) for current
+  installation and engineering feedback, not reproduction of the frozen packets;
 - keep GPU expansion, real HPC submission, and decision-metric UI paused until
   the review target receives substantive technical feedback or exposes a
   blocker.

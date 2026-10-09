@@ -4,13 +4,13 @@ This packet is the shortest path for an external reviewer to understand what
 QS-DMSS is claiming, reproduce the public baseline, and decide where feedback
 would be most useful.
 
-Current GitHub and Zenodo release: `v0.13.2`
+Current GitHub and Zenodo release: `v0.14.0`
 
-Current PyPI baseline: `v0.13.2` / `qs-dmss==0.13.2`
+Current PyPI baseline: `v0.14.0` / `qs-dmss==0.14.0`
 
 Canonical website: `https://qs-dmss.studio`
 
-Latest archived release DOI: `10.5281/zenodo.21366910` (`v0.13.2`).
+Latest archived release DOI: `10.5281/zenodo.23250727` (`v0.14.0`).
 
 Project DOI: `10.5281/zenodo.20074924`
 
@@ -26,10 +26,12 @@ Active scientific review target:
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183`
 
 Issue #105 is a closed historical record, not scientific approval. The published
-v0.13.2 evidence below is unchanged. The separate, unreleased
+v0.13.2 scientific-review evidence below is unchanged. The separate
 [commit-pinned falsification pilot](scientific-falsification-pilot.md) concerns the
 later FFT correction and experimental graph backend; it does not replace this
-release baseline or establish physical validation.
+historical review baseline or establish physical validation. The published v0.14.0
+package now includes these engineering changes, but its fresh run is not the
+frozen candidate packet; retain exact commit, hash and diagnostic-convention identities.
 
 For a focused development-candidate assessment, start with the
 [Scientific Challenge Registry and structured intake](scientific-challenges.md).
@@ -69,14 +71,14 @@ endorsements of QS-DMSS or as validation against external datasets.
 
 ## Fast Review Path
 
-Use the current PyPI package from a clean environment; it is the same v0.13.2
+Use the current PyPI package from a clean environment; it is the same v0.14.0
 distribution attached to the GitHub release:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install qs-dmss==0.13.2
+python -m pip install qs-dmss==0.14.0
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo
@@ -107,11 +109,11 @@ cross-platform GitHub release-wheel commands and the PyPI baseline context.
 
 ## Quantum-Readiness Review Path
 
-For the v0.13.2 release, install the optional simulator stack and generate the
+For the v0.14.0 release, install the optional simulator stack and generate the
 full review chain:
 
 ```powershell
-python -m pip install --upgrade "qs-dmss[quantum] @ https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.2/qs_dmss-0.13.2-py3-none-any.whl"
+python -m pip install --upgrade "qs-dmss[quantum] @ https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.14.0/qs_dmss-0.14.0-py3-none-any.whl"
 qs-dmss quantum validate-fractal --output-root quantum-sidecar-validation
 qs-dmss quantum prepare-qpu-request --output-root qpu-request-bundle
 qs-dmss quantum validate-compilation --output-root quantum-compilation-validation
@@ -128,7 +130,8 @@ validation.
 The public package baseline includes `qs-dmss validation fractal-ssfm` for the
 experimental `numpy_fractal_ssfm` backend.
 
-Use this published-baseline review path when commenting on issue #183:
+Use this **historical v0.13.2** published-baseline review path when reproducing
+the pinned review target for issue #183, not the current v0.14.0 installation:
 
 ```powershell
 python -m pip install https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.2/qs_dmss-0.13.2-py3-none-any.whl

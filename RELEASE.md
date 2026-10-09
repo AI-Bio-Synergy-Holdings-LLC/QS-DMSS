@@ -3,23 +3,24 @@
 This policy keeps release builds, Python package metadata, GitHub release
 artifacts, and PyPI distributions aligned before and after tags are published.
 
-Current release: `v0.13.2` / `0.13.2`, published on GitHub, archived by
-Zenodo as `10.5281/zenodo.21366910`, and distributed on PyPI through Trusted
+Current release: `v0.14.0` / `0.14.0`, published on GitHub, archived by
+Zenodo as `10.5281/zenodo.23250727`, and distributed on PyPI through Trusted
 Publishing. Published release-candidate tags
 such as `v0.1.0-rc.1` and `v0.1.0-rc.2` remain immutable; do not move or
 replace them.
 
-The v0.13.2 GitHub artifacts and PyPI distributions have matching SHA-256
+The v0.14.0 GitHub artifacts and PyPI distributions have matching SHA-256
 digests. Public release metadata is synchronized through the post-publication
 update tracked in `docs/public-link-update-checklist.md`.
 
 ## Version Alignment
 
-The current development build is `0.14.0`, under focused release preparation;
-it is **not published**. See [v0.14.0 preparation](docs/release-v0.14.0.md) for
-qualification, the local Windows policy restriction, scientific non-claims,
-and the separate publication gate. Keep published v0.13.2 download links and
-DOI records until actual publication is verified. Semantic-checker admission
+The current source and published package version is `0.14.0`. See
+[v0.14.0 release](docs/release-v0.14.0.md) for tag-built qualification, the
+local Windows installation disposition, verified hashes, and scientific non-claims.
+The published tag pins `15377b5ab1f9f3e32a37494e2e8973efce5211c3`; later
+metadata commits do not replace the immutable release artifacts. Historical
+v0.13.2 evidence and DOI records remain unchanged. Semantic-checker admission
 is deferred from this release; its historical evidence remains on HOLD.
 
 - GitHub release-candidate tags use SemVer-style names such as `v0.1.0-rc.1`.

@@ -8,15 +8,22 @@ not the rectangular Run Setup selector. The public demo cannot execute this back
 
 ## Run and inspect
 
-Use the v0.14.0 development checkout or its candidate wheel; the published v0.13.2 wheel
-does not contain this backend. This is an engineering admission candidate, not a
-new release or an independently validated scientific model.
+Use the published `v0.14.0` package or a separately qualified source build; the
+historical v0.13.2 wheel does not contain this backend. It remains experimental,
+CPU-only and local-only, not an independently validated scientific model. Issue
+#183 remains open. Installing the current package does not reproduce the frozen,
+commit-pinned challenge packets; follow their exact source and hash instructions.
 
 ```powershell
-qs-dmss run configs/sierpinski_graph_spectral.yaml --output-root graph-runs
+$graphConfig = python -c "from importlib.resources import files; print(files('qs_dmss.assets').joinpath('configs/sierpinski_graph_spectral.yaml'))"
+qs-dmss run $graphConfig --output-root graph-runs
 qs-dmss verify graph-runs/<run-id>
 qs-dmss replay graph-runs/<run-id> --output-root graph-replays
 ```
+
+This resolves the installed package's bundled config; it does not assume that a
+`configs/` checkout directory exists in the current working directory. Substitute
+the generated run ID for `<run-id>` when verifying and replaying.
 
 The config opts into `fractal_graph_spectral` and a `fractal_graph` section. Omitted
 `engine.grid_shape` is derived as `[active_vertices, 1, 1]` for compatibility with
@@ -90,8 +97,8 @@ separate from the existing fractal validation suite.
 The FFT energy correction is a separate preceding change; historical evidence must
 not be overwritten. See [diagnostic migration](fft-energy-diagnostic-correction.md).
 Independent human scientific review, length-scaling interpretation, continuum
-convergence and application/studio promotion remain separate gates. No release or
-hosted enablement is implied by this engineering integration.
+convergence and scientific promotion remain separate gates. Inclusion in the
+published package does not enable hosted execution or establish scientific approval.
 
 ### Admission checklist (not scientific approval)
 
@@ -99,10 +106,10 @@ hosted enablement is implied by this engineering integration.
   limit, including omitted default fields. Both shipped schemas are synchronized.
 - Keep the supported Python matrix, security/dependency review, packaging, Docker,
   legacy solver/quantum tests and human engineering review green before merge.
-- The cross-platform candidate-wheel smoke executes, verifies and replays the
+- The cross-platform installed-wheel smoke executes, verifies and replays the
   packaged graph config outside the checkout, checks its operator archive, and
-  confirms selector omission and hosted replay rejection. It does not change published-release
-  smoke behavior or enable the hosted backend.
+  confirms selector omission and hosted replay rejection. Publication does not
+  enable the hosted backend or turn these checks into scientific validation.
 - Independent human scientific review must assess the finite-cell measure,
   boundary restriction, length scaling, quadrant fields, temporal refinement,
   multilevel interpretation and domain applicability before scientific promotion.

@@ -4,16 +4,23 @@ This path validates QS-DMSS from a published distribution without a source
 checkout. It is intended for reviewers who need a fast productization smoke
 test.
 
-Release: `v0.13.2`
+Release: `v0.14.0` (engineering-qualified beta; graph model remains experimental).
 
 GitHub release:
-`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.13.2`
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.14.0`
 
 Wheel:
-`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.2/qs_dmss-0.13.2-py3-none-any.whl`
+`https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.14.0/qs_dmss-0.14.0-py3-none-any.whl`
 
-PyPI and GitHub publish the same v0.13.2 distribution. Use the GitHub wheel
+PyPI and GitHub publish the same v0.14.0 distribution. Use the GitHub wheel
 below when reviewing the exact attached release asset.
+
+Wheel SHA-256: `22a2d4f3f6af64f562916f45ca319606a03132e89d8b7787da034c88ad87cbed`.
+Published source: `15377b5ab1f9f3e32a37494e2e8973efce5211c3`.
+Version DOI: `10.5281/zenodo.23250727`. Python 3.10–3.13 is the tested matrix.
+The pinned [v0.13.2 scientific-review target](fractal-ssfm-independent-review-v0.13.2.md)
+and frozen [challenge packets](scientific-challenges.md) are separate historical
+identities; these installation commands do not reproduce those packets.
 
 ## GitHub Release Install
 
@@ -23,7 +30,7 @@ Windows PowerShell:
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
-python -m pip install https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.2/qs_dmss-0.13.2-py3-none-any.whl
+python -m pip install https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.14.0/qs_dmss-0.14.0-py3-none-any.whl
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo
@@ -39,7 +46,7 @@ Linux/macOS Bash:
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.2/qs_dmss-0.13.2-py3-none-any.whl
+python -m pip install https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.14.0/qs_dmss-0.14.0-py3-none-any.whl
 
 qs-dmss run-demo
 qs-dmss campaigns run-demo
@@ -51,12 +58,12 @@ qs-dmss data calibration run --output-root reference-data-calibration
 
 ## Optional Quantum-Readiness Path
 
-Install the local simulator extra from the v0.13.2 release, then generate the
+Install the local simulator extra from the v0.14.0 release, then generate the
 three quantum
 review artifacts:
 
 ```powershell
-python -m pip install --upgrade "qs-dmss[quantum] @ https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.2/qs_dmss-0.13.2-py3-none-any.whl"
+python -m pip install --upgrade "qs-dmss[quantum] @ https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.14.0/qs_dmss-0.14.0-py3-none-any.whl"
 qs-dmss quantum validate-fractal --output-root quantum-sidecar-validation
 qs-dmss quantum prepare-qpu-request --output-root qpu-request-bundle
 qs-dmss quantum validate-compilation --output-root quantum-compilation-validation
@@ -74,16 +81,16 @@ Use this path when validating the GitHub release asset directly.
 Windows PowerShell:
 
 ```powershell
-$release = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.2"
-Invoke-WebRequest "$release/qs_dmss-0.13.2-py3-none-any.whl" -OutFile "qs_dmss-0.13.2-py3-none-any.whl"
-python -m pip install .\qs_dmss-0.13.2-py3-none-any.whl
+$release = "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.14.0"
+Invoke-WebRequest "$release/qs_dmss-0.14.0-py3-none-any.whl" -OutFile "qs_dmss-0.14.0-py3-none-any.whl"
+python -m pip install .\qs_dmss-0.14.0-py3-none-any.whl
 ```
 
 Linux/macOS Bash:
 
 ```bash
-release="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.2"
-python -m pip install "$release/qs_dmss-0.13.2-py3-none-any.whl"
+release="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.14.0"
+python -m pip install "$release/qs_dmss-0.14.0-py3-none-any.whl"
 ```
 
 ## Expected Signals
@@ -146,7 +153,7 @@ Bundle: .../experiments/campaign-20260508T005536Z-a1acec40/evidence_bundle.zip
 
 ## Reproducibility Review Checklist
 
-- Confirm the v0.13.2 GitHub release wheel installs in a fresh environment.
+- Confirm the v0.14.0 GitHub release wheel installs in a fresh environment.
 - Confirm `qs-dmss run-demo` writes outputs under a caller-controlled `runs/`
   path or the current working directory.
 - Confirm the generated run includes `run.json`, `metrics.json`,
@@ -171,7 +178,7 @@ suite.
 ```powershell
 git clone https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS.git
 cd QS-DMSS
-git checkout v0.13.2
+git checkout v0.14.0
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip

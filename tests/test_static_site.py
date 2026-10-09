@@ -14,7 +14,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 SITE_ROOT = REPO_ROOT / "site"
 GITHUB_SOCIAL_PREVIEW_SIZE = (1280, 640)
 SITE_SOCIAL_PREVIEW_SIZE = (1200, 630)
-PORTAL_JSON_LD_CSP_HASH = "sha256-k32hMctlSQIFfX2rrALQyMGKEaoAOwPoMOBOlMAjXew="
+PORTAL_JSON_LD_CSP_HASH = "sha256-a4lZCq9finfGFq2lU6R2setX2qPeO9sJ6RET0UuhHtA="
 
 
 def _png_dimensions(path: Path) -> tuple[int, int]:
@@ -46,7 +46,7 @@ def test_static_site_front_door_contract() -> None:
     required_fragments = [
         "Run simulations. Inspect evidence. Compare campaigns. Publish reproducible artifacts.",
         "Install from PyPI",
-        "Download v0.13.2",
+        "Download v0.14.0",
         "Run local cockpit",
         'python -m pip install --upgrade "qs-dmss[quantum]"',
         "Read DOI",
@@ -66,8 +66,8 @@ def test_static_site_front_door_contract() -> None:
         "The hosted service is always available, with bounded runs and temporary artifacts.",
         "not peer-reviewed scientific validation",
         'name="twitter:card" content="summary_large_image"',
-        "v0.13.2 published",
-        "QS-DMSS v0.13.2",
+        "v0.14.0 published",
+        "QS-DMSS v0.14.0",
         "no provider submission, QPU execution, or spend",
     ]
 
@@ -168,8 +168,8 @@ def test_static_site_metadata_hardening() -> None:
     assert "<loc>https://qs-dmss.studio/</loc>" in sitemap
     assert "<lastmod>2026-10-08</lastmod>" in sitemap
     assert "<image:loc>https://qs-dmss.studio/assets/social-preview-v0132.png</image:loc>" in sitemap
-    assert "Latest archived release DOI: https://doi.org/10.5281/zenodo.21366910" in llms
-    assert "Current GitHub and Zenodo release: v0.13.2" in llms
+    assert "Latest archived release DOI: https://doi.org/10.5281/zenodo.23250727" in llms
+    assert "Current GitHub and Zenodo release: v0.14.0" in llms
     assert "provider credentials, remote API, QPU execution" in llms
     assert "Hosted demo: https://app.qs-dmss.studio/" in llms
 

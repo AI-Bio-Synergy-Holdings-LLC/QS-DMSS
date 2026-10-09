@@ -7,6 +7,9 @@ credible.
 
 Last reviewed: 2026-07-08
 
+Release metadata refreshed: 2026-10-08. The submission decision, scientific
+review gate, and owner-required authorship/AI disclosures remain unchanged.
+
 Primary sources:
 
 - `https://joss.readthedocs.io/en/latest/submitting.html`
@@ -17,10 +20,14 @@ Primary sources:
 
 Do not submit to JOSS yet.
 
-Prepare the packet, collect reviewer feedback, and use `v0.13.2` as the stable
+Prepare the packet, collect reviewer feedback, and use `v0.14.0` as the current
 public baseline for Lab Mode, Campaign Studio, Publication Export Composer,
 Fractal/Quadrant SSFM validation, reference-data provenance, and reproducibility
 review.
+
+The historical v0.13.2 scientific-review target and commit-pinned challenge
+packets retain their exact source/wheel identities. Current installation does
+not reproduce them or establish independent scientific approval under #183.
 
 ## Fit Summary
 
@@ -40,7 +47,7 @@ workflow is a meaningful contribution to the research community.
 | --- | --- | --- | --- |
 | Public repository and issue workflow | Public GitHub repository, issue templates, CONTRIBUTING, SECURITY, CODE_OF_CONDUCT | Ready | Keep development visible through ordinary issues and PRs |
 | OSI-approved license | Apache-2.0 `LICENSE` file | Ready | No action |
-| Installable package | GitHub v0.13.2 release wheel, PyPI `qs-dmss==0.13.2`, Trusted Publishing, fresh-install smoke | Ready | `v0.13.2` refreshes the live quantum harness, hardens public responses, and carries the Research Runbook and contextual Evidence Assistant; archived release DOI is `10.5281/zenodo.21366910`. Exact release artifacts were published through Trusted Publishing. |
+| Installable package | GitHub v0.14.0 release wheel, PyPI `qs-dmss==0.14.0`, Trusted Publishing, fresh-install smoke | Ready | Published `v0.14.0` includes recorded-result robustness and the data-only diagnostics pack pilot; the CPU graph model remains experimental and local-only. Archived release DOI is `10.5281/zenodo.23250727`. Exact release artifacts were published through Trusted Publishing; this does not establish scientific validation. |
 | Tests and CI | Pytest suite, benchmark smoke, wheel smoke, Docker smoke, CodeQL | Ready | Add tests only when behavior changes |
 | Documentation | README, reviewer quickstart, evidence glossary, benchmark docs, contributor map | Ready enough | Use reviewer feedback to patch confusing sections |
 | Example usage | `run-demo`, `campaigns run-demo`, `benchmarks validate` | Ready enough | Add a short tutorial only if reviewers need more context |

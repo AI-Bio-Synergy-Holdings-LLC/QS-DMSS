@@ -25,13 +25,17 @@ verify/replay the evidence without needing private context?
 ## Run It From The Published Package
 
 Install the current GitHub release wheel and run the showcase. The matching
-PyPI package is `0.13.2`; use the wheel below to validate the exact release
+PyPI package is `0.14.0`; use the wheel below to validate the exact release
 asset:
 
 ```powershell
-python -m pip install https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.13.2/qs_dmss-0.13.2-py3-none-any.whl
+python -m pip install https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/download/v0.14.0/qs_dmss-0.14.0-py3-none-any.whl
 qs-dmss showcase run --output-root simulation-showcase
 ```
+
+The current release is `v0.14.0`, DOI `10.5281/zenodo.23250727`. Retain the wheel
+hash and source identity. These commands do not reproduce the separately pinned
+historical scientific-review packets.
 
 For source development, install from the current checkout instead:
 

@@ -37,15 +37,17 @@ live in
 
 ## Current Public State
 
-Source and cockpit build metadata now identify the **v0.14.0 development build**,
-under [release qualification](docs/release-v0.14.0.md), not yet published. It adds
+**v0.14.0 is published** on [GitHub](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.14.0),
+[PyPI](https://pypi.org/project/qs-dmss/0.14.0/), and
+[Zenodo](https://doi.org/10.5281/zenodo.23250727).
+See [release notes and qualification](docs/release-v0.14.0.md). It adds
 the corrected FFT energy diagnostic, experimental local CPU graph backend,
 scientific challenge handoff, recorded-result robustness explorer, and data-only
 FFT diagnostics pack. The semantic checker is deferred; hosted AI and graph
 execution remain disabled. Scientific review #183 remains open.
 
-QS-DMSS `v0.13.2` is published on GitHub, archived by Zenodo, and distributed
-on PyPI. This backward-compatible patch refreshes live quantum-validation
+v0.14.0 retains the reliability and security work introduced in v0.13.2:
+it refreshes live quantum-validation
 evidence after each local harness run, hardens public cockpit responses,
 reduces health-endpoint disclosure, and adds safe hosted error telemetry while
 carrying the redrawable attribution figures, Research Runbook, and contextual
@@ -56,10 +58,13 @@ execution, job submission, or authorized spend are included.
 
 The GitHub release assets, Zenodo record, and PyPI package preserve the same
 release identity and simulator-first claim boundary. Install
-`qs-dmss==0.13.2` from PyPI or use the matching GitHub Release asset.
+`qs-dmss==0.14.0` (or `qs-dmss[quantum]==0.14.0`) from PyPI or use the matching
+GitHub Release asset. The immutable release is built from source commit
+`15377b5ab1f9f3e32a37494e2e8973efce5211c3`; later public-metadata changes do
+not replace its distribution bytes.
 
-The v0.13.2 archived release DOI is
-[v0.13.2 / 10.5281/zenodo.21366910](https://doi.org/10.5281/zenodo.21366910).
+The v0.14.0 archived release DOI is
+[v0.14.0 / 10.5281/zenodo.23250727](https://doi.org/10.5281/zenodo.23250727).
 
 QS-DMSS remains beta for reproducible package/evidence workflows. Quantum
 readiness here means ideal-simulator semantic checks and transparent resource
@@ -69,8 +74,8 @@ scientific validation.
 Fractal SSFM scientific feedback is routed through
 [issue #183](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183).
 Closed issue #105 remains historical context, not scientific approval. The
-unreleased, commit-pinned [falsification pilot](docs/scientific-falsification-pilot.md)
-is separate from the published baseline and does not establish physical validation.
+commit-pinned [falsification pilot](docs/scientific-falsification-pilot.md)
+retains its original candidate identity and does not establish physical validation.
 The [Scientific Challenge Registry and reviewer intake](docs/scientific-challenges.md)
 identify three bounded challenges, their immutable evidence and pending human
 assessment. Choose the published baseline or the later candidate explicitly;
@@ -688,7 +693,8 @@ use it when archiving GitHub releases.
 For formal research references, prefer the Zenodo DOI citation:
 
 - Project DOI: [10.5281/zenodo.20074924](https://doi.org/10.5281/zenodo.20074924)
-- Latest archived release DOI: [v0.13.2 / 10.5281/zenodo.21366910](https://doi.org/10.5281/zenodo.21366910)
+- Latest archived release DOI: [v0.14.0 / 10.5281/zenodo.23250727](https://doi.org/10.5281/zenodo.23250727)
+- Previous archived release DOI: [v0.13.2 / 10.5281/zenodo.21366910](https://doi.org/10.5281/zenodo.21366910)
 - Previous archived release DOI: [v0.12.0 / 10.5281/zenodo.21329711](https://doi.org/10.5281/zenodo.21329711)
 - Previous archived release DOI: [v0.11.0 / 10.5281/zenodo.21319023](https://doi.org/10.5281/zenodo.21319023)
 - Previous archived release DOI: [v0.10.1 / 10.5281/zenodo.21270512](https://doi.org/10.5281/zenodo.21270512)

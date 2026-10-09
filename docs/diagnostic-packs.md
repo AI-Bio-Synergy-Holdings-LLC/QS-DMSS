@@ -1,14 +1,16 @@
 # Data-only diagnostics pack pilot
 
-This feature is in the v0.14.0 development build, not the published v0.13.2 wheel.
-Identify a candidate by commit, wheel SHA-256 and retained implementation hashes,
-not the version string alone. No publication,
-scientific promotion, hosted compute or AI activation is authorized by this pilot.
+This feature is included in the published `v0.14.0` package, not the historical
+v0.13.2 wheel. Identify the installation by source commit, wheel SHA-256 and
+retained implementation hashes, not the version string alone. Publication does
+not imply scientific promotion, hosted compute or AI activation. The scientific
+review gate #183 remains open.
 
 ## Complete researcher workflow
 
-Use a qualified candidate installation. All commands print JSON; exit status 0
-means admission/integrity success or all numerical cases passing, respectively.
+Use the published v0.14.0 installation or a separately qualified source build.
+All commands print JSON; exit status 0 means admission/integrity success or all
+numerical cases passing, respectively.
 Status 1 means an authored failure or a retained numerical counterexample.
 
 ```console
@@ -55,8 +57,8 @@ The pilot supports only `fft_plane_wave_energy_v1`, convention
 The suite is implemented in `tests/test_diagnostic_packs.py`; packs cannot name
 commands or test files to execute. License admission is intentionally restricted
 to `Apache-2.0` and `CC0-1.0`, not all valid SPDX identifiers. Compatibility applies
-to admission-capable source builds; it does not imply this command exists in
-the historical published v0.13.2 wheel.
+to the published v0.14.0 package and admission-capable source builds; it does not
+imply this command exists in the historical published v0.13.2 wheel.
 
 Unknown keys/actions, nonempty dependencies, incompatible versions/conventions,
 invalid/unsupported licenses, duplicate JSON members, nonfinite numbers,

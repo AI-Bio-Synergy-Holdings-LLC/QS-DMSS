@@ -135,14 +135,15 @@ That is the strongest current donation story because Lab Mode, Campaign Studio,
 and publication exports have shipped. The next public value is making those
 workflows easier to scrutinize, reproduce, extend, and integrate safely.
 
-The current GitHub and Zenodo release is `v0.13.2` (DOI
-`10.5281/zenodo.21366910`), and the immediate trust-building gate is scientific
+The current GitHub and Zenodo release is `v0.14.0` (DOI
+`10.5281/zenodo.23250727`), and the immediate trust-building gate is scientific
 review of the installable Fractal/Quadrant SSFM validation harness on
 `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183`. The
-[development challenges](scientific-challenges.md) have separate source/wheel
-identities from that published baseline. Funding
+[development challenges](scientific-challenges.md) and historical v0.13.2 review
+target have separate source/wheel identities from the current published release.
+Publication does not close #183 or promote the experimental graph model. Funding
 support should help convert that review and the shipped simulator-first quantum
 readiness evidence into clearer validation artifacts, stronger documentation,
 and carefully staged future build slices, not premature GPU/provider expansion
-or unsupported scientific claims. The v0.13.2 distribution is published on
+or unsupported scientific claims. The v0.14.0 distribution is published on
 PyPI through Trusted Publishing.

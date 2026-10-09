@@ -18,17 +18,20 @@ Initial PyPI publication completed on `2026-05-05` through GitHub Actions
 Trusted Publishing.
 
 - Initial published version: `0.1.0`
-- Current GitHub and Zenodo release: `0.13.2`
-- Latest published PyPI version: `0.13.2`
+- Current GitHub and Zenodo release: `0.14.0`
+- Latest published PyPI version: `0.14.0`
+- Current tag-built source: `15377b5ab1f9f3e32a37494e2e8973efce5211c3`
+- Current protected publication: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/actions/runs/37862435936`
+- Verified artifacts and published-install matrix: [v0.14.0 release record](release-v0.14.0.md)
 - Canonical website: `https://qs-dmss.studio`
 - PyPI project URL: `https://pypi.org/project/qs-dmss/`
 - Initial publish workflow run:
   `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/actions/runs/25393532837`
 - Initial publish commit: `3cd208ff985041cf95261f8de289e4dd5a14df49`
 - Upload method: Trusted Publishing / GitHub OIDC
-- Current GitHub and PyPI release files for v0.13.2:
-  - `qs_dmss-0.13.2-py3-none-any.whl`
-  - `qs_dmss-0.13.2.tar.gz`
+- Current GitHub and PyPI release files for v0.14.0:
+  - `qs_dmss-0.14.0-py3-none-any.whl`
+  - `qs_dmss-0.14.0.tar.gz`
 - Initial published files:
   - `qs_dmss-0.1.0-py3-none-any.whl`
   - `qs_dmss-0.1.0.tar.gz`
@@ -36,7 +39,7 @@ Trusted Publishing.
 Run post-publication smoke validation from a fresh virtual environment:
 
 ```powershell
-python -m pip install --no-cache-dir "qs-dmss[quantum]==0.13.2"
+python -m pip install --no-cache-dir "qs-dmss[quantum]==0.14.0"
 qs-dmss run-demo
 qs-dmss campaigns run-demo
 qs-dmss benchmarks validate --scenario demo-baseline
@@ -108,7 +111,7 @@ Documentation, PyPI, DOI, Review, and Reviewer Quickstart before publication.
 - Organization: `AI-Bio Synergy Holdings LLC`
 - License: `Apache-2.0`
 - Supported Python range: `>=3.10`
-- CI validation range for `v0.13.x`: Python 3.10 through 3.13 plus Docker smoke
+- CI validation range for `v0.14.0`: Python 3.10 through 3.13 plus Docker smoke
 - Citation metadata: `CITATION.cff`
 
 ## Citation and Archival Metadata
@@ -121,8 +124,9 @@ The current citation metadata includes the Zenodo concept DOI so package-facing
 metadata has a stable citation target:
 
 - Zenodo concept DOI: `10.5281/zenodo.20074924`
-- Latest archived release DOI: `10.5281/zenodo.21366910`
-- Latest archived release record: `https://zenodo.org/records/21366910`
+- Latest archived release DOI: `10.5281/zenodo.23250727`
+- Latest archived release record: `https://zenodo.org/records/23250727`
+- `v0.14.0` release DOI: `10.5281/zenodo.23250727`
 - `v0.13.2` release DOI: `10.5281/zenodo.21366910`
 - `v0.13.1` release DOI: `10.5281/zenodo.21348597`
 - Previous `v0.13.0` release DOI: `10.5281/zenodo.21348257`

@@ -50,7 +50,7 @@ used:
 
 - Project concept DOI: `10.5281/zenodo.20074924`
 - Latest archived release DOI:
-  `10.5281/zenodo.21366910` (`v0.13.2`)
+  `10.5281/zenodo.23250727` (`v0.14.0`)
 
 Repository citation metadata lives in [`CITATION.cff`](../CITATION.cff), and
 additional citation notes live in [`zenodo-citation.md`](zenodo-citation.md).
@@ -70,10 +70,14 @@ QS-DMSS, created and maintained by AI-Bio Synergy Holdings LLC.
 Recommended reproducibility attribution:
 
 ```text
-This work used QS-DMSS v0.13.2. The project concept DOI is
-10.5281/zenodo.20074924; the v0.13.2 archived release DOI is
-10.5281/zenodo.21366910. The matching PyPI package is `qs-dmss==0.13.2`.
+This work used QS-DMSS v0.14.0. The project concept DOI is
+10.5281/zenodo.20074924; the v0.14.0 archived release DOI is
+10.5281/zenodo.23250727. The matching PyPI package is `qs-dmss==0.14.0`.
 ```
+
+Use this attribution only when it matches the artifacts actually used; retain
+their source commit and hashes. Historical v0.13.2 review evidence keeps its
+original release identity and DOI, not this current-release attribution.
 
 ## Contribution Basis
 
@@ -94,9 +98,9 @@ claim.
 QS-DMSS is beta software for reproducible package/evidence workflows. It is
 not peer-reviewed scientific validation.
 
-The current GitHub and Zenodo release is `v0.13.2` / DOI
-`10.5281/zenodo.21366910`; the matching PyPI package is
-`qs-dmss==0.13.2`. Fractal/Quadrant SSFM scientific feedback is routed
+The current GitHub and Zenodo release is `v0.14.0` / DOI
+`10.5281/zenodo.23250727`; the matching PyPI package is
+`qs-dmss==0.14.0`. Fractal/Quadrant SSFM scientific feedback is routed
 through issue #183 before any GPU expansion or decision-metric UI exposure for
 spectral diagnostics.
 
@@ -110,8 +114,8 @@ Ordinary nominative references are fine, for example:
 
 ```text
 Built with QS-DMSS
-Uses QS-DMSS v0.13.2
-Reproduced with QS-DMSS v0.13.2 release wheel
+Uses QS-DMSS v0.14.0
+Reproduced with QS-DMSS v0.14.0 release wheel
 ```
 
 Avoid wording that suggests AI-Bio Synergy Holdings LLC has reviewed,
