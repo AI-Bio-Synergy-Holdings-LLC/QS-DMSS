@@ -5,9 +5,10 @@ review contacts. It is intentionally conservative: do not scrape anonymous
 traffic, do not infer identities from downloads or clones, and do not collect
 private contact details in public repository files.
 
-Current public baseline: GitHub and Zenodo release `v0.13.2` / DOI
-`10.5281/zenodo.21366910`. The matching PyPI package is
-`qs-dmss==0.13.2`.
+Current public baseline: GitHub and Zenodo release `v0.14.0` / DOI
+`10.5281/zenodo.23250727`. The matching PyPI package is
+`qs-dmss==0.14.0`. Historical v0.13.2 review evidence and commit-pinned challenge
+packets retain their own identities; current installation is not their reproduction.
 
 Canonical public website:
 `https://qs-dmss.studio`
@@ -171,7 +172,7 @@ ready.
 ```text
 QS-DMSS Studio is live at https://qs-dmss.studio.
 
-QS-DMSS v0.13.2 is looking for a few focused external reviewers.
+QS-DMSS v0.14.0 is looking for a few focused external reviewers.
 
 The project is beta software for reproducible package/evidence workflows, not
 peer-reviewed scientific validation. The immediate goal is modest: a few public

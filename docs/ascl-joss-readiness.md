@@ -6,14 +6,18 @@ that should wait for external research-use evidence.
 
 Last reviewed: 2026-06-01
 
+Release metadata refreshed: 2026-10-08. This does not reapprove the scholarly
+readiness assessment or authorize a submission.
+
 ## Current Public Baseline
 
 - Repository: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS`
 - Website: `https://qs-dmss.studio`
 - PyPI package: `https://pypi.org/project/qs-dmss/`
-- Current GitHub and Zenodo release: `v0.13.2`
-- Latest PyPI package: `v0.13.2`
-- Latest archived release DOI: `10.5281/zenodo.21366910`
+- Current GitHub and Zenodo release: `v0.14.0`
+- Latest PyPI package: `v0.14.0`
+- Latest archived release DOI: `10.5281/zenodo.23250727`
+- `v0.14.0` release DOI: `10.5281/zenodo.23250727`
 - `v0.13.2` release DOI: `10.5281/zenodo.21366910`
 - Previous `v0.13.1` release DOI: `10.5281/zenodo.21348597`
 - Previous `v0.13.0` release DOI: `10.5281/zenodo.21348257`
@@ -84,12 +88,15 @@ Package URL:
 https://pypi.org/project/qs-dmss/
 
 Preferred citation:
-QS-DMSS v0.9.0, Zenodo version DOI doi:10.5281/zenodo.20693736.
+QS-DMSS v0.14.0, Zenodo version DOI doi:10.5281/zenodo.23250727.
 Use the concept DOI doi:10.5281/zenodo.20074924 for project-level references.
 
 Research paper using the code:
 TODO: add submitted preprint, peer-reviewed paper, or accepted thesis URL.
 ```
+
+Use the archive matching the artifacts actually used. Historical v0.13.2 review
+targets and commit-pinned challenge packets are not replaced by this citation.
 
 ## JOSS Readiness
 

@@ -2,16 +2,17 @@
 
 This is a read-only discovery layer over the [reviewed registry](scientific-challenges.md),
 not a new experiment, validation decision or release. Its deployment follows
-protected PR review. The published PyPI v0.13.2 package does not gain this UI
-until a separately authorized future release.
+protected PR review. The discovery UI is included in the published `v0.14.0`
+package; it is absent from the historical v0.13.2 wheel. Publication neither
+reproduces the frozen challenge packets nor closes scientific-review gate #183.
 
 ## Entry points and reviewer path
 
-After merge and deployment:
+Published entry points (deployment provenance is checked separately):
 
 - Studio: <https://qs-dmss.studio/#scientific-challenges>.
 - Hosted cockpit: <https://app.qs-dmss.studio/#scientific-challenges>.
-- Local development cockpit: the Scientific challenges link and the contextual
+- Local cockpit: the Scientific challenges link and the contextual
   Evidence Assistant both lead to the same catalog.
 
 Choose a challenge → inspect the pinned packets → reproduce the pinned candidate

@@ -134,3 +134,71 @@ def test_published_new_artifacts_exercise_admitted_pilots(source, version, expec
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     assert module._includes_admitted_pilots(source, version) is expected
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "zenodo-citation.md",
+        "ownership-and-use.md",
+        "post-v0.3-active-roadmap.md",
+        "outreach-contact-avenues.md",
+        "funding-roadmap.md",
+        "ascl-joss-readiness.md",
+        "joss-preflight.md",
+        "circulation-funnel.md",
+        "simulation-showcase.md",
+    ],
+)
+def test_current_release_guidance_matches_verified_publication(path: str) -> None:
+    text = (ROOT / "docs" / path).read_text(encoding="utf-8")
+    assert "`v0.14.0`" in text
+    assert "10.5281/zenodo.23250727" in text
+    assert not re.search(
+        r"(?im)^(?:- )?(?:Current|Latest|The current|PyPI package is)"
+        r"[^\n]*(?:v?0\.13\.2|21366910)",
+        text,
+    )
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "diagnostic-packs.md",
+        "recommendation-robustness.md",
+        "experimental-graph-spectral-backend.md",
+        "scientific-challenge-handoff.md",
+    ],
+)
+def test_admitted_feature_guides_no_longer_describe_release_as_unpublished(path: str) -> None:
+    overview = "\n".join((ROOT / "docs" / path).read_text(encoding="utf-8").splitlines()[:20])
+    assert "published `v0.14.0`" in overview
+    assert "not published" not in overview
+    assert "under release" not in overview
+    assert "#183" in overview
+
+
+def test_showcase_install_guidance_targets_current_release_artifact() -> None:
+    text = (ROOT / "docs/simulation-showcase.md").read_text(encoding="utf-8")
+    assert "/releases/download/v0.14.0/qs_dmss-0.14.0-py3-none-any.whl" in text
+    assert "/releases/download/v0.13.2/" not in text
+
+
+def test_documentation_refresh_preserves_historical_and_experimental_boundaries() -> None:
+    baseline = json.loads(
+        (ROOT / "docs/review-evidence/fractal-ssfm-v0.13.2.json").read_text(encoding="utf-8")
+    )["release"]
+    assert baseline["version"] == "0.13.2"
+    assert baseline["source_commit"] == "7a063eb91af6c50e483c2d062bf6cee0daf709e4"
+    assert baseline["wheel_sha256"] == (
+        "6f22876fa625681aa72b96d99e14de92cfd5cfae870fc53d9d41673ebf82416f"
+    )
+    spine = (ROOT / "docs/fractal-quadrant-ssfm-validation-spine.md").read_text(encoding="utf-8")
+    assert "historical `v0.13.2` scientific-review baseline" in re.sub(r"\s+", " ", spine)
+    assert "fractal-ssfm-independent-review-v0.13.2.md" in spine
+    graph = (ROOT / "docs/experimental-graph-spectral-backend.md").read_text(encoding="utf-8")
+    assert "experimental, CPU-only and local-only" in re.sub(r"\s+", " ", graph)
+    assert "#183 remains open" in graph
+    assert "The public demo cannot execute this backend" in graph
+    assert "qs-dmss run $graphConfig" in graph
+    assert "files('qs_dmss.assets').joinpath('configs/sierpinski_graph_spectral.yaml')" in graph

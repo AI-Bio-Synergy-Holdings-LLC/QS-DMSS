@@ -7,8 +7,8 @@ strategy lives in [product-vision.md](product-vision.md),
 
 For current scientific requests, use the [bounded challenges and reviewer intake](scientific-challenges.md)
 under active #183. Closed #105 and the historical copy below do not establish
-scientific approval. Keep the published v0.13.2 track separate from the later
-source-pinned development candidate.
+scientific approval. Keep the historical v0.13.2 review track and source-pinned
+development candidate separate from the current published v0.14.0 installation.
 
 This guide turns public attention into useful review, issues, commits, and
 release feedback. It is intentionally narrow: every path should end with a
@@ -20,9 +20,9 @@ specific GitHub issue, pull request, or reproducibility signal.
 - GitHub repository: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS`
 - PyPI package: `https://pypi.org/project/qs-dmss/`
 - Latest release: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases`
-- Current GitHub and Zenodo release: `v0.13.2`
-- Latest PyPI package: `v0.13.2`
-- Latest archived Zenodo release DOI: `10.5281/zenodo.21366910` (`v0.13.2`)
+- Current GitHub and Zenodo release: `v0.14.0`
+- Latest PyPI package: `v0.14.0`
+- Latest archived Zenodo release DOI: `10.5281/zenodo.23250727` (`v0.14.0`)
 - Open Collective: `https://opencollective.com/qs-dmss`
 - Scientific review gate: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183`
 - HPC/RSE site-policy review gate: `https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/99`
