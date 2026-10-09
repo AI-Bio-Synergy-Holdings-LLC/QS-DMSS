@@ -622,6 +622,10 @@ pre {
     padding-top: 3rem;
   }
 
+  .hero-copy {
+    min-width: 0;
+  }
+
   .hero-actions,
   .button {
     width: 100%;
@@ -635,7 +639,8 @@ pre {
   }
 
   .hero h1 {
-    font-size: clamp(2.7rem, 16vw, 4.2rem);
+    font-size: clamp(2.7rem, 14vw, 4.2rem);
+    overflow-wrap: anywhere;
   }
 
   .capability-card {

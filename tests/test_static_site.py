@@ -200,7 +200,33 @@ def test_static_site_json_ld_matches_edge_csp_hash() -> None:
     actual_hash = f"sha256-{base64.b64encode(digest).decode('ascii')}"
 
     assert actual_hash == PORTAL_JSON_LD_CSP_HASH
-    assert f"'{PORTAL_JSON_LD_CSP_HASH}'" in deployment_notes
+    active_policy_match = re.search(
+        r"The active production CSP[^\n]*:\s*```text\n([^\n]+)\n```",
+        deployment_notes,
+    )
+    assert active_policy_match, "Deployment guide must identify the active CSP"
+    assert active_policy_match.group(1) == (
+        "default-src 'self'; base-uri 'self'; object-src 'none'; "
+        "frame-ancestors 'none'; form-action 'none'; "
+        f"script-src 'self' '{actual_hash}'; style-src 'self'; "
+        "img-src 'self' data:; font-src 'self'; connect-src 'self'; "
+        "upgrade-insecure-requests"
+    )
+
+
+def test_static_site_mobile_hero_can_shrink_without_clipping() -> None:
+    css = (SITE_ROOT / "styles.css").read_text(encoding="utf-8")
+    desktop_css, mobile_css = css.split("@media (max-width: 700px)", 1)
+    mobile_css = mobile_css.split("@media", 1)[0]
+    copy_rules = re.search(r"\.hero-copy\s*\{([^}]+)\}", mobile_css)
+    heading_rules = re.search(r"\.hero h1\s*\{([^}]+)\}", mobile_css)
+
+    assert copy_rules and heading_rules
+    assert "min-width: 0" in copy_rules.group(1)
+    assert "font-size: clamp(2.7rem, 14vw, 4.2rem)" in heading_rules.group(1)
+    assert "overflow-wrap: anywhere" in heading_rules.group(1)
+    assert "overflow: hidden" not in heading_rules.group(1)
+    assert "font-size: clamp(3rem, 8vw, 6.8rem)" in desktop_css
 
 
 def test_static_site_favicon_matches_studio_mark() -> None:
