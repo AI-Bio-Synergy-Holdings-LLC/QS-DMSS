@@ -38,6 +38,36 @@ def graph_challenge(registry):
     return next(c for c in registry["challenges"] if c["id"] == "SC-GRAPH-001")
 
 
+def assert_outreach_approval_boundary(text):
+    normalized = " ".join(text.split())
+    assert re.search(
+        r"\bInvitations and public updates require separate approval\b", normalized
+    ), "Missing separate approval boundary"
+
+
+@pytest.mark.parametrize("separator", [" ", "\n", "\r\n", "\t", "  ", "\n\n", "\u00a0"])
+def test_outreach_approval_boundary_accepts_whitespace_reflow(separator):
+    sentence = separator.join(
+        ["Invitations", "and", "public", "updates", "require", "separate", "approval"]
+    )
+    assert_outreach_approval_boundary(f"Preparation only. {sentence}; no recipient is selected.")
+
+
+@pytest.mark.parametrize("text", [
+    "",
+    "Invitations require separate approval",
+    "Invitations and public updates require approval",
+    "Invitations and public updates may require separate approval",
+    "Invitations and public updates do not require separate approval",
+    "Invitations and public updates require separate notification",
+    "Invitations and public updates require separate approvals",
+    "Invitations and public updates require no separate approval",
+])
+def test_outreach_approval_boundary_rejects_missing_or_altered_language(text):
+    with pytest.raises(AssertionError, match="Missing separate approval boundary"):
+        assert_outreach_approval_boundary(text)
+
+
 def test_handoff_distinguishes_release_candidate_baseline_and_tooling(brief, registry):
     rows = table_rows(section(brief, "Review target and artifact identity"))
     tracks = {row[0]: row[1:] for row in rows[1:]}
@@ -139,6 +169,6 @@ def test_handoff_is_discoverable_but_outreach_and_issue_update_remain_drafts(bri
     assert "### Unsent invitation draft" in brief
     assert "## Draft update for #183 (not posted)" in brief
     assert "replace `HANDOFF_URL`" in brief
-    assert "Invitations and\npublic updates require separate approval" in brief
+    assert_outreach_approval_boundary(brief)
     assert "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=scientific_review.yml" in brief
     assert "The form's initial disposition stays `PENDING`." in brief
