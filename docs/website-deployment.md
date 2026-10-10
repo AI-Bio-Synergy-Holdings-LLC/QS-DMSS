@@ -67,33 +67,35 @@ Render injects the following response headers for `/*` on the static service:
 - `Strict-Transport-Security`; and
 - `Permissions-Policy: camera=(), microphone=(), geolocation=()`.
 
-The current production CSP (pre-publication metadata) is:
+The active production CSP (verified 2026-10-09) is:
 
 ```text
-default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' 'sha256-k32hMctlSQIFfX2rrALQyMGKEaoAOwPoMOBOlMAjXew='; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; upgrade-insecure-requests
+default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' 'sha256-a4lZCq9finfGFq2lU6R2setX2qPeO9sJ6RET0UuhHtA='; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; upgrade-insecure-requests
 ```
 
-The hash allows only the inline JSON-LD block in `site/index.html`. Recompute
-and replace it in the Render header rule whenever that block changes; otherwise
-the browser will reject the updated structured data. Do not add
+The hash allows only the inline JSON-LD block in `site/index.html`. The
+post-publication metadata change in [PR #200](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/pull/200)
+is deployed. Its two-hash staging period is complete: the superseded
+`sha256-k32hMctlSQIFfX2rrALQyMGKEaoAOwPoMOBOlMAjXew=` hash was removed on
+2026-10-09 under separate owner authorization. The earlier preparation hash
+`sha256-uQPjsLuxWo6Y5jZ3N/VPMV67/GD+W/MmwsScEXX88F8=` is also retired.
+Neither retired hash belongs in the active header rule.
+
+For a future JSON-LD change:
+
+1. Compute the new hash from the exact inline script bytes, including whitespace.
+2. Before separately authorized merge/deployment, stage the current and new
+   hashes in Render's `script-src`, preserving every other directive. Keep the
+   current hash until the new page is deployed so either page can be served
+   during the transition.
+3. Verify the deployed JSON-LD against the new hash and check actual edge
+   responses and browser-console behavior.
+4. Remove only the superseded hash under separate owner authorization, then
+   verify the persisted Render rule and public responses again.
+
+A source PR does not change Render's dashboard header rule or authorize
+deployment. CSS-only changes do not require a new JSON-LD hash. Do not add
 `'unsafe-inline'` as a maintenance shortcut.
-
-The v0.14.0 preparation transition from `sha256-uQPjsLuxWo6Y5jZ3N/VPMV67/GD+W/MmwsScEXX88F8=`
-to `sha256-k32hMctlSQIFfX2rrALQyMGKEaoAOwPoMOBOlMAjXew=` is complete;
-the retired preparation hash was removed under separate owner authorization.
-
-The post-publication metadata PR introduces the exact JSON-LD hash
-`sha256-a4lZCq9finfGFq2lU6R2setX2qPeO9sJ6RET0UuhHtA=`. Before separately authorized
-merge/deployment, the operator must stage both current/new hashes in Render's `script-src`,
-preserving every other directive. After the new portal is verified, remove only
-the superseded hash under separate authorization. This prevents a gap while Render serves the old page; the PR alone
-does not change Render's dashboard header rule or authorize deployment.
-
-Required staging policy (not yet applied):
-
-```text
-default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'none'; script-src 'self' 'sha256-k32hMctlSQIFfX2rrALQyMGKEaoAOwPoMOBOlMAjXew=' 'sha256-a4lZCq9finfGFq2lU6R2setX2qPeO9sJ6RET0UuhHtA='; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; upgrade-insecure-requests
-```
 
 Do not treat a `<meta http-equiv>` element or a host-specific `_headers` file as
 equivalent. Verify the actual edge response after every header, domain, or
