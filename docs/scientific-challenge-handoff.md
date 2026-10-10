@@ -6,6 +6,16 @@ protected PR review. The discovery UI is included in the published `v0.14.0`
 package; it is absent from the historical v0.13.2 wheel. Publication neither
 reproduces the frozen challenge packets nor closes scientific-review gate #183.
 
+## Focused SC-GRAPH-001 preparation (2026-10-10)
+
+The [focused reviewer brief](sc-graph-001-reviewer-handoff.md) is the current
+preparation path for graph measure, boundaries, length scaling and multilevel
+interpretation. It identifies published v0.14.0, the original candidate/tooling
+and the post-#201 deployment snapshot as separate tracks. Historical packets,
+registry statuses, protocol and the maintainer dry-run below remain unchanged.
+It includes an unsent invitation and an unposted update for #183; no outreach or
+new scientific execution is authorized by preparing either draft.
+
 ## Entry points and reviewer path
 
 Published entry points (deployment provenance is checked separately):
@@ -88,7 +98,10 @@ scaling and multilevel interpretation. A conceptual NOT_RUN objection is welcome
 but is not counted as executed reproduction. One report need not settle all claims.
 
 Owner action required: choose and approve an opt-in reviewer/channel before
-sending the following invitation. No outreach has been sent or scheduled.
+sending the following invitation. This is the retained general invitation draft;
+its unsent status describes this document's preparation, not an audited history
+of every public communication. Use the focused brief above for the next proposed
+SC-GRAPH-001 handoff; no outreach is sent or scheduled by the current pass.
 
 > We invite a scoped scientific assessment of QS-DMSS's experimental CPU
 > graph-spectral model (SC-GRAPH-001). Please scrutinize its finite-cell measure,
