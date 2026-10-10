@@ -6,6 +6,11 @@ bounded challenges from the merged numerical pilot. The active scientific-review
 gate is [#183](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183).
 Closed #105 is historical context; administrative closure is not scientific approval.
 
+For the current focused preparation, use the
+[SC-GRAPH-001 reviewer handoff](sc-graph-001-reviewer-handoff.md). It separates
+published v0.14.0 from the frozen candidate and prepares an unsent invitation and
+unposted #183 update. It does not change this v1 registry or its scientific statuses.
+
 ## Three independent status dimensions
 
 | Challenge | Numerical evidence | Engineering review of pilot #194 | Independent scientific assessment |
@@ -53,12 +58,15 @@ records successful execution. Neither original packet is rewritten.
 
 | Track | Source identity | How to obtain it |
 | --- | --- | --- |
+| Published v0.14.0 (current release) | `15377b5ab1f9f3e32a37494e2e8973efce5211c3` | PyPI `qs-dmss==0.14.0` or the qualified GitHub release wheel; see [published artifact hashes](release-v0.14.0.md#verified-publication) |
 | Published v0.13.2 baseline | `7a063eb91af6c50e483c2d062bf6cee0daf709e4` | PyPI `qs-dmss==0.13.2` or matching GitHub release wheel |
 | Development challenge candidate | `48d7ab5d10da189caddbcad1dd6622e58d204940` | Rebuild this exact source commit and retain a new build receipt |
 | Reviewed pilot/reference tooling and packets | `a5f72e614dc7d38e72ffe3f4b752aace0bb408b4` | Merged PR #194; packet URLs in the registry are pinned to this commit |
 
 The candidate also reports package version 0.13.2, but it is **not** the published
 wheel. Installing from PyPI does not reproduce the corrected FFT/graph candidate.
+The published v0.14.0 wheel includes the experimental backend but is a different
+source/artifact track; its release qualification is not a rerun of these packets.
 Source commit, wheel hash, environment and diagnostic conventions—not version
 alone—identify the review target. The original candidate wheel is retained locally;
 the public packets contain its hash and build receipt, not that wheel. Do not
