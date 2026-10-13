@@ -1,0 +1,21 @@
+On-screen explanatory narration; music only, no spoken voice.
+
+0-6s: This recorded example asks whether the declared Dirichlet boundary fits the intended finite model.
+
+6-12s: Vertices 0, 2 and 5 mark the boundary. The Neumann view keeps all six vertices active.
+
+12-18s: Dirichlet excludes those boundary unknowns. Full vertex IDs 1, 3 and 4 remain active.
+
+18-25s: The highlighted rows and columns belong to active IDs 1, 3 and 4. Their full-matrix entries are retained.
+
+25-32s: Principal restriction keeps this 3×3 block. It does not rebuild an induced-subgraph Laplacian.
+
+32-39s: Recorded errors satisfy the registered numerical bounds. Agreement does not establish scientific correctness.
+
+39-45s: The seeded induced-Laplacian control was rejected. Only its flag is retained; no defective curves are reconstructed.
+
+45-53s: A specialist must assess the assumptions: measure, boundary treatment, length scaling and multilevel interpretation.
+
+53-60s: Open the pinned reviewer brief. Human-accountable objections, counterexamples and inconclusive findings are welcome.
+
+Persistent: Experimental CPU; independent scientific review pending. Recorded frozen candidate 48d7ab5, distinct from published v0.14.0. NOT_FALSIFIED_WITHIN_SCOPE; scientific NOT_ESTABLISHED; independent review and human disposition PENDING. No new scientific calculations.

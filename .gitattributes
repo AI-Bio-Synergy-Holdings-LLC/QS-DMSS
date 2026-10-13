@@ -3,3 +3,7 @@ site/scientific-challenges.* text eol=lf
 src/qs_dmss/cockpit/static/scientific-challenges.* text eol=lf
 # Bundled pack hashes identify exact JSON bytes on every checkout platform.
 src/qs_dmss/assets/diagnostic-packs/*/*.json text eol=lf
+# The recorded explorer checks exact JSON bytes in browsers on every platform.
+site/challenges/sc-graph-001/* text eol=lf
+site/challenges/sc-graph-001/*.png binary
+site/challenges/sc-graph-001/*.mp4 binary

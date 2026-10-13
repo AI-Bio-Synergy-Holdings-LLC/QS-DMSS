@@ -14,4 +14,15 @@
       <image:caption>Evidence-first QuantumScalar simulation workflows with runbooks, local validation, and reviewable artifacts.</image:caption>
     </image:image>
   </url>
+  <url>
+    <loc>https://qs-dmss.studio/challenges/sc-graph-001/</loc>
+    <lastmod>2026-10-12</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+    <image:image>
+      <image:loc>https://qs-dmss.studio/challenges/sc-graph-001/social-card-v1.png</image:loc>
+      <image:title>SC-GRAPH-001 recorded boundary explorer</image:title>
+      <image:caption>Four recorded cases from the frozen candidate; independent scientific review pending.</image:caption>
+    </image:image>
+  </url>
 </urlset>
