@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "video": "boundary-explanation-v2.mp4",
+  "video_sha256": "0e49295279b8698655fe896415adc7873bd3bfa2d2222960d86517427d2b2404",
+  "video_bytes": 15981923,
+  "poster_sha256": "c278108baf288e075f4a377f996694aae59176b72ca53a8fc8421c848c5e718d",
+  "explanations_vtt_sha256": "d5c48e813e9fab5377e4517e7810e020ac59246cb17725295c04b81955d0ffaa",
+  "transcript_sha256": "1f8907584f684df71caf613aad48b2c219eece37e670c44714a143b0c0419046",
+  "duration_seconds": 60,
+  "dimensions": [1080, 1350],
+  "presentation": "Edited explanation of retained recorded states; not a continuous screen recording or interactive video",
+  "captions": "Burned-in English explanations; optional explanations.vtt and transcript.txt",
+  "audio": "Music only; no spoken voice. Previously qualified at -29.8 LUFS integrated, -13.08 dBTP peak, with fades",
+  "candidate_source": "48d7ab5d10da189caddbcad1dd6622e58d204940",
+  "scientific_status": "NOT_ESTABLISHED",
+  "independent_review": "PENDING",
+  "music": {
+    "composition": "J.S. Bach: Aria, Goldberg Variations BWV 988",
+    "performer": "Kimiko Ishizaka",
+    "publisher": "Open Goldberg Variations (2012)",
+    "recording_license": "CC0-1.0",
+    "license_url": "https://creativecommons.org/publicdomain/zero/1.0/",
+    "publisher_release": "https://opengoldbergvariations.org/",
+    "record_url": "https://commons.wikimedia.org/w/index.php?title=File:Goldberg_Variations_01_Aria.ogg&oldid=1090765086",
+    "source_url": "https://upload.wikimedia.org/wikipedia/commons/4/42/Goldberg_Variations_01_Aria.ogg",
+    "source_bytes": 9064070,
+    "source_sha1": "7955e74a97024b64c3ab2e4733e4d72db3654f4a",
+    "source_sha256": "70e465253efee94dada9e0f545b7eda68966d8744ba6d1bf64a2d081fc65a1f3",
+    "modifications": "Opening 60-second excerpt, level adjustment, gentle peak limiting and fades",
+    "endorsement": "None implied",
+    "rights_verification": "Publisher and pinned recording rights were checked during local media preparation. Source bytes and rights-page snapshots retained in the owner-approved local production bundle; this is not legal certification or a guarantee against automated platform claims."
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "image": "social-card-v1.png",
+  "image_dimensions": [1200, 630],
+  "image_bytes": 315812,
+  "image_sha256": "8f3dddb7ef4a0052636795a531f3e70048282677b7af9d8def4e29762b1f984a",
+  "svg": "social-card-v1.svg",
+  "svg_sha256": "603848e18c5d8bb748ac5bc7d2ca0de40ee4bf562ff34a95d3a2c2573cc96ff7",
+  "data_sha256": "ed955ee0de108dddfd652a5cf0f847bbfc10332a9292623a5cf644ba5bfaf1ec",
+  "candidate_source": "48d7ab5d10da189caddbcad1dd6622e58d204940",
+  "case_id": "graph_07",
+  "generator": "research/challenges/build_graph_social_card.mjs",
+  "geometry": "Recorded reference vertices/edges/active IDs rendered on an illustrative triangular lattice; not a physical metric",
+  "fonts": "Locally rendered system Georgia and Arial; font files not redistributed",
+  "rasterization": "1200x630 browser capture, format converted to genuine PNG and visually checked; no generated scientific imagery",
+  "scientific_status": "NOT_ESTABLISHED",
+  "independent_review": "PENDING"
+}

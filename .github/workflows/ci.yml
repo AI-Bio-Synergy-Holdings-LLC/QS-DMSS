@@ -77,9 +77,11 @@ jobs:
           node --check src/qs_dmss/cockpit/static/app.js
           node --check src/qs_dmss/cockpit/static/scientific-challenges.js
           node --check src/qs_dmss/cockpit/static/robustness.js
+          node --check site/challenges/sc-graph-001/app.mjs
+          node research/challenges/build_graph_social_card.mjs --check
 
       - name: Test robustness UI and research-object release contracts
-        run: node --test tests/robustness_ui_state.test.cjs tests/research_object_release.test.cjs
+        run: node --test tests/robustness_ui_state.test.cjs tests/research_object_release.test.cjs tests/graph_boundary_explorer.test.mjs
 
       - name: Build release artifacts
         run: python -m build --sdist --wheel

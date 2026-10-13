@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "data_file": "data.json",
+  "data_sha256": "ed955ee0de108dddfd652a5cf0f847bbfc10332a9292623a5cf644ba5bfaf1ec",
+  "data_bytes": 39979,
+  "origin": "Recorded fields copied from frozen pilot; no new calculations",
+  "candidate_source": "48d7ab5d10da189caddbcad1dd6622e58d204940",
+  "source_packet_sha256": "17e568bf7944972c57eda3f275ec7a1126f1cd3d92a4fa04308063425ef02ba4",
+  "source_measurements_member_sha256": "adedcc1aa04484ca925373a36701a52498913b6c4a030bf51a0a26adf43ebe33",
+  "selected_cases": [
+    "graph_04",
+    "graph_07",
+    "graph_10",
+    "graph_13"
+  ],
+  "scientific_status": "NOT_ESTABLISHED",
+  "independent_review": "PENDING",
+  "human_disposition": "PENDING",
+  "control_scope": "Rejection flags only. Defective matrices/spectra were not retained and are not generated.",
+  "presentation_scope": "Read-only recorded-data explorer. No AI, solver, reference or scientific-control execution."
+}

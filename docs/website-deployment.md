@@ -183,3 +183,20 @@ run simulations -> inspect evidence -> compare campaigns -> publish reproducible
 
 The site should not imply peer-reviewed scientific validation, production HPC
 support, or endorsed downstream use.
+
+## Recorded SC-GRAPH-001 handoff route
+
+The portal source includes `/challenges/sc-graph-001/` with server-delivered
+Open Graph metadata and a route-specific `social-card-v1.png`. It is a read-only
+recorded-data presentation, not hosted graph execution. Its optional MP4 is
+same-origin, uses native controls and `preload="none"`, and has retained music
+rights/provenance. The active CSP above needs no change for this route: there
+are no inline scripts, external runtime assets or new hashes.
+
+Before announcing this URL, require protected review/merge and an approved
+Render deployment. Check the route, data hash, image MIME/dimensions, video
+playback, security headers, deployment commit and mobile interactions. Then
+inspect the dedicated URL with LinkedIn Post Inspector; do not assume that a
+native-video post also displays an independent URL card. Existing posts may
+retain cached previews. Public deployment or outreach must not change gate
+#183 or turn pending scientific assessment into an approval.

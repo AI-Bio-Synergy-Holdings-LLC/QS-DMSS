@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta
+      name="description"
+      content="Explore four recorded graph-boundary cases for SC-GRAPH-001. Inspect active vertices, stiffness matrices and spectra. Independent scientific review is pending."
+    />
+    <link
+      rel="canonical"
+      href="https://qs-dmss.studio/challenges/sc-graph-001/"
+    />
+    <link rel="icon" href="../../favicon.svg" type="image/svg+xml" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="QS-DMSS Studio" />
+    <meta
+      property="og:title"
+      content="Which Dirichlet boundary did we implement?"
+    />
+    <meta
+      property="og:description"
+      content="Inspect four recorded SC-GRAPH-001 cases and assess the declared finite model. Independent scientific review pending; no physical-validation claim."
+    />
+    <meta
+      property="og:url"
+      content="https://qs-dmss.studio/challenges/sc-graph-001/"
+    />
+    <meta
+      property="og:image"
+      content="https://qs-dmss.studio/challenges/sc-graph-001/social-card-v1.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/png" />
+    <meta
+      property="og:image:alt"
+      content="SC-GRAPH-001: Which Dirichlet boundary did we implement? A recorded level-1 graph shows three active interior vertices and three excluded boundary vertices. Independent scientific review pending."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Which Dirichlet boundary did we implement?"
+    />
+    <meta
+      name="twitter:description"
+      content="Four recorded graph-boundary cases. Frozen candidate evidence, not a new v0.14.0 calculation. Independent scientific review pending."
+    />
+    <meta
+      name="twitter:image"
+      content="https://qs-dmss.studio/challenges/sc-graph-001/social-card-v1.png"
+    />
+    <title>SC-GRAPH-001 · Recorded boundary explorer</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script type="module" src="app.mjs"></script>
+  </head>
+  <body>
+    <a class="skip" href="#main">Skip to evidence</a>
+    <header>
+      <a class="brand" href="../../#scientific-challenges"
+        >QS-DMSS <span>Scientific Challenges</span></a
+      ><span class="local-note">Read-only recorded explorer</span>
+    </header>
+    <main id="main">
+      <section class="intro" aria-labelledby="title">
+        <h1 id="title">
+          Which Dirichlet boundary<br class="desktop-break" />
+          did we implement?
+        </h1>
+        <p>
+          Inspect principal restriction of the full stiffness matrix. Recorded
+          numerical agreement checks the declared implementation; its scientific
+          interpretation remains open.
+        </p>
+        <div class="truth-strip">
+          <span>Recorded evidence</span><span>Experimental CPU model</span
+          ><span>Independent assessment pending</span>
+        </div>
+      </section>
+      <p id="load-status" role="status" class="status">
+        Checking the recorded-data identity…
+      </p>
+      <p id="view-link-output" class="small" hidden>
+        Selected recorded view: <a id="view-link"></a>
+      </p>
+      <section
+        id="unavailable"
+        class="unavailable"
+        hidden
+        aria-labelledby="unavailable-title"
+      >
+        <h2 id="unavailable-title">Recorded view unavailable</h2>
+        <p id="unavailable-reason"></p>
+        <button id="retry" type="button">Retry recorded data</button
+        ><button id="invalid-reset" type="button">Reset recorded view</button>
+        <p>
+          No scientific success or approval is inferred from this state. The
+          reviewer brief remains available below.
+        </p>
+      </section>
+      <section
+        id="explorer"
+        hidden
+        aria-label="Four-case recorded boundary explorer"
+      >
+        <div class="controls">
+          <div>
+            <label for="level">Recorded level</label
+            ><select id="level">
+              <option value="1">Level 1</option>
+              <option value="2">Level 2</option>
+            </select>
+          </div>
+          <div>
+            <label for="boundary">Boundary convention</label
+            ><select id="boundary">
+              <option value="dirichlet">Dirichlet</option>
+              <option value="neumann">Neumann</option>
+            </select>
+          </div>
+          <span class="fixed"
+            >Length fixed at 1<br /><small
+              >4 displayed / 15 registered cases</small
+            ></span
+          >
+          <button id="reset" type="button">Reset</button
+          ><button id="copy" type="button">Copy this view link</button>
+          <button id="show-graph" class="mobile-only" type="button">
+            View selected graph
+          </button>
+          <p id="mobile-case-summary" class="mobile-only small"></p>
+        </div>
+        <div class="workbench">
+          <section class="graph-panel" aria-labelledby="graph-heading">
+            <div class="section-head">
+              <h2 id="graph-heading">Boundary &amp; active space</h2>
+              <span id="case-id" class="mono"></span>
+            </div>
+            <p id="case-summary" class="small"></p>
+            <div
+              id="graph"
+              class="graph"
+              aria-label="Recorded reference graph"
+            ></div>
+            <div class="key">
+              <span><i class="circle"></i> Interior</span
+              ><span><i class="diamond"></i> Boundary</span
+              ><span><i class="excluded"></i> Excluded in Dirichlet</span>
+            </div>
+            <p class="small">
+              Reference lattice illustration, not physical distance. Ghost edges
+              retain full-graph context; they do not represent active evolution
+              couplings.
+            </p>
+            <div id="node-detail" class="node-detail" aria-live="polite"></div>
+            <details>
+              <summary>Vertex and mass-weight table</summary>
+              <div id="vertices-table" class="scroll-table"></div>
+            </details>
+          </section>
+          <section class="evidence-panel" aria-labelledby="evidence-heading">
+            <h2 id="evidence-heading">Inspect the recorded operator</h2>
+            <div class="tabs" aria-label="Evidence view">
+              <button id="matrix-tab" type="button" aria-pressed="true">
+                Stiffness matrix</button
+              ><button id="spectrum-tab" type="button" aria-pressed="false">
+                Spectrum
+              </button>
+            </div>
+            <div id="matrix-view">
+              <div class="matrix-tools">
+                <label for="matrix-source">Matrix source</label
+                ><select id="matrix-source">
+                  <option value="candidate">Candidate</option>
+                  <option value="reference">Reference</option>
+                </select>
+              </div>
+              <p id="matrix-note" class="small"></p>
+              <div
+                id="matrix"
+                class="scroll-table"
+                tabindex="0"
+                aria-label="Scrollable recorded stiffness matrix"
+              ></div>
+              <p class="small">
+                Rows and columns use full vertex IDs; the matrix itself uses
+                active-index order. Display rounding is for readability; exact
+                retained numbers are available below.
+              </p>
+            </div>
+            <div id="spectrum-view" hidden>
+              <p class="small">
+                Generalized eigenvalues under the declared model convention.
+                Ordered indices are not physical mode identities across levels.
+              </p>
+              <div id="spectrum"></div>
+              <div id="spectrum-table" class="scroll-table"></div>
+            </div>
+            <div class="recorded-comparison">
+              <h3>Recorded comparison, not scientific approval</h3>
+              <dl id="errors"></dl>
+              <p id="control-note"></p>
+              <p class="small">
+                Defective-control matrices and spectra were not retained. No
+                defective curves are generated here.
+              </p>
+            </div>
+          </section>
+        </div>
+        <details class="provenance">
+          <summary>Exact values, provenance &amp; scientific status</summary>
+          <p>
+            This presentation copies four records from the frozen candidate, not
+            the published v0.14.0 wheel. No new solver, reference, control,
+            projector or tail calculation is performed.
+          </p>
+          <p>
+            Candidate and reference evidence originated in the same AI-assisted
+            maintainer workflow. Cross-tool agreement is evidence within the
+            declared scope, not an independent human scientific assessment.
+          </p>
+          <dl>
+            <dt>Frozen candidate</dt>
+            <dd class="mono">48d7ab5d10da189caddbcad1dd6622e58d204940</dd>
+            <dt>Scientific status</dt>
+            <dd>NOT_ESTABLISHED</dd>
+            <dt>Independent review / human disposition</dt>
+            <dd>PENDING / PENDING</dd>
+            <dt>Numerical evidence</dt>
+            <dd>
+              NOT_FALSIFIED_WITHIN_SCOPE, within the registered claim only
+            </dd>
+          </dl>
+          <p id="data-source"></p>
+          <p>
+            <a href="data.json" target="_blank" rel="noopener"
+              >Exact presentation data</a
+            >
+            ·
+            <a href="manifest.json" target="_blank" rel="noopener"
+              >Presentation provenance manifest</a
+            >
+          </p>
+          <pre id="case-pointers"></pre>
+        </details>
+      </section>
+      <section class="reviewer" aria-labelledby="reviewer-heading">
+        <div>
+          <h2 id="reviewer-heading">Is this the intended finite model?</h2>
+          <p>
+            If you work on graph/fractal Laplacians, generalized eigenproblems,
+            or numerical boundaries, we welcome a human-accountable assessment
+            of measure, boundary restriction, scaling, and multilevel
+            interpretation.
+          </p>
+          <p>
+            Methodological objections, counterexamples, and inconclusive
+            findings are welcome. Conceptual work must be labeled NOT_RUN;
+            reproduction requires your own measured identities and receipts.
+          </p>
+        </div>
+        <div class="review-actions">
+          <a
+            class="primary-link"
+            href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/2a4c3aaec0893a2e9fcbb3137af97059c203c102/docs/sc-graph-001-reviewer-handoff.md"
+            target="_blank"
+            rel="noopener"
+            >Open the pinned reviewer brief</a
+          ><a
+            href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/new?template=scientific_review.yml"
+            target="_blank"
+            rel="noopener"
+            >Submit a structured assessment on GitHub</a
+          ><a
+            href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183"
+            target="_blank"
+            rel="noopener"
+            >Scientific-review gate #183</a
+          >
+          <p class="small">
+            This page submits nothing. The review form opens on GitHub; a human
+            remains accountable for the assessment. Numerical agreement does not
+            establish physical correctness or continuum convergence.
+          </p>
+        </div>
+      </section>
+      <section class="demonstration" aria-labelledby="demonstration-heading">
+        <div>
+          <h2 id="demonstration-heading">
+            The boundary question in 60 seconds
+          </h2>
+          <p>
+            An edited explanation of recorded states, with on-screen captions
+            and quiet classical piano. This video is not an interactive
+            application or a continuous screen recording. Use the controls above
+            to explore the four cases yourself.
+          </p>
+          <p>
+            No spoken narration. Playback is optional and does not start
+            automatically.
+          </p>
+          <details>
+            <summary>Music credit and reuse rights</summary>
+            <p>
+              J.S. Bach, Aria from Goldberg Variations BWV 988, performed by
+              Kimiko Ishizaka, Open Goldberg Variations (2012). Recording
+              dedicated under CC0 1.0. Excerpted, level-adjusted and faded. No
+              endorsement implied.
+            </p>
+            <p>
+              <a
+                href="https://opengoldbergvariations.org/"
+                target="_blank"
+                rel="noopener"
+                >Publisher's release statement</a
+              >
+              ·
+              <a
+                href="https://commons.wikimedia.org/w/index.php?title=File:Goldberg_Variations_01_Aria.ogg&amp;oldid=1090765086"
+                target="_blank"
+                rel="noopener"
+                >Pinned recording and rights record</a
+              >
+              ·
+              <a
+                href="https://creativecommons.org/publicdomain/zero/1.0/"
+                target="_blank"
+                rel="noopener"
+                >CC0 terms</a
+              >
+            </p>
+            <p>
+              <a href="media-provenance.json">Media provenance and hashes</a>
+            </p>
+          </details>
+        </div>
+        <video
+          controls
+          playsinline
+          preload="none"
+          poster="video-poster.png"
+          width="1080"
+          height="1350"
+          aria-label="60-second recorded boundary explanation with captions and optional piano"
+        >
+          <source src="boundary-explanation-v2.mp4" type="video/mp4" />
+          <track
+            kind="captions"
+            src="explanations.vtt"
+            srclang="en"
+            label="English explanations"
+          />
+          Your browser cannot play this video.
+          <a href="transcript.txt">Read the text explanation</a>.
+        </video>
+      </section>
+      <footer>
+        SC-GRAPH-001 · Evidence before inference. Hosted graph execution and AI
+        remain disabled. No physical validation or continuum-convergence claim.
+      </footer>
+      <noscript
+        ><p>
+          JavaScript is disabled. No recorded view is inferred to have loaded.
+          Use the pinned reviewer brief for the frozen evidence and reproduction
+          instructions.
+        </p></noscript
+      >
+    </main>
+  </body>
+</html>
