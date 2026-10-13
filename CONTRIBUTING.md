@@ -23,6 +23,51 @@ AI assistance and a pending human disposition. PyPI v0.13.2 is not the later
 development candidate, despite their shared version string. Conceptual NOT_RUN
 feedback is welcome but does not establish independent reproduction.
 
+## Volunteer Scientific Review And Recognition
+
+Participation in the public scientific-review invitation is voluntary and
+unpaid. This invitation creates no payment, deadline or service-engagement
+commitment. Separately agreed funded work is outside this invitation.
+
+Substantive, attributable contributions will be credited after documented
+review, with contributors' permission, in relevant future QS-DMSS release notes
+and research documentation. Citable research outputs will be referenced where
+used. Counterexamples, corrections and well-supported inconclusive findings are
+welcome. Recognition is not conditional on findings being favorable to QS-DMSS
+and does not promise credit in every subsequent release.
+
+Credit can recognize methodological desk review, reproduction, analysis,
+corrections or other substantive review work. It reflects the actual
+contribution; it does not depend on a proposed correction being merged.
+
+The recognition workflow is:
+
+1. Record the contribution and its review in a linked issue or pull request,
+   including the review lane, relevant source/evidence identities, assistance
+   and limitations. Preserve counterexamples, failures and partial output.
+2. Assess the actual contribution separately from the finding's disposition.
+   A named maintainer records the recognition decision and its rationale;
+   disagreement with a conclusion does not by itself disqualify the work.
+3. Confirm the proposed public name or handle, contribution description and
+   permission with the contributor before adding an acknowledgment. An ORCID
+   may be included if the contributor provides and approves it. Do not add a
+   new named acknowledgment without permission; this does not rewrite existing
+   public review history or require private identity/contact information.
+4. Include agreed credit in the relevant future release notes and research
+   documentation, and cite research outputs where used. Record which release
+   or document carries the acknowledgment so recognition remains traceable.
+
+Credit does not guarantee coauthorship or imply endorsement or scientific
+validation. It does not change Apache-2.0 licensing, contributor rights or
+submission terms. No copyright assignment or contributor license agreement is
+introduced; the [Contribution Licensing](#contribution-licensing) section and
+existing commercial boundary remain in force.
+
+Conceptual review stays `NOT_RUN`; human disposition remains `PENDING` until
+named triage. Recognition does not close scientific-review gate #183, change
+frozen evidence or promote scientific statuses. Invitations and public updates
+require separate approval; documenting this policy sends no outreach.
+
 ## Funding And Stewardship
 
 QS-DMSS participates in Open Source Collective at

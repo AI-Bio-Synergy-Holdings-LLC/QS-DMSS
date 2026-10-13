@@ -73,6 +73,58 @@ def test_contribution_and_release_policies_enforce_boundary() -> None:
     assert "QPU execution" in release_policy
 
 
+def _volunteer_credit_policy() -> str:
+    contributing = (REPO_ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+    heading = "## Volunteer Scientific Review And Recognition\n"
+    assert heading in contributing, "Missing canonical volunteer credit policy"
+    section = contributing.split(heading, 1)[1].split("\n## ", 1)[0]
+    return " ".join(section.split())
+
+
+def test_volunteer_review_credit_matches_approved_recognition_terms() -> None:
+    policy = _volunteer_credit_policy()
+    for required in (
+        "Participation in the public scientific-review invitation is voluntary and unpaid.",
+        "Substantive, attributable contributions will be credited after documented review",
+        "with contributors' permission",
+        "in relevant future QS-DMSS release notes and research documentation",
+        "Citable research outputs will be referenced where used.",
+        "Counterexamples, corrections and well-supported inconclusive findings are welcome.",
+        "Recognition is not conditional on findings being favorable to QS-DMSS",
+        "does not promise credit in every subsequent release",
+    ):
+        assert required in policy
+
+
+def test_credit_workflow_keeps_consent_licensing_and_science_separate() -> None:
+    policy = _volunteer_credit_policy()
+    for required in (
+        "Record the contribution and its review in a linked issue or pull request",
+        "Assess the actual contribution separately from the finding's disposition",
+        "Confirm the proposed public name or handle, contribution description and permission",
+        "Do not add a new named acknowledgment without permission",
+        "Credit does not guarantee coauthorship or imply endorsement or scientific validation",
+        "does not change Apache-2.0 licensing, contributor rights or submission terms",
+        "No copyright assignment or contributor license agreement is introduced",
+        "Conceptual review stays `NOT_RUN`",
+        "human disposition remains `PENDING` until named triage",
+        "Recognition does not close scientific-review gate #183",
+        "Invitations and public updates require separate approval",
+    ):
+        assert required in policy
+
+
+def test_public_review_guides_link_the_canonical_credit_policy() -> None:
+    _volunteer_credit_policy()
+    target = "../CONTRIBUTING.md#volunteer-scientific-review-and-recognition"
+    for path in (
+        "docs/ownership-and-use.md",
+        "docs/sc-graph-001-reviewer-handoff.md",
+    ):
+        text = (REPO_ROOT / path).read_text(encoding="utf-8")
+        assert f"]({target})" in text, path
+
+
 def test_security_policy_distinguishes_published_support_from_development() -> None:
     security = (REPO_ROOT / "SECURITY.md").read_text(encoding="utf-8")
     pyproject = tomllib.loads(

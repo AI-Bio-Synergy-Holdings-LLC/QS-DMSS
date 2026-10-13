@@ -61,6 +61,11 @@ For the published QS-DMSS package and archived releases, credit AI-Bio Synergy
 Holdings LLC as the project creator, maintainer, and software author unless a
 specific future release names additional authors or contributors.
 
+The [volunteer scientific-review and recognition policy](../CONTRIBUTING.md#volunteer-scientific-review-and-recognition)
+sets out documented review, permission-based acknowledgment in relevant future
+releases/documentation, and citation of research outputs where used. This credit
+does not guarantee coauthorship or change project stewardship or licensing.
+
 Recommended short attribution:
 
 ```text

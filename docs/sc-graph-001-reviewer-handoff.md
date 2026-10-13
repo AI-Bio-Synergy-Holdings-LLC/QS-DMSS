@@ -198,6 +198,13 @@ deliverables and any separately agreed schedule or compensation. This draft
 creates no deadline, engagement or compensation commitment. Invitations and
 public updates require separate approval; no recipient is selected here.
 
+The public volunteer invitation is voluntary and unpaid, under the
+[volunteer scientific-review and recognition policy](../CONTRIBUTING.md#volunteer-scientific-review-and-recognition).
+Substantive, attributable contributions receive consent-based credit after
+documented review, including critical and well-supported inconclusive findings.
+Credit is separate from finding disposition, coauthorship and scientific
+approval; it does not change licensing, frozen evidence or pending statuses.
+
 ### Unsent invitation draft
 
 > Would you be interested in a bounded, human-accountable assessment of
