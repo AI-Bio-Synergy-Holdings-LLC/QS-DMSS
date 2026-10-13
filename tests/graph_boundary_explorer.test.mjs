@@ -40,6 +40,19 @@ for (const change of [
     change(m);
     assert.throws(() => validateManifest(m, DATA_SHA256, bytes.length));
   });
+for (const field of ["origin", "control_scope", "presentation_scope"]) {
+  test(`missing manifest scope refused: ${field}`, () => {
+    const m = structuredClone(manifest);
+    delete m[field];
+    assert.throws(() => validateManifest(m, DATA_SHA256, bytes.length));
+  });
+  for (const value of [null, 42, {}, [], "Live solver/control execution enabled"])
+    test(`manifest scope mutation refused: ${field} = ${JSON.stringify(value)}`, () => {
+      const m = structuredClone(manifest);
+      m[field] = value;
+      assert.throws(() => validateManifest(m, DATA_SHA256, bytes.length));
+    });
+}
 for (const change of [
   (d) => (d.acceptance_limits.projector_error_max = 1),
   (d) => (d.full_registered_graph_cases = 4),

@@ -1,4 +1,11 @@
 export const CASE_IDS = ["graph_04", "graph_07", "graph_10", "graph_13"];
+const MANIFEST_SCOPE = Object.freeze({
+  origin: "Recorded fields copied from frozen pilot; no new calculations",
+  control_scope:
+    "Rejection flags only. Defective matrices/spectra were not retained and are not generated.",
+  presentation_scope:
+    "Read-only recorded-data explorer. No AI, solver, reference or scientific-control execution.",
+});
 const META = {
   graph_04: [1, "neumann", 6, 6],
   graph_07: [1, "dirichlet", 6, 3],
@@ -31,6 +38,8 @@ export function validateManifest(m, digest, bytes) {
     m.human_disposition === "PENDING", "Manifest status differs");
   require(JSON.stringify(m.selected_cases) ===
     JSON.stringify(CASE_IDS), "Manifest scope differs");
+  for (const [field, expected] of Object.entries(MANIFEST_SCOPE))
+    require(m[field] === expected, "Manifest execution scope differs");
   return m;
 }
 

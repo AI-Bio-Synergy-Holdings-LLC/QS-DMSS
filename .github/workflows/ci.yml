@@ -107,6 +107,7 @@ jobs:
 
           with zipfile.ZipFile(wheel) as archive:
               wheel_names = set(archive.namelist())
+          assert not any(name.lower().endswith(".mp4") for name in wheel_names), "Portal media must not enter wheels"
           assert "qs_dmss/assets/configs/demo.yaml" in wheel_names
           assert "qs_dmss/assets/schemas/run_config.schema.json" in wheel_names
           for name in ("manifest.json", "cases.json"):
@@ -135,6 +136,23 @@ jobs:
           sdist_root = f"qs_dmss-{version}/"
           with tarfile.open(sdist) as archive:
               sdist_names = set(archive.getnames())
+          assert not any(name.lower().endswith(".mp4") for name in sdist_names), "Portal media must not enter sdists"
+          for fixture in (
+              "app.mjs", "config.mjs", "core.mjs", "loader.mjs",
+              "data.json", "manifest.json", "index.html", "styles.css",
+              "social-card-v1.svg", "social-card-v1.png",
+              "social-card-provenance.json", "media-provenance.json",
+              "video-poster.png", "explanations.vtt", "transcript.txt",
+          ):
+              path = sdist_root + "site/challenges/sc-graph-001/" + fixture
+              assert path in sdist_names, path
+          for fixture in (
+              "site/index.html", "site/sitemap.xml",
+              "tests/test_graph_boundary_explorer.py",
+              "tests/graph_boundary_explorer.test.mjs",
+              "research/challenges/build_graph_social_card.mjs",
+          ):
+              assert sdist_root + fixture in sdist_names, fixture
           assert sdist_root + "RELEASE.md" in sdist_names
           assert sdist_root + "tests/test_diagnostic_packs.py" in sdist_names
           for name in ("diagnostic-pack-v1", "diagnostic-pack-cases-v1"):

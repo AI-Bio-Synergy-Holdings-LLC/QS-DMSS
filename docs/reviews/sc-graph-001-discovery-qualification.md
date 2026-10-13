@@ -216,6 +216,50 @@ published versions and scientific statuses remain unchanged. Remote gates and
 one Copilot re-review are required at the new correction head; no merge,
 deployment or outreach is authorized by this correction.
 
+### PR #203 manifest and artifact contract hardening
+
+The owner separately approved the two previously missed concerns in Copilot's
+re-review on 2026-10-13: unchecked manifest scope declarations and missing CI
+archive assertions. This correction does not alter the manifest or any retained
+scientific/media material, and does not authorize another review request, merge,
+deployment or outreach.
+
+- `validateManifest` now requires the exact frozen `origin`, `control_scope`
+  and `presentation_scope` strings. Missing fields, changed claims and non-string
+  values are refused before rendering. The manifest itself stays byte-identical,
+  SHA-256 `b4e38c4594b37395d657972eb084be30c47f946713b0815475eced5fa6f945d6`.
+- Eighteen new JavaScript mutation cases failed before the guard was added and
+  pass afterward. Combined JavaScript qualification: 113 passed, including
+  73 explorer tests. Focused Python explorer tests: 13 passed.
+- The existing Python 3.10–3.13 CI archive-inspection step now asserts all
+  declared small explorer fixtures and supporting test/generator files are in
+  the sdist. It rejects `.mp4` entries case-insensitively in both wheel and sdist;
+  source fixtures are not added to the runtime wheel. The 10 MiB Git cap and
+  existing package contents/metadata are unchanged.
+- Rebuilt wheel/sdist and Twine checks passed. The exact reviewed CI Python
+  archive step was executed locally on those builds, then on QA-only copies
+  containing an uppercase MP4 in the wheel, an uppercase MP4 in the sdist, or
+  a missing `loader.mjs` fixture. Valid artifacts passed; all three invalid
+  variants failed the intended assertion. Earlier QA artifacts were preserved.
+- Full supplementary Windows 3.14: 902 passed / 25 skipped, 91.46% coverage.
+  Supported Windows 3.12: 887 passed / 40 skipped. Ruff, Bandit, isolated
+  dependency audit, registry/discovery synchronization and card-source checks
+  passed. Previously documented owner-environment tooling debt was not changed.
+- Playwright CLI checked desktop and portrait because the Browser skill/runtime
+  was unavailable. Synthetic HTTP responses changing each of the three scope
+  declarations were refused with an unavailable state, hidden explorer and
+  cleared graph; Retry with the untouched manifest restored the recorded view.
+  The four recorded cases, spectrum view, accessible transcript, page identity,
+  no overflow and normal-page console health were checked. The initial QA mock
+  used the wrong API-response header method; the harness was corrected and all
+  three rejection/Retry paths were repeated successfully in a clean browser.
+  QA interception changed no repository files and ran no scientific calculations.
+
+Only the validator, mutation tests, CI assertions and this record change.
+Manifest/media/evidence, published version and all scientific statuses are
+preserved. Remote qualification must pass at the new correction head rather
+than reusing the previous head's green checks.
+
 After an approved merge/deployment: verify HTML, exact image and video URLs,
 production CSP, expected deployment commit and read-only interactions. Use
 LinkedIn Post Inspector on the dedicated URL before preparing the link-card
