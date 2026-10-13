@@ -150,11 +150,13 @@ p {
   color: var(--muted);
 }
 .controls {
+  grid-area: controls;
   display: flex;
   align-items: end;
   gap: 14px;
   flex-wrap: wrap;
-  padding: 3px 0 22px;
+  padding: 26px 0 22px 30px;
+  border-left: 1px solid var(--line);
 }
 .controls > div {
   display: grid;
@@ -176,14 +178,17 @@ label {
 .workbench {
   display: grid;
   grid-template-columns: minmax(320px, 0.88fr) minmax(0, 1.12fr);
+  grid-template-areas: "graph controls" "graph evidence";
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
 .graph-panel {
+  grid-area: graph;
   padding: 26px 26px 26px 0;
   min-width: 0;
 }
 .evidence-panel {
+  grid-area: evidence;
   padding: 26px 0 26px 30px;
   border-left: 1px solid var(--line);
   min-width: 0;
@@ -449,6 +454,12 @@ dd {
   text-decoration: none;
   min-height: 44px;
 }
+.transcript-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 600;
+}
 .review-actions .small {
   font-size: 12px;
 }
@@ -496,6 +507,9 @@ footer {
   }
   .controls {
     gap: 10px;
+    padding: 20px 0 22px;
+    border-left: 0;
+    border-bottom: 1px solid var(--line);
   }
   .controls > div {
     flex: 1 1 145px;
@@ -513,15 +527,16 @@ footer {
     font-size: 13px;
   }
   .workbench {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "graph" "controls" "evidence";
   }
   .graph-panel {
     padding: 23px 0;
+    border-bottom: 1px solid var(--line);
   }
   .evidence-panel {
     padding: 23px 0;
     border-left: 0;
-    border-top: 1px solid var(--line);
   }
   .graph {
     min-height: 260px;
@@ -577,29 +592,6 @@ footer {
   }
 }
 @media (max-width: 780px) {
-  #explorer {
-    display: flex;
-    flex-direction: column;
-  }
-  .workbench {
-    display: contents;
-  }
-  .graph-panel {
-    order: 0;
-    border-bottom: 1px solid var(--line);
-  }
-  .controls {
-    order: 1;
-    padding-top: 20px;
-    border-bottom: 1px solid var(--line);
-  }
-  .evidence-panel {
-    order: 2;
-    border-top: 0;
-  }
-  .provenance {
-    order: 3;
-  }
   .intro > p {
     font-size: 15px;
   }

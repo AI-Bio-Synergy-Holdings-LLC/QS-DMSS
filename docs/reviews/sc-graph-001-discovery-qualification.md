@@ -175,6 +175,47 @@ original retention pointers, safe local source selection and scientific-status
 preservation. Remote gates must pass at the correction's new PR head; the
 earlier successful matrix/Docker/security checks are not substituted for it.
 
+### PR #203 accessibility correction
+
+The first Copilot review identified two medium findings: the transcript existed
+only inside video fallback content, and mobile CSS reordered graph/controls
+visually without changing DOM/keyboard order. Both were reproduced in the local
+preview and corrected with separate owner authorization on 2026-10-13.
+
+- The existing transcript now has a normal, visible link outside `<video>`.
+  It is reachable with the keyboard, opens the unchanged transcript and has a
+  44 px touch target. Native video fallback, captions and media are preserved.
+- Workbench source order is graph → controls → operator. Mobile uses that same
+  vertical sequence; desktop places the graph on the left and controls above
+  the operator on the right. CSS `order` and `display: contents` no longer
+  rearrange focusable regions. No positive `tabindex` or scripted Tab ordering
+  was introduced. The explicit mobile return-to-graph action remains available.
+- Two new contract tests failed before the fix, then passed afterward. They
+  check transcript ancestry/reachability and source/responsive region order.
+  Focused explorer tests: 13 passed. Full supplementary Windows 3.14:
+  902 passed / 25 skipped, 91.44% coverage. Supported Windows 3.12:
+  887 passed / 40 skipped. JavaScript: 95 passed. Ruff, Bandit, isolated
+  dependency audit, registry/discovery consistency and social-card checks passed.
+- Playwright CLI checked desktop 1440×1000, portrait 390×844 and landscape
+  844×390 because the Browser skill/runtime was unavailable. Mobile Tab now
+  visits graph vertices and their table before controls and operator tabs.
+  Graph Enter/Space activation retains focus; transcript focus/Enter navigation
+  succeeds. All four cases, matrix-source selection, spectrum visibility, URL
+  state, mobile return-to-graph and no horizontal page overflow were checked.
+  Normal-page warning/error console was empty; page identity/content and
+  screenshots showed no runtime overlay. This is not a full assistive-technology
+  certification or a production/LinkedIn check.
+- Rebuilt wheel/sdist/Twine and extracted-sdist tests passed: 12 passed /
+  1 intentionally skipped portal-only media test. Both distributions exclude
+  MP4s. Qualification artifacts and before/after screenshots are retained in
+  the owner-held `portal-qa` directory without replacing the earlier records.
+
+Only markup, styles, contract tests and this qualification record change.
+JavaScript behavior, media/provenance, retained evidence, acceptance limits,
+published versions and scientific statuses remain unchanged. Remote gates and
+one Copilot re-review are required at the new correction head; no merge,
+deployment or outreach is authorized by this correction.
+
 After an approved merge/deployment: verify HTML, exact image and video URLs,
 production CSP, expected deployment commit and read-only interactions. Use
 LinkedIn Post Inspector on the dedicated URL before preparing the link-card

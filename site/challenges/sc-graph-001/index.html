@@ -104,33 +104,6 @@
         hidden
         aria-label="Four-case recorded boundary explorer"
       >
-        <div class="controls">
-          <div>
-            <label for="level">Recorded level</label
-            ><select id="level">
-              <option value="1">Level 1</option>
-              <option value="2">Level 2</option>
-            </select>
-          </div>
-          <div>
-            <label for="boundary">Boundary convention</label
-            ><select id="boundary">
-              <option value="dirichlet">Dirichlet</option>
-              <option value="neumann">Neumann</option>
-            </select>
-          </div>
-          <span class="fixed"
-            >Length fixed at 1<br /><small
-              >4 displayed / 15 registered cases</small
-            ></span
-          >
-          <button id="reset" type="button">Reset</button
-          ><button id="copy" type="button">Copy this view link</button>
-          <button id="show-graph" class="mobile-only" type="button">
-            View selected graph
-          </button>
-          <p id="mobile-case-summary" class="mobile-only small"></p>
-        </div>
         <div class="workbench">
           <section class="graph-panel" aria-labelledby="graph-heading">
             <div class="section-head">
@@ -159,6 +132,33 @@
               <div id="vertices-table" class="scroll-table"></div>
             </details>
           </section>
+          <div class="controls">
+            <div>
+              <label for="level">Recorded level</label
+              ><select id="level">
+                <option value="1">Level 1</option>
+                <option value="2">Level 2</option>
+              </select>
+            </div>
+            <div>
+              <label for="boundary">Boundary convention</label
+              ><select id="boundary">
+                <option value="dirichlet">Dirichlet</option>
+                <option value="neumann">Neumann</option>
+              </select>
+            </div>
+            <span class="fixed"
+              >Length fixed at 1<br /><small
+                >4 displayed / 15 registered cases</small
+              ></span
+            >
+            <button id="reset" type="button">Reset</button
+            ><button id="copy" type="button">Copy this view link</button>
+            <button id="show-graph" class="mobile-only" type="button">
+              View selected graph
+            </button>
+            <p id="mobile-case-summary" class="mobile-only small"></p>
+          </div>
           <section class="evidence-panel" aria-labelledby="evidence-heading">
             <h2 id="evidence-heading">Inspect the recorded operator</h2>
             <div class="tabs" aria-label="Evidence view">
@@ -299,6 +299,11 @@
           <p>
             No spoken narration. Playback is optional and does not start
             automatically.
+          </p>
+          <p>
+            <a id="video-transcript" class="transcript-link" href="transcript.txt"
+              >Read the explanation transcript</a
+            >
           </p>
           <details>
             <summary>Music credit and reuse rights</summary>

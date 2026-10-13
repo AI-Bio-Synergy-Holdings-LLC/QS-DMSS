@@ -23,19 +23,84 @@ URL = "https://qs-dmss.studio/challenges/sc-graph-001/"
 SOURCE_CHECKOUT = (ROOT / ".git").exists()
 WEB_VIDEO = "boundary-explanation-web-v1.mp4"
 WEB_VIDEO_SHA = "e88cc89d77a3989c725a67fbbd411d2e35134ccad6fac96e5a6dba037c4840e6"
-ORIGINAL_VIDEO_SHA = (
-    "0e49295279b8698655fe896415adc7873bd3bfa2d2222960d86517427d2b2404"
-)
+ORIGINAL_VIDEO_SHA = "0e49295279b8698655fe896415adc7873bd3bfa2d2222960d86517427d2b2404"
 MAX_GIT_BLOB_BYTES = 10 * 1024 * 1024
 
 
 class PageParser(HTMLParser):
+    VOID_TAGS = {
+        "area",
+        "base",
+        "br",
+        "col",
+        "embed",
+        "hr",
+        "img",
+        "input",
+        "link",
+        "meta",
+        "param",
+        "source",
+        "track",
+        "wbr",
+    }
+
     def __init__(self):
         super().__init__()
         self.nodes = []
+        self.contexts = []
+        self.stack = []
 
     def handle_starttag(self, tag, attrs):
-        self.nodes.append((tag, dict(attrs)))
+        node = (tag, dict(attrs))
+        self.nodes.append(node)
+        self.contexts.append((*node, tuple(self.stack)))
+        if tag not in self.VOID_TAGS:
+            self.stack.append(node)
+
+    def handle_endtag(self, tag):
+        for index in range(len(self.stack) - 1, -1, -1):
+            if self.stack[index][0] == tag:
+                del self.stack[index:]
+                break
+
+
+def test_transcript_link_is_outside_video_fallback_and_keyboard_reachable():
+    parser = PageParser()
+    parser.feed((PAGE / "index.html").read_text(encoding="utf-8"))
+    links = [
+        (attrs, ancestors)
+        for tag, attrs, ancestors in parser.contexts
+        if tag == "a" and attrs.get("id") == "video-transcript"
+    ]
+    assert len(links) == 1
+    attrs, ancestors = links[0]
+    assert attrs["href"] == "transcript.txt"
+    assert not any(tag == "video" for tag, _ in ancestors)
+    assert any("demonstration" in a.get("class", "").split() for _, a in ancestors)
+    assert not any("hidden" in a or "inert" in a for _, a in ancestors)
+    assert attrs.get("tabindex") is None
+    assert (PAGE / attrs["href"]).is_file()
+
+
+def test_explorer_source_order_matches_responsive_region_order():
+    parser = PageParser()
+    parser.feed((PAGE / "index.html").read_text(encoding="utf-8"))
+    regions = [
+        attrs.get("class")
+        for _, attrs, ancestors in parser.contexts
+        if ancestors and "workbench" in ancestors[-1][1].get("class", "").split()
+    ]
+    assert regions == ["graph-panel", "controls", "evidence-panel"]
+    for _, attrs in parser.nodes:
+        if "tabindex" in attrs:
+            assert int(attrs["tabindex"]) <= 0
+    css = (PAGE / "styles.css").read_text(encoding="utf-8")
+    assert not re.search(r"(?m)^\s*order\s*:", css)
+    assert "display: contents" not in css
+    normalized = re.sub(r"\s+", " ", css)
+    assert 'grid-template-areas: "graph controls" "graph evidence";' in normalized
+    assert 'grid-template-areas: "graph" "controls" "evidence";' in normalized
 
 
 def test_exact_presentation_bytes_and_manifest():
