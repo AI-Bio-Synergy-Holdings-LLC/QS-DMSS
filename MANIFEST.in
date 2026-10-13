@@ -28,6 +28,8 @@ include tests/robustness_ui_state.test.cjs
 include tests/research_object_release.test.cjs
 include tests/graph_boundary_explorer.test.mjs
 # Source tests retain their small portal fixtures; media stays portal-only.
+include site/index.html
+include site/sitemap.xml
 recursive-include site/challenges/sc-graph-001 *.mjs *.json *.html *.css *.svg *.vtt *.txt
 recursive-include site/challenges/sc-graph-001 *.png
 include research/challenges/build_graph_social_card.mjs

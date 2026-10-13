@@ -35,7 +35,7 @@ Each layer received a local specialist pass; no agents were delegated:
 | Stiffness table | Inspect retained principal restriction, full-ID row labels | Candidate/reference select; selected row/column; bounded horizontal scroll | Exact recorded arrays and URL restore |
 | Spectrum | Compare retained ordered generalized eigenvalues | Filled candidate/open reference markers; raw-value table | Preserve roundoff, degeneracies and no physical mode matching |
 | Social card | Invite inspection of the boundary convention | 1200×630 annotated graph/question, no validation badge | Full-size and feed-size review, source SVG check |
-| Video | Optional edited explanation, not live execution | Native controls, no autoplay, burned-in explanations plus text/VTT | Previously qualified exact MP4 hash and retained CC0 music credit |
+| Video | Optional edited explanation, not live execution | Native controls, no autoplay, burned-in explanations plus text/VTT | Approved original retained; separately hashed small delivery copy and CC0 credit |
 
 ### Technical design
 
@@ -120,6 +120,60 @@ Local qualification on 2026-10-12:
 Remote Python 3.10–3.13, quantum, security, packaging/Docker and review gates
 remain required on a PR.
 Do not represent a local pass or a private design preview as public deployment.
+
+### PR #203 web-delivery correction
+
+The initial organization-policy gate rejected the 15,981,923-byte MP4 against
+its unchanged 10,485,760-byte maximum. The owner separately approved a smaller
+delivery copy, retention of the exact approved original and requalification,
+without merge, deployment, outreach or scientific-status changes.
+
+- Delivery: `boundary-explanation-web-v1.mp4`, 1,986,425 bytes, SHA-256
+  `e88cc89d77a3989c725a67fbbd411d2e35134ccad6fac96e5a6dba037c4840e6`.
+  FFmpeg 7.1/libx264 re-encodes only the video with CRF 24, slow/stillimage,
+  a 1,000 kbit/s maximum rate and 2,000 kbit buffer. Dimensions remain
+  1080×1350 at 30 fps, with all 1,800 frames and the 60-second sequence.
+  Global metadata, including the original rights credit and pending-review
+  comment, is copied. Fast-start metadata precedes media bytes.
+- The approved original SHA-256
+  `0e49295279b8698655fe896415adc7873bd3bfa2d2222960d86517427d2b2404`
+  was checked before and after encoding. Exact bytes remain in the owner-held
+  `linkedin-demo/captions-piano-v2` production bundle and prior PR commit
+  `5e094782dd0926475350533a54e0e6150ceb2494`. The original is removed only
+  from the served tree; no history rewrite or policy exception is used.
+- Copied AAC compressed-payload hash:
+  `8fc59b69a1f9c2f0ea6d24bee61d96ea63999ef89f170471ab7ede18d2a36dcf`.
+  Source and derivative payloads match. Caption timing, transcript, poster,
+  CC0 rights references and scientific-status footer remain unchanged.
+- Technical comparison: all-frame SSIM 0.997942 versus the approved video;
+  27 start/middle/end samples cover all nine scenes. Whole-frame, caption-band
+  and status-footer mean absolute RGB errors stay below 4 per channel.
+  Decoded first/middle/final frames and desktop/mobile playback were inspected.
+  This is media qualification, not scientific or subjective-listening approval.
+- Local requalification: 900 passed / 25 skipped, 91.46% coverage in the
+  supplementary Windows 3.14 environment; supported Windows 3.12 had 885
+  passed / 40 skipped. Final delivery/provenance recheck: 11 passed.
+  JavaScript: 95 passed. Ruff, Bandit, isolated dependency audit, registry,
+  discovery synchronization and social-card source checks passed. The previously
+  documented owner-environment tooling advisories remain untouched.
+- Rebuilt wheel/sdist and Twine checks passed; neither distribution contains
+  an MP4. Testing the extracted sdist exposed missing homepage/sitemap fixtures;
+  both small files are now included rather than weakening the metadata test.
+  Extracted-sdist explorer tests: 10 passed / 1 intentionally skipped media test.
+  Separate installed-wheel import/version/config/CLI smoke passed.
+- Flow: local recorded explorer → native play control → decoded 60-second
+  delivery video → pause/reload, with no autoplay. Playwright CLI checked
+  desktop 1440×1000 and mobile 390×844 because the Browser skill/runtime was
+  unavailable in this session. Correct URL/title, meaningful page content,
+  no error overlay, empty warning/error console and no horizontal page overflow
+  passed. Screenshots and comparison receipt are retained in the owner-held
+  `portal-qa` directory. No public route or LinkedIn preview has been exercised.
+
+`media-provenance.json` version 2 distinguishes source from delivery identity.
+Regression tests enforce exact delivery bytes/hash, the unchanged size policy,
+original retention pointers, safe local source selection and scientific-status
+preservation. Remote gates must pass at the correction's new PR head; the
+earlier successful matrix/Docker/security checks are not substituted for it.
 
 After an approved merge/deployment: verify HTML, exact image and video URLs,
 production CSP, expected deployment commit and read-only interactions. Use

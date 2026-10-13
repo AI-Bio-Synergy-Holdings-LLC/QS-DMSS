@@ -193,6 +193,13 @@ same-origin, uses native controls and `preload="none"`, and has retained music
 rights/provenance. The active CSP above needs no change for this route: there
 are no inline scripts, external runtime assets or new hashes.
 
+Serve only `boundary-explanation-web-v1.mp4` (1,986,425 bytes), the delivery
+derivative documented in `media-provenance.json`. The approved 15,981,923-byte
+original remains in the owner-retained production bundle and prior PR commit
+`5e094782dd0926475350533a54e0e6150ceb2494`; it is not in the deployed tree.
+The organization's 10 MiB Git-blob policy has no exception or increased cap.
+Both MP4s are excluded from Python wheel/sdist contents.
+
 Before announcing this URL, require protected review/merge and an approved
 Render deployment. Check the route, data hash, image MIME/dimensions, video
 playback, security headers, deployment commit and mobile interactions. Then

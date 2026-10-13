@@ -21,6 +21,12 @@ PACKET_SHA = "17e568bf7944972c57eda3f275ec7a1126f1cd3d92a4fa04308063425ef02ba4"
 DATA_SHA = "ed955ee0de108dddfd652a5cf0f847bbfc10332a9292623a5cf644ba5bfaf1ec"
 URL = "https://qs-dmss.studio/challenges/sc-graph-001/"
 SOURCE_CHECKOUT = (ROOT / ".git").exists()
+WEB_VIDEO = "boundary-explanation-web-v1.mp4"
+WEB_VIDEO_SHA = "e88cc89d77a3989c725a67fbbd411d2e35134ccad6fac96e5a6dba037c4840e6"
+ORIGINAL_VIDEO_SHA = (
+    "0e49295279b8698655fe896415adc7873bd3bfa2d2222960d86517427d2b2404"
+)
+MAX_GIT_BLOB_BYTES = 10 * 1024 * 1024
 
 
 class PageParser(HTMLParser):
@@ -148,15 +154,35 @@ def test_current_csp_needs_no_new_inline_exception_or_remote_runtime():
     assert "/api/" not in code and "localStorage" not in code
 
 
-@pytest.mark.skipif(
-    not SOURCE_CHECKOUT and not (PAGE / "boundary-explanation-v2.mp4").is_file(),
-    reason="Portal-only MP4 is intentionally excluded from Python distributions",
-)
-def test_optional_video_keeps_identity_rights_and_accessible_fallbacks():
+def test_media_provenance_preserves_approved_original_and_delivery_contract():
     provenance = json.loads((PAGE / "media-provenance.json").read_bytes())
-    video = PAGE / provenance["video"]
-    assert video.stat().st_size == provenance["video_bytes"] == 15981923
-    assert hashlib.sha256(video.read_bytes()).hexdigest() == provenance["video_sha256"]
+    assert provenance["schema_version"] == 2
+    assert provenance["video"] == WEB_VIDEO
+    assert provenance["video_sha256"] == WEB_VIDEO_SHA
+    assert provenance["video_bytes"] == 1986425 <= MAX_GIT_BLOB_BYTES
+    original = provenance["approved_original"]
+    assert original["sha256"] == ORIGINAL_VIDEO_SHA
+    assert original["bytes"] == 15981923
+    assert original["git_commit"] == "5e094782dd0926475350533a54e0e6150ceb2494"
+    assert original["git_path"] == (
+        "site/challenges/sc-graph-001/boundary-explanation-v2.mp4"
+    )
+    assert not (PAGE / original["filename"]).exists()
+    derivative = provenance["delivery_derivation"]
+    assert derivative["source_sha256"] == original["sha256"]
+    assert derivative["maximum_git_blob_bytes"] == MAX_GIT_BLOB_BYTES
+    assert derivative["verification"]["decoded_frames"] == 1800
+    assert derivative["verification"]["audio_compressed_payload_identical"] is True
+    assert derivative["verification"]["approved_original_sha256_rechecked"] is True
+    assert derivative["verification"]["global_metadata_copied_from_approved"] is True
+    assert derivative["verification"]["fast_start"] is True
+    assert derivative["verification"]["fps"] == 30
+    assert provenance["dimensions"] == [1080, 1350]
+    assert provenance["scientific_status"] == "NOT_ESTABLISHED"
+    assert provenance["independent_review"] == "PENDING"
+    assert provenance["candidate_source"] == (
+        "48d7ab5d10da189caddbcad1dd6622e58d204940"
+    )
     for filename, key in (
         ("video-poster.png", "poster_sha256"),
         ("explanations.vtt", "explanations_vtt_sha256"),
@@ -175,6 +201,8 @@ def test_optional_video_keeps_identity_rights_and_accessible_fallbacks():
     assert len(videos) == 1
     assert "controls" in videos[0] and "playsinline" in videos[0]
     assert videos[0]["preload"] == "none" and "autoplay" not in videos[0]
+    sources = [a for t, a in parser.nodes if t == "source"]
+    assert sources == [{"src": WEB_VIDEO, "type": "video/mp4"}]
     assert "continuous screen recording" in html and "No spoken narration" in html
     assert (
         (PAGE / "explanations.vtt").read_text(encoding="utf-8").startswith("WEBVTT\n")
@@ -183,6 +211,22 @@ def test_optional_video_keeps_identity_rights_and_accessible_fallbacks():
         encoding="utf-8"
     )
     assert "NOT_ESTABLISHED" in (PAGE / "transcript.txt").read_text(encoding="utf-8")
+
+
+@pytest.mark.skipif(
+    not SOURCE_CHECKOUT and not (PAGE / WEB_VIDEO).is_file(),
+    reason="Portal-only MP4 is intentionally excluded from Python distributions",
+)
+def test_web_delivery_has_exact_identity_and_obeys_unchanged_size_policy():
+    provenance = json.loads((PAGE / "media-provenance.json").read_bytes())
+    video = PAGE / WEB_VIDEO
+    assert video.stat().st_size == provenance["video_bytes"] == 1986425
+    assert hashlib.sha256(video.read_bytes()).hexdigest() == WEB_VIDEO_SHA
+    assert video.stat().st_size <= MAX_GIT_BLOB_BYTES
+    # Prevent another oversized asset from returning to the deployed route.
+    for asset in PAGE.iterdir():
+        if asset.is_file():
+            assert asset.stat().st_size <= MAX_GIT_BLOB_BYTES, asset.name
 
 
 def test_social_card_dimensions_claim_and_source():
