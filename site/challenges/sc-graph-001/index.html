@@ -296,13 +296,23 @@
             application or a continuous screen recording. Use the controls above
             to explore the four cases yourself.
           </p>
-          <p>
-            No spoken narration. Playback is optional and does not start
-            automatically.
+          <p id="video-caption-note">
+            No spoken narration. Explanations are already printed into the video;
+            no separate caption overlay is attached. Playback is optional and
+            does not start automatically.
           </p>
           <p>
             <a id="video-transcript" class="transcript-link" href="transcript.txt"
               >Read the explanation transcript</a
+            >
+          </p>
+          <p>
+            <a
+              id="video-caption-download"
+              class="transcript-link"
+              href="explanations.vtt"
+              download
+              >Download timed explanations (VTT)</a
             >
           </p>
           <details>
@@ -347,15 +357,10 @@
           poster="video-poster.png"
           width="1080"
           height="1350"
-          aria-label="60-second recorded boundary explanation with captions and optional piano"
+          aria-label="60-second recorded boundary explanation with on-screen explanations and optional piano"
+          aria-describedby="video-caption-note video-transcript"
         >
           <source src="boundary-explanation-web-v1.mp4" type="video/mp4" />
-          <track
-            kind="captions"
-            src="explanations.vtt"
-            srclang="en"
-            label="English explanations"
-          />
           Your browser cannot play this video.
           <a href="transcript.txt">Read the text explanation</a>.
         </video>
