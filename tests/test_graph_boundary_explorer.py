@@ -65,22 +65,54 @@ class PageParser(HTMLParser):
                 break
 
 
-def test_transcript_link_is_outside_video_fallback_and_keyboard_reachable():
+@pytest.mark.parametrize(
+    ("link_id", "filename", "is_download"),
+    [
+        ("video-transcript", "transcript.txt", False),
+        ("video-caption-download", "explanations.vtt", True),
+    ],
+)
+def test_video_text_alternatives_are_outside_fallback_and_keyboard_reachable(
+    link_id, filename, is_download
+):
     parser = PageParser()
     parser.feed((PAGE / "index.html").read_text(encoding="utf-8"))
     links = [
         (attrs, ancestors)
         for tag, attrs, ancestors in parser.contexts
-        if tag == "a" and attrs.get("id") == "video-transcript"
+        if tag == "a" and attrs.get("id") == link_id
     ]
     assert len(links) == 1
     attrs, ancestors = links[0]
-    assert attrs["href"] == "transcript.txt"
+    assert attrs["href"] == filename
     assert not any(tag == "video" for tag, _ in ancestors)
     assert any("demonstration" in a.get("class", "").split() for _, a in ancestors)
-    assert not any("hidden" in a or "inert" in a for _, a in ancestors)
+    assert not any(
+        "hidden" in a or "inert" in a or a.get("aria-hidden") == "true"
+        for a in (attrs, *(a for _, a in ancestors))
+    )
     assert attrs.get("tabindex") is None
+    assert ("download" in attrs) is is_download
     assert (PAGE / attrs["href"]).is_file()
+
+
+def test_burned_in_explanations_have_no_duplicate_native_caption_overlay():
+    html = (PAGE / "index.html").read_text(encoding="utf-8")
+    parser = PageParser()
+    parser.feed(html)
+    videos = [attrs for tag, attrs in parser.nodes if tag == "video"]
+    assert len(videos) == 1
+    # Browser caption preferences can enable even a non-default attached track.
+    assert not any(
+        tag == "track" and any(parent == "video" for parent, _ in ancestors)
+        for tag, _, ancestors in parser.contexts
+    )
+    description_ids = videos[0]["aria-describedby"].split()
+    assert description_ids == ["video-caption-note", "video-transcript"]
+    note = next(attrs for _, attrs in parser.nodes if attrs.get("id") == description_ids[0])
+    assert "hidden" not in note and note.get("aria-hidden") != "true"
+    assert "Explanations are already printed into the video" in html
+    assert "no separate caption overlay is attached" in html
 
 
 def test_explorer_source_order_matches_responsive_region_order():
@@ -220,6 +252,9 @@ def test_current_csp_needs_no_new_inline_exception_or_remote_runtime():
 
 
 def test_media_provenance_preserves_approved_original_and_delivery_contract():
+    assert hashlib.sha256((PAGE / "media-provenance.json").read_bytes()).hexdigest() == (
+        "c87b384f36b8647bd94f4979a869fa4a7b8cd67adaa3903665e4bbc971aa2730"
+    )
     provenance = json.loads((PAGE / "media-provenance.json").read_bytes())
     assert provenance["schema_version"] == 2
     assert provenance["video"] == WEB_VIDEO
