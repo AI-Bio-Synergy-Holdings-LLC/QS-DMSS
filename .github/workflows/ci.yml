@@ -109,6 +109,8 @@ jobs:
               wheel_names = set(archive.namelist())
           assert not any(name.lower().endswith(".mp4") for name in wheel_names), "Portal media must not enter wheels"
           assert "qs_dmss/assets/configs/demo.yaml" in wheel_names
+          for module in ("contracts", "storage", "admission", "analysis", "reporting", "evidence", "cli"):
+              assert "qs_dmss/external_data/" + module + ".py" in wheel_names
           assert "qs_dmss/assets/schemas/run_config.schema.json" in wheel_names
           for name in ("manifest.json", "cases.json"):
               assert "qs_dmss/assets/diagnostic-packs/fft-plane-wave-v1/" + name in wheel_names
@@ -155,6 +157,8 @@ jobs:
               assert sdist_root + fixture in sdist_names, fixture
           assert sdist_root + "RELEASE.md" in sdist_names
           assert sdist_root + "tests/test_diagnostic_packs.py" in sdist_names
+          assert sdist_root + "tests/test_external_dimuon.py" in sdist_names
+          assert sdist_root + "docs/cern-dimuon-evidence-lab.md" in sdist_names
           for name in ("diagnostic-pack-v1", "diagnostic-pack-cases-v1"):
               assert sdist_root + "schemas/" + name + ".schema.json" in sdist_names
           assert sdist_root + "tests/robustness_ui_state.test.cjs" in sdist_names
@@ -222,6 +226,7 @@ jobs:
           "$GITHUB_WORKSPACE"/wheel-smoke/bin/qs-dmss showcase run --output-root simulation-showcase
           "$GITHUB_WORKSPACE"/wheel-smoke/bin/python "$GITHUB_WORKSPACE"/.github/scripts/robustness_smoke.py --output-root recorded-robustness
           "$GITHUB_WORKSPACE"/wheel-smoke/bin/python "$GITHUB_WORKSPACE"/.github/scripts/diagnostic_pack_smoke.py --output-root diagnostic-pack
+          "$GITHUB_WORKSPACE"/wheel-smoke/bin/python "$GITHUB_WORKSPACE"/.github/scripts/external_dimuon_smoke.py --output-root external-dimuon
 
   quantum-sidecar:
     name: Quantum sidecar
