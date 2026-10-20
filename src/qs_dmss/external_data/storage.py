@@ -58,6 +58,9 @@ def decode_json(data: bytes):
 
 def literal_path(path: Path) -> Path:
     """Reject links/reparse points in every existing component, including parents."""
+    # Normalization would erase link/.. before the component checks below.
+    if ".." in path.parts:
+        raise EvidenceError("Parent-traversal components are not admitted.")
     if str(path).startswith(("//", "\\\\")) or (
         os.name == "nt" and ":" in str(path)[2:]
     ):

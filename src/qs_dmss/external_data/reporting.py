@@ -17,6 +17,7 @@ section { background: white; border: 1px solid #d4dddd; border-radius: 8px; padd
 .mobile-chart { display: none; } table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
 th, td { padding: 10px 8px; border-bottom: 1px solid #d4dddd; text-align: right; overflow-wrap: anywhere; }
 th:first-child, td:first-child { text-align: left; } caption { text-align: left; font-weight: 600; padding-bottom: 12px; }
+th:not(:first-child), td:not(:first-child) { min-width: 4.5rem; white-space: nowrap; }
 summary { cursor: pointer; padding: 14px 0; font-weight: 600; } summary:focus-visible, a:focus-visible { outline: 3px solid #a34b17; outline-offset: 3px; }
 pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: .85rem; line-height: 1.55; }
 code, strong { overflow-wrap: anywhere; } footer { padding: 24px 0; } .chart-text { font: 12px system-ui, sans-serif; fill: #183b3d; }
@@ -87,7 +88,7 @@ def render_report(result: dict, profile: dict, source: dict) -> bytes:
         for row in result["cut_flow"]
     )
     bin_rows = "".join(
-        f'<tr><th scope="row">{histogram["edges"][i]:.8g} to {histogram["edges"][i + 1]:.8g}</th><td>{count}</td></tr>'
+        f'<tr><th scope="row">{histogram["edges"][i]!r} to {histogram["edges"][i + 1]!r}</th><td>{count}</td></tr>'
         for i, count in enumerate(histogram["counts"])
     )
     limits = "".join(f"<li>{_escape(item)}</li>" for item in LIMITATIONS)

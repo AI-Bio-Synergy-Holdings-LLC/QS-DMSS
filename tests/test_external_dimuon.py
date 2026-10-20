@@ -6,6 +6,8 @@ import io
 import json
 import math
 import os
+import re
+import struct
 import zipfile
 from pathlib import Path
 
@@ -18,6 +20,7 @@ from qs_dmss.external_data.admission import admit_csv
 from qs_dmss.external_data.analysis import analyze
 from qs_dmss.external_data.contracts import (
     HEADER,
+    MAX_BINS,
     MAX_BUNDLE_BYTES,
     MAX_INPUT_BYTES,
     MAX_RECORD_BYTES,
@@ -29,7 +32,13 @@ from qs_dmss.external_data.contracts import (
 )
 from qs_dmss.external_data.evidence import run_analysis, verify_bundle
 from qs_dmss.external_data.reporting import render_report
-from qs_dmss.external_data.storage import decode_json, json_bytes, read_snapshot, sha256
+from qs_dmss.external_data.storage import (
+    decode_json,
+    json_bytes,
+    literal_path,
+    read_snapshot,
+    sha256,
+)
 
 
 def row(mass=3.0, **changes):
@@ -686,3 +695,142 @@ def test_records_stay_within_contract(input_file, tmp_path):
         < MAX_RECORD_BYTES
     )
     assert json.loads(files["analysis.json"])["schema_version"] == SCHEMA
+
+
+@pytest.mark.parametrize("field", ["mass_min", "mass_max", "pt_min"])
+@pytest.mark.parametrize("sign", [1, -1], ids=["positive", "negative"])
+@pytest.mark.parametrize("recompute", [False, True], ids=["integrity", "recompute"])
+def test_oversized_integer_threshold_is_json_refusal(
+    input_file, tmp_path, capsys, field, sign, recompute
+):
+    saved = run(input_file, tmp_path / "original")
+    original = Path(saved["bundle"]).read_bytes()
+    files = read_archive(saved["bundle"])
+    profile = decode_json(files["profile.json"])
+    profile[field] = sign * 10**400
+    files["profile.json"] = json_bytes(profile)
+    receipt = decode_json(files["receipt.json"])
+    receipt["requested_profile"] = profile
+    files["receipt.json"] = json_bytes(receipt)
+    manifest = decode_json(files["manifest.sha256.json"])
+    for name in ("profile.json", "receipt.json"):
+        manifest["files"][name] = {
+            "sha256": sha256(files[name]),
+            "size_bytes": len(files[name]),
+        }
+    files["manifest.sha256.json"] = json_bytes(manifest)
+    malformed = tmp_path / "oversized-threshold.zip"
+    malformed.write_bytes(archive_bytes(files))
+    with pytest.raises(EvidenceError, match="Mass window"):
+        verify_bundle(malformed, recompute=recompute)
+    arguments = ["external-data", "verify", str(malformed)]
+    if recompute:
+        arguments.append("--recompute")
+    assert main(arguments) == 1
+    output = capsys.readouterr()
+    assert json.loads(output.out)["success"] is False
+    assert "Traceback" not in output.err
+    assert Path(saved["bundle"]).read_bytes() == original
+
+
+@pytest.mark.parametrize(
+    "invalid_byte", [0xFF, 0xC3], ids=["invalid-start", "truncated-utf8"]
+)
+def test_invalid_utf8_zip_filename_is_json_refusal(tmp_path, capsys, invalid_byte):
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        archive.writestr("a", b"x")
+    raw = bytearray(buffer.getvalue())
+    central = raw.index(b"PK\x01\x02")
+    # General-purpose bit 11 declares UTF-8 names in both ZIP headers.
+    struct.pack_into("<H", raw, 6, 0x800)
+    struct.pack_into("<H", raw, central + 8, 0x800)
+    raw[30] = invalid_byte
+    raw[central + 46] = invalid_byte
+    with pytest.raises(UnicodeDecodeError):
+        zipfile.ZipFile(io.BytesIO(raw))
+    malformed = tmp_path / "invalid-name.zip"
+    malformed.write_bytes(raw)
+    with pytest.raises(EvidenceError, match="cannot be read safely"):
+        verify_bundle(malformed)
+    assert main(["external-data", "verify", str(malformed)]) == 1
+    output = capsys.readouterr()
+    assert json.loads(output.out)["success"] is False
+    assert "Traceback" not in output.err
+    assert malformed.read_bytes() == raw
+
+
+@pytest.mark.parametrize("bins", [2, 60, MAX_BINS])
+def test_narrow_report_interval_labels_round_trip(bins):
+    profile = AnalysisProfile(bins=bins, mass_min=3.000000001, mass_max=3.000000003)
+    admitted = admit_csv(csv_bytes(row(3.000000002)), "synthetic")
+    result = analyze(admitted, profile)
+    report = render_report(result, profile.document(), admitted.source).decode()
+    labels = [
+        value
+        for value in re.findall(r'<th scope="row">([^<]+)</th>', report)
+        if " to " in value and value[0].isdigit()
+    ]
+    edges = result["histogram"]["edges"]
+    assert len(labels) == bins == len(set(labels))
+    for index, label in enumerate(labels):
+        left, right = label.split(" to ")
+        assert float(left) == edges[index]
+        assert float(right) == edges[index + 1]
+        assert float(left) < float(right)
+    assert result["selected_events"] == sum(result["histogram"]["counts"]) == 1
+    assert "NOT_ESTABLISHED" in report
+
+
+def test_parent_traversal_rejected_before_path_normalization(monkeypatch):
+    with monkeypatch.context() as patch:
+
+        def forbidden(_path):
+            pytest.fail("Parent traversal must be refused before normalization.")
+
+        patch.setattr("qs_dmss.external_data.storage.os.path.abspath", forbidden)
+        with pytest.raises(EvidenceError, match="Parent-traversal"):
+            literal_path(Path("linked") / ".." / "events.csv")
+
+
+@pytest.mark.parametrize("relative", [False, True], ids=["absolute", "relative"])
+def test_parent_traversal_refuses_input_and_output_without_misdirection(
+    input_file, tmp_path, monkeypatch, capsys, relative
+):
+    monkeypatch.chdir(tmp_path)
+    prefix = Path() if relative else tmp_path
+    unsafe_input = prefix / "linked" / ".." / input_file.name
+    unsafe_output = prefix / "linked" / ".." / "misdirected"
+    original = input_file.read_bytes()
+    with pytest.raises(EvidenceError, match="Parent-traversal"):
+        read_snapshot(unsafe_input, MAX_INPUT_BYTES)
+    with pytest.raises(EvidenceError, match="Parent-traversal"):
+        run(input_file, unsafe_output)
+    assert not (tmp_path / "misdirected").exists()
+    assert (
+        main(
+            [
+                "external-data",
+                "dimuon",
+                "--input",
+                str(input_file),
+                "--output",
+                str(unsafe_output),
+                "--input-kind",
+                "synthetic",
+            ]
+        )
+        == 1
+    )
+    assert json.loads(capsys.readouterr().out)["success"] is False
+    assert not (tmp_path / "misdirected").exists()
+    target = tmp_path / "input-refusal"
+    with pytest.raises(EvidenceError, match="Parent-traversal"):
+        run(unsafe_input, target)
+    receipt = decode_json((target / "receipt.json").read_bytes())
+    assert receipt["state"] == "FAILED"
+    assert receipt["stage"] == "snapshot"
+    assert "Parent-traversal" in receipt["failure_reason"]
+    assert not (target / "input.csv").exists()
+    assert not (target / "dimuon-evidence.zip").exists()
+    assert input_file.read_bytes() == original

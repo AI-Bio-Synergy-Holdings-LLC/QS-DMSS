@@ -34,6 +34,8 @@ mass histogram, cut flow, exclusions, exact profile, provenance and limitations.
 Every figure has an exact table alternative, without JavaScript, fonts/CDNs,
 hover-only content or network dependencies. Desktop and mobile have separate
 chart layouts; ordinary disclosure controls are keyboard accessible.
+The exact-count table uses round-trip representations of retained float edges,
+including narrow analysis windows; display formatting does not change binning.
 
 Original synthetic fixtures in the same closed format require
 `--input-kind synthetic`. Their reports conspicuously say
@@ -131,8 +133,10 @@ semantic-checker and frozen evidence policies are **not** changed:
 Reads check size before allocation and read at most ceiling+1 bytes. Only
 literal regular files are admitted; links/reparse paths, URL inputs, multiline
 cells, control characters, wrong/duplicate/reordered headers and extra columns
-are refused. Parents are also checked for links/reparse points. Descriptor and
-path identities/size/mtime are rechecked around the bounded read. These checks
+are refused. Input and output paths containing parent-traversal (`..`)
+components are refused before normalization, even if normalization would remain
+inside a trusted directory. Parents are also checked for links/reparse points.
+Descriptor and path identities/size/mtime are rechecked around the bounded read. These checks
 are not descriptor-anchored isolation from a hostile process concurrently
 replacing output parents. Use a trusted local directory. Limits bound admitted
 work and retained bytes; they are not OS-enforced RSS/time/concurrency limits.
@@ -201,7 +205,7 @@ bundle; these counts do not establish detector or physical validity. Local
 qualification data, wheels and receipts stay under ignored `.local/cern-dimuon-*`
 directories and are not packaged as scientific reference evidence.
 
-Local engineering qualification on Windows/Python 3.14.3 (supplementary, not
+Initial local engineering qualification on Windows/Python 3.14.3 (supplementary, not
 the supported remote matrix) finished with **989 passed, 26 skipped, 91.70%
 coverage**; the focused pilot suite had **82 passed, one skipped**. The skipped
 pilot test requires host symlink-creation privileges; a separate reparse-point
@@ -210,7 +214,7 @@ compilation, 113 JavaScript regressions, frozen-registry/discovery checks,
 wheel/sdist content checks and Twine passed. The isolated installed-wheel
 environment's final dependency audit reported no known vulnerabilities.
 
-The code-qualified, unpublished wheel SHA-256 is
+That initial code-qualified, unpublished wheel SHA-256 is
 `72e9280b61c4b02b93c7ed61f43d613ffbd8f3166fbacb4124dd730045fed780`;
 its retained relevant module hashes match the workspace implementation.
 Desktop 1280×720 and mobile 360×800/390×844 browser QA found no final overflow or
@@ -225,9 +229,36 @@ passed, but this does not establish that the unrelated file-lock issue is fixed.
 The original shared development environment's audit also reported four known
 vulnerabilities across `certifi 2026.6.17` and `urllib3 2.7.0`; that environment
 was not silently upgraded. These are separate maintenance findings, not a claim
-that all environments are security-clean. Python 3.10–3.13 remote CI, CodeQL,
-dependency review and Docker qualification have not been run for this unpushed
-branch. No commit, PR, deployment or release is authorized by this local pass.
+that all environments are security-clean. The initial local pass preceded PR
+#206; its original remote checks subsequently passed. Neither a local nor a
+remote engineering pass establishes scientific approval or release authority.
+
+### PR #206 correction qualification — 2026-10-20
+
+Four review findings are corrected without changing the analysis convention,
+resource ceilings, frozen evidence or scientific statuses: oversized integer
+thresholds and malformed UTF-8 archive names now produce authored JSON refusals;
+exact interval labels retain float precision; and parent traversal is refused
+before path normalization for both input and output.
+
+The 20 added regression cases failed before the corrections and passed after
+them. Final Windows/Python 3.14.3 qualification finished with **1,009 passed,
+26 skipped, 91.71% coverage**; the focused pilot suite had **102 passed, one
+skipped**. Ruff, medium-or-higher Bandit, compilation, 113 JavaScript regressions,
+registry/discovery checks, wheel/sdist build and Twine passed. The isolated
+installed-wheel dependency audit reported no known vulnerabilities; the shared
+environment caveat above remains unchanged.
+
+The corrected, code-qualified unpublished wheel SHA-256 is
+`b8434593e6b34abda2536e0c5752e5ade253d76a083537a34fb84d3b6b70974e`.
+Installed-wheel synthetic acceptance and exact-provider recomputation passed;
+the provider analysis is unchanged from the initial retained result. The
+malformed-archive regressions also returned JSON refusals through the installed
+CLI. Final desktop 1280×720 and mobile 360×800 browser checks confirmed 60
+distinct narrow-window interval labels, no horizontal overflow or console
+errors, and keyboard access to the exact table. Physical-device and
+assistive-technology testing were not performed. Updated remote qualification
+is required for the correction commit before resolving its review findings.
 
 Out of scope: network downloader, ROOT/NanoAOD, general dataset registry,
 executable packs, campaign scores, graph/quantum/AI execution, portal/cockpit UI,

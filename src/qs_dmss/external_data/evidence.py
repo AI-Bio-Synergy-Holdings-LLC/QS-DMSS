@@ -373,6 +373,7 @@ def verify_bundle(path: str | Path, *, recompute=False) -> dict:
         }
     except (
         OSError,
+        UnicodeError,
         zipfile.BadZipFile,
         RuntimeError,
         EOFError,

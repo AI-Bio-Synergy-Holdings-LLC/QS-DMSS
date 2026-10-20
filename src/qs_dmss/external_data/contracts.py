@@ -89,7 +89,8 @@ class AnalysisProfile:
         if type(self.bins) is not int or not 1 <= self.bins <= MAX_BINS:
             raise EvidenceError("Histogram bins must be an integer from 1 to 100.")
         if any(
-            type(value) not in (int, float) or not math.isfinite(value)
+            type(value) not in (int, float)
+            or (type(value) is float and not math.isfinite(value))
             for value in (self.mass_min, self.mass_max, self.pt_min)
         ):
             raise EvidenceError("Analysis thresholds must be finite numbers.")
