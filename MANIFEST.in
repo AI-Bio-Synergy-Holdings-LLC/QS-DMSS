@@ -35,3 +35,6 @@ recursive-include site/challenges/sc-graph-001 *.png
 include research/challenges/build_graph_social_card.mjs
 recursive-include research/falsification *.py *.json *.txt *.md *.wl
 recursive-include research/challenges *.py *.json *.js *.css
+# Source-only numerical qualification helpers accompany their regression tests.
+recursive-include research/cern_dimuon_qualification *.py *.json
+recursive-include research/cern_dimuon_qualification/environments *.txt *.md

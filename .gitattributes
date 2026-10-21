@@ -7,3 +7,9 @@ src/qs_dmss/assets/diagnostic-packs/*/*.json text eol=lf
 site/challenges/sc-graph-001/* text eol=lf
 site/challenges/sc-graph-001/*.png binary
 site/challenges/sc-graph-001/*.mp4 binary
+# Qualification receipts and dependency locks identify exact source bytes.
+research/cern_dimuon_qualification/** text eol=lf
+tests/test_cern_dimuon_qualification.py text eol=lf
+tests/test_cern_dimuon_environment_locks.py text eol=lf
+docs/cern-dimuon-numerical-reconciliation.md text eol=lf
+docs/reviews/cern-dimuon-* text eol=lf
