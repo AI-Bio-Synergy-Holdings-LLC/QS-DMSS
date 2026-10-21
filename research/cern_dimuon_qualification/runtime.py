@@ -14,7 +14,7 @@ from pathlib import Path, PurePosixPath
 
 from .candidate import IDENTITY_MODULES, wheel_identity
 from .contract import COMMIT, SCIENTIFIC, WHEEL_SHA256, Hold, checked_protocol
-from .retention import read_regular
+from .retention import literal, read_regular
 
 MANIFEST_SHA256 = "268f7242692bef6902dfed1d7dcb6c230734b45d143b1fdb2bc9d7fba6dd4650"
 WINDOWS_LAUNCHER_SHA256 = (
@@ -139,11 +139,26 @@ def retained_candidate_identity(identity):
     }
 
 
+def check_cache(path):
+    path = literal(path)
+    if (
+        not sys.flags.dont_write_bytecode
+        or not sys.pycache_prefix
+        or literal(sys.pycache_prefix) != path
+        or sys._xoptions.get("pycache_prefix") != str(path)
+        or not path.is_dir()
+        or any(path.iterdir())
+    ):
+        raise Hold("A fresh empty startup bytecode prefix and -B are required.")
+    return str(path)
+
+
 def admit_environment(
-    target, wheel, wheelhouse, repository, *, candidate_identity=None
+    target, wheel, wheelhouse, repository, *, cache_dir, candidate_identity=None
 ):
     """Verify before fixture access; hashes are integrity checks, not attestation."""
     try:
+        cache = check_cache(cache_dir)
         plan = load_locks()
         distributions = {}
         for distribution in importlib.metadata.distributions():
@@ -212,6 +227,7 @@ def admit_environment(
             "packages": packages,
             "candidate": candidate,
             "lock_manifest_sha256": MANIFEST_SHA256,
+            "empty_startup_bytecode_prefix": cache,
             "scope": "Locked wheel members checked except installer-regenerated RECORD; no OS/BLAS attestation or hostile-code sandbox",
             "qualification_outcome": "NOT_EXECUTED",
             **SCIENTIFIC,

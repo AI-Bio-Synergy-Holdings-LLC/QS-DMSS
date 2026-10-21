@@ -3,14 +3,18 @@
 import copy
 import io
 import json
+import os
+import py_compile
 import subprocess
 import sys
+import time
 import zipfile
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
+from research.cern_dimuon_qualification import processes, retention
 from research.cern_dimuon_qualification import readiness as r
 from research.cern_dimuon_qualification import runtime as rt
 from research.cern_dimuon_qualification.contract import (
@@ -25,6 +29,28 @@ from research.cern_dimuon_qualification.contract import (
 from research.cern_dimuon_qualification.retention import Store
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def read_json(path):
+    return json.loads(path.read_bytes())
+
+
+@pytest.fixture
+def serial(tmp_path, monkeypatch):
+    (tmp_path / ".git").mkdir()
+    launcher = tmp_path / "python.exe"
+    launcher.write_bytes(b"launcher")
+    monkeypatch.setattr(r.platform, "system", lambda: "Windows")
+    monkeypatch.setattr(r, "WINDOWS_LAUNCHER_SHA256", rt.sha(b"launcher"))
+    monkeypatch.setattr(r, "prepare", lambda *a: ("index", 1))
+    return dict(
+        output=tmp_path / "evidence",
+        wheel=tmp_path,
+        windows_python=launcher,
+        windows_wheels=tmp_path,
+        linux_wheels=tmp_path,
+        repository=tmp_path,
+    )
 
 
 def observed(target):
@@ -269,9 +295,7 @@ def test_environment_receipts_are_reserved_bounded_and_once_only(tmp_path, monke
     before = store.audit()["total_bytes"]
     r.environment_receipt(store.root, "windows", "before", {"state": "ADMITTED"})
     assert store.audit()["total_bytes"] == before
-    receipt = json.loads(
-        (store.root / "records/source/windows-environment-before.json").read_bytes()
-    )
+    receipt = read_json(store.root / "records/source/windows-environment-before.json")
     assert all(receipt[key] == value for key, value in SCIENTIFIC.items())
     with pytest.raises(Hold, match="unused"):
         r.environment_receipt(store.root, "windows", "before", {"state": "ADMITTED"})
@@ -283,9 +307,7 @@ def test_environment_receipts_are_reserved_bounded_and_once_only(tmp_path, monke
             {"state": "HOLD", "reason": "x" * r.ENV_BYTES},
         )
     assert (
-        json.loads(
-            (store.root / "records/source/linux-environment-before.json").read_bytes()
-        )["state"]
+        read_json(store.root / "records/source/linux-environment-before.json")["state"]
         == "NOT_EXECUTED"
     )
     with pytest.raises(Hold):
@@ -324,9 +346,7 @@ def test_failed_admission_does_not_open_fixture(tmp_path, monkeypatch):
     monkeypatch.setattr(r, "read_regular", guarded)
     with pytest.raises(Hold, match="runtime refused"):
         r.native_worker(store.root, "windows", tmp_path, ROOT, sha)
-    receipt = json.loads(
-        (store.root / "records/source/windows-environment-before.json").read_bytes()
-    )
+    receipt = read_json(store.root / "records/source/windows-environment-before.json")
     assert receipt["state"] == "HOLD"
 
 
@@ -357,7 +377,7 @@ def test_supervision_retains_every_failure(tmp_path, monkeypatch, mode, expected
             )
     else:
         r.supervise(store, "windows", command, sha, timeout=20)
-    receipt = json.loads((store.root / "records/logs/windows-final.json").read_bytes())
+    receipt = read_json(store.root / "records/logs/windows-final.json")
     assert receipt["reason"] == expected
     assert receipt["output_complete"] is (expected is None)
     assert (store.root / "records/logs/windows-started.json").exists()
@@ -412,9 +432,7 @@ def test_cross_platform_criteria_do_not_require_numeric_string_identity(tmp_path
     store = Store(tmp_path / "evidence", workers=r.STAGES)
     records(store)
     r.compare_platforms(store)
-    result = json.loads(
-        (store.root / "records/comparison/platform-reconciliation.json").read_bytes()
-    )
+    result = read_json(store.root / "records/comparison/platform-reconciliation.json")
     assert result["state"] == "PASSED" and not result["reference_digests_identical"]
     assert result["qualification_outcome"] == "NOT_EXECUTED"
 
@@ -433,7 +451,7 @@ def test_failure_controls_preserve_fixture_and_limits(tmp_path):
     r.failure_controls(store)
     assert (store.root / "input/synthetic.csv").read_bytes() == b"original synthetic"
     assert not (store.root / "input/oversize.bin").exists()
-    result = json.loads((store.root / "records/comparison/controls.json").read_bytes())
+    result = read_json(store.root / "records/comparison/controls.json")
     assert result["refused"] == [
         "immutable_write",
         "allocation",
@@ -444,13 +462,26 @@ def test_failure_controls_preserve_fixture_and_limits(tmp_path):
 def test_linux_transport_is_offline_minimal_and_always_cleaned(tmp_path, monkeypatch):
     store = Store(tmp_path / "evidence", workers=r.STAGES)
     calls = []
+    environments = []
+    for key in ("DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG"):
+        monkeypatch.setenv(key, "synthetic-selection")
 
     def run(command, **kwargs):
         calls.append(command)
+        environments.append(kwargs["env"])
         return SimpleNamespace(returncode=0, stdout=b"")
 
+    def spawn(command, **kwargs):
+        environments.append(kwargs["env"])
+        return SimpleNamespace(poll=lambda: 0, returncode=0)
+
     monkeypatch.setattr(r.subprocess, "run", run)
-    monkeypatch.setattr(r, "supervise", lambda *a, **k: {"state": "PASSED"})
+    monkeypatch.setattr(r, "check_sources", lambda *a: None)
+    monkeypatch.setattr(
+        processes,
+        "ProcessTree",
+        lambda: SimpleNamespace(spawn=spawn, read=lambda n: b"", close=lambda: None),
+    )
     r.linux_stage(store, tmp_path / "wheels", ROOT, "index")
     command = next(value for value in calls if value[1] == "create")
     assert (
@@ -465,6 +496,12 @@ def test_linux_transport_is_offline_minimal_and_always_cleaned(tmp_path, monkeyp
     assert len(mounts) == 2 and all(".git" not in value for value in mounts)
     assert any(value[1:3] == ["rm", "--force"] for value in calls)
     assert calls[-1][1:3] == ["container", "ls"]
+    assert all(env == environments[0] for env in environments)
+    assert all(
+        environments[0][key] == "synthetic-selection"
+        for key in ("DOCKER_HOST", "DOCKER_CONTEXT", "DOCKER_CONFIG")
+    )
+    assert command[command.index("-X") + 1].startswith("pycache_prefix=/evidence/")
 
 
 def test_unknown_create_outcome_still_attempts_teardown(tmp_path, monkeypatch):
@@ -483,14 +520,7 @@ def test_unknown_create_outcome_still_attempts_teardown(tmp_path, monkeypatch):
     assert any(command[1:3] == ["rm", "--force"] for command in calls)
 
 
-def test_serial_failure_stops_before_linux_and_retains_hold(tmp_path, monkeypatch):
-    repository = tmp_path / "repository"
-    (repository / ".git").mkdir(parents=True)
-    monkeypatch.setattr(r.platform, "system", lambda: "Windows")
-    launcher = tmp_path / "python.exe"
-    launcher.write_bytes(b"launcher")
-    monkeypatch.setattr(r, "WINDOWS_LAUNCHER_SHA256", rt.sha(b"launcher"))
-    monkeypatch.setattr(r, "prepare", lambda *a: ("index", 1))
+def test_serial_failure_stops_before_linux_and_retains_hold(serial, monkeypatch):
     monkeypatch.setattr(
         r, "supervise", lambda *a, **k: (_ for _ in ()).throw(Hold("Windows refused"))
     )
@@ -498,17 +528,8 @@ def test_serial_failure_stops_before_linux_and_retains_hold(tmp_path, monkeypatc
         r, "linux_stage", lambda *a: pytest.fail("Linux started after Windows failure")
     )
     with pytest.raises(Hold):
-        r.run_rehearsal(
-            tmp_path / "evidence",
-            wheel=tmp_path,
-            windows_python=launcher,
-            windows_wheels=tmp_path,
-            linux_wheels=tmp_path,
-            repository=repository,
-        )
-    final = json.loads(
-        (tmp_path / "evidence/records/logs/supervisor-final.json").read_bytes()
-    )
+        r.run_rehearsal(**serial)
+    final = read_json(serial["output"] / "records/logs/supervisor-final.json")
     assert final["state"] == "HOLD" and final["qualification_outcome"] == "NOT_EXECUTED"
 
 
@@ -539,28 +560,14 @@ def test_complete_source_overallocation_refuses_before_copy(tmp_path, monkeypatc
     assert not list((store.root / "input").iterdir())
 
 
-def test_serial_success_has_fixed_order_and_never_promotes_pilot(tmp_path, monkeypatch):
-    repository = tmp_path / "repository"
-    (repository / ".git").mkdir(parents=True)
-    monkeypatch.setattr(r.platform, "system", lambda: "Windows")
-    launcher = tmp_path / "python.exe"
-    launcher.write_bytes(b"launcher")
-    monkeypatch.setattr(r, "WINDOWS_LAUNCHER_SHA256", rt.sha(b"launcher"))
-    monkeypatch.setattr(r, "prepare", lambda *a: ("index", 1))
+def test_serial_success_has_fixed_order_and_never_promotes_pilot(serial, monkeypatch):
     monkeypatch.setattr(r, "check_sources", lambda *a: None)
     order = []
     monkeypatch.setattr(r, "supervise", lambda *a, **k: order.append("windows"))
     monkeypatch.setattr(r, "linux_stage", lambda *a: order.append("linux"))
     monkeypatch.setattr(r, "compare_platforms", lambda *a: order.append("comparison"))
     monkeypatch.setattr(r, "failure_controls", lambda *a: order.append("control"))
-    result = r.run_rehearsal(
-        tmp_path / "evidence",
-        wheel=tmp_path,
-        windows_python=launcher,
-        windows_wheels=tmp_path,
-        linux_wheels=tmp_path,
-        repository=repository,
-    )
+    result = r.run_rehearsal(**serial)
     assert order == list(r.STAGES)
     assert result["qualification_outcome"] == "NOT_EXECUTED"
     assert result["pilot_execution_ready"] is False
@@ -580,3 +587,145 @@ def test_complete_source_plan_includes_locks_tests_guide_and_reserved_receipts()
     assert size <= BUCKETS["records/source"]
     attributes = (ROOT / ".gitattributes").read_text()
     assert "tests/test_cern_dimuon_readiness.py text eol=lf" in attributes
+
+
+@pytest.mark.parametrize("parent_wait", [0, 20])
+def test_descendant_pipe_is_bounded(tmp_path, monkeypatch, parent_wait):
+    store, sha, _ = snapshot(tmp_path, monkeypatch)
+    child = "import time;time.sleep(7)"
+    parent = f"import subprocess,sys,time;subprocess.Popen([sys.executable,'-I','-B','-c',{child!r}],stdout=sys.stdout,stderr=sys.stderr,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0));time.sleep({parent_wait})"
+    start = time.monotonic()
+    with pytest.raises(Hold):
+        r.supervise(
+            store,
+            "windows",
+            [sys.executable, "-I", "-B", "-c", parent],
+            sha,
+            timeout=0.5,
+        )
+    assert time.monotonic() - start < 3
+    final = read_json(store.root / "records/logs/windows-final.json")
+    assert final["reason"] == "TIMEOUT" and not final["output_complete"]
+
+
+def test_fresh_startup_cache_defeats_stale_bytecode(tmp_path):
+    module = tmp_path / "probe.py"
+    module.write_text("value=1\n")
+    stamp = module.stat().st_mtime_ns
+    py_compile.compile(str(module), doraise=True)
+    module.write_text("value=2\n")
+    os.utime(module, ns=(stamp, stamp))
+    cache = tmp_path / "new-cache"
+    cache.mkdir()
+    code = "import probe; print(probe.value)"
+
+    def run(flags):
+        return subprocess.run(
+            [*flags, "-c", code],
+            cwd=tmp_path,
+            capture_output=True,
+            check=True,
+            timeout=10,
+        ).stdout.strip()
+
+    assert run([sys.executable, "-E", "-s", "-B"]) == b"1"
+    assert run(r.python_flags(sys.executable, cache)) == b"2"
+    assert not list(cache.iterdir())
+
+
+@pytest.mark.parametrize("drift", ["flag", "prefix", "populated"])
+def test_cache_admission_refuses_drift(tmp_path, monkeypatch, drift):
+    monkeypatch.setattr(rt.sys, "pycache_prefix", str(tmp_path))
+    monkeypatch.setattr(rt.sys, "_xoptions", {"pycache_prefix": str(tmp_path)})
+    monkeypatch.setattr(rt.sys, "flags", SimpleNamespace(dont_write_bytecode=True))
+    assert rt.check_cache(tmp_path) == str(tmp_path)
+    if drift == "flag":
+        monkeypatch.setattr(rt.sys, "flags", SimpleNamespace(dont_write_bytecode=False))
+    elif drift == "prefix":
+        monkeypatch.setattr(rt.sys, "pycache_prefix", str(tmp_path / "other"))
+    else:
+        (tmp_path / "stale.pyc").write_bytes(b"old")
+    with pytest.raises(Hold):
+        rt.check_cache(tmp_path)
+
+
+@pytest.mark.parametrize("persistent", [False, True])
+def test_vanished_entries_get_only_one_complete_rescan(
+    tmp_path, monkeypatch, persistent
+):
+    store = Store(tmp_path / "evidence", workers=r.STAGES)
+    store.write("input", "receipt.json", b"retained")
+    original = retention.os.walk
+    scans = []
+
+    def walk(*args, **kwargs):
+        scans.append(1)
+        if persistent or len(scans) == 1:
+            return iter([(str(store.root / "input"), [], ["receipt.pending.json"])])
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(retention.os, "walk", walk)
+    if persistent:
+        with pytest.raises(Hold, match="disappearing"):
+            store.audit()
+    else:
+        assert store.audit()["bucket_bytes"]["input"] == len(b"retained")
+    assert len(scans) == 2
+
+
+@pytest.mark.parametrize("reason", ["TIMEOUT", "LOG_LIMIT"])
+@pytest.mark.parametrize("cleanup", ["returncode", "timeout"])
+def test_cleanup_preserves_primary_diagnostics(tmp_path, monkeypatch, reason, cleanup):
+    store = Store(tmp_path / "evidence", workers=r.STAGES)
+    primary = dict(
+        state="HOLD",
+        reason=reason,
+        overflow_byte_hex="78",
+        log_bytes_used=LOG_BYTES,
+        elapsed_seconds=300,
+    )
+
+    def worker(*a, **kw):
+        store.finish("linux", primary)
+        raise Hold("worker failed")
+
+    def run(command, **kw):
+        if command[1] == "rm":
+            if cleanup == "timeout":
+                raise subprocess.TimeoutExpired(command, 15)
+            return SimpleNamespace(returncode=1, stdout=b"")
+        return SimpleNamespace(returncode=0, stdout=b"")
+
+    monkeypatch.setattr(r, "supervise", worker)
+    monkeypatch.setattr(r.subprocess, "run", run)
+    with pytest.raises(Hold):
+        r.linux_stage(store, tmp_path, ROOT, "index")
+    final = read_json(store.root / "records/logs/linux-final.json")
+    assert all(final[k] == v for k, v in primary.items())
+    assert final["cleanup_failure"] == "CONTAINER_CLEANUP_UNVERIFIED"
+
+
+@pytest.mark.parametrize("damage", ["json", "missing", "write"])
+def test_supervisor_hold_survives_stage_damage(serial, monkeypatch, damage):
+    original = Store.finish
+
+    def finish(self, worker, value):
+        if worker == "windows" and damage == "write":
+            raise PermissionError("synthetic")
+        return original(self, worker, value)
+
+    def fail(store, *a, **kw):
+        path = store.root / "records/logs/windows-final.json"
+        if damage == "json":
+            path.write_bytes(b"{".ljust(8192, b" "))
+        elif damage == "missing":
+            path.unlink()
+        raise Hold("worker failed")
+
+    monkeypatch.setattr(Store, "finish", finish)
+    monkeypatch.setattr(r, "supervise", fail)
+    with pytest.raises(Hold):
+        r.run_rehearsal(**serial)
+    root = serial["output"]
+    assert read_json(root / "records/logs/supervisor-final.json")["state"] == "HOLD"
+    assert (root / "records/integrity/inventory.json").is_file()

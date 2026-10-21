@@ -121,6 +121,16 @@ class Store:
         return payload.ljust(SLOT_BYTES, b" ")
 
     def audit(self):
+        for attempt in range(2):
+            try:
+                return self._audit_once()
+            except FileNotFoundError as exc:
+                if attempt:
+                    raise Hold(
+                        "Retention entries kept disappearing; complete accounting unavailable."
+                    ) from exc
+
+    def _audit_once(self):
         def refuse_enumeration(error):
             raise Hold(
                 "Directory enumeration failed; complete byte accounting is unavailable."
