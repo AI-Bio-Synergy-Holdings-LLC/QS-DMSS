@@ -119,9 +119,16 @@ class Store:
         return payload.ljust(SLOT_BYTES, b" ")
 
     def audit(self):
+        def refuse_enumeration(error):
+            raise Hold(
+                "Directory enumeration failed; complete byte accounting is unavailable."
+            ) from error
+
         totals = dict.fromkeys(BUCKETS, 0)
         entries = {}
-        for directory, directories, files in os.walk(self.root, followlinks=False):
+        for directory, directories, files in os.walk(
+            self.root, followlinks=False, onerror=refuse_enumeration
+        ):
             for name in directories:
                 literal(Path(directory) / name)
             for name in files:

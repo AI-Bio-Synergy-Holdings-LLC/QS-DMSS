@@ -18,6 +18,7 @@ import pytest
 from research.cern_dimuon_qualification import (
     candidate,
     preflight,
+    retention,
 )
 from research.cern_dimuon_qualification import (
     comparison as comparison_module,
@@ -689,6 +690,100 @@ def test_inventory_counts_itself_padding_and_every_file(tmp_path):
             "bytes": len(actual[name]),
             "sha256": hashlib.sha256(actual[name]).hexdigest(),
         }
+
+
+@pytest.mark.parametrize("error_type", [PermissionError, FileNotFoundError, OSError])
+@pytest.mark.parametrize("directory", ["", "input/nested"])
+@pytest.mark.parametrize("operation", ["audit", "audit_existing", "inventory", "write"])
+def test_enumeration_failure_refuses_incomplete_accounting(
+    tmp_path, monkeypatch, error_type, directory, operation
+):
+    store = Store(tmp_path / "retained")
+    store.write("input", "nested/fixture.bin", b"retained synthetic input")
+    before = {
+        path.relative_to(store.root).as_posix(): path.read_bytes()
+        for path in store.root.rglob("*")
+        if path.is_file()
+    }
+    denied = store.root / directory
+    original_scandir = os.scandir
+    error = error_type("private filesystem exception detail")
+
+    def failing_scandir(path):
+        if Path(path) == denied:
+            raise error
+        return original_scandir(path)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(retention.os, "scandir", failing_scandir)
+        with pytest.raises(Hold, match="enumeration") as refused:
+            if operation == "audit_existing":
+                audit_existing(store.root)
+            elif operation == "write":
+                store.write("input", "must-not-exist.bin", b"new bytes")
+            else:
+                getattr(store, operation)()
+
+    assert refused.value.__cause__ is error
+    assert "private filesystem exception detail" not in str(refused.value)
+    after = {
+        path.relative_to(store.root).as_posix(): path.read_bytes()
+        for path in store.root.rglob("*")
+        if path.is_file()
+    }
+    assert after == before
+    assert not (store.root / "records/integrity/inventory.json").exists()
+    assert store.audit()["bucket_bytes"]["input"] == len(
+        before["input/nested/fixture.bin"]
+    )
+
+
+@pytest.mark.parametrize("directory", ["", "input/nested"])
+@pytest.mark.parametrize("failure_scan", [2, 3])
+def test_inventory_refuses_later_enumeration_failure_and_retains_partial_files(
+    tmp_path, monkeypatch, directory, failure_scan
+):
+    store = Store(tmp_path / "retained")
+    store.write("input", "nested/fixture.bin", b"retained synthetic input")
+    before = {
+        path.relative_to(store.root).as_posix(): path.read_bytes()
+        for path in store.root.rglob("*")
+        if path.is_file()
+    }
+    denied = store.root / directory
+    original_scandir = os.scandir
+    scans = 0
+    error = PermissionError("private filesystem exception detail")
+
+    def failing_scandir(path):
+        nonlocal scans
+        if Path(path) == denied:
+            scans += 1
+            if scans == failure_scan:
+                raise error
+        return original_scandir(path)
+
+    with monkeypatch.context() as patch:
+        patch.setattr(retention.os, "scandir", failing_scandir)
+        with pytest.raises(Hold, match="enumeration") as refused:
+            store.inventory()
+
+    assert scans == failure_scan
+    assert refused.value.__cause__ is error
+    assert "private filesystem exception detail" not in str(refused.value)
+    after = {
+        path.relative_to(store.root).as_posix(): path.read_bytes()
+        for path in store.root.rglob("*")
+        if path.is_file()
+    }
+    assert {name: after[name] for name in before} == before
+    # A failed final scan must preserve the written partial inventory, not retry
+    # or return a success receipt. A failure before writing must create none.
+    inventory_name = "records/integrity/inventory.json"
+    assert set(after) - set(before) == (
+        {inventory_name} if failure_scan == 3 else set()
+    )
+    assert store.audit()["total_bytes"] == sum(map(len, after.values()))
 
 
 def test_synthetic_preflight_including_timeout_overflow_and_drift(tmp_path):
