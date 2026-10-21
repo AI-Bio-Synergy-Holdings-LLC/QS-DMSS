@@ -457,6 +457,11 @@ Inside the cockpit you can:
 - Save a comparison into the experiment registry and reopen it later with report and bundle downloads
 - Load an objective-driven template and see the recommended winner directly in the comparison view
 
+Separately, the unreleased, **CLI-only** [CERN Dimuon Evidence Lab pilot](docs/cern-dimuon-evidence-lab.md)
+provides bounded local CSV import, explicit four-vector analysis, accessible
+reports and integrity/recomputation checks. It adds no cockpit routes and makes
+no scientific-validation claim.
+
 Verify the generated evidence bundle:
 
 ```powershell

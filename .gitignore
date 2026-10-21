@@ -193,3 +193,5 @@ reference-data-calibration/
 simulation-showcase/
 .codex-logs/
 /output/playwright/
+# Local CERN pilot data, candidate wheels, environments and retained QA outputs.
+/.local/cern-dimuon-*/

@@ -22,6 +22,10 @@ def _build_parser() -> argparse.ArgumentParser:
 
     register_commands(subparsers)
 
+    from qs_dmss.external_data.cli import register_commands as register_external_data
+
+    register_external_data(subparsers)
+
     run_parser = subparsers.add_parser("run", help="Run a config and emit an evidence bundle.")
     run_parser.add_argument("config", help="Path to a YAML config file.")
     run_parser.add_argument(
@@ -516,6 +520,11 @@ def _print_verification_result(path: Path) -> int:
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
+
+    if args.command == "external-data":
+        from qs_dmss.external_data.cli import dispatch as dispatch_external_data
+
+        return dispatch_external_data(args)
 
     if args.command == "diagnostic-packs":
         from qs_dmss.diagnostic_packs.cli import dispatch
