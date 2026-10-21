@@ -1,0 +1,125 @@
+{
+  "ai_advice": null,
+  "candidate_wheel_sha256": "6a8af63f047be841a9ce17d3f02392d56f0963498979f7c27593aed40aac1e60",
+  "criteria_and_retention_limits": "UNCHANGED",
+  "deployment": "NOT_PERFORMED",
+  "environment_locks": "OFFLINE_NATIVE_INSTALLS_VERIFIED",
+  "existing_helpers_and_protocol": "BYTE_IDENTICAL",
+  "findings": [
+    {
+      "disposition": "UNFIXED; separate correction approval required",
+      "file": "research/cern_dimuon_qualification/comparison.py",
+      "id": "HR-001",
+      "line": 146,
+      "priority": "P1",
+      "summary": "Counterexample-limit partial return drops previously collected exclusions"
+    },
+    {
+      "disposition": "UNFIXED; separate correction approval required",
+      "file": "research/cern_dimuon_qualification/comparison.py",
+      "id": "HR-002",
+      "line": 120,
+      "priority": "P1",
+      "summary": "Exclusion-limit early return omits the triggering row's disagreement"
+    }
+  ],
+  "frozen_evidence_and_historical_receipts": "UNCHANGED",
+  "helper_review": "HOLD",
+  "human_disposition": "PENDING",
+  "independent_scientific_review": "PENDING",
+  "limitations": [
+    "Dependency audits are not operating-system image audits",
+    "Linux pytest reported one read-only cache warning",
+    "Locks do not retroactively alter historical NOT_FROZEN receipts or implement automatic lock enforcement",
+    "Matching NumPy versions do not imply identical binary/BLAS implementations or scientific validation"
+  ],
+  "local_date": "2026-10-20",
+  "lock_manifest_sha256": "268f7242692bef6902dfed1d7dcb6c230734b45d143b1fdb2bc9d7fba6dd4650",
+  "numpy": "2.5.4",
+  "original_and_approved_wheels": "UNCHANGED",
+  "pilot_execution_ready": false,
+  "protocol_raw_sha256": "e826290c17adf15c4c562920842fcd4cc072027f7dcfdb83d457bec92af0fe75",
+  "publication": "NOT_PERFORMED",
+  "python": "3.12.15",
+  "qualification_outcome": "NOT_EXECUTED",
+  "quality_gates": {
+    "bandit": "PASS",
+    "diff-check": "PASS",
+    "ruff": "PASS",
+    "ruff-format": "PASS"
+  },
+  "review_method": "AI-assisted engineering inspection, synthetic probes and native regression tests; not owner or independent scientific approval",
+  "reviewed_helper_identities": {
+    "research/cern_dimuon_qualification/__init__.py": {
+      "bytes": 78,
+      "sha256": "06ed5e7f666e199a8d37d1fa2723b5d9046dab37b9e780d4a6cdd8b732765ea3"
+    },
+    "research/cern_dimuon_qualification/candidate.py": {
+      "bytes": 5183,
+      "sha256": "1710878b802f7743ddaaa4d13a97116a6514cadbc9dc57f1990b4d6680b50099"
+    },
+    "research/cern_dimuon_qualification/comparison.py": {
+      "bytes": 9915,
+      "sha256": "ca3afb5181c01e86e71e5b95eb37b4c757174954b1345e75ceadbbcdf78e0b7e"
+    },
+    "research/cern_dimuon_qualification/contract.py": {
+      "bytes": 2590,
+      "sha256": "f170b79bd1c6ac206b201f64fb425c6e24a52d26b72e5d51f2f27054de72cb30"
+    },
+    "research/cern_dimuon_qualification/preflight.py": {
+      "bytes": 10529,
+      "sha256": "67277b2217b4f16e8f33c1503206c0644ee2dd4e609cb667cc473ee8b177275e"
+    },
+    "research/cern_dimuon_qualification/protocol-v1.json": {
+      "bytes": 3243,
+      "sha256": "e826290c17adf15c4c562920842fcd4cc072027f7dcfdb83d457bec92af0fe75"
+    },
+    "research/cern_dimuon_qualification/reference.py": {
+      "bytes": 7268,
+      "sha256": "b3285a8efb3314f9be87a98f16677e0fb0afb77e769125ac3e6eee20c3397895"
+    },
+    "research/cern_dimuon_qualification/retention.py": {
+      "bytes": 8153,
+      "sha256": "f0ee63edb9fea04b9a7e38b4bc823bc10b60bfe4a7731d07dd5cccf448627562"
+    },
+    "research/cern_dimuon_qualification/supervision.py": {
+      "bytes": 4788,
+      "sha256": "24affa95bb6e81d311010988d55ba7212f729cde669fcf00cdcc705fb2505f1e"
+    }
+  },
+  "schema": "cern-dimuon-environment-verification/v1",
+  "scientific_validation_status": "NOT_ESTABLISHED",
+  "scope": "Helper engineering review and dependency freezing; no numerical pilot",
+  "targets": {
+    "linux": {
+      "audit_sha256": "963e9a2e4ea2025927d9831514b1d8ec1902da86faa98474743787d5aef806ec",
+      "environment_receipt_sha256": "0fc978d7a24343f501f088787201d4653ed360c4bc2d235473d822d2ae775a1a",
+      "installed_candidate_files_exact_match": 103,
+      "installed_packages": 23,
+      "known_vulnerabilities": 0,
+      "offline_install": "VERIFIED",
+      "review_probe_receipt_sha256": "8c1eb7dd9199fc9a97a836d89096fa80f1fc2cf82b7994f3cae22c86218ed3cd"
+    },
+    "windows": {
+      "audit_sha256": "71c66aff77a028cbc1e4eed7c70045620cffbe17d5b2c936cce702a4acd5ec0c",
+      "environment_receipt_sha256": "a5dba8176d8eca4b00e86abd378f1365c06d162abd26a031f8eaad447ac617be",
+      "installed_candidate_files_exact_match": 103,
+      "installed_packages": 24,
+      "known_vulnerabilities": 0,
+      "offline_install": "VERIFIED",
+      "review_probe_receipt_sha256": "8c1eb7dd9199fc9a97a836d89096fa80f1fc2cf82b7994f3cae22c86218ed3cd"
+    }
+  },
+  "tests": {
+    "linux": {
+      "failed": 0,
+      "passed": 164,
+      "skipped": 0
+    },
+    "windows": {
+      "failed": 0,
+      "passed": 162,
+      "skipped": 2
+    }
+  }
+}
