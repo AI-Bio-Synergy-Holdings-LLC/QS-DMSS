@@ -680,6 +680,7 @@ def test_cleanup_preserves_primary_diagnostics(tmp_path, monkeypatch, reason, cl
     primary = dict(
         state="HOLD",
         reason=reason,
+        tree_cleanup_failure="PROCESS_TREE_CLEANUP_UNVERIFIED",
         overflow_byte_hex="78",
         log_bytes_used=LOG_BYTES,
         elapsed_seconds=300,

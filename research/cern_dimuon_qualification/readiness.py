@@ -682,12 +682,12 @@ def run_rehearsal(
         try:
             store.finish("supervisor", {"state": "HOLD", "reason": reason})
         except (OSError, Hold):
-            pass
+            pass  # Reserved slot unavailable.
         if stage is not None:
             try:
                 hold_stage(store, stage, reason)
             except (OSError, Hold):
-                pass
+                pass  # Best effort; supervisor attempted first.
         try:
             if not (store.root / "records/integrity/inventory.json").exists():
                 store.inventory()

@@ -75,3 +75,32 @@ AI advice null. No CERN data, new review request, merge, pilot, deployment or
 release is authorized or performed. Remote qualification and separate owner
 review remain required; resolving verified engineering threads is not approval
 of scientific claims or authorization to merge.
+
+## Final retention refinement — qualification HOLD
+
+The successful results above describe correction commit `6628edd4282b238f794884cd1f9f56c2e1696b0e`,
+not the subsequent refinement. The refinement gives process-tree cleanup its
+own `tree_cleanup_failure` field so Docker's `cleanup_failure` cannot replace
+it; the four combined-failure cases now assert preservation of both facts.
+Four automatic Code Quality comments are also addressed with an explicit
+`import ctypes.wintypes as W` (not an uninitialized `C.wintypes` attribute) and
+comments explaining intentionally best-effort handlers. No policy or algorithm
+changed. The complete current source plan is **262,073 / 262,144 bytes**, with
+**71 bytes** spare, including the unchanged four 16 KiB environment slots.
+
+Final qualification remains **HOLD**, not passed. The distinct retained root
+`.local/cern-dimuon-pr208-corrections-final-20261021/` contains the interrupted
+full-suite log and a synthetic rehearsal that retained supervisor HOLD before
+either native stage ran. A separate readiness diagnostic stopped at the first
+normal subprocess control: 22 passed, one failed; the 20-second control retained
+TIMEOUT, zero log bytes and no cleanup failure. Independent minimal Python and
+Git child-launch probes also timed out, so local launch behavior must be
+restored and final bytes qualified on new, exclusive roots. No timeout, test,
+budget or acceptance criterion was relaxed to make this attempt pass.
+
+The final-attempt static checks and both frozen-lock audits completed, but do
+not replace the interrupted full/native qualification. All 15 protected hashes
+and both previous successful packet inventories/contents were rechecked and
+remain unchanged. The final refinement is not represented as having the earlier
+packet's hashes or passing results. Review findings remain open pending final
+verification. No new Copilot review, merge, pilot, deployment or release occurred.

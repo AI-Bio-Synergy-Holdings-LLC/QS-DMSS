@@ -12,7 +12,7 @@ from .contract import LOG_BYTES, Hold
 
 
 def windows_job():
-    from ctypes import wintypes as W
+    import ctypes.wintypes as W
 
     class Basic(C.Structure):
         _fields_ = [
@@ -131,7 +131,7 @@ class ProcessTree:
                 try:
                     os.killpg(self.process.pid, signal.SIGKILL)
                 except ProcessLookupError:
-                    pass
+                    pass  # Group already exited.
         finally:
             if self.process:
                 try:
@@ -208,7 +208,7 @@ def capture(store, role, command, timeout, environment=None):
     return dict(
         state="HOLD" if reason else "PASSED",
         reason=reason,
-        cleanup_failure=cleanup,
+        tree_cleanup_failure=cleanup,
         log_bytes_used=used,
         overflow_byte_hex=overflow,
         output_complete=reason is None,
