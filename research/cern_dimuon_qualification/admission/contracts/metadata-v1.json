@@ -1,0 +1,130 @@
+{
+  "schema": "cern-dimuon-post-ledger-admission-design/1-proposed",
+  "scope": "Inert metadata-only owner-card boundary and capacity decision for owner approval",
+  "owner_design_approval": null,
+  "implementation_authorized": false,
+  "integration_authorized": false,
+  "execution_authorized": false,
+  "pilot_execution_ready": false,
+  "implementation_admission": "HOLD_CAPACITY_NOT_DEMONSTRATED",
+  "controller_baseline_commit": "8805202c48285631dad2f38bc966c1d5d014aa93",
+  "future_implementation_controller_commit": null,
+  "future_complete_execution_source_index_sha256": null,
+  "historical_ledger_source_index_sha256": "d39759c9b78e281efb4981a34bc398c261fac41201a1d16a5c4151ab46a2d60c",
+  "historical_index_is_not_future_execution_identity": true,
+  "candidate": {
+    "commit": "c158c3ba3f81cadf7d11bdfcab3441c8d99be851",
+    "approved_wheel_sha256": "6a8af63f047be841a9ce17d3f02392d56f0963498979f7c27593aed40aac1e60",
+    "original_wheel_sha256": "b8434593e6b34abda2536e0c5752e5ade253d76a083537a34fb84d3b6b70974e",
+    "both_wheels_preserved": true,
+    "same_version_is_not_identity": true
+  },
+  "protocols": {
+    "v1_raw_sha256": "e826290c17adf15c4c562920842fcd4cc072027f7dcfdb83d457bec92af0fe75",
+    "v1_canonical_sha256": "afb3e2abca46794f71170599865e51d938c5cff50e7c939d3cad3f52e0b91266",
+    "v2_raw_sha256": "305933ea48b9fd39d67c1d9bb226188a7990cbcca636a0dc6177f0462db25912",
+    "v2_canonical_sha256": "5198ce0039de27d6ac6a856ae6e44369abc467e0ade566b9e4829552b9383652",
+    "v1_default_and_19_file_closure_unchanged": true,
+    "global_protocol_or_budget_monkeypatch_forbidden": true
+  },
+  "card_shape_preserved_for_planning": {
+    "schema": "cern-dimuon-owner-execution/v2-compact-1",
+    "top_level_keys": ["accountable_human", "controller", "execution", "execution_authorized", "output", "owner_statement", "protocol", "record_kind", "retention", "runtime", "schema"],
+    "nested_keys": {
+      "controller": ["commit", "source_index_sha256"],
+      "execution": ["automatic_retry", "log_bytes_per_worker", "one_shot", "order", "resume", "seconds_per_worker"],
+      "output": ["literal_absolute_root", "trusted_parent"],
+      "protocol": ["canonical_sha256", "raw_sha256"],
+      "retention": ["environment_receipt_bytes", "environment_receipts"],
+      "runtime": ["implementation", "manifest_sha256"]
+    },
+    "encoded_JSON_string_token_limits_including_quotes": {
+      "accountable_human": 128,
+      "owner_statement": 256,
+      "output.literal_absolute_root": 256,
+      "output.trusted_parent": 192
+    },
+    "fixed_operative_record_kind": "OWNER_EXECUTION_AUTHORIZATION",
+    "non_authorizing_design_fixture_kind": "NON_AUTHORIZING_SERIALIZATION_FIXTURE",
+    "reserved_operative_card_bytes": 1760,
+    "reserved_operative_guide_bytes": 902,
+    "serialization": "Compact sorted UTF-8 JSON with ASCII escapes, finite values and exactly one LF",
+    "no_authorizing_card_emitted_by_this_design": true
+  },
+  "metadata_boundary_proposed": {
+    "future_form": "A pure inspection function in a separately approved counted source module; no CLI or coordinator in this increment",
+    "inputs": "Bounded owner-card bytes plus a fixed, already retained controller source context. No arbitrary protocol paths, commands, callbacks, providers or network resolvers.",
+    "required_checks": [
+      "Reject invalid UTF-8, unknown or missing keys at every closed depth, duplicate JSON keys, NaN/Infinity and finite-number overflow such as 1e999",
+      "Enforce exact scalar and container types; booleans cannot substitute for integer counts and integers cannot substitute for booleans",
+      "Reject encoded string overflow, empty accountable-human/statement values, placeholder or zero identities, wrong schema and wrong operative record kind; never truncate or silently normalize",
+      "Require declared approval true and serial one-shot scope, no retry/resume, 300 seconds and 24576 log bytes per worker, fixed worker order, four 16384-byte environment slots",
+      "Resolve exact retained raw and canonical v2 protocol identities, source membership/index identity and runtime-manifest plus both lock hashes before any data access",
+      "Expand the protocol bindings for candidate, wheel, input metadata, profile, numerical criteria and all caps, and the manifest bindings for CPython/NumPy/packages/runtime distributions into owner-readable facts",
+      "Preserve controller versus candidate identity; reject same-version wheel substitution, stale source contexts, unsupported protocol selection and manifest/lock mismatch",
+      "Check controller-native literal absolute root and trusted parent without creating or reserving them; refuse traversal, alternate streams, links/reparse points, foreign path flavor and observed reuse. Do not reinterpret paths across platforms. These read-only observations are not an atomic root claim.",
+      "Return only bounded authored metadata or a bounded authored refusal; never expose card text or raw exception text through a refusal"
+    ],
+    "successful_result_contract": {
+      "metadata_status": "MATCH_WITH_NO_EXECUTION_AUTHORITY",
+      "execution_authorized": false,
+      "input_access_permitted": false,
+      "runtime_admitted": false,
+      "output_root_claimed": false,
+      "pilot_execution_ready": false,
+      "scope": "Declared metadata match only; no proof of the human's identity, platform attestation, physical validation or independent scientific review"
+    },
+    "proposed_result_storage": {
+      "operative": false,
+      "bucket_if_later_admitted": "records/comparison",
+      "single_closed_result_or_refusal_slot_bytes": 24576,
+      "serialization": "Compact sorted UTF-8 JSON with ASCII escapes and one LF; no result truncation",
+      "maximum_model": "Card plus complete frozen protocol metadata and runtime distribution, lock and package name/version/artifact identities; full retained records remain separately inspectable by exact hashes",
+      "does_not_expand_worker_log_budget_or_create_a_new_log_file": true,
+      "complete_future_control_inventory_or_runtime_admission_proof": false
+    },
+    "fixtures_and_false_authority": "The metadata-only increment must not introduce an operative test-mode bypass. Existing non-authorizing fixtures and false authority still refuse the operative-card contract. Future positive tests must establish synthetic identity contexts without producing a usable real-data approval card or granting execution authority.",
+    "forbidden_effects": ["Read/stat/copy/mount CERN input", "Import QS-DMSS or NumPy for numerical work", "Create/claim an evidence root", "Write any input/output bundle", "Start workers/containers/subprocesses", "Activate v2 in v1 commands", "Grant execution authority", "Network access", "Generate an approving owner card"]
+  },
+  "reuse_decisions": {
+    "read_regular_and_literal": "Reuse only through their complete counted frozen source; bounded metadata/path reads do not establish data or execution admission",
+    "StoreV2": "Retain the qualified immutable instance-local ledger for a future coordinator; this metadata-only boundary does not instantiate it",
+    "runtime_manifest_and_locks": "Reuse exact retained metadata identities; do not equate metadata resolution with admit_environment's installed-member checks",
+    "checked_protocol_v1": "Not a strict general card parser and not a v2 selector. Its frozen pin, numeric semantics and globals must remain unchanged.",
+    "historical_design_or_prototype_files": "Read-only references for this analysis only. No future validator/test/operative guide may load them without full byte/index accounting and separate admission. The older 9872-byte draft is not qualified code."
+  },
+  "remaining_future_execution_gates": [
+    "Owner approves a feasible capacity/source contract and separately authorizes implementation",
+    "Complete actual readable validator/tests/guide/index closure fits all planning targets and source cap with at least 4096 spare",
+    "Independent review of exact future controller/source identities and before/after installed runtime members",
+    "Separate coordinator admission proving atomic output-root claim, immutable v2 budgets throughout all calls, serial one-shot supervision and v1 compatibility",
+    "Measured peak transport/publication/failure/control schemas, 33rd triggering counterexample retention, and complete integrity inventory with own encoded size counted",
+    "New locked synthetic qualification and protected remote review for any newly admitted component",
+    "Final separately inspected owner card and explicit one-shot real-data execution authorization"
+  ],
+  "unchanged_caps": {
+    "input": 4161536,
+    "wheel": 1048576,
+    "windows": 10485760,
+    "linux": 10485760,
+    "records/source": 294912,
+    "records/comparison": 524288,
+    "records/logs": 196608,
+    "records/integrity": 65536
+  },
+  "total_cap": 27262976,
+  "minimum_source_spare": 4096,
+  "planning_target_changes_applied": false,
+  "cap_changes_applied": false,
+  "qualification_outcome": "NOT_EXECUTED",
+  "scientific_statuses": {
+    "scientific_validation_status": "NOT_ESTABLISHED",
+    "independent_scientific_review": "PENDING",
+    "human_disposition": "PENDING",
+    "ai_advice": null,
+    "gate_183": "OPEN_AND_UNCHANGED",
+    "frozen_evidence": "UNCHANGED",
+    "historical_numerical_statuses": "UNCHANGED"
+  },
+  "whole_v2_execution_admission": "HOLD_DEFERRED_COMPONENTS"
+}

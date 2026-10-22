@@ -1,0 +1,28 @@
+{
+  "scope": "Inert acceptance requirements; no validator, adapter or test implementation",
+  "implementation_test_status": "NOT_IMPLEMENTED_NOT_EXECUTED",
+  "cases": [
+    {"id":"MC01","condition":"Complete declared metadata and retained identities match in a closed synthetic context","expected":"Only MATCH_WITH_NO_EXECUTION_AUTHORITY; all execution/input/runtime/root/pilot authority remains false; no usable real-data approval card produced"},
+    {"id":"MC02","condition":"Unknown, missing, duplicate or incorrectly typed nested fields","expected":"Authored bounded refusal before side effects"},
+    {"id":"MC03","condition":"NaN, Infinity, negative Infinity, overflowed finite JSON number or recursion/size overflow","expected":"Refuse; no coercion, truncation or partial acceptance"},
+    {"id":"MC04","condition":"Every encoded human/statement/path token at and one byte above its unchanged bound, including Unicode/quotes/backslashes","expected":"Exact encoded-byte accounting; overflow refuses; fieldwise sizing is not joint path validity"},
+    {"id":"MC05","condition":"Fixture marker, false/missing approval, placeholders, zero hash or empty accountable statement","expected":"Refuse operative-card contract; no test-mode authorization bypass"},
+    {"id":"MC06","condition":"Wrong baseline used as future controller, stale/partial source index, wrong candidate, equal-version alternate wheel","expected":"Refuse exact binding mismatch; historical ledger index cannot stand in for future complete execution index"},
+    {"id":"MC07","condition":"Wrong raw or canonical protocol, runtime manifest or either lock, including semantically similar reserialization","expected":"Refuse exact identity mismatch; no default/main/network fallback"},
+    {"id":"MC08","condition":"Wrong one-shot order, retry/resume flag, timeout, log budget, environment slot count/size or integer/boolean substitution","expected":"Refuse; all frozen execution limits unchanged"},
+    {"id":"MC09","condition":"Traversal, alternate stream, nonliteral or foreign-flavor path, symlink/reparse ancestor, reused root or untrusted parent","expected":"Refuse before data access; metadata inspection never creates a root"},
+    {"id":"MC10","condition":"Path becomes linked/reused after metadata inspection","expected":"Metadata result grants no claim; future coordinator must atomically claim and recheck or HOLD. Deferred coordinator test, not implemented here."},
+    {"id":"MC11","condition":"Declared runtime metadata matches but installed member bytes or imported candidate do not","expected":"No runtime-admitted claim from metadata. Future native admission must refuse before data access."},
+    {"id":"MC12","condition":"Any input open/stat/copy/mount, numerical import, network, subprocess or output creation attempted by metadata inspection","expected":"Fail characterization; zero authorized effects"},
+    {"id":"MC13","condition":"Raw exception/card text or unbounded refusal/result is returned","expected":"Fail characterization; retain bounded authored refusal without secret/card leakage"},
+    {"id":"MC14","condition":"v1 receives v2 selection or mutable/global budget override","expected":"Existing v1 refusal and all 19 frozen bytes remain unchanged; no global monkeypatch workaround"},
+    {"id":"MC15","condition":"Any active code/test/fixture/spec/guide/index or required receipt omitted from source accounting","expected":"HOLD; retain complete closure and four full 16 KiB slots plus operative card/guide"},
+    {"id":"MC16","condition":"One byte over a bucket, below 4096 source spare, or unreadable/partial/staging/transport entry omitted","expected":"HOLD even with aggregate slack; retain and stop"},
+    {"id":"MC17","condition":"Source/runtime drift, timeout, log overflow, primary plus cleanup failure or publication failure","expected":"Future coordinator retains STARTED/final/emergency and every partial result, without retry; deferred integration tests"},
+    {"id":"MC18","condition":"33rd triggering exclusion/counterexample or incomplete final inventory","expected":"Future execution retains trigger and incomplete/HOLD result; no truncation or complete-result claim; deferred integration tests"},
+    {"id":"MC19","condition":"v2-only scaffolding consolidation is proposed to recover source bytes","expected":"Preserve named coverage, independent semantic oracles and all positive/refusal cases; fresh qualification required after separate implementation approval"},
+    {"id":"MC20","condition":"Design packet, maximum-path model or byte sensitivity arithmetic is presented as qualification","expected":"Reject promotion; no native, adapter, path-safety or scientific-validation claim"}
+  ],
+  "complete_native_transport_control_failure_inventory_proofs": "DEFERRED_HOLD",
+  "pilot_execution_ready": false
+}
