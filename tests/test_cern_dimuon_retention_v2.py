@@ -38,7 +38,8 @@ def protocols():
 
 def check_changes(base, amended):
     unchanged = copy.deepcopy(amended)
-    assert unchanged.pop("amendment") == {
+    amendment = unchanged.pop("amendment")
+    assert amendment == {
         "predecessor_revision": 1,
         "predecessor_raw_sha256": BASE_RAW,
         "predecessor_canonical_sha256": BASE_CANONICAL,
