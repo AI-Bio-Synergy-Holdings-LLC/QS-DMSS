@@ -1,0 +1,15 @@
+{
+  "record_kind": "OWNER_ALLOCATION_APPROVAL_NOT_EXECUTION_AUTHORITY",
+  "accountable_human": "Repository owner through explicit conversation approvals",
+  "owner_statement": "Owner approved the v3 allocation, ceilings and bindings and the amendments_v3/ correction. Data-only adoption/accounting only; no implementation, integration, pilot, deployment or release.",
+  "recorded_at_utc": "2026-10-22T22:59:16Z",
+  "protocol_raw_sha256": "5025f67af391fba2ce8bce49caf6dc7ea8a2a768f66ad532c7a4bd0e000c461f",
+  "protocol_canonical_sha256": "2c8f0509397d09d00e89f7a7f10011c190da14b7784ddaf9ca6a101b55b0fb4d",
+  "bindings_sha256": "e6a5c82b945245ab11fedc9d421571b26cd450f2a7349e521c73f873bcffd056",
+  "source_targets_canonical_sha256": "5d4a52eba4113dbb1d49bd5acee6dd6497c3c282a7806fffb7615b9a39ff2aa5",
+  "allocation_adopted": true,
+  "implementation_authorized": false,
+  "integration_authorized": false,
+  "execution_authorized": false,
+  "pilot_execution_ready": false
+}

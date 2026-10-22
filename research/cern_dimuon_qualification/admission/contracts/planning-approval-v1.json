@@ -1,0 +1,16 @@
+{
+  "record_kind": "OWNER_PLANNING_CONTRACT_DISPOSITION_NOT_EXECUTION_AUTHORIZATION",
+  "approval_source": "Direct owner message in this conversation",
+  "owner_message": "I approve the metadata-only planning contract. Proceed with a concrete v2-only capacity-recovery design. Preserve artifacts, caps, evidence and scientific statuses; no implementation, integration, pilot, deployment or release.",
+  "approved_contract_sha256": "66cb9e8ab847b184ad7fe1a74136844080245dcb2b9b82e57eca4a739e26ce89",
+  "associated_acceptance_matrix_sha256": "dc26dc0c6fa13f188008fea927d7aeb07c460454483cec5be2be95b100a260b2",
+  "metadata_only_planning_contract": "OWNER_APPROVED",
+  "current_design_pass": "AUTHORIZED_DESIGN_ONLY",
+  "capacity_recovery_design_approval": null,
+  "implementation_authorized": false,
+  "integration_authorized": false,
+  "execution_authorized": false,
+  "pilot_execution_ready": false,
+  "historical_packet_rewritten": false,
+  "scientific_human_disposition_changed": false
+}
