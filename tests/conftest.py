@@ -1,9 +1,9 @@
 """Explicit native-handle fixtures; no global changes to filesystem behavior."""
 
 import ctypes
+import ctypes.wintypes as wintypes
 import os
 from contextlib import contextmanager
-from ctypes import wintypes
 
 import pytest
 
