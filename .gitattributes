@@ -17,3 +17,4 @@ tests/test_cern_dimuon_retention_v2.py text eol=lf
 docs/cern-dimuon-execution-readiness.md text eol=lf
 docs/cern-dimuon-numerical-reconciliation.md text eol=lf
 docs/reviews/cern-dimuon-* text eol=lf
+tests/test_cern_v2.py text eol=lf
