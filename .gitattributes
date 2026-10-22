@@ -11,5 +11,7 @@ site/challenges/sc-graph-001/*.mp4 binary
 research/cern_dimuon_qualification/** text eol=lf
 tests/test_cern_dimuon_qualification.py text eol=lf
 tests/test_cern_dimuon_environment_locks.py text eol=lf
+tests/test_cern_dimuon_readiness.py text eol=lf
+docs/cern-dimuon-execution-readiness.md text eol=lf
 docs/cern-dimuon-numerical-reconciliation.md text eol=lf
 docs/reviews/cern-dimuon-* text eol=lf

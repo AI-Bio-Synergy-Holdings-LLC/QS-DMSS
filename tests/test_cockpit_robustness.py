@@ -5,9 +5,11 @@ import json
 import os
 import shutil
 import zipfile
+from contextlib import ExitStack
 from copy import deepcopy
 from errno import EACCES, ELOOP
 from pathlib import Path
+from time import sleep
 from types import SimpleNamespace
 
 import pytest
@@ -15,6 +17,7 @@ from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 import qs_dmss.cockpit.robustness as robustness
+from qs_dmss import publication
 from qs_dmss.cockpit.api import create_app
 from qs_dmss.evidence.bundle import (
     create_bundle_zip_for_directory,
@@ -745,6 +748,192 @@ def test_failed_save_removes_only_its_pending_directory(service, monkeypatch):
     assert not list(service._analysis_root().glob("*/analysis.json"))
     assert not list((service._analysis_root() / "_pending").iterdir())
     assert original.read_bytes() == before
+
+
+def _pending_bytes(root):
+    return {
+        path.relative_to(root).as_posix(): path.read_bytes()
+        for path in root.rglob("*")
+        if path.is_file()
+    }
+
+
+@pytest.mark.parametrize("failures", [1, 5])
+def test_publication_retries_without_rebuilding_and_retains_completed_bytes(
+    service, monkeypatch, failures
+):
+    request = _request(service)
+    source_before = _pending_bytes(service.experiments_root / "campaign-a")
+    pending = service._analysis_root() / "_pending"
+    unrelated = pending / "unrelated"
+    unrelated.mkdir(parents=True)
+    (unrelated / "sentinel").write_bytes(b"older retained bytes")
+    rename = Path.rename
+    bundle = robustness.create_bundle_zip_for_directory
+    snapshots, attempts, bundles = [], [], []
+
+    def tracked_bundle(destination):
+        bundles.append(destination)
+        return bundle(destination)
+
+    def contended(candidate, target):
+        attempts.append((candidate, target))
+        snapshots.append(_pending_bytes(candidate))
+        if len(attempts) <= failures:
+            exc = PermissionError("synthetic publication contention")
+            exc.winerror = 5
+            raise exc
+        return rename(candidate, target)
+
+    monkeypatch.setattr(publication, "_WINDOWS", True)
+    monkeypatch.setattr(publication, "monotonic", lambda: 0)
+    monkeypatch.setattr(publication, "sleep", lambda _: None)
+    monkeypatch.setattr(robustness, "create_bundle_zip_for_directory", tracked_bundle)
+    monkeypatch.setattr(Path, "rename", contended)
+    if failures == 5:
+        with pytest.raises(PermissionError) as caught:
+            service.save(request)
+        assert caught.value.winerror == 5
+        assert _pending_bytes(bundles[0]) == snapshots[0]
+        assert service.analyses()["items"] == []
+        with pytest.raises(HTTPException) as not_published:
+            service.load(bundles[0].name)
+        assert not_published.value.status_code == 404
+    else:
+        saved = service.save(request)
+        assert saved["analysis_id"] == bundles[0].name
+        assert not bundles[0].exists()
+        assert len(service.analyses()["items"]) == 1
+    assert len(bundles) == 1
+    assert len(attempts) == min(failures + 1, 5)
+    assert all(item == attempts[0] for item in attempts)
+    assert all(item == snapshots[0] for item in snapshots)
+    assert (unrelated / "sentinel").read_bytes() == b"older retained bytes"
+    assert _pending_bytes(service.experiments_root / "campaign-a") == source_before
+
+
+def test_publication_collision_during_backoff_is_not_overwritten(service, monkeypatch):
+    rename = Path.rename
+    attempts, snapshots = [], []
+
+    def first_denial(candidate, target):
+        attempts.append((candidate, target))
+        snapshots.append(_pending_bytes(candidate))
+        if len(attempts) == 1:
+            target.mkdir()
+            (target / "sentinel").write_bytes(b"must not overwrite")
+            exc = PermissionError("synthetic contention before collision")
+            exc.winerror = 5
+            raise exc
+        return rename(candidate, target)
+
+    monkeypatch.setattr(publication, "_WINDOWS", True)
+    monkeypatch.setattr(publication, "monotonic", lambda: 0)
+    monkeypatch.setattr(publication, "sleep", lambda _: None)
+    monkeypatch.setattr(Path, "rename", first_denial)
+    with pytest.raises(HTTPException) as caught:
+        service.save(_request(service))
+    assert caught.value.status_code == 503
+    assert len(attempts) == 1
+    pending, published = attempts[0]
+    assert _pending_bytes(pending) == snapshots[0]
+    assert _pending_bytes(published) == {"sentinel": b"must not overwrite"}
+
+
+def test_publication_revalidates_containment_after_contention(service, monkeypatch):
+    artifact_path = robustness._artifact_path
+    attempts, snapshots = [], []
+
+    def first_denial(candidate, target):
+        attempts.append(candidate)
+        snapshots.append(_pending_bytes(candidate))
+        exc = PermissionError("synthetic contention before identity drift")
+        exc.winerror = 5
+        raise exc
+
+    def changed_identity(root, *parts):
+        if attempts and root.name == "_pending":
+            return root / "different-identity"
+        return artifact_path(root, *parts)
+
+    monkeypatch.setattr(publication, "_WINDOWS", True)
+    monkeypatch.setattr(publication, "monotonic", lambda: 0)
+    monkeypatch.setattr(publication, "sleep", lambda _: None)
+    monkeypatch.setattr(Path, "rename", first_denial)
+    monkeypatch.setattr(robustness, "_artifact_path", changed_identity)
+    with pytest.raises(ValueError, match="publication identity"):
+        service.save(_request(service))
+    assert len(attempts) == 1
+    assert _pending_bytes(attempts[0]) == snapshots[0]
+
+
+def test_incomplete_cleanup_failure_preserves_construction_exception(
+    service, monkeypatch
+):
+    primary = OSError("construction failed")
+    cleanup = PermissionError("cleanup failed")
+
+    def fail_manifest(destination):
+        raise primary
+
+    def fail_cleanup(destination):
+        raise cleanup
+
+    monkeypatch.setattr(robustness, "write_manifest_for_directory", fail_manifest)
+    monkeypatch.setattr(robustness.shutil, "rmtree", fail_cleanup)
+    with pytest.raises(OSError) as caught:
+        service.save(_request(service))
+    assert caught.value is primary
+    assert caught.value.__cause__ is cleanup
+    assert service.analyses()["items"] == []
+
+
+@pytest.mark.parametrize("release_during_backoff", [False, True])
+def test_real_windows_bundle_handle_publication_and_retention(
+    service, monkeypatch, windows_read_handle, release_during_backoff
+):
+    bundle = robustness.create_bundle_zip_for_directory
+    rename = Path.rename
+    snapshots, destinations, failures, delays, releases = [], [], [], [], []
+    with ExitStack() as stack:
+
+        def held_bundle(destination):
+            result = bundle(destination)
+            destinations.append(destination)
+            releases.append(stack.enter_context(windows_read_handle(result)))
+            return result
+
+        def observed_rename(candidate, target):
+            snapshots.append(_pending_bytes(candidate))
+            try:
+                return rename(candidate, target)
+            except OSError as exc:
+                failures.append(exc.winerror)
+                raise
+
+        def wait(delay):
+            delays.append(delay)
+            if release_during_backoff:
+                releases[0]()
+            sleep(delay)
+
+        monkeypatch.setattr(robustness, "create_bundle_zip_for_directory", held_bundle)
+        monkeypatch.setattr(Path, "rename", observed_rename)
+        monkeypatch.setattr(publication, "sleep", wait)
+        if release_during_backoff:
+            saved = service.save(_request(service))
+            assert saved["analysis_id"] == destinations[0].name
+            assert not destinations[0].exists()
+        else:
+            with pytest.raises(PermissionError) as caught:
+                service.save(_request(service))
+            assert caught.value.winerror == 5
+            assert _pending_bytes(destinations[0]) == snapshots[0]
+            assert service.analyses()["items"] == []
+        assert failures and set(failures) == {5}
+        assert delays[0] == 0.025 and 1 <= len(delays) <= 4
+        assert all(item == snapshots[0] for item in snapshots)
+        assert len(destinations) == 1
 
 
 def test_limits_and_path_escape_fail_closed(service, monkeypatch):

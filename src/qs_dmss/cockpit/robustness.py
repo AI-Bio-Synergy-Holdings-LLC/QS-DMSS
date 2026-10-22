@@ -25,6 +25,7 @@ from qs_dmss.evidence.bundle import (
     write_manifest_for_directory,
 )
 from qs_dmss.paths import contained_path
+from qs_dmss.publication import retry_publication
 from qs_dmss.robustness import (
     RobustnessError,
     RobustnessProfile,
@@ -556,13 +557,33 @@ class CockpitRobustnessService:
                 hashlib.sha256(_read_bytes(bundle, MAX_BUNDLE_BYTES)).hexdigest(),
                 encoding="ascii",
             )
+        except Exception as exc:
+            # Only remove the newly allocated, contained, incomplete artifact.
+            try:
+                shutil.rmtree(destination)
+            except Exception as cleanup_exc:
+                # Keep the construction failure primary if cleanup also fails.
+                raise exc from cleanup_exc
+            raise
+
+        def publish() -> None:
+            # A handle can remain open briefly after our own writers close.
+            # Revalidate identities/collisions on every attempt; never rebuild,
+            # allocate a new ID, or copy/delete as a publication fallback.
+            if (
+                self._analysis_root() != root
+                or _storage_directory(root, "_pending") != pending_root
+                or _artifact_path(pending_root, analysis_id) != destination
+                or _artifact_path(root, analysis_id) != published
+            ):
+                raise ValueError("Invalid robustness publication identity")
             if published.exists():
                 raise HTTPException(503, "Analysis identity became unavailable; retry")
             destination.rename(published)
-        except Exception:
-            # Only remove the newly allocated, contained, incomplete artifact.
-            shutil.rmtree(destination)
-            raise
+
+        # Construction is complete. Failed publication must leave these exact
+        # bytes intact under _pending, excluded from normal artifact discovery.
+        retry_publication(publish)
         return self.load(analysis_id)
 
     def _analysis_metadata(self, analysis_id: str) -> tuple[Path, dict, dict]:

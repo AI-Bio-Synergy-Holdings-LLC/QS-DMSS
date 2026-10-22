@@ -55,6 +55,18 @@ ROOT = Path(__file__).resolve().parents[1]
 HELPERS = ROOT / "research/cern_dimuon_qualification"
 
 
+def read_json(path):
+    return json.loads(path.read_bytes())
+
+
+def retained_files(root):
+    return {
+        p.relative_to(root).as_posix(): p.read_bytes()
+        for p in root.rglob("*")
+        if p.is_file()
+    }
+
+
 def csv_fixture(**changes):
     original = dict(
         zip(HEADER, preflight.synthetic_csv().decode().splitlines()[1].split(","))
@@ -71,7 +83,7 @@ def comparison(raw):
 
 
 def test_protocol_and_fixed_budget_are_separate_from_production():
-    plan = json.loads((HELPERS / "protocol-v1.json").read_bytes())
+    plan = read_json(HELPERS / "protocol-v1.json")
     assert plan["qualification_outcome"] == "NOT_EXECUTED"
     assert plan["profile"] == {"bins": 60, "mass_min": 2, "mass_max": 5, "pt_min": 0}
     assert sum(BUCKETS.values()) == TOTAL_BYTES == 26 * 1024 * 1024
@@ -103,7 +115,7 @@ def test_protocol_drift_duplicate_fields_and_portable_newlines(tmp_path):
 
 
 def test_approved_candidate_pin_matches_protocol_and_adapter():
-    plan = json.loads((HELPERS / "protocol-v1.json").read_bytes())
+    plan = read_json(HELPERS / "protocol-v1.json")
     assert plan["candidate_commit"] == COMMIT
     assert (
         plan["candidate_wheel_sha256"]
@@ -115,7 +127,7 @@ def test_approved_candidate_pin_matches_protocol_and_adapter():
 
 @pytest.mark.parametrize("field", ["candidate_commit", "candidate_wheel_sha256"])
 def test_candidate_retargeting_requires_a_new_approved_contract(tmp_path, field):
-    plan = json.loads((HELPERS / "protocol-v1.json").read_bytes())
+    plan = read_json(HELPERS / "protocol-v1.json")
     plan[field] = "0" * len(plan[field])
     path = tmp_path / "retargeted.json"
     path.write_text(json.dumps(plan))
@@ -148,16 +160,13 @@ def test_tiny_decimal_underflow_refuses_instead_of_silently_zeroing():
         evaluate(row, "decimal80")
 
 
-def test_wheel_source_identity_positive_and_negative_paths(tmp_path, monkeypatch):
-    blob = b"# synthetic identity fixture\n"
+def identity_fixture(tmp_path, monkeypatch, blob, member):
     module_path = tmp_path / "module.py"
     module_path.write_bytes(blob)
     wheel = tmp_path / "synthetic.whl"
     with zipfile.ZipFile(wheel, "w") as archive:
-        archive.writestr("qs_dmss/external_data/analysis.py", blob)
-    monkeypatch.setattr(
-        candidate, "IDENTITY_MODULES", {"fixture": "qs_dmss/external_data/analysis.py"}
-    )
+        archive.writestr(member, blob)
+    monkeypatch.setattr(candidate, "IDENTITY_MODULES", {"fixture": member})
     monkeypatch.setattr(
         candidate, "WHEEL_SHA256", hashlib.sha256(wheel.read_bytes()).hexdigest()
     )
@@ -168,6 +177,14 @@ def test_wheel_source_identity_positive_and_negative_paths(tmp_path, monkeypatch
     )
     monkeypatch.setattr(
         candidate.subprocess, "run", lambda *a, **kw: SimpleNamespace(stdout=blob)
+    )
+    return module_path, wheel
+
+
+def test_wheel_source_identity_positive_and_negative_paths(tmp_path, monkeypatch):
+    blob = b"# synthetic identity fixture\n"
+    module_path, wheel = identity_fixture(
+        tmp_path, monkeypatch, blob, "qs_dmss/external_data/analysis.py"
     )
     assert (
         candidate.wheel_identity(wheel, ROOT)["module_sha256"][
@@ -190,20 +207,7 @@ def test_wheel_source_identity_positive_and_negative_paths(tmp_path, monkeypatch
 
 def test_git_lf_and_wheel_crlf_are_not_silently_normalized(tmp_path, monkeypatch):
     blob = b"# synthetic CRLF identity fixture\r\n"
-    source = tmp_path / "module.py"
-    source.write_bytes(blob)
-    wheel = tmp_path / "fixture.whl"
-    with zipfile.ZipFile(wheel, "w") as archive:
-        archive.writestr("qs_dmss/cli.py", blob)
-    monkeypatch.setattr(candidate, "IDENTITY_MODULES", {"fixture": "qs_dmss/cli.py"})
-    monkeypatch.setattr(
-        candidate, "WHEEL_SHA256", hashlib.sha256(wheel.read_bytes()).hexdigest()
-    )
-    monkeypatch.setattr(
-        candidate.importlib,
-        "import_module",
-        lambda _name: SimpleNamespace(__file__=source),
-    )
+    source, wheel = identity_fixture(tmp_path, monkeypatch, blob, "qs_dmss/cli.py")
     monkeypatch.setattr(
         candidate.subprocess,
         "run",
@@ -596,7 +600,7 @@ def test_early_stop_retains_both_collections_and_trigger_within_limits(
     target = store.write("records/comparison", "partial.json", payload)
     store.finish("supervisor", {"state": "HOLD", "reason": reason})
     receipt = store.inventory()
-    assert json.loads(target.read_bytes()) == checked
+    assert read_json(target) == checked
     assert store.audit()["bucket_bytes"]["records/comparison"] == len(payload)
     assert receipt["total_bytes"] == sum(
         path.stat().st_size for path in store.root.rglob("*") if path.is_file()
@@ -628,7 +632,7 @@ def test_store_reserves_full_receipt_and_log_allowance_before_controls(tmp_path)
             "scientific_validation_status": "VALIDATED",
         },
     )
-    final = json.loads((store.root / "records/logs/supervisor-final.json").read_bytes())
+    final = read_json(store.root / "records/logs/supervisor-final.json")
     assert final["qualification_outcome"] == "NOT_EXECUTED"
     assert final["scientific_validation_status"] == "NOT_ESTABLISHED"
     assert (store.root / "records/logs/supervisor-started.json").read_bytes() == started
@@ -673,11 +677,7 @@ def test_inventory_counts_itself_padding_and_every_file(tmp_path):
     raw = inventory_path.read_bytes()
     inventory = json.loads(raw)
     assert receipt["sha256"] == hashlib.sha256(raw).hexdigest()
-    actual = {
-        p.relative_to(store.root).as_posix(): p.read_bytes()
-        for p in store.root.rglob("*")
-        if p.is_file()
-    }
+    actual = retained_files(store.root)
     assert set(actual) == set(inventory["files"]) | {"records/integrity/inventory.json"}
     assert (
         receipt["total_bytes"]
@@ -700,11 +700,7 @@ def test_enumeration_failure_refuses_incomplete_accounting(
 ):
     store = Store(tmp_path / "retained")
     store.write("input", "nested/fixture.bin", b"retained synthetic input")
-    before = {
-        path.relative_to(store.root).as_posix(): path.read_bytes()
-        for path in store.root.rglob("*")
-        if path.is_file()
-    }
+    before = retained_files(store.root)
     denied = store.root / directory
     original_scandir = os.scandir
     error = error_type("private filesystem exception detail")
@@ -726,11 +722,7 @@ def test_enumeration_failure_refuses_incomplete_accounting(
 
     assert refused.value.__cause__ is error
     assert "private filesystem exception detail" not in str(refused.value)
-    after = {
-        path.relative_to(store.root).as_posix(): path.read_bytes()
-        for path in store.root.rglob("*")
-        if path.is_file()
-    }
+    after = retained_files(store.root)
     assert after == before
     assert not (store.root / "records/integrity/inventory.json").exists()
     assert store.audit()["bucket_bytes"]["input"] == len(
@@ -745,11 +737,7 @@ def test_inventory_refuses_later_enumeration_failure_and_retains_partial_files(
 ):
     store = Store(tmp_path / "retained")
     store.write("input", "nested/fixture.bin", b"retained synthetic input")
-    before = {
-        path.relative_to(store.root).as_posix(): path.read_bytes()
-        for path in store.root.rglob("*")
-        if path.is_file()
-    }
+    before = retained_files(store.root)
     denied = store.root / directory
     original_scandir = os.scandir
     scans = 0
@@ -771,11 +759,7 @@ def test_inventory_refuses_later_enumeration_failure_and_retains_partial_files(
     assert scans == failure_scan
     assert refused.value.__cause__ is error
     assert "private filesystem exception detail" not in str(refused.value)
-    after = {
-        path.relative_to(store.root).as_posix(): path.read_bytes()
-        for path in store.root.rglob("*")
-        if path.is_file()
-    }
+    after = retained_files(store.root)
     assert {name: after[name] for name in before} == before
     # A failed final scan must preserve the written partial inventory, not retry
     # or return a success receipt. A failure before writing must create none.
@@ -814,17 +798,9 @@ def test_preflight_failure_retains_initial_final_and_partial_source(tmp_path):
     with pytest.raises(Hold):
         preflight.run_preflight(output, bad_wheel)
     assert (
-        json.loads((output / "records/logs/supervisor-started.json").read_bytes())[
-            "state"
-        ]
-        == "STARTED"
+        read_json(output / "records/logs/supervisor-started.json")["state"] == "STARTED"
     )
-    assert (
-        json.loads((output / "records/logs/supervisor-final.json").read_bytes())[
-            "state"
-        ]
-        == "HOLD"
-    )
+    assert read_json(output / "records/logs/supervisor-final.json")["state"] == "HOLD"
     assert (
         output / "records/source/research/cern_dimuon_qualification/reference.py"
     ).exists()

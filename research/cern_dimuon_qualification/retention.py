@@ -79,7 +79,9 @@ def audit_existing(root):
 
 
 class Store:
-    def __init__(self, root):
+    def __init__(self, root, *, workers=WORKERS):
+        if workers not in (WORKERS, ("windows", "linux", "comparison", "control")):
+            raise Hold("Only fixed four-worker receipt layouts are admitted.")
         self.root = literal(root)
         if not self.root.parent.is_dir():
             raise Hold("Qualification output parent must already exist.")
@@ -93,7 +95,7 @@ class Store:
             (self.root / bucket).mkdir(parents=True, exist_ok=True)
         # Each receipt has immutable STARTED and separately reserved final slots.
         # 5 * 16 KiB + 4 * 24 KiB + 16 KiB emergency = exactly 192 KiB.
-        for worker in ("supervisor", *WORKERS):
+        for worker in ("supervisor", *workers):
             self.write(
                 "records/logs",
                 worker + "-started.json",
@@ -104,7 +106,7 @@ class Store:
                 worker + "-final.json",
                 self._slot({"state": "NOT_EXECUTED", "worker": worker}),
             )
-        for worker in WORKERS:
+        for worker in workers:
             self.write("records/logs", worker + ".log", bytes(LOG_BYTES))
         self.write("records/logs", "emergency.bin", bytes(16 * 1024))
         self.audit()
@@ -119,6 +121,16 @@ class Store:
         return payload.ljust(SLOT_BYTES, b" ")
 
     def audit(self):
+        for attempt in range(2):
+            try:
+                return self._audit_once()
+            except FileNotFoundError as exc:
+                if attempt:
+                    raise Hold(
+                        "Retention entries kept disappearing; complete accounting unavailable."
+                    ) from exc
+
+    def _audit_once(self):
         def refuse_enumeration(error):
             raise Hold(
                 "Directory enumeration failed; complete byte accounting is unavailable."

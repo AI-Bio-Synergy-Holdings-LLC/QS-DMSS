@@ -16,6 +16,8 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Any, Literal, Protocol
 
+from qs_dmss.publication import retry_publication
+
 JobState = Literal[
     "draft",
     "submitted",
@@ -415,7 +417,7 @@ class LocalJobRegistry:
             json.dumps(record, indent=2, sort_keys=True) + "\n",
             encoding="utf-8",
         )
-        temp_path.replace(record_path)
+        retry_publication(lambda: temp_path.replace(record_path))
 
 
 class DryRunSlurmExecutor:
