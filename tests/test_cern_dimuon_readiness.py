@@ -591,8 +591,8 @@ def test_complete_source_plan_includes_locks_tests_guide_and_reserved_receipts()
 
 @pytest.mark.parametrize("parent_wait", [0, 20])
 def test_descendant_pipe_is_bounded(tmp_path, monkeypatch, parent_wait):
-    store, sha, _ = snapshot(tmp_path, monkeypatch)
-    child = "import time;time.sleep(7)"
+    store, sha, source = snapshot(tmp_path, monkeypatch)
+    child = "import time;open('ready','w').close();time.sleep(7)"
     parent = f"import subprocess,sys,time;subprocess.Popen([sys.executable,'-I','-B','-c',{child!r}],stdout=sys.stdout,stderr=sys.stderr,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0));time.sleep({parent_wait})"
     start = time.monotonic()
     with pytest.raises(Hold):
@@ -604,6 +604,7 @@ def test_descendant_pipe_is_bounded(tmp_path, monkeypatch, parent_wait):
             timeout=0.5,
         )
     assert time.monotonic() - start < 3
+    assert (source / "ready").is_file()
     final = read_json(store.root / "records/logs/windows-final.json")
     assert final["reason"] == "TIMEOUT" and not final["output_complete"]
 
