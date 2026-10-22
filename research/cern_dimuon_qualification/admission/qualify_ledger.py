@@ -15,7 +15,9 @@ def main():
     if target not in ("windows", "linux"):
         raise Hold("Fixed native target required.")
     root, wheels, repository = map(Path, (root, wheels, repository))
-    source = root / "records/source"
+    source = (root / "records/source").resolve()
+    if Path(__file__).resolve().parents[3] != source or Path.cwd().resolve() != source:
+        raise Hold("Execute from the retained source snapshot.")
     raw = read_regular(source / "ledger-index.json", 294912)
     if sha(raw) != expected:
         raise Hold("Qualification source index drifted.")
@@ -46,12 +48,14 @@ def main():
             "-p",
             "no:cacheprovider",
             "-o",
-            "pythonpath=.",
+            "pythonpath=" + str(source),
+            "--rootdir",
+            str(source),
             "--basetemp",
             str(root / target / "fixtures"),
             "--junitxml",
             str(root / target / "tests.xml"),
-            "tests/test_cern_v2.py",
+            str(source / "tests/test_cern_v2.py"),
         ]
     )
     after = check()
