@@ -1,0 +1,50 @@
+{
+  "protocol_id": "CERN-DIMUON-NR-001",
+  "revision": 2,
+  "approval_scope": "Owner approved the versioned 32 KiB input-to-source transfer within 26 MiB, amendment preparation and accounting-only preflight. Adapter implementation and pilot execution require separate authorization; no deployment or release.",
+  "qualification_outcome": "NOT_EXECUTED",
+  "candidate_commit": "c158c3ba3f81cadf7d11bdfcab3441c8d99be851",
+  "candidate_wheel_sha256": "6a8af63f047be841a9ce17d3f02392d56f0963498979f7c27593aed40aac1e60",
+  "input": {
+    "record": "https://opendata.cern.ch/record/5203",
+    "file": "Jpsimumu.csv",
+    "bytes": 2639302,
+    "sha256": "95bf87f7c14758b445d9cb76bc0111affc1ce70831453dde34f687310685e59f",
+    "identity_scope": "Maintainer-observed retained bytes, not a provider signature"
+  },
+  "profile": {"bins": 60, "mass_min": 2.0, "mass_max": 5.0, "pt_min": 0.0},
+  "prior_knowledge": {"input_rows": 20000, "selected": 19997, "eta_exclusions": 1, "mass_exclusions": 2, "blind_validation": false},
+  "reference": {
+    "dependencies": "Python standard library only; no QS-DMSS or NumPy imports",
+    "tracks": ["binary64", "decimal80", "decimal120"],
+    "decimal_rounding": "ROUND_HALF_EVEN",
+    "decimal_stability_significant_digits": 50,
+    "source_values": "Decimal constructed from CSV tokens, never from a prior float conversion",
+    "mass_squared_tolerance": "abs(candidate_mass**2 - decimal_reference_mass**2) <= 64 * 2**(-52) * max(E_sum**2 + p_sum_squared, 1 GeV**2)",
+    "summary_tolerance_GeV": "1e-10 + 1e-12 * abs(reference)",
+    "interior_edge_tolerance_ULP": 1,
+    "count_and_selection_tolerance": 0,
+    "boundary_disagreement": "HOLD; never tolerance-based reassignment"
+  },
+  "future_environments": {"os": ["Windows", "Linux"], "python": "CPython 3.12", "dependencies": "Exact interpreter, identical NumPy version, dependency versions and artifact hashes must be locked before measurement"},
+  "retention": {
+    "total_bytes": 27262976,
+    "buckets": {"input": 4161536, "wheel": 1048576, "windows": 10485760, "linux": 10485760, "records/source": 294912, "records/comparison": 524288, "records/logs": 196608, "records/integrity": 65536},
+    "count_all_partial_staging_and_transport_files": true,
+    "aggregate_archive_or_upload": false,
+    "outside_evidence_budget": "Interpreter installations and dependency caches; separately identified, not represented as evidence bytes",
+    "unchanged_production_limits": {"input_bytes": 4194304, "rows": 25000, "bins": 100, "noninput_records_bytes": 262144, "receipt_bytes": 16384, "zip_bytes": 4718592, "retained_output_bytes": 10485760}
+  },
+  "execution": {"serial_workers": true, "timeout_seconds_per_worker": 300, "automatic_retry": false, "reserve_before_controls": true, "rss_sandbox_claimed": false},
+  "preservation": {"scientific_validation_status": "NOT_ESTABLISHED", "independent_scientific_review": "PENDING", "human_disposition": "PENDING", "ai_advice": null, "gate_183": "OPEN_AND_UNCHANGED", "frozen_evidence": "UNCHANGED", "historical_numerical_statuses": "UNCHANGED"},
+  "nonclaims": ["Not independent human review", "Not detector calibration, physical validation or a full physics analysis", "Not evidence validating Fractal SSFM or SC-GRAPH-001", "No production, UI, deployment or release changes"],
+  "amendment": {
+    "predecessor_revision": 1,
+    "predecessor_raw_sha256": "e826290c17adf15c4c562920842fcd4cc072027f7dcfdb83d457bec92af0fe75",
+    "predecessor_canonical_sha256": "afb3e2abca46794f71170599865e51d938c5cff50e7c939d3cad3f52e0b91266",
+    "transfer_bytes": 32768,
+    "from": "input",
+    "to": "records/source",
+    "runtime_selection": "UNCHANGED_BY_THIS_AMENDMENT"
+  }
+}
