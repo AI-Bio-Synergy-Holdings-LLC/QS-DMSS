@@ -20,6 +20,24 @@ from qs_dmss.cockpit.api import create_app
 from qs_dmss.quantum_showcase import quantum_compilation_showcase_root
 
 
+def test_nested_lab_anchors_reserve_sticky_navigation_space() -> None:
+    static = Path(cockpit_api.__file__).parent / "static"
+    html = (static / "index.html").read_text(encoding="utf-8")
+    css = (static / "styles.css").read_text(encoding="utf-8")
+    rules = re.findall(r"([^{}]+)\{([^{}]+)\}", css)
+    for identifier in ("labRunWorkspace", "labEvidenceExplorer"):
+        assert re.search(rf'<div\b[^>]*\bid="{identifier}"', html)
+        assert f'href="#{identifier}"' in html
+        declarations = [
+            body for selectors, body in rules
+            if f"#{identifier}" in [selector.strip() for selector in selectors.split(",")]
+        ]
+        assert any(
+            re.search(r"scroll-margin-top:\s*110px\s*;", body)
+            for body in declarations
+        )
+
+
 class FakeEvidenceAIProvider:
     provider_id = "test-provider"
     model = "test-research-model"

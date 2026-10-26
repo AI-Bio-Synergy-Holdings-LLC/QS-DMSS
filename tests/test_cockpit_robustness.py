@@ -134,6 +134,8 @@ def _virtual_metadata(monkeypatch, root, relative, payload):
 
 
 _UNSAFE_JSON = [
+    b'{"unused":{"score":1,"score":2}}',
+    b'{"unused":[{"score":1,"sc\\u006fre":2}]}',
     b'{"unused":{"value":"\\ud800"}}',
     b'{"unused":[{"\\udfff":"key"}]}',
     b'{"unused":[NaN]}',

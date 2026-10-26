@@ -44,7 +44,9 @@ def decode_json(data: bytes):
             if depth > 16:
                 raise EvidenceError("JSON nesting exceeds the pilot limit.")
             if isinstance(item, dict):
-                stack.extend((child, depth + 1) for child in item.values())
+                stack.extend(
+                    (child, depth + 1) for pair in item.items() for child in pair
+                )
             elif isinstance(item, list):
                 stack.extend((child, depth + 1) for child in item)
             elif isinstance(item, str):

@@ -581,9 +581,22 @@ def test_strict_json(raw):
         decode_json(raw)
 
 
-def test_json_rejects_escaped_surrogate():
+@pytest.mark.parametrize(
+    "raw",
+    [
+        b'{"x":"\\ud800"}',
+        b'{"\\ud800":1}',
+        b'{"x":[{"\\udfff":"nested key"}]}',
+    ],
+)
+def test_json_rejects_escaped_surrogate(raw):
     with pytest.raises(EvidenceError):
-        decode_json(b'{"x":"\\ud800"}')
+        decode_json(raw)
+
+
+def test_json_preserves_valid_unicode_keys_and_values():
+    value = {"\u03bc": [{"\U0001f52c": "\u0394"}], "order": [1, True, None]}
+    assert decode_json(json.dumps(value).encode("utf-8")) == value
 
 
 def test_reparse_point_refusal_without_symlink_privileges(input_file, monkeypatch):

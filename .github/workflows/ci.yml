@@ -138,6 +138,15 @@ jobs:
           sdist_root = f"qs_dmss-{version}/"
           with tarfile.open(sdist) as archive:
               sdist_names = set(archive.getnames())
+          contracts = sdist_root + "research/cern_dimuon_qualification/admission/contracts/"
+          assert {name[len(contracts):] for name in sdist_names
+                  if name.startswith(contracts) and name.endswith(".json")} == {
+              "acceptance-v1.json", "metadata-v1.json", "planning-approval-v1.json",
+              "v3-bindings.json",
+          }, "Unreviewed admission drafts must not enter the source archive"
+          assert not any("/.local/" in name or "/.tmp/" in name for name in sdist_names)
+          for filename in (".dockerignore", ".gitignore", "Dockerfile"):
+              assert sdist_root + filename in sdist_names, filename
           assert not any(name.lower().endswith(".mp4") for name in sdist_names), "Portal media must not enter sdists"
           for fixture in (
               "app.mjs", "config.mjs", "core.mjs", "loader.mjs",

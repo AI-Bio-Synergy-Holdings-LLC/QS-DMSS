@@ -10,6 +10,9 @@ include SECURITY.md
 include codemeta.json
 include pyproject.toml
 include .gitattributes
+include .dockerignore
+include .gitignore
+include Dockerfile
 recursive-include configs *.yaml
 recursive-include benchmarks *.md
 recursive-include docs *.md
@@ -38,3 +41,9 @@ recursive-include research/challenges *.py *.json *.js *.css
 # Source-only numerical qualification helpers accompany their regression tests.
 recursive-include research/cern_dimuon_qualification *.py *.json
 recursive-include research/cern_dimuon_qualification/environments *.txt *.md
+# Admission drafts remain local; only reviewed contracts belong in the sdist.
+recursive-exclude research/cern_dimuon_qualification/admission/contracts *.json
+include research/cern_dimuon_qualification/admission/contracts/acceptance-v1.json
+include research/cern_dimuon_qualification/admission/contracts/metadata-v1.json
+include research/cern_dimuon_qualification/admission/contracts/planning-approval-v1.json
+include research/cern_dimuon_qualification/admission/contracts/v3-bindings.json

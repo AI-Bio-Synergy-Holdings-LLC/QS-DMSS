@@ -1,11 +1,16 @@
-.git
-.github
-.venv
-.pytest_cache
-.codex-logs
-runs
-dist
-build
-*.egg-info
-__pycache__
-*.pyc
+# Default deny: admit build inputs, not root credentials or local retention trees.
+**
+!Dockerfile
+!.dockerignore
+!pyproject.toml
+!README.md
+!README-pypi.md
+!LICENSE
+!NOTICE
+!src/
+!src/**
+**/__pycache__/
+**/*.py[cod]
+**/*.egg-info/
+**/.env
+**/.env.*

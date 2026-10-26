@@ -544,7 +544,7 @@ def main(argv: list[str] | None = None) -> int:
         demo_path = demo_config_path()
         outputs = execute_run_from_path(
             config_path=demo_path,
-            output_root=args.output_root,
+            output_root=args.output_root or Path.cwd() / "runs",
         )
         print(f"Demo config: {demo_path}")
         print(f"Run complete: {outputs.run_dir}")
@@ -873,7 +873,10 @@ def main(argv: list[str] | None = None) -> int:
         from qs_dmss.cockpit.api import CockpitService, LaunchCampaignRequest
         from qs_dmss.io.config import load_config
 
-        service = CockpitService.create(output_root=args.output_root)
+        output_root = args.output_root
+        if args.campaigns_command == "run-demo" and output_root is None:
+            output_root = Path.cwd() / "runs"
+        service = CockpitService.create(output_root=output_root)
         if args.campaigns_command == "run":
             config_path = Path(args.config).resolve()
         elif args.campaigns_command == "run-demo":
