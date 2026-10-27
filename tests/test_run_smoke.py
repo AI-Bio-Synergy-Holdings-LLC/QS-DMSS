@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from qs_dmss.app import execute_run_from_path, replay_run
 from qs_dmss.cli import main
@@ -125,6 +126,33 @@ def test_run_demo_defaults_to_current_working_directory(tmp_path: Path) -> None:
     verification = verify_run_path(run_dirs[0])
     assert verification.success, verification.errors
     assert not (demo_path.parent / "runs").exists()
+
+
+@pytest.mark.parametrize("override", [None, "", ".", "relative-results", "absolute"])
+def test_run_demo_output_root_overrides(tmp_path: Path, monkeypatch, override) -> None:
+    checkout = tmp_path / "checkout"
+    (checkout / "src" / "qs_dmss").mkdir(parents=True)
+    (checkout / "pyproject.toml").write_text("# Synthetic repository marker\n")
+    working = checkout / "researcher" / "study"
+    working.mkdir(parents=True)
+    monkeypatch.chdir(working)
+
+    arguments = ["run-demo"]
+    if override == "absolute":
+        override = str(tmp_path / "absolute-results")
+    if override is not None:
+        arguments.extend(["--output-root", override])
+    expected_root = working / "runs" if override is None else Path(override).resolve()
+
+    assert main(arguments) == 0
+
+    run_records = list(expected_root.glob("*/run.json"))
+    assert len(run_records) == 1
+    verification = verify_run_path(run_records[0].parent)
+    assert verification.success, verification.errors
+    assert not (checkout / "runs").exists()
+    if override is not None:
+        assert not (working / "runs").exists()
 
 
 def test_cli_slurm_dry_run_generates_request_bundle(tmp_path: Path) -> None:

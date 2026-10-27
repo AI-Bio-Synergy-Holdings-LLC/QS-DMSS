@@ -1,6 +1,10 @@
 # Engineering Health and Debt Register
 
-Last full sweep: 2026-07-28
+Latest full sweep: 2026-10-26. See
+[the current survey and repair record](repository-health-2026-10-26.md) for
+local parser, packaging, Docker-context and environment corrections, measured
+qualification, and outstanding remote/governance gates. The July baseline and
+subsequent records below remain historical; frozen research statuses are unchanged.
 
 Latest repository reconciliation: 2026-09-23. See
 [the current verification record](repository-health-2026-09-23.md) for the

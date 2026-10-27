@@ -56,6 +56,14 @@ def _read_bytes(path: Path, limit: int = MAX_FILE_BYTES) -> bytes:
 
 
 def _json(payload: bytes) -> dict:
+    def unique_object(pairs):
+        record = {}
+        for key, value in pairs:
+            if key in record:
+                raise ValueError("Duplicate JSON member")
+            record[key] = value
+        return record
+
     # Match stdlib JSON's byte-encoding detection (including UTF-16/32/BOM).
     # Check depth before entering the decoder, whose native limit varies by build.
     text = payload.decode(json.detect_encoding(payload), "surrogatepass")
@@ -77,7 +85,7 @@ def _json(payload: bytes) -> dict:
                 raise ValueError("JSON nesting limit exceeded")
         elif character in "]}":
             depth -= 1
-    record = json.loads(text)
+    record = json.loads(text, object_pairs_hook=unique_object)
     if not isinstance(record, dict):
         raise RobustnessError("Recorded metadata must be a JSON object")
     # Validate every key/value, including unused fields, before JSONResponse's

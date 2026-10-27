@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import fnmatch
+import os
 import re
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
@@ -139,15 +141,41 @@ def test_security_policy_distinguishes_published_support_from_development() -> N
     assert "not\nyet published" in security
 
 
+def _public_markdown_paths(root: Path):
+    # Prune before descent: hidden evidence/venvs are outside the documentation
+    # check, not directories to traverse and discard after paying the I/O cost.
+    for directory, subdirectories, names in os.walk(root):
+        subdirectories[:] = [name for name in subdirectories if not name.startswith(".")]
+        for name in names:
+            if not name.startswith(".") and fnmatch.fnmatch(name, "*.md"):
+                yield Path(directory) / name
+
+
+def test_markdown_discovery_does_not_enter_hidden_directories(tmp_path, monkeypatch):
+    (tmp_path / "docs").mkdir()
+    (tmp_path / ".local" / "retained").mkdir(parents=True)
+    (tmp_path / "README.md").write_text("Public\n", encoding="utf-8")
+    (tmp_path / "docs" / "guide.md").write_text("Public\n", encoding="utf-8")
+    (tmp_path / "docs" / ".private.md").write_text("Private\n", encoding="utf-8")
+    original_scan = os.scandir
+
+    def guarded_scan(path):
+        assert not any(part.startswith(".") for part in Path(path).relative_to(tmp_path).parts)
+        return original_scan(path)
+
+    with monkeypatch.context() as patcher:
+        patcher.setattr(os, "scandir", guarded_scan)
+        found = set(_public_markdown_paths(tmp_path))
+    assert found == {tmp_path / "README.md", tmp_path / "docs" / "guide.md"}
+
+
 def test_relative_markdown_links_resolve() -> None:
     link_pattern = re.compile(r"\[[^\]]*\]\(([^)\s]+)")
     missing: list[str] = []
     repo_root = REPO_ROOT.resolve()
 
-    for markdown_path in REPO_ROOT.rglob("*.md"):
+    for markdown_path in _public_markdown_paths(REPO_ROOT):
         relative_path = markdown_path.relative_to(REPO_ROOT)
-        if any(part.startswith(".") for part in relative_path.parts):
-            continue
         text = markdown_path.read_text(encoding="utf-8")
         for match in link_pattern.finditer(text):
             href = match.group(1).strip("<>")

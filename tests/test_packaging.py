@@ -186,3 +186,30 @@ def test_quantum_validation_showcase_assets_are_packaged() -> None:
     assert payload["validation"]["archive"]["contains_json_report"] is True
     assert payload["validation"]["archive"]["contains_html_report"] is True
     assert (root / "quantum-compilation-validation.html").is_file()
+
+
+def test_container_context_is_default_deny() -> None:
+    root = Path(__file__).resolve().parents[1]
+    rules = [line for line in (root / ".dockerignore").read_text().splitlines()
+             if line and not line.startswith("#")]
+    assert rules == [
+        "**", "!Dockerfile", "!.dockerignore", "!pyproject.toml", "!README.md",
+        "!README-pypi.md", "!LICENSE", "!NOTICE", "!src/", "!src/**",
+        "**/__pycache__/", "**/*.py[cod]", "**/*.egg-info/", "**/.env", "**/.env.*",
+    ]
+    assert "/.local/" in (root / ".gitignore").read_text().splitlines()
+
+
+def test_sdist_contracts_are_explicitly_admitted() -> None:
+    root = Path(__file__).resolve().parents[1]
+    prefix = "research/cern_dimuon_qualification/admission/contracts"
+    lines = (root / "MANIFEST.in").read_text().splitlines()
+    exclusion = f"recursive-exclude {prefix} *.json"
+    admitted = {
+        "acceptance-v1.json", "metadata-v1.json", "planning-approval-v1.json",
+        "v3-bindings.json",
+    }
+    assert exclusion in lines
+    includes = [line for line in lines if line.startswith(f"include {prefix}/")]
+    assert set(includes) == {f"include {prefix}/{name}" for name in admitted}
+    assert all(lines.index(line) > lines.index(exclusion) for line in includes)

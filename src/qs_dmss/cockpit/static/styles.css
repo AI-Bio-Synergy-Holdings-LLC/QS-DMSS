@@ -5226,7 +5226,9 @@ body {
 }
 
 section[id],
-details[id] {
+details[id],
+#labRunWorkspace,
+#labEvidenceExplorer {
   scroll-margin-top: 110px;
 }
 

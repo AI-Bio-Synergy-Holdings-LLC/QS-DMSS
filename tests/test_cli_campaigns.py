@@ -3,7 +3,26 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
+import pytest
+
 from qs_dmss.cli import main
+
+
+@pytest.mark.parametrize("arguments", [["run-demo"], ["campaigns", "run-demo"]])
+def test_demo_outputs_stay_in_nested_working_directory(tmp_path, monkeypatch, arguments):
+    checkout = tmp_path / "checkout"
+    (checkout / "src" / "qs_dmss").mkdir(parents=True)
+    (checkout / "pyproject.toml").write_text("# Synthetic repository marker\n")
+    working = checkout / "researcher" / "study"
+    working.mkdir(parents=True)
+    monkeypatch.chdir(working)
+
+    assert main(arguments) == 0
+    assert any((working / "runs").iterdir())
+    assert not (checkout / "runs").exists()
+    assert not (checkout / "experiments").exists()
+    if arguments[0] == "campaigns":
+        assert any((working / "experiments").iterdir())
 
 
 def test_cli_campaigns_run_demo(tmp_path: Path, capsys) -> None:
