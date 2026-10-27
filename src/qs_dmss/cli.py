@@ -544,7 +544,7 @@ def main(argv: list[str] | None = None) -> int:
         demo_path = demo_config_path()
         outputs = execute_run_from_path(
             config_path=demo_path,
-            output_root=args.output_root or Path.cwd() / "runs",
+            output_root=Path.cwd() / "runs" if args.output_root is None else args.output_root,
         )
         print(f"Demo config: {demo_path}")
         print(f"Run complete: {outputs.run_dir}")
