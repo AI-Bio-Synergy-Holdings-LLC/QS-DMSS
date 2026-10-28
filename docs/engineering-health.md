@@ -136,8 +136,16 @@ while retaining the public `CockpitService` and HTTP surfaces.
   compilation validation checks pass without credentials, submission, or
   authorized cost.
 
-EH-001 remains open. Transport registration and response serialization still
-require separate characterization-first increments.
+The 2026-10-27 local artifact-delivery increment characterizes four run GET
+routes before extracting their registration behind injected service and
+file-response boundaries. It preserves route order, OpenAPI, hosted isolation,
+download limits and report-security behavior. See the
+[artifact-delivery qualification record](eh001-artifact-delivery-2026-10-27.md)
+for measured results, environment limitations and separate follow-ups. This
+increment does not change frozen evidence or scientific statuses.
+
+EH-001 remains open. The remaining transport registration and response
+serialization still require separate characterization-first increments.
 
 ## Prioritized debt register
 

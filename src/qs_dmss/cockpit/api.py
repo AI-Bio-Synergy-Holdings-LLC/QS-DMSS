@@ -48,6 +48,7 @@ from qs_dmss.cockpit.ai_context import (
     AIEvidenceContextRequest,
     CockpitAIEvidenceContextService,
 )
+from qs_dmss.cockpit.artifact_routes import register_run_artifact_routes
 from qs_dmss.cockpit.artifacts import CockpitArtifactService
 from qs_dmss.cockpit.campaigns import (
     CampaignLaunchSpec,
@@ -2995,56 +2996,7 @@ def create_app(
             lambda: active_service.replay_run(run_id),
         )
 
-    @app.get("/api/runs/{run_id}/bundle")
-    def bundle_download(
-        run_id: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        bundle_path = active_service.bundle_path(run_id)
-        return guarded_file_response(
-            active_service,
-            bundle_path,
-            media_type="application/zip",
-            filename=f"{safe_filename(run_id, default='run')}-evidence-bundle.zip",
-        )
-
-    @app.get("/api/runs/{run_id}/review-bundle")
-    def review_bundle_download(
-        run_id: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        bundle_path = active_service.run_bundle_profile_path(run_id, "review")
-        return guarded_file_response(
-            active_service,
-            bundle_path,
-            media_type="application/zip",
-            filename=f"{safe_filename(run_id, default='run')}-review-bundle.zip",
-        )
-
-    @app.get("/api/runs/{run_id}/state-bundle")
-    def state_bundle_download(
-        run_id: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        bundle_path = active_service.run_bundle_profile_path(run_id, "state")
-        return guarded_file_response(
-            active_service,
-            bundle_path,
-            media_type="application/zip",
-            filename=f"{safe_filename(run_id, default='run')}-state-bundle.zip",
-        )
-
-    @app.get("/api/runs/{run_id}/report")
-    def run_report(
-        run_id: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        report_path = active_service.report_path(run_id)
-        return guarded_file_response(
-            active_service,
-            report_path,
-            media_type="text/html",
-        )
+    register_run_artifact_routes(app, current_service, guarded_file_response)
 
     @app.get("/api/experiments/{experiment_id}/bundle")
     def experiment_bundle_download(
