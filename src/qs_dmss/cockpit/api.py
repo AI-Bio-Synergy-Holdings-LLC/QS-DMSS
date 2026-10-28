@@ -313,7 +313,8 @@ def _hosted_demo_settings(enabled: bool | None = None) -> HostedDemoSettings:
 
 
 def _new_hosted_demo_session_id() -> str:
-    return secrets.token_urlsafe(18)
+    # Preserve all 18 random bytes in a filename-safe, validator-safe encoding.
+    return secrets.token_hex(18)
 
 
 def _is_valid_hosted_demo_session_id(value: str | None) -> bool:
