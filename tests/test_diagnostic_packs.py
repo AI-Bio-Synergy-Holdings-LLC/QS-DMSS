@@ -6,9 +6,12 @@ import copy
 import io
 import json
 import math
+import os
+import stat
 import zipfile
 from contextlib import nullcontext
 from pathlib import Path
+from types import SimpleNamespace
 
 import jsonschema
 import pytest
@@ -308,15 +311,66 @@ def test_missing_directory_members_rejected(tmp_path):
         admit_pack(tmp_path)
 
 
-def test_opened_file_type_rechecked(monkeypatch):
+def mock_nonregular_fstat(monkeypatch):
     from qs_dmss.diagnostic_packs import admission
 
     class NotRegular:
         st_mode = 0o040755
 
-    monkeypatch.setattr(admission.os, "fstat", lambda _fd: NotRegular())
+    original_fstat = os.fstat
+    calls = []
+
+    def fstat(fd):
+        assert stat.S_ISREG(original_fstat(fd).st_mode)
+        calls.append(fd)
+        return NotRegular()
+
+    # Replace only admission's binding, not the shared standard-library module.
+    monkeypatch.setattr(
+        admission, "os", SimpleNamespace(scandir=admission.os.scandir, fstat=fstat)
+    )
+    return calls
+
+
+def test_opened_file_type_rechecked(monkeypatch):
+    calls = mock_nonregular_fstat(monkeypatch)
     with pytest.raises(PackError, match="regular"):
         admit_pack()
+    assert len(calls) == 1
+
+
+@pytest.mark.parametrize("raise_after_refusal", [False, True])
+def test_opened_file_mock_is_isolated_and_restored(
+    tmp_path, monkeypatch, raise_after_refusal
+):
+    from qs_dmss.diagnostic_packs import admission
+
+    original_os, original_fstat = admission.os, os.fstat
+    data = b"unrelated file descriptor\n"
+    path = tmp_path / "unrelated.bin"
+    path.write_bytes(data)
+    expected = (
+        pytest.raises(RuntimeError, match="synthetic cleanup probe")
+        if raise_after_refusal
+        else nullcontext()
+    )
+    with expected:
+        with monkeypatch.context() as context:
+            calls = mock_nonregular_fstat(context)
+            assert admission.os is not original_os
+            assert os.fstat is original_fstat
+            with path.open("rb") as stream:
+                observed = os.fstat(stream.fileno())
+                assert stat.S_ISREG(observed.st_mode)
+                assert observed.st_size == len(data)
+            assert calls == []
+            with pytest.raises(PackError, match="regular"):
+                admit_pack()
+            assert len(calls) == 1
+            if raise_after_refusal:
+                raise RuntimeError("synthetic cleanup probe")
+    assert admission.os is original_os
+    assert os.fstat is original_fstat
 
 
 def test_export_budget_enforced_before_writes(tmp_path):
