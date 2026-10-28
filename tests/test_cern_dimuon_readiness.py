@@ -1,7 +1,6 @@
 """Synthetic execution readiness cannot admit CERN data or change criteria."""
 
 import copy
-import io
 import json
 import os
 import py_compile
@@ -9,6 +8,7 @@ import subprocess
 import sys
 import time
 import zipfile
+from contextlib import nullcontext
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -33,6 +33,14 @@ ROOT = Path(__file__).resolve().parents[1]
 
 def read_json(path):
     return json.loads(path.read_bytes())
+
+
+def record(store, name):
+    return read_json(store.root / "records" / name)
+
+
+def wheel_row(data):
+    return dict(bytes=len(data), sha256=rt.sha(data), version="1")
 
 
 @pytest.fixture
@@ -121,25 +129,18 @@ def wheel_case(tmp_path, members=None):
         "pkg/a.py": b"value=1\n",
         "pkg-1.dist-info/RECORD": b"ignored",
     }
-    raw = io.BytesIO()
-    with zipfile.ZipFile(raw, "w") as archive:
+    wheel = tmp_path / "test.whl"
+    with zipfile.ZipFile(wheel, "w") as archive:
         for name, data in members.items():
             archive.writestr(name, data)
-    wheel = tmp_path / "test.whl"
-    wheel.write_bytes(raw.getvalue())
     prefix = tmp_path / "env"
     prefix.mkdir()
     for name, data in members.items():
         path = prefix / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(data)
-    row = {
-        "bytes": len(raw.getvalue()),
-        "sha256": rt.sha(raw.getvalue()),
-        "version": "1",
-    }
     distribution = SimpleNamespace(locate_file=lambda name: prefix / name)
-    return wheel, row, distribution, prefix
+    return wheel, wheel_row(wheel.read_bytes()), distribution, prefix
 
 
 def test_installed_wheel_members_match_and_only_record_is_exempt(tmp_path):
@@ -175,23 +176,11 @@ def test_runtime_member_paths_refuse(tmp_path, name):
         rt.check_member_path(name, 1)
     if "\\" in name:
         return  # Windows ZipInfo normalizes its own separator on archive reads.
-    raw = io.BytesIO()
-    with zipfile.ZipFile(raw, "w") as archive:
-        archive.writestr(name.replace("\\", "/"), b"x")
-    data = raw.getvalue()
-    if "\\" in name:
-        # ZipInfo normalizes the host separator on Windows; emulate a received
-        # foreign archive's central/local member names without normalizing it.
-        data = data.replace(name.replace("\\", "/").encode(), name.encode())
     wheel = tmp_path / "test.whl"
-    wheel.write_bytes(data)
-    row = {
-        "bytes": len(data),
-        "sha256": rt.sha(data),
-        "version": "1",
-    }
+    with zipfile.ZipFile(wheel, "w") as archive:
+        archive.writestr(name, b"x")
     with pytest.raises(Hold, match="layout"):
-        rt.check_installed_wheel(wheel, row, None, tmp_path)
+        rt.check_installed_wheel(wheel, wheel_row(wheel.read_bytes()), None, tmp_path)
 
 
 def test_retained_candidate_map_is_complete_and_imports_are_checked(
@@ -295,8 +284,8 @@ def test_environment_receipts_are_reserved_bounded_and_once_only(tmp_path, monke
     before = store.audit()["total_bytes"]
     r.environment_receipt(store.root, "windows", "before", {"state": "ADMITTED"})
     assert store.audit()["total_bytes"] == before
-    receipt = read_json(store.root / "records/source/windows-environment-before.json")
-    assert all(receipt[key] == value for key, value in SCIENTIFIC.items())
+    result = record(store, "source/windows-environment-before.json")
+    assert all(result[key] == value for key, value in SCIENTIFIC.items())
     with pytest.raises(Hold, match="unused"):
         r.environment_receipt(store.root, "windows", "before", {"state": "ADMITTED"})
     with pytest.raises(Hold, match="reserved source"):
@@ -306,10 +295,7 @@ def test_environment_receipts_are_reserved_bounded_and_once_only(tmp_path, monke
             "before",
             {"state": "HOLD", "reason": "x" * r.ENV_BYTES},
         )
-    assert (
-        read_json(store.root / "records/source/linux-environment-before.json")["state"]
-        == "NOT_EXECUTED"
-    )
+    assert record(store, "source/linux-environment-before.json")["state"] == "NOT_EXECUTED"
     with pytest.raises(Hold):
         r.environment_receipt(store.root, "other", "before", {})
 
@@ -346,7 +332,7 @@ def test_failed_admission_does_not_open_fixture(tmp_path, monkeypatch):
     monkeypatch.setattr(r, "read_regular", guarded)
     with pytest.raises(Hold, match="runtime refused"):
         r.native_worker(store.root, "windows", tmp_path, ROOT, sha)
-    receipt = read_json(store.root / "records/source/windows-environment-before.json")
+    receipt = record(store, "source/windows-environment-before.json")
     assert receipt["state"] == "HOLD"
 
 
@@ -370,14 +356,11 @@ def test_supervision_retains_every_failure(tmp_path, monkeypatch, mode, expected
         "drift": "from pathlib import Path;Path('helper.py').write_bytes(b'# changed\\n')",
     }[mode]
     command = [sys.executable, "-I", "-B", "-c", code]
-    if expected:
-        with pytest.raises(Hold):
-            r.supervise(
-                store, "windows", command, sha, timeout=0.5 if mode == "timeout" else 20
-            )
-    else:
-        r.supervise(store, "windows", command, sha, timeout=20)
-    receipt = read_json(store.root / "records/logs/windows-final.json")
+    with pytest.raises(Hold) if expected else nullcontext():
+        r.supervise(
+            store, "windows", command, sha, timeout=0.5 if mode == "timeout" else 20
+        )
+    receipt = record(store, "logs/windows-final.json")
     assert receipt["reason"] == expected
     assert receipt["output_complete"] is (expected is None)
     assert (store.root / "records/logs/windows-started.json").exists()
@@ -432,7 +415,7 @@ def test_cross_platform_criteria_do_not_require_numeric_string_identity(tmp_path
     store = Store(tmp_path / "evidence", workers=r.STAGES)
     records(store)
     r.compare_platforms(store)
-    result = read_json(store.root / "records/comparison/platform-reconciliation.json")
+    result = record(store, "comparison/platform-reconciliation.json")
     assert result["state"] == "PASSED" and not result["reference_digests_identical"]
     assert result["qualification_outcome"] == "NOT_EXECUTED"
 
@@ -451,7 +434,7 @@ def test_failure_controls_preserve_fixture_and_limits(tmp_path):
     r.failure_controls(store)
     assert (store.root / "input/synthetic.csv").read_bytes() == b"original synthetic"
     assert not (store.root / "input/oversize.bin").exists()
-    result = read_json(store.root / "records/comparison/controls.json")
+    result = record(store, "comparison/controls.json")
     assert result["refused"] == [
         "immutable_write",
         "allocation",
@@ -544,14 +527,12 @@ def test_complete_source_overallocation_refuses_before_copy(tmp_path, monkeypatc
     repository = tmp_path / "repository"
     repository.mkdir()
     (repository / "large.py").write_bytes(bytes(BUCKETS["records/source"]))
-    raw = io.BytesIO()
-    with zipfile.ZipFile(raw, "w"):
-        pass
     wheel = tmp_path / "candidate.whl"
-    wheel.write_bytes(raw.getvalue())
+    with zipfile.ZipFile(wheel, "w"):
+        pass
     monkeypatch.setattr(r, "source_names", lambda _: ["large.py"])
     monkeypatch.setattr(r, "IDENTITY_MODULES", {})
-    monkeypatch.setattr(r, "WHEEL_SHA256", rt.sha(raw.getvalue()))
+    monkeypatch.setattr(r, "WHEEL_SHA256", rt.sha(wheel.read_bytes()))
     store = Store(tmp_path / "evidence", workers=r.STAGES)
     with pytest.raises(Hold, match="reserved environment"):
         r.prepare(store, repository, wheel)
@@ -592,21 +573,30 @@ def test_complete_source_plan_includes_locks_tests_guide_and_reserved_receipts()
 @pytest.mark.parametrize("parent_wait", [0, 20])
 def test_descendant_pipe_is_bounded(tmp_path, monkeypatch, parent_wait):
     store, sha, source = snapshot(tmp_path, monkeypatch)
-    child = "import time;open('ready','w').close();time.sleep(7)"
+    child = "import time;open('ready','w').close();time.sleep(30)"
     parent = f"import subprocess,sys,time;subprocess.Popen([sys.executable,'-I','-B','-c',{child!r}],stdout=sys.stdout,stderr=sys.stderr,creationflags=getattr(subprocess,'CREATE_NO_WINDOW',0));time.sleep({parent_wait})"
-    start = time.monotonic()
-    with pytest.raises(Hold):
-        r.supervise(
-            store,
-            "windows",
-            [sys.executable, "-I", "-B", "-c", parent],
-            sha,
-            timeout=0.5,
+    command = [sys.executable, "-I", "-B", "-c", parent]
+    tree = processes.ProcessTree()
+    try:
+        process = tree.spawn(
+            command, cache=source / "fixture-cache", cwd=source,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=0,
         )
-    assert time.monotonic() - start < 3
-    assert (source / "ready").is_file()
-    final = read_json(store.root / "records/logs/windows-final.json")
-    assert final["reason"] == "TIMEOUT" and not final["output_complete"]
+        deadline = time.monotonic() + 10
+        while not (source / "ready").is_file() or (not parent_wait and process.poll() is None):
+            assert time.monotonic() < deadline, "descendant fixture did not start"
+            time.sleep(0.02)
+        monkeypatch.setattr(tree, "spawn", lambda *a, **kw: process)
+        monkeypatch.setattr(processes, "ProcessTree", lambda: tree)
+        start = time.monotonic()
+        with pytest.raises(Hold):
+            r.supervise(store, "windows", command, sha, timeout=0.5)
+        assert time.monotonic() - start < 3
+        final = record(store, "logs/windows-final.json")
+        assert final["reason"] == "TIMEOUT" and not final["output_complete"]
+    finally:
+        if tree.process is None or not tree.process.stdout.closed:
+            tree.close()
 
 
 def test_fresh_startup_cache_defeats_stale_bytecode(tmp_path):
@@ -702,7 +692,7 @@ def test_cleanup_preserves_primary_diagnostics(tmp_path, monkeypatch, reason, cl
     monkeypatch.setattr(r.subprocess, "run", run)
     with pytest.raises(Hold):
         r.linux_stage(store, tmp_path, ROOT, "index")
-    final = read_json(store.root / "records/logs/linux-final.json")
+    final = record(store, "logs/linux-final.json")
     assert all(final[k] == v for k, v in primary.items())
     assert final["cleanup_failure"] == "CONTAINER_CLEANUP_UNVERIFIED"
 
