@@ -144,6 +144,13 @@ download limits and report-security behavior. See the
 for measured results, environment limitations and separate follow-ups. This
 increment does not change frozen evidence or scientific statuses.
 
+The 2026-10-28 experiment-artifact delivery increment characterizes the four
+experiment bundle/report/workbook GET routes before extracting their registration
+behind the same injected service/response-guard boundary. Its complete route table
+and OpenAPI remain identical; no download, session or report-security policy is
+changed. See the [experiment-delivery qualification record](eh001-experiment-artifact-delivery-2026-10-28.md)
+for current measurements, installed-wheel acceptance and retained limitations.
+
 EH-001 remains open. The remaining transport registration and response
 serialization still require separate characterization-first increments.
 
