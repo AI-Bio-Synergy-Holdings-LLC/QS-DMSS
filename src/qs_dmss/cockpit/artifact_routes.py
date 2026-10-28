@@ -12,11 +12,14 @@ from qs_dmss.paths import safe_filename
 
 
 class _RunArtifactService(Protocol):
-    def bundle_path(self, run_id: str) -> Path: ...
+    def bundle_path(self, run_id: str) -> Path:
+        pass
 
-    def run_bundle_profile_path(self, run_id: str, profile: str) -> Path: ...
+    def run_bundle_profile_path(self, run_id: str, profile: str) -> Path:
+        pass
 
-    def report_path(self, run_id: str) -> Path: ...
+    def report_path(self, run_id: str) -> Path:
+        pass
 
 
 def register_run_artifact_routes(
