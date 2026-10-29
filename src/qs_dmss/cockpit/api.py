@@ -57,6 +57,7 @@ from qs_dmss.cockpit.campaigns import (
 from qs_dmss.cockpit.experiment_artifact_routes import (
     register_experiment_artifact_routes,
 )
+from qs_dmss.cockpit.quantum_artifact_routes import register_quantum_artifact_routes
 from qs_dmss.cockpit.robustness import robustness_router
 from qs_dmss.cockpit.showcase_artifact_routes import (
     register_showcase_artifact_routes,
@@ -2690,40 +2691,12 @@ def create_app(
             filename=path.name,
         )
 
-    @app.get("/api/quantum-validation/files/{artifact_name}")
-    def quantum_validation_artifact(
-        artifact_name: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        path = active_service.quantum_validation_artifact_path(artifact_name)
-        artifact_key = quantum_compilation_showcase_artifact_key(artifact_name)
-        return quantum_validation_file_response(
-            active_service,
-            path,
-            artifact_key,
-        )
-
-    @app.get(
-        "/api/quantum-validation/runs/{run_id}/files/{artifact_name}"
+    register_quantum_artifact_routes(
+        app,
+        current_service,
+        quantum_validation_file_response,
+        quantum_compilation_showcase_artifact_key,
     )
-    def quantum_validation_run_artifact(
-        run_id: str,
-        artifact_name: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        path = active_service.quantum_validation_run_artifact_path(
-            run_id,
-            artifact_name,
-        )
-        try:
-            artifact_key = quantum_compilation_showcase_artifact_key(artifact_name)
-        except ValueError as exc:
-            raise HTTPException(status_code=404, detail="Quantum artifact not found") from exc
-        return quantum_validation_file_response(
-            active_service,
-            path,
-            artifact_key,
-        )
 
     @app.post("/api/showcases/{scenario}/run")
     def launch_showcase(
