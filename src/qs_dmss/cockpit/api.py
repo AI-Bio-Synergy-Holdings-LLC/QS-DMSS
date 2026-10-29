@@ -58,6 +58,9 @@ from qs_dmss.cockpit.experiment_artifact_routes import (
     register_experiment_artifact_routes,
 )
 from qs_dmss.cockpit.robustness import robustness_router
+from qs_dmss.cockpit.showcase_artifact_routes import (
+    register_showcase_artifact_routes,
+)
 from qs_dmss.cockpit.workspaces import (
     CockpitWorkspaceService,
     WorkspaceExportSpec,
@@ -2746,48 +2749,7 @@ def create_app(
             lambda: active_service.launch_showcase_comparison(scenario),
         )
 
-    @app.get("/api/showcases/{scenario}/report")
-    def showcase_markdown_report(
-        scenario: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        report_path = active_service.showcase_markdown_path(scenario)
-        return guarded_file_response(
-            active_service,
-            report_path,
-            media_type="text/markdown",
-        )
-
-    @app.get("/api/showcases/{scenario}/report.json")
-    def showcase_json_report(
-        scenario: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        report_path = active_service.showcase_json_path(scenario)
-        return guarded_file_response(
-            active_service,
-            report_path,
-            media_type="application/json",
-        )
-
-    @app.get("/api/showcases/{scenario}/artifacts/{artifact_name}")
-    def showcase_artifact(
-        scenario: str,
-        artifact_name: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        artifact_path = active_service.showcase_artifact_path(scenario, artifact_name)
-        media_type = "application/octet-stream"
-        if artifact_path.suffix == ".svg":
-            media_type = "image/svg+xml"
-        elif artifact_path.suffix == ".csv":
-            media_type = "text/csv"
-        return guarded_file_response(
-            active_service,
-            artifact_path,
-            media_type=media_type,
-            filename=artifact_path.name,
-        )
+    register_showcase_artifact_routes(app, current_service, guarded_file_response)
 
     @app.get("/api/runs")
     def runs(active_service: CockpitService = Depends(current_service)) -> dict:

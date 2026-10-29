@@ -151,6 +151,15 @@ and OpenAPI remain identical; no download, session or report-security policy is
 changed. See the [experiment-delivery qualification record](eh001-experiment-artifact-delivery-2026-10-28.md)
 for current measurements, installed-wheel acceptance and retained limitations.
 
+The 2026-10-28 showcase-artifact delivery increment characterizes the three
+showcase report/artifact GET routes before extracting their direct registration.
+It preserves bytes, media/name behavior, hosted isolation/caps, guards and the
+complete ordered API shape without changing artifact generation or caching.
+See the [showcase-delivery qualification record](eh001-showcase-artifact-delivery-2026-10-28.md)
+for current measurements and boundaries. Historical qualification records remain
+unchanged; the line counts in the active EH-001 row below are refreshed from this
+increment's measured source.
+
 EH-001 remains open. The remaining transport registration and response
 serialization still require separate characterization-first increments.
 
@@ -158,7 +167,7 @@ serialization still require separate characterization-first increments.
 
 | ID | Priority | Area | Evidence and risk | Decision / completion gate |
 | --- | --- | --- | --- | --- |
-| EH-001 | P0 | Cockpit architecture | Artifact, workspace, campaign, and AI evidence-context services are extracted, but `src/qs_dmss/cockpit/api.py` remains 3,085 lines and `CockpitService` spans 1,825 lines. AI context assembly retains complexity 39 in its isolated service, campaign guide assembly retains complexity 24, workspace annotation normalization retains complexity 22, and campaign template normalization retains complexity 17. Transport registration and serialization still create a broad regression radius. | Continue one characterization-first boundary per PR: transport registration, then response serialization. Preserve API and evidence contracts before each move; simplify extracted context, normalization, and guide assembly only after their schema and error contracts are explicit. |
+| EH-001 | P0 | Cockpit architecture | Artifact, workspace, campaign, and AI evidence-context services plus run/experiment/showcase delivery registration are extracted, but `src/qs_dmss/cockpit/api.py` remains 2,968 lines and `CockpitService` spans 1,836 lines (measured 2026-10-28). Previously recorded AI-context complexity 39, campaign-guide complexity 24, workspace-normalization complexity 22, and campaign-template complexity 17 remain separate debt, not remeasured or simplified by delivery extraction. Remaining transport registration and serialization still create a broad regression radius. | Continue one characterization-first boundary per PR: transport registration, then response serialization. Preserve API and evidence contracts before each move; simplify extracted context, normalization, and guide assembly only after their schema and error contracts are explicit. |
 | EH-002 | P0 | CLI architecture | `cli.main` has cyclomatic complexity 83 and owns routing for unrelated command families. | Replace the monolithic dispatcher with command-family handlers or registered subcommands without changing the public CLI. |
 | EH-003 | P1 | Frontend architecture | The cockpit uses single assets of 6,909 JavaScript lines, 6,663 CSS lines, and 2,187 HTML lines with no module-level test boundary. Browser behavior is covered mostly through static assertions and API tests. | Choose a no-build ES-module split or a maintained frontend toolchain; add focused browser acceptance tests before restructuring. |
 | EH-004 | P1 | Evidence/report architecture | `evidence/bundle.py`, `showcase.py`, and `experiment.py` combine calculation, rendering, persistence, and archive assembly. Their maintainability indices are low, and report changes can affect signed evidence contents. | Define stable evidence schemas and golden artifact tests before separating renderers from persistence and calculations. |
