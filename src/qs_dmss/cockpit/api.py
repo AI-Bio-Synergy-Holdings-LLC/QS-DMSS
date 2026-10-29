@@ -54,6 +54,9 @@ from qs_dmss.cockpit.campaigns import (
     CampaignLaunchSpec,
     CockpitCampaignService,
 )
+from qs_dmss.cockpit.experiment_artifact_routes import (
+    register_experiment_artifact_routes,
+)
 from qs_dmss.cockpit.robustness import robustness_router
 from qs_dmss.cockpit.workspaces import (
     CockpitWorkspaceService,
@@ -2998,61 +3001,6 @@ def create_app(
         )
 
     register_run_artifact_routes(app, current_service, guarded_file_response)
-
-    @app.get("/api/experiments/{experiment_id}/bundle")
-    def experiment_bundle_download(
-        experiment_id: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        bundle_path = active_service.experiment_bundle_path(experiment_id)
-        return guarded_file_response(
-            active_service,
-            bundle_path,
-            media_type="application/zip",
-            filename=(
-                f"{safe_filename(experiment_id, default='experiment')}"
-                "-comparison-bundle.zip"
-            ),
-        )
-
-    @app.get("/api/experiments/{experiment_id}/report")
-    def experiment_report(
-        experiment_id: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        report_path = active_service.experiment_report_path(experiment_id)
-        return guarded_file_response(
-            active_service,
-            report_path,
-            media_type="text/html",
-        )
-
-    @app.get("/api/experiments/{experiment_id}/workbook")
-    def experiment_workbook(
-        experiment_id: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        workbook_path = active_service.experiment_workbook_path(experiment_id)
-        return guarded_file_response(
-            active_service,
-            workbook_path,
-            media_type="text/html",
-        )
-
-    @app.get("/api/experiments/{experiment_id}/workbook/download")
-    def experiment_workbook_download(
-        experiment_id: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        workbook_path = active_service.experiment_workbook_path(experiment_id)
-        return guarded_file_response(
-            active_service,
-            workbook_path,
-            media_type="text/html",
-            filename=(
-                f"{safe_filename(experiment_id, default='experiment')}"
-                "-research-workbook.html"
-            ),
-        )
+    register_experiment_artifact_routes(app, current_service, guarded_file_response)
 
     return app
