@@ -30,6 +30,47 @@ Render auto-deploys changes under `site/` from `main`. The existing
 Pages is not the production HTTP boundary after the DNS cutover. The
 `site/CNAME` file is retained so that the rollback target remains complete.
 
+### No-deployment merges and GitHub Pages
+
+Pages is an independent publisher: Render's skip behavior does not automatically
+apply to it. During the owner-authorized no-deployment merge of
+[PR #221](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/pull/221), Render
+ignored the commit but the existing Pages workflow still published its artifact.
+The public Render portal/app remained on their prior commits. Do not describe
+that merge as having performed no deployment across all publishers.
+
+The Pages `deploy` job now checks the triggering **head commit's complete
+message**, including subject and body, for any of these exact marker forms:
+
+```text
+[skip render]    [render skip]
+[skip deploy]    [deploy skip]
+[skip cd]        [cd skip]
+```
+
+Matching is case-insensitive. A marked main push skips the entire Pages job
+before checkout, environment access, artifact upload and deployment. Deleted
+refs, missing/empty head-commit messages and unrelated automatic events/refs
+cannot publish. Existing main/site path filters remain unchanged. These are
+[job-level conditions](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-jobs-with-conditions),
+using GitHub's case-insensitive
+[`contains`](https://docs.github.com/en/actions/reference/workflows-and-actions/expressions#contains).
+
+Unmarked eligible main pushes retain automatic publication. Explicit
+`workflow_dispatch` remains the separately authorized rollback path, including
+when the selected revision has a skip marker; this guard does not authorize a
+manual dispatch or retire Pages. It does not change DNS, CNAME, Render settings,
+CSP, media, frozen evidence, scientific statuses or an already published artifact.
+
+For a future no-deployment merge, put a supported marker in the **final merge
+commit**, not just the PR title or an earlier commit. Confirm both Render
+`commit_ignored` events, the Pages job's skipped result and absence of a new
+`github-pages` deployment for that SHA. Cancel only the production-provenance
+verification workflow when no deployment is expected; leave engineering CI and
+security checks running. `[skip ci]` is not a deployment guard and must not
+replace this procedure. Do not rollback or change hosting settings without
+separate authorization.
+
 The portal build writes `deployment.json` from Render's public build identity:
 
 ```text
