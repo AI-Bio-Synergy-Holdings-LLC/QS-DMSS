@@ -18,6 +18,24 @@ concurrency:
 
 jobs:
   deploy:
+    # Render skip phrases must also stop the independent Pages publisher.
+    # Gate the whole job, before environment access, artifact upload or deploy.
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event_name == 'push' &&
+          github.ref == 'refs/heads/main' &&
+          !github.event.deleted &&
+          github.event.head_commit.message &&
+          !contains(github.event.head_commit.message, '[skip render]') &&
+          !contains(github.event.head_commit.message, '[render skip]') &&
+          !contains(github.event.head_commit.message, '[skip deploy]') &&
+          !contains(github.event.head_commit.message, '[deploy skip]') &&
+          !contains(github.event.head_commit.message, '[skip cd]') &&
+          !contains(github.event.head_commit.message, '[cd skip]')
+        )
+      }}
     permissions:
       contents: read
       pages: write
