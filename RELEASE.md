@@ -15,7 +15,10 @@ update tracked in `docs/public-link-update-checklist.md`.
 
 ## Version Alignment
 
-The current source and published package version is `0.14.0`. See
+The current source target is `0.15.0`, under preparation. The verified published
+package remains `0.14.0`; see [v0.15.0 preparation](docs/release-v0.15.0.md) for
+the frozen candidate scope and separate publication gates. A source version bump
+is not evidence that a release, tag, DOI or PyPI distribution exists. See
 [v0.14.0 release](docs/release-v0.14.0.md) for tag-built qualification, the
 local Windows installation disposition, verified hashes, and scientific non-claims.
 The published tag pins `15377b5ab1f9f3e32a37494e2e8973efce5211c3`; later

@@ -24,7 +24,7 @@ def test_version_metadata_is_aligned() -> None:
     pyproject = tomllib.loads((repo_root / "pyproject.toml").read_text(encoding="utf-8"))
     declared_version = pyproject["project"]["version"]
 
-    assert declared_version == "0.14.0"
+    assert declared_version == "0.15.0"
     assert qs_dmss.__version__ == declared_version
     assert metadata.version("qs-dmss") == declared_version
 
@@ -80,7 +80,7 @@ def test_public_discovery_metadata_is_present() -> None:
     assert urls["Documentation"] == "https://qs-dmss.studio"
     assert "Latest Archived Release DOI" not in urls
     assert "Latest Archived Zenodo Record" not in urls
-    assert urls["Release Notes"].endswith("/docs/release-v0.14.0.md")
+    assert urls["Release Notes"].endswith("/docs/release-v0.15.0.md")
     assert project["readme"] == "README-pypi.md"
 
     package_readme = (repo_root / project["readme"]).read_text(encoding="utf-8")

@@ -114,6 +114,7 @@ jobs:
           assert "qs_dmss/assets/schemas/run_config.schema.json" in wheel_names
           for name in ("manifest.json", "cases.json"):
               assert "qs_dmss/assets/diagnostic-packs/fft-plane-wave-v1/" + name in wheel_names
+              assert "qs_dmss/assets/diagnostic-packs/fft-plane-wave-v1-0.15/" + name in wheel_names
           for name in ("diagnostic-pack-v1", "diagnostic-pack-cases-v1"):
               assert "qs_dmss/assets/schemas/" + name + ".schema.json" in wheel_names
           assert "qs_dmss/assets/benchmarks/scenarios/demo-baseline.yaml" in wheel_names
@@ -166,6 +167,9 @@ jobs:
               assert sdist_root + fixture in sdist_names, fixture
           assert sdist_root + "RELEASE.md" in sdist_names
           assert sdist_root + "tests/test_diagnostic_packs.py" in sdist_names
+          for pack in ("fft-plane-wave-v1", "fft-plane-wave-v1-0.15"):
+              for name in ("manifest.json", "cases.json"):
+                  assert sdist_root + "src/qs_dmss/assets/diagnostic-packs/" + pack + "/" + name in sdist_names
           assert sdist_root + "tests/test_external_dimuon.py" in sdist_names
           assert sdist_root + "docs/cern-dimuon-evidence-lab.md" in sdist_names
           for name in ("diagnostic-pack-v1", "diagnostic-pack-cases-v1"):

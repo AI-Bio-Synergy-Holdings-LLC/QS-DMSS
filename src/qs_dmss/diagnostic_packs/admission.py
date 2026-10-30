@@ -171,7 +171,7 @@ def bundled_pack_path() -> Path:
         Path(__file__).resolve().parents[1]
         / "assets"
         / "diagnostic-packs"
-        / "fft-plane-wave-v1"
+        / "fft-plane-wave-v1-0.15"
     )
 
 

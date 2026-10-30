@@ -24,20 +24,21 @@ def structured_data(path: Path) -> dict:
     return json.loads(match.group(1))
 
 
-def test_published_build_keeps_project_and_version_archive_identities_separate() -> None:
+def test_prepared_build_keeps_project_and_version_archive_identities_separate() -> None:
     citation = yaml.safe_load((ROOT / "CITATION.cff").read_text(encoding="utf-8"))
-    assert citation["version"] == "0.14.0"
+    assert citation["version"] == "0.15.0"
+    assert "date-released" not in citation
     assert citation["doi"] == "10.5281/zenodo.20074924"
     cockpit = ROOT / "src/qs_dmss/cockpit/static"
     app = structured_data(cockpit / "index.html")
-    assert app["softwareVersion"] == "0.14.0"
+    assert app["softwareVersion"] == "0.15.0"
     assert app["citation"] == "https://doi.org/10.5281/zenodo.20074924"
     js = (cockpit / "app.js").read_text(encoding="utf-8")
-    assert 'packageVersion: "0.14.0"' in js
+    assert 'packageVersion: "0.15.0"' in js
     assert 'archivedReleaseTag: "v0.14.0"' in js
     assert "citationMetadata.archivedReleaseTag" in js
     metadata = json.loads((ROOT / "codemeta.json").read_text(encoding="utf-8"))
-    assert "https://doi.org/10.5281/zenodo.23250727" in metadata["sameAs"]
+    assert "sameAs" not in metadata
     assert any(item["value"] == "10.5281/zenodo.23250727" for item in citation["identifiers"])
     assert "https://doi.org/10.5281/zenodo.21366910" not in metadata.get("sameAs", [])
 
@@ -46,22 +47,20 @@ def test_published_build_keeps_project_and_version_archive_identities_separate()
     "path",
     ["codemeta.json", "src/qs_dmss/cockpit/static/index.html"],
 )
-def test_published_metadata_pins_download_targets_to_verified_release(path: str) -> None:
+def test_prepared_metadata_does_not_claim_a_published_distribution(path: str) -> None:
     metadata_path = ROOT / path
     metadata = (
         json.loads(metadata_path.read_text(encoding="utf-8"))
         if metadata_path.suffix == ".json"
         else structured_data(metadata_path)
     )
-    assert metadata["softwareVersion"] == "0.14.0"
+    assert metadata["softwareVersion"] == "0.15.0"
     assert metadata["codeRepository"].endswith("/QS-DMSS")
-    assert urlsplit(metadata["downloadUrl"]) == urlsplit(
-        "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.14.0"
-    )
-    assert urlsplit(metadata["installUrl"]) == urlsplit("https://pypi.org/project/qs-dmss/0.14.0/")
-    assert {urlsplit(url).hostname for url in metadata.get("sameAs", [])} <= {
-        "github.com",
-        "doi.org",
+    assert "downloadUrl" not in metadata
+    assert "installUrl" not in metadata
+    assert set(metadata.get("sameAs", [])) <= {
+        "https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS",
+        "https://doi.org/10.5281/zenodo.20074924",
     }
 
 
@@ -105,6 +104,16 @@ def test_portal_identifies_published_artifacts_without_scientific_promotion() ->
     assert "not a rerun of the published v0.14.0 package" in index
 
 
+def test_portal_build_version_does_not_relabel_the_published_package() -> None:
+    index = (ROOT / "site/index.html").read_text(encoding="utf-8")
+    assert '<meta name="application-version" content="0.15.0"' in index
+    application = next(item for item in structured_data(ROOT / "site/index.html")["@graph"]
+                       if item["@type"] == "SoftwareApplication")
+    assert application["softwareVersion"] == "0.14.0"
+    assert "/0.15.0/" not in application["installUrl"]
+    assert "/v0.15.0" not in application["downloadUrl"]
+
+
 def test_manual_published_install_defaults_target_the_verified_release() -> None:
     workflow = yaml.load(
         (ROOT / ".github/workflows/fresh-install-smoke.yml").read_text(encoding="utf-8"),
@@ -124,6 +133,9 @@ def test_manual_published_install_defaults_target_the_verified_release() -> None
         ("release-wheel", "0.13.2", False),
         ("pypi", "0.14.0", True),
         ("release-wheel", "0.14.0", True),
+        ("candidate-wheel", "0.15.0", True),
+        ("pypi", "0.15.0", True),
+        ("release-wheel", "0.15.0", True),
     ],
 )
 def test_published_new_artifacts_exercise_admitted_pilots(source, version, expected) -> None:

@@ -6,6 +6,15 @@ retained implementation hashes, not the version string alone. Publication does
 not imply scientific promotion, hosted compute or AI activation. The scientific
 review gate #183 remains open.
 
+The v0.15.0 preparation bundles a compatibility-only successor, pack **1.0.1**
+under `fft-plane-wave-v1-0.15`, as its default. It admits core versions
+`>=0.15.0,<0.16.0`. The original pack **1.0.0** under `fft-plane-wave-v1` stays
+byte-for-byte unchanged and retains its `>=0.13.2,<0.15.0` guard; use its original
+qualified core to reproduce it. Only the successor's pack version and core
+interval differ. Case bytes/hash, references, tolerances, budgets, evidence
+schemas and scientific labels are identical; saved old evidence is not rewritten.
+Qualifying this compatibility declaration does not extend any scientific claim.
+
 ## Complete researcher workflow
 
 Use the published v0.14.0 installation or a separately qualified source build.
