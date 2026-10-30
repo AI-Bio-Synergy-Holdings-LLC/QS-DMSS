@@ -52,6 +52,34 @@ jobs:
           --source candidate-wheel
           --wheel-path dist
 
+  candidate-quantum-wheel:
+    if: github.event_name == 'pull_request'
+    name: candidate quantum wheel on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Build candidate wheel
+        run: |
+          python -m pip install --upgrade pip build
+          python -m build --wheel
+      - name: Run installed quantum candidate smoke
+        run: >-
+          python .github/scripts/fresh_install_smoke.py
+          --source candidate-wheel --wheel-path dist --with-quantum
+
   published-release:
     if: github.event_name == 'workflow_dispatch'
     name: ${{ matrix.source }} on ${{ matrix.os }}

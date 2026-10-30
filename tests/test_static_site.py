@@ -109,7 +109,7 @@ def test_portal_build_generates_render_deployment_provenance(tmp_path: Path) -> 
 
     assert payload["schema_version"] == 1
     assert payload["service"] == "qs-dmss-studio-portal"
-    assert payload["version"] == "0.14.0"
+    assert payload["version"] == "0.15.0"
     assert payload["deployment"]["provider"] == "render"
     assert payload["deployment"]["git_commit"] == commit
     assert payload["deployment"]["git_branch"] == "main"

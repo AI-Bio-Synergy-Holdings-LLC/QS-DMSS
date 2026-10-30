@@ -95,6 +95,60 @@ def _includes_admitted_pilots(source: str, package_version: str) -> bool:
     return source == "candidate-wheel" or _version_at_least(package_version, (0, 14, 0))
 
 
+def _includes_cern_lab(package_version: str) -> bool:
+    # Historical 0.14.0 candidate forks are not the published 0.14.0 wheel.
+    return _version_at_least(package_version, (0, 15, 0))
+
+
+def _smoke_quantum(cli: Path, workspace: Path, output_root: Path) -> None:
+    commands = (
+        ("validate-fractal", "1024", "quantum-sidecar-validation"),
+        ("prepare-qpu-request", "128", "qpu-request-validation"),
+        ("validate-compilation", "128", "quantum-compilation-validation"),
+    )
+    for command, shots, directory in commands:
+        _run([str(cli), "quantum", command, "--shots", shots,
+              "--output-root", str(output_root / directory)], cwd=workspace)
+    sidecar = json.loads((output_root / commands[0][2] / "quantum-sidecar-validation.json").read_text(encoding="utf-8"))
+    request = json.loads((output_root / commands[1][2] / "qpu-request.json").read_text(encoding="utf-8"))
+    compilation = json.loads((output_root / commands[2][2] / "quantum-compilation-validation.json").read_text(encoding="utf-8"))
+    expected_policy = {
+        "credentials_read": False, "local_simulation_only": True,
+        "max_authorized_cost_usd": 0.0, "provider": None,
+        "remote_api_called": False, "submitted": False,
+    }
+    request_cost = request["cost_policy"]["max_authorized_cost_usd"]
+    compilation_cost = compilation["execution_policy"]["max_authorized_cost_usd"]
+    checks = {
+        "sidecar success": sidecar["success"] is True,
+        "no QPU": sidecar["submission_policy"]["qpu_used"] is False,
+        "no sidecar submission": sidecar["submission_policy"]["submitted"] is False,
+        "request success": request["success"] is True,
+        "no credentials": request["credential_policy"]["credentials_read"] is False,
+        "no request submission": request["submission_policy"]["submitted"] is False,
+        "never submit": request["submission_policy"]["never_submit"] is True,
+        "zero request spend": not isinstance(request_cost, bool) and request_cost == 0.0,
+        "compilation success": compilation["success"] is True,
+        "complete matrix": isinstance(compilation["matrix"], list) and len(compilation["matrix"]) == 12,
+        "compilation policy": compilation["execution_policy"] == expected_policy,
+        "numeric compilation cost": not isinstance(compilation_cost, bool),
+    }
+    for label, valid in checks.items():
+        if not valid:
+            raise AssertionError(f"Installed quantum smoke violated the local/never-submit boundary: {label}")
+    required = {
+        commands[0][2]: ("manifest.sha256.json", "quantum-sidecar-evidence.zip"),
+        commands[1][2]: ("manifest.sha256.json", "qpu-request-evidence.zip",
+                         "artifacts/fractal-fuzzy-target.openqasm"),
+        commands[2][2]: ("manifest.sha256.json", "quantum-compilation-evidence.zip",
+                         "quantum-compilation-matrix.csv"),
+    }
+    for directory, files in required.items():
+        for name in files:
+            if not (output_root / directory / name).is_file():
+                raise AssertionError(f"Missing quantum artifact: {directory}/{name}")
+
+
 def _smoke_cockpit(
     cli: Path,
     workspace: Path,
@@ -183,6 +237,7 @@ def run_smoke(
     package_version: str | None,
     release_tag: str | None,
     wheel_path: Path | None = None,
+    with_quantum: bool = False,
 ) -> None:
     workspace = Path(tempfile.mkdtemp(prefix=f"qs-dmss-{source}-")).resolve()
     try:
@@ -192,6 +247,7 @@ def run_smoke(
         cli = _venv_command(venv, "qs-dmss")
 
         _run([str(python), "-m", "pip", "install", "--upgrade", "pip"], cwd=workspace)
+        extra = "[quantum]" if with_quantum else ""
         if source == "pypi":
             if not package_version:
                 raise ValueError("PyPI smoke requires --package-version")
@@ -202,7 +258,7 @@ def run_smoke(
                     "pip",
                     "install",
                     "--no-cache-dir",
-                    f"qs-dmss=={package_version}",
+                    f"qs-dmss{extra}=={package_version}",
                 ],
                 cwd=workspace,
             )
@@ -212,12 +268,12 @@ def run_smoke(
                     "Release-wheel smoke requires --package-version and --release-tag"
                 )
             wheel_path = _download_wheel(package_version, release_tag, workspace)
-            _run([str(python), "-m", "pip", "install", str(wheel_path)], cwd=workspace)
+            _run([str(python), "-m", "pip", "install", str(wheel_path) + extra], cwd=workspace)
         elif source == "candidate-wheel":
             if wheel_path is None:
                 raise ValueError("Candidate-wheel smoke requires --wheel-path")
             candidate = _candidate_wheel(wheel_path)
-            _run([str(python), "-m", "pip", "install", str(candidate)], cwd=workspace)
+            _run([str(python), "-m", "pip", "install", str(candidate) + extra], cwd=workspace)
         else:  # pragma: no cover - argparse prevents this path.
             raise ValueError(f"Unsupported source: {source}")
 
@@ -320,6 +376,12 @@ def run_smoke(
                 cwd=workspace,
             )
 
+        if _includes_cern_lab(package_version):
+            _run([str(python), str(Path(__file__).with_name("external_dimuon_smoke.py")),
+                  "--output-root", str(output_root / "external-dimuon")], cwd=workspace)
+        if with_quantum:
+            _smoke_quantum(cli, workspace, output_root)
+
         print(
             f"Fresh install smoke passed for {source} "
             f"qs-dmss=={package_version} in {workspace}",
@@ -358,8 +420,13 @@ def main() -> int:
         default=None,
         help="Candidate wheel file or directory containing exactly one wheel.",
     )
+    parser.add_argument(
+        "--with-quantum", action="store_true",
+        help="Install the quantum extra and exercise local, never-submit quantum paths.",
+    )
     args = parser.parse_args()
-    run_smoke(args.source, args.package_version, args.release_tag, args.wheel_path)
+    run_smoke(args.source, args.package_version, args.release_tag, args.wheel_path,
+              with_quantum=args.with_quantum)
     return 0
 
 

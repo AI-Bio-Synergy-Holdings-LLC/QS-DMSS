@@ -163,10 +163,10 @@ def test_content_path_is_literal_not_an_extension_loader(documents, path):
 @pytest.mark.parametrize(
     "version,accepted",
     [
-        ("0.13.2", True),
-        ("0.14.0", True),
-        ("0.13.1", False),
-        ("0.15.0", False),
+        ("0.15.0", True),
+        ("0.15.99", True),
+        ("0.14.99", False),
+        ("0.16.0", False),
         ("0.14.0rc1", False),
         ("0.14", False),
     ],
@@ -180,6 +180,30 @@ def test_core_version_interval(documents, version, accepted):
     else:
         with pytest.raises(PackError):
             admit_bytes(json_bytes(manifest), data, core_version=version)
+
+
+def test_compatibility_successor_preserves_original_pack_and_case_bytes():
+    current = bundled_pack_path()
+    historical = current.parent / "fft-plane-wave-v1"
+    old_manifest = (historical / "manifest.json").read_bytes()
+    old_cases = (historical / "cases.json").read_bytes()
+    assert sha256(old_manifest) == "48e95a4e51a5c25832375111574635136d20cce4a6d558d04eea7766360ac1d3"
+    assert sha256(old_cases) == "b42ef7076b5cf2425217d6c570b7d45ea16326e2ab506abb78ccd9b8c9b54055"
+    assert (current / "cases.json").read_bytes() == old_cases
+    successor = admit_pack()
+    original = admit_bytes(old_manifest, old_cases, core_version="0.14.0")
+    assert original.manifest.version == "1.0.0"
+    assert successor.manifest.version == "1.0.1"
+    old_fields = original.manifest.model_dump(mode="json")
+    new_fields = successor.manifest.model_dump(mode="json")
+    assert {key for key in old_fields if old_fields[key] != new_fields[key]} == {
+        "version", "supported_core_versions",
+    }
+    assert sha256(successor.manifest_bytes) != sha256(old_manifest)
+    with pytest.raises(PackError, match="incompatible"):
+        admit_bytes(old_manifest, old_cases, core_version="0.15.0")
+    with pytest.raises(PackError, match="incompatible"):
+        admit_bytes(successor.manifest_bytes, old_cases, core_version="0.14.0")
 
 
 @pytest.mark.parametrize("values", [("0.14.0", "0.14.0"), ("0.15.0", "0.14.0")])

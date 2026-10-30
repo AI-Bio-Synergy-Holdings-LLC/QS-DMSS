@@ -1,8 +1,9 @@
 # CERN Dimuon Evidence Lab — local pilot
 
-This is an **unreleased, CLI-first educational external-data workflow** in a
-source candidate, not a feature of the published v0.14.0 wheel. No release
-metadata, cockpit/portal route, solver, AI setting or deployment is changed.
+This **experimental, CLI-first educational external-data workflow** is included
+in the v0.15.0 engineering-beta preparation, not in the published v0.14.0 wheel.
+Preparation is not publication or real-data numerical reconciliation. No new
+cockpit/portal route, solver, AI setting or hosted execution is introduced.
 It does not replace the frozen scientific evidence or assessment under
 [#183](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183).
 
@@ -24,8 +25,15 @@ qs-dmss external-data verify dimuon-baseline/dimuon-evidence.zip --recompute
 `--candidate-wheel-sha256` retain optional caller-declared implementation
 identities; these assertions are not independently verified. Retain the actual
 wheel separately. The receipt records Python, NumPy, QS-DMSS metadata and the
-actual relevant module-byte hashes. The unchanged core version alone cannot
-identify this unreleased candidate.
+actual relevant module-byte hashes. The core version alone cannot identify
+the exact implementation.
+
+The frozen numerical-reconciliation protocol still identifies source `c158c3b`
+and its separately approved 0.14.0 candidate wheel. New 0.15.0 artifacts are not
+substitutes for that wheel, and the identity checker must continue refusing such
+substitution. Real-data qualification remains `NOT_EXECUTED`; EDRS/v3 remain
+deferred, HOLD. Neither releasing software nor successful integrity verification
+changes scientific status.
 
 For a narrower saved analysis, use a **new** output directory and add
 `--mass-min 2.8 --mass-max 3.4 --pt-min 1 --bins 30`. No profile is overwritten

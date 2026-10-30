@@ -10,6 +10,20 @@ not peer-reviewed scientific validation, and its quantum-readiness paths are
 simulator-first and provider-neutral: they do not use provider credentials,
 remote APIs, QPU execution, job submission, or authorized spend.
 
+## v0.15.0 engineering-beta scope
+
+The 0.15.0 build adds an experimental, local CLI for bounded CERN dimuon CSV
+import, analysis, reporting and integrity verification, together with cockpit
+hardening and compatibility-preserving service extraction. It does not establish
+real-data numerical reconciliation, physical validation or independent human
+scientific review. EDRS/v3 and semantic-checker admission remain deferred/HOLD.
+
+The CERN commands require 0.15.0 artifacts or qualified source; the published
+0.14.0 wheel does not contain them. Check the installed version, source and
+artifact hashes. A source/build version alone does not establish publication;
+consult the project's release records for availability. Frozen candidate evidence
+and wheels remain separately identified, not replaced by this distribution.
+
 ## Install and run the local cockpit
 
 ```powershell

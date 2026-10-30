@@ -132,13 +132,14 @@ def test_security_policy_distinguishes_published_support_from_development() -> N
     pyproject = tomllib.loads(
         (REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8")
     )
-    version = pyproject["project"]["version"].split(".")
-    development_line = f"v{version[0]}.{version[1]}.x"
+    version = pyproject["project"]["version"]
 
-    assert "supported public release line is `v0.13.x`" in security
-    assert "backported to `v0.13.x`" in security
-    assert f"current development line is `{development_line}`" in security
-    assert "not\nyet published" in security
+    assert "current published release line is `v0.14.x`" in security
+    assert f"`v{version}` source target is under preparation, not a published release" in security
+    assert "publication requires a separate approval" in security
+    assert "does not end the existing `v0.13.x` support/backport policy" in security
+    assert "existing maintainer-directed `v0.13.x` backport" in security
+    assert "Any such policy change requires\nan explicit maintainer decision" in security
 
 
 def _public_markdown_paths(root: Path):

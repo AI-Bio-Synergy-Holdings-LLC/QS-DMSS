@@ -35,6 +35,17 @@ Deployment and rollback notes
 live in
 [docs/website-deployment.md](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/website-deployment.md).
 
+## Source target: v0.15.0
+
+This source prepares **v0.15.0**, not a new publication. See the
+[release-preparation scope and gates](docs/release-v0.15.0.md). It includes the
+merged engineering/security fixes, characterized cockpit extractions and the
+experimental educational CERN CLI. Real-data numerical reconciliation remains
+`NOT_EXECUTED`; EDRS/v3 and semantic-checker admission remain deferred/HOLD.
+Frozen candidate wheels, evidence, protocols and scientific statuses are not
+retargeted to this build. The published package below remains v0.14.0 until a
+separate publication decision and verified artifacts exist.
+
 ## Current Public State
 
 **v0.14.0 is published** on [GitHub](https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.14.0),

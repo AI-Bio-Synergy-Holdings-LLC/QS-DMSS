@@ -48,7 +48,7 @@ for (const campaign of [false, true]) {
   test(`${campaign ? "Campaign" : "Lab"} Markdown does not offer a different published artifact`, () => {
     const {context} = harness();
     const markdown = context.buildResearchObjectMarkdown(researchObject(campaign));
-    assert.match(markdown, /Package: qs-dmss==0\.14\.0/);
+    assert.match(markdown, /Package: qs-dmss==0\.15\.0/);
     assert.match(markdown, /Latest archived release \(v0\.14\.0\) DOI:/);
     assert.match(markdown, /compare source commit and artifact hashes/);
     assert.doesNotMatch(markdown, /pypi\.org|PyPI:/);

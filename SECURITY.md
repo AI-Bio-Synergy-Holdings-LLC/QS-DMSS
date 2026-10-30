@@ -2,18 +2,20 @@
 
 ## Supported Versions
 
-The currently supported public release line is `v0.13.x`, beginning with
-`v0.13.2`.
+The current published release line is `v0.14.x`, beginning with `v0.14.0`.
+The `v0.15.0` source target is under preparation, not a published release.
+Security fixes target `main` first; publication requires a separate approval.
 
-The current development line is `v0.14.x`, under release preparation and not
-yet published. Security fixes target this `main` source first. Publishing 0.14.0
-and changing the supported public line require the separate publication gate;
-the preparation version bump does not silently end v0.13.x support.
+This preparation does not end the existing `v0.13.x` support/backport policy
+(beginning with `v0.13.2`), declare an end-of-support date, or automatically
+promote `v0.15.x` to the supported public line. Any such policy change requires
+an explicit maintainer decision.
 
 Current `main` may include security or governance fixes that have not yet been
 packaged into a release. Security fixes should target `main` first and be
-backported to `v0.13.x` only when the maintainer determines that a public patch
-release is required.
+backported to a published line only when the maintainer determines that a public
+patch release is required. The existing maintainer-directed `v0.13.x` backport
+decision remains available; it is not silently revoked by the version bump.
 
 Earlier public release lines remain archived and citable, but security fixes
 should target the current supported line unless a maintainer explicitly decides
