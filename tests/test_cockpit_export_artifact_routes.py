@@ -149,13 +149,13 @@ def assert_headers(response):
 
 
 def assert_existing_server_error(response):
-    """Freeze the pre-existing outer error response; header hardening is separate."""
+    """Preserve status/body while enforcing the EH-013 response-header correction."""
     assert response.status_code == 500
     assert response.json() == {"detail": api.GENERIC_COCKPIT_ERROR_DETAIL}
-    assert dict(response.headers) == {
-        "content-length": str(len(response.content)),
-        "content-type": "application/json",
-    }
+    assert response.headers["content-length"] == str(len(response.content))
+    assert response.headers["content-type"] == "application/json"
+    assert "set-cookie" not in response.headers
+    assert_headers(response)
 
 
 def filename(case):

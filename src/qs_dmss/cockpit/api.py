@@ -2291,6 +2291,16 @@ def create_app(
     app.state.hosted_demo_cleanup_lock = threading.Lock()
     app.state.ai_runtime = build_ai_runtime(ai_provider)
 
+    def apply_response_headers(request: Request, response: Response) -> None:
+        if request.url.path.startswith(NOINDEX_RESPONSE_PATHS):
+            response.headers["X-Robots-Tag"] = (
+                "noindex, nofollow, noarchive, nosnippet"
+            )
+        if request.url.path.startswith("/api/"):
+            response.headers["Cache-Control"] = "no-store"
+        for name, value in BASELINE_SECURITY_HEADERS.items():
+            response.headers.setdefault(name, value)
+
     @app.exception_handler(Exception)
     async def unhandled_exception_handler(
         request: Request,
@@ -2302,10 +2312,13 @@ def create_app(
             request.url.path,
             type(exc).__name__,
         )
-        return JSONResponse(
+        response = JSONResponse(
             status_code=500,
             content={"detail": GENERIC_COCKPIT_ERROR_DETAIL},
         )
+        # ServerErrorMiddleware creates this response outside the HTTP middleware.
+        apply_response_headers(request, response)
+        return response
 
     app.mount("/static", StaticFiles(directory=service.static_root), name="static")
 
@@ -2315,14 +2328,7 @@ def create_app(
         call_next: Callable,
     ):
         response = await call_next(request)
-        if request.url.path.startswith(NOINDEX_RESPONSE_PATHS):
-            response.headers["X-Robots-Tag"] = (
-                "noindex, nofollow, noarchive, nosnippet"
-            )
-        if request.url.path.startswith("/api/"):
-            response.headers["Cache-Control"] = "no-store"
-        for name, value in BASELINE_SECURITY_HEADERS.items():
-            response.headers.setdefault(name, value)
+        apply_response_headers(request, response)
         return response
 
     @app.middleware("http")
