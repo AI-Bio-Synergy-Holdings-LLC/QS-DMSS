@@ -57,6 +57,12 @@ from qs_dmss.cockpit.campaigns import (
 from qs_dmss.cockpit.experiment_artifact_routes import (
     register_experiment_artifact_routes,
 )
+from qs_dmss.cockpit.export_artifact_routes import (
+    register_ai_bundle_route,
+    register_campaign_study_download_route,
+    register_research_object_download_route,
+    register_workspace_download_route,
+)
 from qs_dmss.cockpit.quantum_artifact_routes import register_quantum_artifact_routes
 from qs_dmss.cockpit.robustness import robustness_router
 from qs_dmss.cockpit.showcase_artifact_routes import (
@@ -2558,21 +2564,7 @@ def create_app(
         finally:
             _AI_DRAFT_ACTIVE_LOCK.release()
 
-    @app.get("/api/ai/drafts/{interaction_id}/bundle")
-    def ai_draft_bundle(
-        interaction_id: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        try:
-            path = active_service.ai_draft_bundle_path(interaction_id)
-        except FileNotFoundError:
-            raise HTTPException(status_code=404, detail="AI advisory draft not found") from None
-        return guarded_file_response(
-            active_service,
-            path,
-            media_type="application/zip",
-            filename=f"{interaction_id}-ai-advisory-bundle.zip",
-        )
+    register_ai_bundle_route(app, current_service, guarded_file_response)
 
     @app.get("/api/configs")
     def configs(active_service: CockpitService = Depends(current_service)) -> dict:
@@ -2816,18 +2808,7 @@ def create_app(
     ) -> dict:
         return active_service.get_campaign_study_template(template_id)
 
-    @app.get("/api/campaign-studies/{template_id}/download")
-    def campaign_study_download(
-        template_id: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        template_path = active_service.campaign_study_template_path(template_id)
-        return guarded_file_response(
-            active_service,
-            template_path,
-            media_type="application/json",
-            filename=template_path.name,
-        )
+    register_campaign_study_download_route(app, current_service, guarded_file_response)
 
     @app.post("/api/sweeps")
     def launch_sweep(
@@ -2865,18 +2846,7 @@ def create_app(
             lambda: active_service.export_research_object(payload),
         )
 
-    @app.get("/api/research-objects/{export_id}/download")
-    def research_object_download(
-        export_id: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        markdown_path, file_name = active_service.research_object_markdown_path(export_id)
-        return guarded_file_response(
-            active_service,
-            markdown_path,
-            media_type="text/markdown",
-            filename=file_name,
-        )
+    register_research_object_download_route(app, current_service, guarded_file_response)
 
     @app.get("/api/workspaces")
     def workspaces(active_service: CockpitService = Depends(current_service)) -> dict:
@@ -2903,18 +2873,7 @@ def create_app(
     ) -> dict:
         return active_service.get_workspace(workspace_id)
 
-    @app.get("/api/workspaces/{workspace_id}/download")
-    def workspace_download(
-        workspace_id: str,
-        active_service: CockpitService = Depends(current_service),
-    ) -> FileResponse:
-        workspace_path = active_service.workspace_path(workspace_id)
-        return guarded_file_response(
-            active_service,
-            workspace_path,
-            media_type="application/json",
-            filename=workspace_path.name,
-        )
+    register_workspace_download_route(app, current_service, guarded_file_response)
 
     @app.post("/api/runs/{run_id}/verify")
     def verify_run(
