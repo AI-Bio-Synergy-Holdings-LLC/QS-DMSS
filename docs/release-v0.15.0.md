@@ -76,19 +76,74 @@ A Windows application-control refusal is a retained host-policy limitation,
 not a passed installation or a product fix. Do not disable controls, substitute
 launch paths to evade a refusal, or treat another machine's pass as its resolution.
 
-## Separate future gates — not authorized here
+## V0150-PACKAGE-ONLY-1 — adoption draft for review
 
-1. Owner/Copilot review, protected merge and green post-merge engineering checks.
-2. Separately authorize production rollout. Verify app/portal source provenance
-   and EH-013 sanitized **500** security/cache/noindex headers, not only healthy
-   200 responses. EH-013 remains operationally open until this is complete.
-3. Separately authorize tagging/publication; build and qualify fresh artifacts
-   from the approved clean tag, retaining exact hashes and environment receipts.
-4. Publish those exact approved bytes to GitHub and PyPI through the protected
-   workflow; verify the real Zenodo record/DOI before activating public links.
-5. Update public version/DOI metadata and any changed portal JSON-LD CSP hash
-   through explicit reviewed authorization, then verify published-source installs
-   and deployed provenance. Do not invent future URLs or mutate old releases.
+2026-11-23. Project: `AI-Bio-Synergy-Holdings-LLC/QS-DMSS`. Adoption baseline:
+`178fe4f91d196f0b5b78a3aaa32655ed3e6170e5`. Charles Martin Jones Jr, Founder and
+Managing Member of AI-Bio Synergy Holdings LLC and Founder and CEO of AI Bio
+Synergy, approved the package-only design. This AI-assisted adoption draft
+records that decision for review; it does not authorize execution. Contribution
+attestation reference: `ABS-PA-20261122-01` (private record, not included here).
+The October preparation results above are historical and unchanged.
+
+**One-time ordering change, v0.15.0 only.** A separately authorized local
+engineering beta may be published on GitHub and PyPI before the hosted rollout
+if the package gates below pass. No tag, upload, workflow dispatch, public
+metadata change, deployment or change to future releases is authorized here.
+
+### Package gates — separate authorizations
+
+1. **Adopt the policy without deploying.** Require owner and Copilot review,
+   a protected merge and green post-merge engineering checks. Limit the adoption
+   diff to this record. A later authorized merge must retain `[skip render]` in
+   its final commit message. Do not dispatch GitHub Pages, Render deploys,
+   Blueprint syncs or the PyPI workflow for this adoption. The production
+   provenance workflow can still start on a push to `main`: it checks for a
+   live deploy but does not trigger one. Treat that check as not applicable to
+   the no-deploy merge; any cancellation requires separate authorization and
+   must not cancel engineering CI.
+2. **Qualify the exact release artifacts.** Before creating or pushing the
+   release tag, verify that tag-triggered integrations, including those outside
+   the repository, cannot trigger hosted deployment. If this cannot be verified,
+   hold tagging. Then separately authorize a clean release commit and tag, and
+   build a fresh wheel and sdist. Retain the source commit, build environment,
+   artifacts and their SHA-256 digests. Require the supported Python matrix,
+   unchanged coverage floor, base and quantum installation on
+   Linux/macOS/Windows, Docker, security, policy and package checks. Bind results
+   to the exact release source and bytes; a tag alone does not run the existing
+   PR and branch checks. The preparation artifacts do not substitute for this.
+3. **Clear release and publication blockers.** Before creating or publishing
+   the GitHub release, verify that release-event integrations, including those
+   outside the repository, cannot trigger hosted deployment. If this cannot be
+   verified, hold release creation and publication. Inventory live version
+   labels: an accurately labeled v0.14.0 archive link may stay, but a v0.14.0
+   “latest” claim cannot. If a metadata-only change is needed, separately
+   authorize and verify it before publication; never use package approval to
+   update the hosted app or approve a CSP change.
+   If the labels cannot remain accurate without an unauthorized deploy, hold
+   publication. Identify the package as available for local installation only
+   after verification; distinguish it from the hosted demo's actual build.
+4. **Authorize publication separately.** Publish only the qualified wheel and
+   sdist, with the approved digests, to GitHub and PyPI through the protected
+   path. Verify the files actually staged for upload against the approved
+   manifest before publishing; the current workflow's metadata and Twine
+   checks do not enforce that digest comparison. If the comparison cannot be
+   enforced before upload, hold publication. Re-download from both channels,
+   verify matching digests and published-source installs, and record any
+   partial publication without silently replacing artifacts. Confirm any
+   archival trigger before release and verify the actual version DOI before
+   advertising it. Do not invent URLs or mutate prior releases.
+
+### Hosted acceptance — remains HOLD
+
+Render remains on the existing Git-backed service and hosted ABA01 stays
+parked. A later separately authorized rollout still requires app/portal source
+provenance, isolated EH-013 sanitized **500** security/cache/noindex evidence
+bound to the exact deploy artifact, and verified eligibility of the exact
+retained rollback target. A healthy `200`, a preparation-only Docker test or
+offline ABA01 mock does not meet that gate. Until then, EH-013 remains
+operationally open. Preserve failed ABA01 R2, sealed R3, the 128 KiB evidence
+ceiling and the US$10 operational cap.
 
 Passing preparation, CI or publication does not promote scientific claims,
 admit held research work, close #183 or grant deployment/release authority.
