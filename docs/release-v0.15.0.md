@@ -102,19 +102,24 @@ metadata change, deployment or change to future releases is authorized here.
    live deploy but does not trigger one. Treat that check as not applicable to
    the no-deploy merge; any cancellation requires separate authorization and
    must not cancel engineering CI.
-2. **Qualify the exact release artifacts.** Separately authorize a clean release
-   commit and tag, then build a fresh wheel and sdist. Retain the source commit,
-   build environment, artifacts and their SHA-256 digests. Require the supported
-   Python matrix, unchanged coverage floor, base and quantum installation on
+2. **Qualify the exact release artifacts.** Before creating or pushing the
+   release tag, verify that tag-triggered integrations, including those outside
+   the repository, cannot trigger hosted deployment. If this cannot be verified,
+   hold tagging. Then separately authorize a clean release commit and tag, and
+   build a fresh wheel and sdist. Retain the source commit, build environment,
+   artifacts and their SHA-256 digests. Require the supported Python matrix,
+   unchanged coverage floor, base and quantum installation on
    Linux/macOS/Windows, Docker, security, policy and package checks. Bind results
    to the exact release source and bytes; a tag alone does not run the existing
    PR and branch checks. The preparation artifacts do not substitute for this.
-3. **Clear publication blockers before uploading.** Verify that tag and release
-   events cannot trigger hosted deployment, including integrations outside the
-   repository. Inventory live version labels: an accurately labeled v0.14.0
-   archive link may stay, but a v0.14.0 “latest” claim cannot. If a metadata-only
-   change is needed, separately authorize and verify it before publication;
-   never use package approval to update the hosted app or approve a CSP change.
+3. **Clear release and publication blockers.** Before creating or publishing
+   the GitHub release, verify that release-event integrations, including those
+   outside the repository, cannot trigger hosted deployment. If this cannot be
+   verified, hold release creation and publication. Inventory live version
+   labels: an accurately labeled v0.14.0 archive link may stay, but a v0.14.0
+   “latest” claim cannot. If a metadata-only change is needed, separately
+   authorize and verify it before publication; never use package approval to
+   update the hosted app or approve a CSP change.
    If the labels cannot remain accurate without an unauthorized deploy, hold
    publication. Identify the package as available for local installation only
    after verification; distinguish it from the hosted demo's actual build.
