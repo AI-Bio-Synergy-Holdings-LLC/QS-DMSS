@@ -7,6 +7,10 @@ on:
         description: "GitHub release tag to publish, for example v0.1.0"
         required: true
         type: string
+      manifest_sha256:
+        description: "Independently approved SHA-256 of qs-dmss-release-manifest.json"
+        required: true
+        type: string
       confirm:
         description: "Type publish-to-pypi to confirm publication"
         required: true
@@ -21,26 +25,47 @@ jobs:
   prepare-release-assets:
     name: Validate release assets
     runs-on: ubuntu-latest
+    outputs:
+      artifact_id: ${{ steps.handoff.outputs.artifact-id }}
 
     steps:
       - name: Validate manual dispatch
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
         shell: bash
         run: |
           set -euo pipefail
-          if [[ "${{ inputs.confirm }}" != "publish-to-pypi" ]]; then
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "Refusing to publish: dispatch this workflow from main." >&2
+            exit 1
+          fi
+          if [[ "$CONFIRM" != "publish-to-pypi" ]]; then
             echo "Refusing to publish: confirmation input must be publish-to-pypi." >&2
             exit 1
           fi
-          if [[ ! "${{ inputs.tag }}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Refusing to publish: tag must be a final release tag like v0.1.0." >&2
             exit 1
           fi
+          if [[ ! "$RELEASE_MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ]]; then
+            echo "Refusing to publish: supply the independently approved manifest SHA-256." >&2
+            exit 1
+          fi
+
+      - name: Check out trusted verifier
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
 
       - name: Check out release tag
         uses: actions/checkout@v7
         with:
-          ref: ${{ inputs.tag }}
-          fetch-depth: 0
+          ref: refs/tags/${{ inputs.tag }}
+          path: release-source
+          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@v7
@@ -59,13 +84,28 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p dist
+          mkdir -p publication/dist
           gh release download "$RELEASE_TAG" \
             --repo "$GITHUB_REPOSITORY" \
-            --dir dist \
+            --dir publication/dist \
             --pattern "*.whl" \
             --pattern "*.tar.gz"
-          find dist -maxdepth 1 -type f -print | sort
+          gh release download "$RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --dir publication \
+            --pattern "qs-dmss-release-manifest.json"
+
+      - name: Verify downloaded release hashes
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          RELEASE_MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          source_commit=$(git -C release-source rev-parse HEAD)
+          python .github/scripts/verify_release_upload.py \
+            --packet publication --tag "$RELEASE_TAG" --source-commit "$source_commit" \
+            --manifest-sha256 "$RELEASE_MANIFEST_SHA256" | tee -a "$GITHUB_STEP_SUMMARY"
 
       - name: Validate release artifact metadata
         env:
@@ -81,14 +121,14 @@ jobs:
           import tomllib
 
           tag = os.environ["RELEASE_TAG"]
-          project = tomllib.loads(Path("pyproject.toml").read_text())
+          project = tomllib.loads(Path("release-source/pyproject.toml").read_text(encoding="utf-8"))
           package_name = project["project"]["name"]
           version = project["project"]["version"]
           expected_tag = f"v{version}"
           if tag != expected_tag:
               raise SystemExit(f"Tag {tag!r} does not match package version {expected_tag!r}.")
 
-          dist = Path("dist")
+          dist = Path("publication/dist")
           wheels = sorted(dist.glob("*.whl"))
           sdists = sorted(dist.glob("*.tar.gz"))
           if len(wheels) != 1 or len(sdists) != 1:
@@ -126,13 +166,14 @@ jobs:
           PY
 
       - name: Check release artifacts
-        run: python -m twine check dist/*
+        run: python -m twine check publication/dist/*
 
       - name: Upload PyPI-ready artifacts
+        id: handoff
         uses: actions/upload-artifact@v7
         with:
-          name: pypi-release-dists
-          path: dist/
+          name: pypi-release-packet
+          path: publication/
           if-no-files-found: error
 
   publish:
@@ -147,13 +188,50 @@ jobs:
       id-token: write
 
     steps:
+      - name: Check out trusted verifier
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+
+      - name: Resolve release tag again
+        uses: actions/checkout@v7
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          path: release-source
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
       - name: Download PyPI-ready artifacts
+        if: needs.prepare-release-assets.outputs.artifact_id != ''
         uses: actions/download-artifact@v8
         with:
-          name: pypi-release-dists
-          path: dist/
+          artifact-ids: ${{ needs.prepare-release-assets.outputs.artifact_id }}
+          path: publication/
+
+      - name: Verify approved hashes immediately before upload
+        env:
+          APPROVED_MANIFEST_SHA256: ${{ secrets.QS_DMSS_APPROVED_MANIFEST_SHA256 }}
+          RELEASE_MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+          RELEASE_TAG: ${{ inputs.tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "$APPROVED_MANIFEST_SHA256" =~ ^[0-9a-f]{64}$ ||
+                "$APPROVED_MANIFEST_SHA256" != "$RELEASE_MANIFEST_SHA256" ]]; then
+            echo "Refusing to publish: the protected pypi manifest approval is missing or does not match." >&2
+            exit 1
+          fi
+          source_commit=$(git -C release-source rev-parse HEAD)
+          python .github/scripts/verify_release_upload.py \
+            --packet publication --tag "$RELEASE_TAG" --source-commit "$source_commit" \
+            --manifest-sha256 "$APPROVED_MANIFEST_SHA256"
 
       - name: Publish release distributions to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: dist/
+          packages-dir: publication/dist/
