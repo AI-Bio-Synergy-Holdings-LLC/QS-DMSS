@@ -46,7 +46,7 @@ def test_static_site_front_door_contract() -> None:
     required_fragments = [
         "Run simulations. Inspect evidence. Compare campaigns. Publish reproducible artifacts.",
         "Install from PyPI",
-        "Download v0.14.0",
+        "v0.14.0 release archive",
         "Run local cockpit",
         'python -m pip install --upgrade "qs-dmss[quantum]"',
         "Read DOI",
@@ -66,7 +66,6 @@ def test_static_site_front_door_contract() -> None:
         "The hosted service is always available, with bounded runs and temporary artifacts.",
         "not peer-reviewed scientific validation",
         'name="twitter:card" content="summary_large_image"',
-        "v0.14.0 published",
         "QS-DMSS v0.14.0",
         "no provider submission, QPU execution, or spend",
     ]
@@ -168,8 +167,6 @@ def test_static_site_metadata_hardening() -> None:
     assert "<loc>https://qs-dmss.studio/</loc>" in sitemap
     assert "<lastmod>2026-10-08</lastmod>" in sitemap
     assert "<image:loc>https://qs-dmss.studio/assets/social-preview-v0132.png</image:loc>" in sitemap
-    assert "Latest archived release DOI: https://doi.org/10.5281/zenodo.23250727" in llms
-    assert "Current GitHub and Zenodo release: v0.14.0" in llms
     assert "provider credentials, remote API, QPU execution" in llms
     assert "Hosted demo: https://app.qs-dmss.studio/" in llms
 
@@ -182,6 +179,23 @@ def test_static_site_metadata_hardening() -> None:
     structured_data = json.loads(json_ld_match.group(1))
     graph_types = {item["@type"] for item in structured_data["@graph"]}
     assert {"Organization", "WebSite", "WebPage", "SoftwareSourceCode", "SoftwareApplication"} <= graph_types
+
+
+def test_portal_distinguishes_installation_from_the_versioned_archive() -> None:
+    index = (SITE_ROOT / "index.html").read_text(encoding="utf-8")
+    llms = (SITE_ROOT / "llms.txt").read_text(encoding="utf-8")
+
+    assert 'href="https://pypi.org/project/qs-dmss/">Get QS-DMSS on PyPI</a>' in index
+    assert 'href="https://pypi.org/project/qs-dmss/">QS-DMSS on PyPI</a>' in index
+    assert 'href="https://pypi.org/project/qs-dmss/0.14.0/">v0.14.0 on PyPI</a>' in index
+    assert "Published release archive" in index
+    assert "Current public release" not in index
+    assert not re.search(r"latest (?:PyPI|archived)", index, re.IGNORECASE)
+    assert "PyPI project (local installation): https://pypi.org/project/qs-dmss/\n" in llms
+    assert "v0.14.0 published release archive" in llms
+    assert "Versioned PyPI package: https://pypi.org/project/qs-dmss/0.14.0/" in llms
+    assert "v0.14.0 archive DOI: https://doi.org/10.5281/zenodo.23250727" in llms
+    assert not re.search(r"\b(?:current GitHub|latest)\b", llms, re.IGNORECASE)
 
 
 def test_static_site_json_ld_matches_edge_csp_hash() -> None:

@@ -11,6 +11,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 from html.parser import HTMLParser
 from pathlib import Path
+from urllib.parse import urljoin
 
 import numpy as np
 import pytest
@@ -217,11 +218,32 @@ def test_metadata_is_static_canonical_and_different_from_homepage():
         for t, a in parser.nodes
     )
     assert "social-preview-v0132.png" not in html
-    assert 'href="challenges/sc-graph-001/"' in (ROOT / "site/index.html").read_text(
-        encoding="utf-8"
-    )
     ET.parse(ROOT / "site/sitemap.xml")
     assert URL in (ROOT / "site/sitemap.xml").read_text(encoding="utf-8")
+
+
+def test_homepage_features_the_canonical_explorer_before_the_dynamic_catalog():
+    homepage = ROOT / "site/index.html"
+    html = homepage.read_text(encoding="utf-8")
+    parser = PageParser()
+    parser.feed(html)
+    links = [
+        (attrs, ancestors)
+        for tag, attrs, ancestors in parser.contexts
+        if tag == "a" and "sc-explorer-link" in attrs.get("class", "").split()
+    ]
+    assert len(links) == 1
+    attrs, ancestors = links[0]
+    assert {"button", "primary"} <= set(attrs["class"].split())
+    assert "target" not in attrs and "tabindex" not in attrs
+    assert any(a.get("id") == "scientific-challenges" for _, a in ancestors)
+    assert not any("hidden" in a or "inert" in a for a in (attrs, *(a for _, a in ancestors)))
+    for base in (homepage.as_uri(), "http://127.0.0.1:8799/", "https://qs-dmss.studio/"):
+        assert urljoin(base, attrs["href"]) == URL
+    button = html.index("Open the boundary explorer")
+    assert html.index("Which Dirichlet boundary did we implement?") < button
+    assert button < html.index("data-challenge-status") < html.index("data-challenge-view")
+    assert 'href="challenges/sc-graph-001/"' not in html
 
 
 def test_current_csp_needs_no_new_inline_exception_or_remote_runtime():

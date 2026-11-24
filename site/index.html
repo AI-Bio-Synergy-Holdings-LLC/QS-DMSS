@@ -191,7 +191,7 @@
     <main id="main">
       <section class="hero" id="top" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <p class="eyebrow">Public beta | Apache-2.0 | v0.14.0 published</p>
+          <p class="eyebrow">Public beta | Apache-2.0</p>
           <h1 id="hero-title">Run simulations. Inspect evidence. Compare campaigns. Publish reproducible artifacts.</h1>
           <p class="hero-lede">
             QS-DMSS is a deterministic, evidence-first simulation lab for
@@ -204,8 +204,8 @@
           </p>
           <div class="hero-actions" aria-label="Primary actions">
             <a class="button primary" href="https://app.qs-dmss.studio/">Open Hosted Demo</a>
-            <a class="button" href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.14.0">Download v0.14.0</a>
-            <a class="button" href="https://pypi.org/project/qs-dmss/0.14.0/">Install latest PyPI (v0.14.0)</a>
+            <a class="button" href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.14.0">v0.14.0 release archive</a>
+            <a class="button" href="https://pypi.org/project/qs-dmss/">Get QS-DMSS on PyPI</a>
             <a class="button" href="#local-cockpit">Run local cockpit</a>
             <a class="button" href="https://doi.org/10.5281/zenodo.20074924">Read DOI</a>
             <a class="button support" href="https://opencollective.com/qs-dmss">Support on Open Collective</a>
@@ -220,7 +220,7 @@
         </div>
 
         <aside class="hero-panel" aria-labelledby="release-title">
-          <p class="panel-kicker">Current public release</p>
+          <p class="panel-kicker">Published release archive</p>
           <h2 id="release-title">QS-DMSS v0.14.0</h2>
           <dl>
             <div>
@@ -228,12 +228,12 @@
               <dd><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.14.0">v0.14.0 release notes and artifacts</a></dd>
             </div>
             <div>
-              <dt>Latest archived DOI</dt>
+              <dt>v0.14.0 archive DOI</dt>
               <dd><a href="https://doi.org/10.5281/zenodo.23250727">v0.14.0 DOI</a></dd>
             </div>
             <div>
-              <dt>Package</dt>
-              <dd><a href="https://pypi.org/project/qs-dmss/0.14.0/">pypi.org/project/qs-dmss/0.14.0</a></dd>
+              <dt>Versioned package</dt>
+              <dd><a href="https://pypi.org/project/qs-dmss/0.14.0/">v0.14.0 on PyPI</a></dd>
             </div>
             <div>
               <dt>Stewardship</dt>
@@ -371,12 +371,19 @@
           <h2 id="scientific-challenges-title">Scientific Challenges</h2>
           <p>Help test a bounded claim. Inspect the evidence, reproduce locally, and submit a human-accountable assessment.</p>
           <p class="sc-note">These are frozen, commit-pinned candidate results, not a rerun of the published v0.14.0 package and not evidence from your current run. Numerical agreement is not physical validation.</p>
+          <div class="sc-featured-explorer">
+            <div>
+              <p class="sc-note">SC-GRAPH-001 · Read-only recorded explorer</p>
+              <h3>Which Dirichlet boundary did we implement?</h3>
+              <p>Compare four recorded boundary cases from frozen candidate evidence. Independent scientific assessment remains pending.</p>
+            </div>
+            <a class="button primary sc-explorer-link" href="https://qs-dmss.studio/challenges/sc-graph-001/">Open the boundary explorer</a>
+          </div>
           <p data-challenge-status role="status">Challenge data unavailable until its identity is checked. Use the reviewer guide below if the catalog cannot load.</p>
           <button type="button" data-challenge-retry hidden>Retry catalog check</button>
           <div data-challenge-view></div>
           <p class="sc-note">Frozen snapshot: later findings are recorded separately. Engineering approval applies to pilot #194, not scientific correctness.</p>
           <p><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/08f75235cc1fe6e6a8ba4bfdbddcdd049359a7f9/docs/scientific-challenges.md">Source reviewer guide</a> · <a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/issues/183">Current scientific-review gate and findings (#183)</a></p>
-          <p><a href="challenges/sc-graph-001/">Explore the recorded SC-GRAPH-001 boundary cases</a> — a read-only view of frozen candidate evidence; independent scientific assessment remains pending.</p>
           <noscript><p>JavaScript is disabled. The source reviewer guide contains all three challenges, evidence links and intake instructions.</p></noscript>
         </section>
 
@@ -454,10 +461,10 @@ qs-dmss cockpit --host 127.0.0.1 --port 8001</code></pre>
         <h2 id="links-title">Public entry points</h2>
         <ul>
           <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS">GitHub repository</a></li>
-          <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.14.0">v0.14.0 release</a></li>
-          <li><a href="https://pypi.org/project/qs-dmss/0.14.0/">Latest PyPI package (v0.14.0)</a></li>
+          <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.14.0">v0.14.0 release archive</a></li>
+          <li><a href="https://pypi.org/project/qs-dmss/">QS-DMSS on PyPI</a></li>
           <li><a href="https://doi.org/10.5281/zenodo.20074924">Project DOI</a></li>
-          <li><a href="https://doi.org/10.5281/zenodo.23250727">Latest archived release DOI</a></li>
+          <li><a href="https://doi.org/10.5281/zenodo.23250727">v0.14.0 archive DOI</a></li>
           <li><a href="https://opencollective.com/qs-dmss">Open Collective</a></li>
           <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/reference-data-calibration.md">Reference-data calibration</a></li>
           <li><a href="https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/conceptual-reference-map.md">Conceptual reference map</a></li>
