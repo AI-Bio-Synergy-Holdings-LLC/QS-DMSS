@@ -240,6 +240,43 @@ main {
   color: #ffd1c2;
 }
 
+.sc-featured-explorer {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem 1.4rem;
+  margin-block: 1.25rem;
+  padding: clamp(0.85rem, 2.5vw, 1.35rem);
+  border: 1px solid var(--sc-line);
+  border-radius: 12px;
+  background: var(--sc-tint);
+}
+
+.scientific-challenges .sc-featured-explorer :is(h3, p) {
+  margin: 0;
+}
+
+.sc-featured-explorer > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.scientific-challenges .sc-explorer-link {
+  color: #1a1305;
+  text-decoration: none;
+  text-align: center;
+}
+
+@media (max-width: 760px) {
+  .sc-featured-explorer {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sc-explorer-link {
+    justify-self: start;
+  }
+}
+
 .hero-panel,
 .cockpit-strip,
 .live-demo,

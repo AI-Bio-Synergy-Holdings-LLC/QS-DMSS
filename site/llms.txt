@@ -7,14 +7,16 @@ workflows.
 Canonical website: https://qs-dmss.studio/
 Hosted demo: https://app.qs-dmss.studio/
 Repository: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS
-Current GitHub and Zenodo release: v0.14.0
-Published source commit: 15377b5ab1f9f3e32a37494e2e8973efce5211c3
-Release notes: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/release-v0.14.0.md
-GitHub release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.14.0
-Latest published PyPI package: https://pypi.org/project/qs-dmss/0.14.0/
+PyPI project (local installation): https://pypi.org/project/qs-dmss/
 Project DOI: https://doi.org/10.5281/zenodo.20074924
-Latest archived release DOI: https://doi.org/10.5281/zenodo.23250727
 Open Collective: https://opencollective.com/qs-dmss
+
+v0.14.0 published release archive (not a current-version claim):
+- Published source commit: 15377b5ab1f9f3e32a37494e2e8973efce5211c3
+- Release notes: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/blob/main/docs/release-v0.14.0.md
+- GitHub release: https://github.com/AI-Bio-Synergy-Holdings-LLC/QS-DMSS/releases/tag/v0.14.0
+- Versioned PyPI package: https://pypi.org/project/qs-dmss/0.14.0/
+- v0.14.0 archive DOI: https://doi.org/10.5281/zenodo.23250727
 
 QS-DMSS helps users run simulations, inspect evidence, compare campaigns,
 record public reference-data provenance, verify/replay outputs, and publish
