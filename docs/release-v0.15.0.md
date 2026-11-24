@@ -125,10 +125,11 @@ metadata change, deployment or change to future releases is authorized here.
    after verification; distinguish it from the hosted demo's actual build.
 4. **Authorize publication separately.** Publish only the qualified wheel and
    sdist, with the approved digests, to GitHub and PyPI through the protected
-   path. Verify the files actually staged for upload against the approved
-   manifest before publishing; the current workflow's metadata and Twine
-   checks do not enforce that digest comparison. If the comparison cannot be
-   enforced before upload, hold publication. Re-download from both channels,
+   path. Follow the [upload-integrity procedure](pypi-distribution-readiness.md#trusted-publishing-configuration)
+   to bind the approved manifest to the exact tag, source commit and files.
+   Metadata and Twine checks alone are not a digest comparison. If the workflow
+   cannot verify the staged bytes against that approved manifest immediately
+   before upload, hold publication. Re-download from both channels,
    verify matching digests and published-source installs, and record any
    partial publication without silently replacing artifacts. Confirm any
    archival trigger before release and verify the actual version DOI before

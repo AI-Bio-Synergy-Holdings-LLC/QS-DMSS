@@ -200,8 +200,8 @@ Repository-side configuration:
 - Publishing workflow: `.github/workflows/publish-pypi.yml`
 - Trigger: manual `workflow_dispatch`
 - Required confirmation input: `publish-to-pypi`
-- Distribution source: files already attached to the GitHub release for the
-  requested tag
+- Distribution source: the exact wheel and sdist attached to the GitHub release
+  for the requested tag, verified against an independently approved manifest
 
 GitHub-side setup completed on `2026-05-01`: the `pypi` environment exists,
 requires `SIONSOULSION` approval, and is restricted to deployments from `main`.
@@ -215,15 +215,41 @@ PyPI Trusted Publisher values:
 - Workflow name: `publish-pypi.yml`
 - Environment name: `pypi`
 
-For future releases, run the GitHub workflow manually from
-Actions -> Publish to PyPI with:
+For a separately authorized publication, use **Actions → Publish to PyPI** from
+`main` with:
 
-- `tag`: the final release tag, such as `v0.9.0`
+- `tag`: the final release tag
+- `manifest_sha256`: the lowercase SHA-256 of the exact, owner-approved
+  `qs-dmss-release-manifest.json` bytes, recorded during artifact qualification
 - `confirm`: `publish-to-pypi`
 
-The workflow downloads the GitHub release assets for the requested tag,
-validates package metadata, checks the distributions with Twine, then publishes
-through the `pypi` environment using PyPI's short-lived OIDC token exchange.
+Attach `qs-dmss-release-manifest.json` to the authorized GitHub release with the
+qualified wheel and sdist. Its UTF-8 JSON object is limited to 4 KiB and has
+exactly four fields:
+
+- `schema_version`: integer `1`.
+- `tag`: the exact final release tag, including `v`.
+- `source_commit`: the full 40-character lowercase commit ID of that tag.
+- `artifacts`: a JSON object mapping the exact `qs_dmss-<version>-py3-none-any.whl`
+  and `qs_dmss-<version>.tar.gz` filenames to their lowercase SHA-256 digests.
+
+Retain the approved manifest bytes and digest independently of the GitHub release
+assets. For the authorized publication only, the owner sets the digest as
+`QS_DMSS_APPROVED_MANIFEST_SHA256` in the protected **`pypi` environment's
+secrets**, not a repository or organization secret of the same name. The digest
+is not a PyPI token; the protected setting provides an approval input independent
+of the person dispatching the run and of the release download. Do not derive
+approval from the downloaded file. Verify the secret's scope and absence of a
+same-named repository or organization secret before dispatch. Review the
+validation job's summary against the retained tag, source commit and hashes
+before approving the environment job.
+
+The workflow verifies the collection after download, validates metadata, runs
+Twine, and passes the packet by artifact ID to the protected job. That job
+resolves the tag again, requires the protected digest to match the dispatch
+input, and verifies the bytes again immediately before PyPI Trusted Publishing.
+Only the wheel and sdist are in the publisher's directory. Missing approvals,
+moved tags, unexpected files, or SHA-256 mismatches must stop publication.
 
 ## Artifact Policy
 

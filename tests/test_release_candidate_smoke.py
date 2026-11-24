@@ -180,7 +180,7 @@ def test_new_build_does_not_retarget_frozen_reconciliation_or_publication():
     assert protocol["candidate_commit"] == "c158c3ba3f81cadf7d11bdfcab3441c8d99be851"
     assert protocol["candidate_wheel_sha256"] == "6a8af63f047be841a9ce17d3f02392d56f0963498979f7c27593aed40aac1e60"
     assert protocol["qualification_outcome"] == "NOT_EXECUTED"
-    notes = (ROOT / "docs/release-v0.15.0.md").read_text()
+    notes = (ROOT / "docs/release-v0.15.0.md").read_text(encoding="utf-8")
     for text in ("DEFERRED, HOLD", "NOT_ESTABLISHED", "NOT_EXECUTED", "PENDING", "v0.14.0"):
         assert text in notes
     security = (ROOT / "SECURITY.md").read_text()
